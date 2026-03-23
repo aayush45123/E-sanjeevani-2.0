@@ -1,10 +1,15 @@
-import React from 'react'
-import './App.css'
+import React from "react";
+import "./App.css";
+import { Routes, Route } from "react-router-dom";
 
 const App = () => {
   return (
-    <div>App</div>
-  )
-}
+    <>
+      <Routes>
+        <Route path="/" element={<PaletteDemo />} />
+      </Routes>
+    </>
+  );
+};
 
-export default App
+export default App;
