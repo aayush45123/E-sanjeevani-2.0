@@ -1,0 +1,65 @@
+:root {
+  /* ===== BRAND COLORS ===== */
+  --brand-black: #000000;
+  --brand-white: #ffffff;
+  --brand-off-white: #f4f4f2;
+  --brand-light-gray: #e3e3e1;
+  --brand-dark-gray: #1e3834;
+  --brand-green-dark: #51da4d;
+  --brand-green-mid: #7ae377;
+  --brand-green-light: #a4eca2;
+  --brand-orange: #f38536;
+  --brand-purple: #ed9ef3;
+
+  /* ===== SEMANTIC COLORS ===== */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f4f4f2;
+  --bg-dark: #1e3834;
+  --bg-accent-green: #51da4d;
+  --bg-accent-orange: #f38536;
+  --bg-accent-purple: #ed9ef3;
+  --text-primary: #000000;
+  --text-secondary: #1e3834;
+  --text-light: #a4eca2;
+  --text-on-dark: #ffffff;
+  --text-on-green: #ffffff;
+  --border-light: #e3e3e1;
+  --border-dark: #1e3834;
+  --border-green: #7ae377;
+  --border-white: #ffffff;
+
+  /* ===== SPACING SYSTEM ===== */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+
+  /* ===== TYPOGRAPHY ===== */
+  --font-primary: "Public Sans", sans-serif;
+  --font-secondary:
+    "Geist Mono", monospace; /* Adjusted to monospace for fallback */
+  --font-serif: "Montagu Slab", serif;
+  --text-xs: 14px;
+  --text-sm: 16px;
+  --text-base: 20px;
+  --text-lg: 22px;
+  --text-xl: 24px;
+  --text-2xl: 30px;
+  --text-3xl: 36px;
+  --text-4xl: 48px;
+
+  /* ===== BORDER RADIUS ===== */
+  --radius-sm: 4px;
+  --radius-md: 20px;
+  --radius-lg: 40px;
+  --radius-full: 50%;
+
+  /* ===== SHADOWS ===== */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 25px 50px rgba(0, 0, 0, 0.15);
+}
