@@ -12,7 +12,8 @@
 }
 
 .navbar.scrolled {
-  background: rgba(30, 56, 52, 0.9); /* Dark green glass */
+  background: rgba(30, 56, 52, 0.9);
+  /* Dark green glass */
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -32,12 +33,26 @@
   text-decoration: none;
   display: flex;
   align-items: center;
+  gap: var(--space-3);
+  transition: opacity 0.2s ease;
+}
+
+.logo:hover {
+  opacity: 0.8;
+}
+
+.logoIcon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
 }
 
 .logoText {
-  font-family: var(--font-serif); /* Montagu Slab */
+  font-family: var(--font-serif);
+  /* Montagu Slab */
   font-size: 24px;
-  font-weight: 400; /* Lighter weight for that high-end editorial feel */
+  font-weight: 400;
+  /* Lighter weight for that high-end editorial feel */
   color: var(--brand-white);
   letter-spacing: -0.01em;
 }
@@ -46,16 +61,18 @@
 .navLinks {
   display: flex;
   align-items: center;
-  gap: 32px; 
+  gap: 32px;
 }
 
 .navLink {
-  font-family: var(--font-primary); /* Public Sans */
+  font-family: var(--font-primary);
+  /* Public Sans */
   font-size: 15px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.65); /* Dimmed white */
+  color: rgba(255, 255, 255, 0.65);
+  /* Dimmed white */
   text-decoration: none;
-  padding-bottom: 6px; 
+  padding-bottom: 6px;
   position: relative;
   transition: color 0.2s ease;
 }
@@ -77,7 +94,8 @@
   left: 0;
   right: 0;
   height: 2px;
-  background-color: var(--brand-green-dark); /* The sharp neon green underline */
+  background-color: var(--brand-green-dark);
+  /* The sharp neon green underline */
 }
 
 /* ===== DESKTOP ACTIONS (Icons & Sign In) ===== */
@@ -104,17 +122,22 @@
 }
 
 .btnSignIn {
-  font-family: var(--font-primary); /* Public Sans */
+  font-family: var(--font-primary);
+  /* Public Sans */
   font-size: 14px;
   font-weight: 500;
   color: var(--brand-white);
-  background-color: rgba(255, 255, 255, 0.05); /* Very subtle dark fill */
-  border: 1px solid rgba(255, 255, 255, 0.2); /* Subtle thin border */
-  border-radius: 40px; /* Pill shape */
+  background-color: rgba(255, 255, 255, 0.05);
+  /* Very subtle dark fill */
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  /* Subtle thin border */
+  border-radius: 40px;
+  /* Pill shape */
   padding: 8px 20px;
   cursor: pointer;
   transition: all 0.2s ease;
-  margin-left: 8px; /* Extra space separating icons from button */
+  margin-left: 8px;
+  /* Extra space separating icons from button */
 }
 
 .btnSignIn:hover {
@@ -140,9 +163,17 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.menuLine:nth-child(1).menuLineOpen { transform: translateY(8px) rotate(45deg); }
-.menuLine:nth-child(2).menuLineOpen { opacity: 0; }
-.menuLine:nth-child(3).menuLineOpen { transform: translateY(-8px) rotate(-45deg); }
+.menuLine:nth-child(1).menuLineOpen {
+  transform: translateY(8px) rotate(45deg);
+}
+
+.menuLine:nth-child(2).menuLineOpen {
+  opacity: 0;
+}
+
+.menuLine:nth-child(3).menuLineOpen {
+  transform: translateY(-8px) rotate(-45deg);
+}
 
 .mobileMenu {
   position: fixed;
@@ -157,7 +188,9 @@
   transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.mobileMenu.mobileMenuOpen { max-height: 100vh; }
+.mobileMenu.mobileMenuOpen {
+  max-height: 100vh;
+}
 
 .mobileMenuContent {
   padding: var(--space-6);
@@ -167,7 +200,8 @@
 }
 
 .mobileNavLink {
-  font-family: var(--font-primary); /* Public Sans */
+  font-family: var(--font-primary);
+  /* Public Sans */
   font-size: 16px;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.65);
@@ -191,7 +225,8 @@
 
 .btnSignInMobile {
   width: 100%;
-  font-family: var(--font-primary); /* Public Sans */
+  font-family: var(--font-primary);
+  /* Public Sans */
   font-size: 16px;
   font-weight: 500;
   color: var(--brand-white);
@@ -203,10 +238,20 @@
 }
 
 /* ===== RESPONSIVE ===== */
-@media (max-width: 1024px) { 
-  .navLinks { gap: 20px; } 
+@media (max-width: 1024px) {
+  .navLinks {
+    gap: 20px;
+  }
 }
+
 @media (max-width: 768px) {
-  .navLinks, .navActions { display: none; }
-  .mobileMenuBtn { display: flex; }
+
+  .navLinks,
+  .navActions {
+    display: none;
+  }
+
+  .mobileMenuBtn {
+    display: flex;
+  }
 }
