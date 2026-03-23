@@ -1,6 +1,7 @@
 import React from "react";
 import "./App.css";
 import { Routes, Route } from "react-router-dom";
+import PaletteDemo from "./pages/PaletteDemo/PaletteDemo";
 
 const App = () => {
   return (
