@@ -1,0 +1,165 @@
+/* Hero.module.css */
+
+.pageWrapper {
+  background-color: var(--bg-dark);
+  /* Deep green #1E3834 */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-primary);
+  position: relative;
+  overflow: hidden;
+}
+
+/* ===== CENTERED HERO CONTENT ===== */
+.heroContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* Vertically centers everything */
+  text-align: center;
+
+  /* 140px top padding ensures it clears your fixed global Navbar */
+  padding: 140px var(--space-4) var(--space-12);
+
+  max-width: 900px;
+  margin: 0 auto;
+  gap: var(--space-6);
+  position: relative;
+  z-index: 2;
+}
+
+/* Top Technical Tag */
+/* Top Technical Badge (Translucent Pill + Pulse) */
+.topTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background-color: rgba(122, 227, 119, 0.08);
+  /* Extremely subtle green glass */
+  border: 1px solid rgba(122, 227, 119, 0.2);
+  /* Soft illuminated border */
+  border-radius: 40px;
+  padding: 6px 16px;
+  font-family: var(--font-secondary);
+  /* Geist Mono */
+  font-size: 11px;
+  color: var(--brand-green-mid);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-bottom: var(--space-4);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* The Live 'Active' Dot inside the badge */
+.topTag::before {
+  content: '';
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--brand-green-dark);
+  box-shadow: 0 0 8px var(--brand-green-dark);
+  animation: badgePulse 2s infinite;
+}
+
+/* @keyframes badgePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+} */
+/* Massive Editorial Title */
+/* Massive Editorial Title - Elegant & Professional */
+.title {
+  font-family: var(--font-serif);
+  font-size: clamp(48px, 6vw, 80px);
+  font-weight: 500;
+  line-height: 1.15;
+  color: var(--brand-white);
+  letter-spacing: -0.015em;
+  margin: 0;
+}
+
+/* Accent Text - Elegant Italic for Emphasis */
+.titleAccent {
+  color: var(--brand-green-dark);
+  font-weight: 500;
+  font-style: italic;
+  letter-spacing: -0.01em;
+}
+
+/* Narrow Subtitle */
+.description {
+  font-family: var(--font-primary);
+  /* Public Sans for clean readability */
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--brand-light-gray);
+  opacity: 0.85;
+  max-width: 600px;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* CTA Area */
+.ctaWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5);
+  margin-top: var(--space-4);
+}
+
+/* CTA Button */
+.btnPrimary {
+  background-color: var(--brand-green-dark);
+  color: var(--brand-black);
+  border: none;
+  border-radius: var(--radius-lg); 
+  padding: 18px 36px; /* Slightly larger hit area */
+  font-family: var(--font-primary); /* Public Sans */
+  font-size: 18px; /* Larger, more confident text */
+  font-weight: 700; /* Bold execution command */
+  letter-spacing: -0.02em; /* Tight tracking makes it look like a premium SaaS app */
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 0 30px rgba(81, 218, 77, 0.25);
+}
+
+.btnPrimary:hover {
+  transform: translateY(-2px);
+  /* box-shadow: 0 0 45px rgba(81, 218, 77, 0.45);  */
+}
+
+/* Bottom Technical Link */
+.bottomLink {
+  font-family: var(--font-secondary);
+  /* Geist Mono */
+  font-size: 11px;
+  color: var(--brand-light-gray);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  opacity: 0.6;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bottomLink:hover {
+  opacity: 1;
+  color: var(--brand-white);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .heroContent {
+    padding: 120px var(--space-4) var(--space-8);
+  }
+
+  .title {
+    font-size: clamp(36px, 8vw, 48px);
+  }
+}

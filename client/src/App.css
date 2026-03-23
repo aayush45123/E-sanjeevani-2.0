@@ -1,3 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Montagu+Slab:opsz,wght@16..144,100..700&family=Public+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 :root {
   /* ===== BRAND COLORS ===== */
   --brand-black: #000000;
@@ -41,7 +49,8 @@
   /* ===== TYPOGRAPHY ===== */
   --font-primary: "Public Sans", sans-serif;
   --font-secondary:
-    "Geist Mono", monospace; /* Adjusted to monospace for fallback */
+    "Geist Mono", monospace;
+  /* Adjusted to monospace for fallback */
   --font-serif: "Montagu Slab", serif;
   --text-xs: 14px;
   --text-sm: 16px;
