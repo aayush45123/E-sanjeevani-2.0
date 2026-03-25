@@ -1,6 +1,6 @@
 import { useState } from "react";
 import styles from "./Auth.module.css";
-import { signupUser, loginUser } from "../utils/api";
+import { signupUser, loginUser } from "../../utils/api";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
