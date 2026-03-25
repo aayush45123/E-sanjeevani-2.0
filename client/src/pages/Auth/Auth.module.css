@@ -1,0 +1,74 @@
+.container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--bg-secondary);
+  font-family: var(--font-primary);
+}
+
+.card {
+  background: var(--bg-primary);
+  padding: var(--space-8);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  width: 350px;
+  text-align: center;
+}
+
+h2 {
+  margin-bottom: var(--space-4);
+  color: var(--text-primary);
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+input,
+select {
+  padding: var(--space-3);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  outline: none;
+}
+
+input:focus,
+select:focus {
+  border-color: var(--border-green);
+}
+
+button {
+  padding: var(--space-3);
+  background: var(--bg-accent-green);
+  color: var(--text-on-green);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button:hover {
+  background: var(--brand-green-mid);
+}
+
+.toggle {
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+}
+
+.toggle span {
+  color: var(--brand-orange);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.message {
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--brand-green-dark);
+}
