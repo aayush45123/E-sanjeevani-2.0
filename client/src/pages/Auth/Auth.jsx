@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import styles from "./Auth.module.css";
 import { signupUser, loginUser } from "../../utils/api";
 
@@ -12,6 +13,8 @@ const Auth = () => {
   });
   const [message, setMessage] = useState("");
 
+  const navigate = useNavigate(); 
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -22,11 +25,19 @@ const Auth = () => {
     try {
       const data = isLogin ? await loginUser(form) : await signupUser(form);
 
-      if (data.token) {
+      // ✅ LOGIN SUCCESS → go dashboard
+      if (isLogin && data.token) {
         localStorage.setItem("token", data.token);
+        navigate("/dashboard"); // 🔥 redirect
       }
 
-      setMessage(data.message || "Success");
+      // ✅ SIGNUP SUCCESS → go login
+      if (!isLogin && data.message === "User created") {
+        setIsLogin(true); // switch to login
+        setMessage("Signup successful! Please login.");
+      } else {
+        setMessage(data.message || "Success");
+      }
     } catch (err) {
       setMessage("Something went wrong");
     }
