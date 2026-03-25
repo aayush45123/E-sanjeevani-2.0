@@ -90,7 +90,12 @@ const Navbar = () => {
           </button>
 
           {/* Sign In Pill Button */}
-          <button className={styles.btnSignIn}>Sign In</button>
+          <button
+            className={styles.btnSignIn}
+            onClick={() => (window.location.href = "/auth")}
+          >
+            Sign In
+          </button>
         </div>
 
         {/* Mobile Menu Button (Hamburger) */}
@@ -161,7 +166,12 @@ const Navbar = () => {
           </a>
 
           <div className={styles.mobileActions}>
-            <button className={styles.btnSignInMobile}>Sign In</button>
+            <button
+              className={styles.btnSignInMobile}
+              onClick={() => (window.location.href = "/auth")}
+            >
+              Sign In
+            </button>
           </div>
         </div>
       </div>
