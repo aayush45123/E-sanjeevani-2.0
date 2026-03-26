@@ -6,17 +6,17 @@
   left: 0;
   right: 0;
   z-index: 1000;
-  background: transparent;
-  border-bottom: 1px solid transparent;
+  background: rgba(30, 56, 52, 0.92);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .navbar.scrolled {
-  background: rgba(30, 56, 52, 0.9);
-  /* Dark green glass */
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(30, 56, 52, 0.95);
+  border-bottom: 1px solid rgba(81, 218, 77, 0.1);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.15);
 }
 
 .container {
