@@ -25,7 +25,7 @@ const Auth = () => {
   const handleAuthSuccess = (token) => {
     localStorage.setItem("token", token);
     window.dispatchEvent(new Event("authChange")); // Navbar re-syncs instantly
-    navigate("/"); // React Router — no full reload
+    navigate("/dashboard"); // React Router — no full reload
   };
 
   const handleSubmit = async (e) => {
