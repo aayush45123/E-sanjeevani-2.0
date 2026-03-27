@@ -1,3 +1,4 @@
+// Auth.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./Auth.module.css";
@@ -20,25 +21,53 @@ const Auth = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  // Shared: store token, notify Navbar, redirect
+  const handleAuthSuccess = (token) => {
+    localStorage.setItem("token", token);
+    window.dispatchEvent(new Event("authChange")); // Navbar re-syncs instantly
+    navigate("/"); // React Router — no full reload
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
 
     try {
-      const data = isLogin ? await loginUser(form) : await signupUser(form);
+      if (isLogin) {
+        // ── LOGIN ──
+        const data = await loginUser({
+          email: form.email,
+          password: form.password,
+        });
 
-      if (isLogin && data.token) {
-        localStorage.setItem("token", data.token);
-        navigate("/dashboard");
-      }
-
-      if (!isLogin && data.message === "User created") {
-        setIsLogin(true);
-        setForm({ name: "", email: "", password: "", role: "patient" });
-        setMessage("✓ Signup successful! Please login.");
+        if (data.token) {
+          handleAuthSuccess(data.token);
+        } else {
+          setMessage(data.message || "Login failed. Check your credentials.");
+        }
       } else {
-        setMessage(data.message || "Success");
+        // ── SIGNUP ──
+        const signupData = await signupUser(form);
+
+        if (signupData.message === "User created") {
+          // Auto-login to get token immediately — no "please login" screen
+          const loginData = await loginUser({
+            email: form.email,
+            password: form.password,
+          });
+
+          if (loginData.token) {
+            handleAuthSuccess(loginData.token);
+          } else {
+            // Fallback: send to login form manually
+            setIsLogin(true);
+            setForm({ name: "", email: "", password: "", role: "patient" });
+            setMessage("✓ Account created! Please sign in.");
+          }
+        } else {
+          setMessage(signupData.message || "Signup failed. Please try again.");
+        }
       }
     } catch (err) {
       setMessage("✕ Something went wrong. Please try again.");
@@ -206,7 +235,7 @@ const Auth = () => {
             {message && (
               <div
                 className={`${styles.message} ${
-                  message.includes("✗") ? styles.error : styles.success
+                  message.includes("✕") ? styles.error : styles.success
                 }`}
               >
                 {message}
@@ -222,8 +251,8 @@ const Auth = () => {
               {loading
                 ? "Processing..."
                 : isLogin
-                ? "Sign In"
-                : "Create Account"}
+                  ? "Sign In"
+                  : "Create Account"}
             </button>
           </form>
 

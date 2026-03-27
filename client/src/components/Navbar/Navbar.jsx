@@ -1,29 +1,87 @@
 // Navbar.jsx
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import styles from "./Navbar.module.css";
 import logoSvg from "../../assets/logo-svg.svg";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
 
+  const location = useLocation();
+  const isAuthPage = location.pathname.startsWith("/auth");
+
+  // Re-check token on every route change (covers logout → re-login flow)
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
+    setIsLoggedIn(!!localStorage.getItem("token"));
+  }, [location.pathname]);
 
+  // Re-check token when authChange fires (same-tab login/signup)
+  useEffect(() => {
+    const onAuthChange = () => setIsLoggedIn(!!localStorage.getItem("token"));
+    window.addEventListener("authChange", onAuthChange);
+    return () => window.removeEventListener("authChange", onAuthChange);
+  }, []);
+
+  // Scroll listener
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
+  // Same logout logic as Sidebar
+  const logout = () => {
+    localStorage.removeItem("token");
+    window.location.href = "/";
+  };
+
+  const toggleMobileMenu = () => setIsMobileMenuOpen((prev) => !prev);
+  const closeMobileMenu = () => setIsMobileMenuOpen(false);
+
+  const renderAuthButton = () => {
+    if (isAuthPage) return null;
+    if (isLoggedIn) {
+      return (
+        <button className={styles.btnLogout} onClick={logout}>
+          Logout
+        </button>
+      );
+    }
+    return (
+      <button
+        className={styles.btnSignIn}
+        onClick={() => (window.location.href = "/auth")}
+      >
+        Sign In
+      </button>
+    );
+  };
+
+  const renderMobileAuthButton = () => {
+    if (isAuthPage) return null;
+    if (isLoggedIn) {
+      return (
+        <button className={styles.btnLogoutMobile} onClick={logout}>
+          Logout
+        </button>
+      );
+    }
+    return (
+      <button
+        className={styles.btnSignInMobile}
+        onClick={() => (window.location.href = "/auth")}
+      >
+        Sign In
+      </button>
+    );
   };
 
   return (
     <nav className={`${styles.navbar} ${isScrolled ? styles.scrolled : ""}`}>
       <div className={styles.container}>
-        {/* Logo with SVG Icon and Text */}
+        {/* Logo */}
         <a href="/" className={styles.logo}>
           <img
             src={logoSvg}
@@ -33,9 +91,8 @@ const Navbar = () => {
           <span className={styles.logoText}>E-Sanjeevani 2.0</span>
         </a>
 
-        {/* Desktop Navigation (Inter Font) */}
+        {/* Desktop Navigation */}
         <div className={styles.navLinks}>
-          {/* Note the active class on the first link to create the green underline */}
           <a href="#platform" className={`${styles.navLink} ${styles.active}`}>
             Platform
           </a>
@@ -53,9 +110,8 @@ const Navbar = () => {
           </a>
         </div>
 
-        {/* Desktop Actions (Icons & Pill Button) */}
+        {/* Desktop Actions */}
         <div className={styles.navActions}>
-          {/* Notification Bell Icon */}
           <button className={styles.iconBtn} aria-label="Notifications">
             <svg
               width="20"
@@ -71,8 +127,6 @@ const Navbar = () => {
               <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
             </svg>
           </button>
-
-          {/* User Profile Icon */}
           <button className={styles.iconBtn} aria-label="Profile">
             <svg
               width="20"
@@ -88,17 +142,10 @@ const Navbar = () => {
               <circle cx="12" cy="7" r="4"></circle>
             </svg>
           </button>
-
-          {/* Sign In Pill Button */}
-          <button
-            className={styles.btnSignIn}
-            onClick={() => (window.location.href = "/auth")}
-          >
-            Sign In
-          </button>
+          {renderAuthButton()}
         </div>
 
-        {/* Mobile Menu Button (Hamburger) */}
+        {/* Mobile Hamburger */}
         <button
           className={styles.mobileMenuBtn}
           onClick={toggleMobileMenu}
@@ -122,7 +169,7 @@ const Navbar = () => {
         </button>
       </div>
 
-      {/* Mobile Menu (Hidden on Desktop) */}
+      {/* Mobile Menu */}
       <div
         className={`${styles.mobileMenu} ${
           isMobileMenuOpen ? styles.mobileMenuOpen : ""
@@ -132,47 +179,39 @@ const Navbar = () => {
           <a
             href="#platform"
             className={styles.mobileNavLink}
-            onClick={toggleMobileMenu}
+            onClick={closeMobileMenu}
           >
             Platform
           </a>
           <a
             href="#triage"
             className={styles.mobileNavLink}
-            onClick={toggleMobileMenu}
+            onClick={closeMobileMenu}
           >
             AI Triage
           </a>
           <a
             href="#specialties"
             className={styles.mobileNavLink}
-            onClick={toggleMobileMenu}
+            onClick={closeMobileMenu}
           >
             Specialties
           </a>
           <a
             href="#intelligence"
             className={styles.mobileNavLink}
-            onClick={toggleMobileMenu}
+            onClick={closeMobileMenu}
           >
             Clinical Intelligence
           </a>
           <a
             href="#archives"
             className={styles.mobileNavLink}
-            onClick={toggleMobileMenu}
+            onClick={closeMobileMenu}
           >
             Archives
           </a>
-
-          <div className={styles.mobileActions}>
-            <button
-              className={styles.btnSignInMobile}
-              onClick={() => (window.location.href = "/auth")}
-            >
-              Sign In
-            </button>
-          </div>
+          <div className={styles.mobileActions}>{renderMobileAuthButton()}</div>
         </div>
       </div>
     </nav>

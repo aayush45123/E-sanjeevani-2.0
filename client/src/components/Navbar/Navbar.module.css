@@ -28,7 +28,7 @@
   justify-content: space-between;
 }
 
-/* ===== LOGO (Editorial Serif Style) ===== */
+/* ===== LOGO ===== */
 .logo {
   text-decoration: none;
   display: flex;
@@ -49,15 +49,13 @@
 
 .logoText {
   font-family: var(--font-serif);
-  /* Montagu Slab */
   font-size: 24px;
   font-weight: 400;
-  /* Lighter weight for that high-end editorial feel */
   color: var(--brand-white);
   letter-spacing: -0.01em;
 }
 
-/* ===== DESKTOP NAVIGATION (Public Sans) ===== */
+/* ===== DESKTOP NAVIGATION ===== */
 .navLinks {
   display: flex;
   align-items: center;
@@ -66,11 +64,9 @@
 
 .navLink {
   font-family: var(--font-primary);
-  /* Public Sans */
   font-size: 15px;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.65);
-  /* Dimmed white */
   text-decoration: none;
   padding-bottom: 6px;
   position: relative;
@@ -81,24 +77,22 @@
   color: var(--brand-white);
 }
 
-/* The Active Link State */
 .navLink.active {
   color: var(--brand-white);
   font-weight: 600;
 }
 
 .navLink.active::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
   height: 2px;
   background-color: var(--brand-green-dark);
-  /* The sharp neon green underline */
 }
 
-/* ===== DESKTOP ACTIONS (Icons & Sign In) ===== */
+/* ===== DESKTOP ACTIONS ===== */
 .navActions {
   display: flex;
   align-items: center;
@@ -121,23 +115,19 @@
   color: var(--brand-white);
 }
 
+/* Sign In pill */
 .btnSignIn {
   font-family: var(--font-primary);
-  /* Public Sans */
   font-size: 14px;
   font-weight: 500;
   color: var(--brand-white);
   background-color: rgba(255, 255, 255, 0.05);
-  /* Very subtle dark fill */
   border: 1px solid rgba(255, 255, 255, 0.2);
-  /* Subtle thin border */
   border-radius: 40px;
-  /* Pill shape */
   padding: 8px 20px;
   cursor: pointer;
   transition: all 0.2s ease;
   margin-left: 8px;
-  /* Extra space separating icons from button */
 }
 
 .btnSignIn:hover {
@@ -145,7 +135,27 @@
   border-color: rgba(255, 255, 255, 0.4);
 }
 
-/* ===== MOBILE MENU (Preserved Functionality) ===== */
+/* Logout pill — same shape, green accent */
+.btnLogout {
+  font-family: var(--font-primary);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--brand-green-dark);
+  background-color: rgba(81, 218, 77, 0.08);
+  border: 1px solid rgba(81, 218, 77, 0.3);
+  border-radius: 40px;
+  padding: 8px 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: 8px;
+}
+
+.btnLogout:hover {
+  background-color: rgba(81, 218, 77, 0.15);
+  border-color: rgba(81, 218, 77, 0.6);
+}
+
+/* ===== MOBILE HAMBURGER ===== */
 .mobileMenuBtn {
   display: none;
   flex-direction: column;
@@ -175,6 +185,7 @@
   transform: translateY(-8px) rotate(-45deg);
 }
 
+/* ===== MOBILE MENU ===== */
 .mobileMenu {
   position: fixed;
   top: 70px;
@@ -201,7 +212,6 @@
 
 .mobileNavLink {
   font-family: var(--font-primary);
-  /* Public Sans */
   font-size: 16px;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.65);
@@ -223,10 +233,10 @@
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* Mobile Sign In */
 .btnSignInMobile {
   width: 100%;
   font-family: var(--font-primary);
-  /* Public Sans */
   font-size: 16px;
   font-weight: 500;
   color: var(--brand-white);
@@ -235,6 +245,32 @@
   border-radius: 40px;
   padding: 12px;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnSignInMobile:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Mobile Logout */
+.btnLogoutMobile {
+  width: 100%;
+  font-family: var(--font-primary);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--brand-green-dark);
+  background: rgba(81, 218, 77, 0.08);
+  border: 1px solid rgba(81, 218, 77, 0.3);
+  border-radius: 40px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnLogoutMobile:hover {
+  background: rgba(81, 218, 77, 0.15);
+  border-color: rgba(81, 218, 77, 0.6);
 }
 
 /* ===== RESPONSIVE ===== */
@@ -245,7 +281,6 @@
 }
 
 @media (max-width: 768px) {
-
   .navLinks,
   .navActions {
     display: none;
