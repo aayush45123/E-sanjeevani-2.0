@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./Auth.module.css";
-import { signupUser, loginUser } from "../../utils/api";
+import { authApi } from "../../utils/api"; // ✅ UPDATED
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -23,7 +23,7 @@ const Auth = () => {
 
   // Shared: store token, notify Navbar, redirect
   const handleAuthSuccess = (token) => {
-    localStorage.setItem("token", token);
+    // ❌ localStorage.setItem("token", token);  // REMOVED (handled in api.js)
     window.dispatchEvent(new Event("authChange")); // Navbar re-syncs instantly
     navigate("/dashboard"); // React Router — no full reload
   };
@@ -36,7 +36,8 @@ const Auth = () => {
     try {
       if (isLogin) {
         // ── LOGIN ──
-        const data = await loginUser({
+        const data = await authApi.login({
+          // ✅ UPDATED
           email: form.email,
           password: form.password,
         });
@@ -48,11 +49,15 @@ const Auth = () => {
         }
       } else {
         // ── SIGNUP ──
-        const signupData = await signupUser(form);
+        const signupData = await authApi.signup(form); // ✅ UPDATED
 
-        if (signupData.message === "User created") {
-          // Auto-login to get token immediately — no "please login" screen
-          const loginData = await loginUser({
+        if (signupData.token) {
+          // ✅ Direct login (since api.js already stores token)
+          handleAuthSuccess(signupData.token);
+        } else if (signupData.message === "User created") {
+          // fallback (if backend doesn't return token)
+          const loginData = await authApi.login({
+            // ✅ UPDATED
             email: form.email,
             password: form.password,
           });
@@ -70,7 +75,7 @@ const Auth = () => {
         }
       }
     } catch (err) {
-      setMessage("✕ Something went wrong. Please try again.");
+      setMessage(err.message || "✕ Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
