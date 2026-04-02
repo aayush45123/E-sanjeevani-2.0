@@ -140,8 +140,6 @@ const patientProfileSchema = new mongoose.Schema(
   },
 );
 
-// ── Index for fast user lookup ───────────────────────────────
-patientProfileSchema.index({ userId: 1 });
 
 // ── Virtual: patient age group (used by triage model) ────────
 patientProfileSchema.virtual("ageGroup").get(function () {

@@ -1,6 +1,27 @@
-import { useState } from "react";
-import styles from "./ProfileCompletion.module.css";
+import { useState, useEffect } from "react";
+import {
+  FiUser,
+  FiPhone,
+  FiMapPin,
+  FiGlobe,
+  FiShield,
+  FiCheck,
+  FiArrowRight,
+  FiArrowLeft,
+  FiAlertCircle,
+  FiCheckCircle,
+  FiLoader,
+  FiInfo,
+  FiActivity,
+  FiCamera,
+  FiUserCheck,
+  FiCpu,
+} from "react-icons/fi";
 
+import styles from "./ProfileCompletion.module.css";
+import { profileApi, authApi } from "./api.js";
+
+// ─── Constants ───────────────────────────────────────────────
 const STEPS = [
   { id: "basic", label: "01", title: "Basic Info" },
   { id: "medical", label: "02", title: "Medical History" },
@@ -27,32 +48,57 @@ const LANGUAGES = [
   "Other",
 ];
 
+const EMPTY_FORM = {
+  fullName: "",
+  age: "",
+  gender: "",
+  phone: "",
+  emergencyContact: "",
+  conditions: [],
+  allergies: "",
+  medications: "",
+  smoking: "",
+  alcohol: "",
+  language: "",
+  city: "",
+  state: "",
+};
+
+// ─────────────────────────────────────────────────────────────
 export default function ProfileCompletion() {
   const [step, setStep] = useState(0);
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(true); // fetching user on mount
+  const [saving, setSaving] = useState(false); // submitting form
+  const [error, setError] = useState("");
+  const [userName, setUserName] = useState("");
 
-  const [form, setForm] = useState({
-    // Basic
-    fullName: "Aayush Sharma",
-    age: "",
-    gender: "",
-    phone: "",
-    emergencyContact: "",
-    // Medical
-    conditions: [],
-    allergies: "",
-    medications: "",
-    // Lifestyle
-    smoking: "",
-    alcohol: "",
-    // Preferences
-    language: "",
-    city: "",
-    state: "",
-  });
+  const [form, setForm] = useState(EMPTY_FORM);
 
-  const updateField = (field, value) =>
+  // On mount: fetch current user to pre-fill fullName
+  useEffect(() => {
+    async function prefill() {
+      try {
+        const res = await authApi.me();
+        const user = res.data;
+        setUserName(user.name || user.email?.split("@")[0] || "");
+        setForm((prev) => ({ ...prev, fullName: user.name || "" }));
+      } catch (err) {
+        if (err.status === 401) {
+          localStorage.removeItem("token");
+          window.location.href = "/login";
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+    prefill();
+  }, []);
+
+  const updateField = (field, value) => {
+    setError("");
     setForm((prev) => ({ ...prev, [field]: value }));
+  };
 
   const toggleCondition = (cond) => {
     setForm((prev) => {
@@ -70,26 +116,113 @@ export default function ProfileCompletion() {
     });
   };
 
-  const progressPct = ((step + 1) / STEPS.length) * 100;
+  // ── Per-step validation ─────────────────────────────────
+  function validateStep() {
+    if (step === 0) {
+      if (!form.fullName.trim()) return "Full name is required.";
+      if (!form.age || form.age < 1 || form.age > 120)
+        return "Please enter a valid age.";
+      if (!form.gender) return "Please select a gender.";
+      if (!form.phone.trim()) return "Phone number is required.";
+    }
+    if (step === 3) {
+      if (!form.language) return "Please select a language preference.";
+    }
+    return null;
+  }
 
-  const handleNext = () => {
-    if (step < STEPS.length - 1) setStep((s) => s + 1);
-    else setSubmitted(true);
+  // ── Navigation ──────────────────────────────────────────
+  const handleNext = async () => {
+    const validationError = validateStep();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    // Last step — submit to backend
+    if (step === STEPS.length - 1) {
+      await handleSubmit();
+      return;
+    }
+
+    setStep((s) => s + 1);
+    setError("");
   };
 
-  const handleBack = () => setStep((s) => s - 1);
+  const handleBack = () => {
+    setStep((s) => s - 1);
+    setError("");
+  };
+
+  // ── Final submit ────────────────────────────────────────
+  const handleSubmit = async () => {
+    setSaving(true);
+    setError("");
+
+    const payload = {
+      fullName: form.fullName.trim(),
+      age: Number(form.age),
+      gender: form.gender,
+      phone: form.phone.trim(),
+      emergencyContact: form.emergencyContact.trim() || undefined,
+      conditions: form.conditions,
+      allergies: form.allergies.trim(),
+      medications: form.medications.trim(),
+      smoking: form.smoking,
+      alcohol: form.alcohol,
+      language: form.language,
+      city: form.city.trim(),
+      state: form.state.trim(),
+    };
+
+    try {
+      await profileApi.create(payload);
+      setSubmitted(true);
+    } catch (err) {
+      // Backend validation errors come as an array
+      if (err.errors?.length) {
+        setError(err.errors[0]);
+      } else if (err.status === 409) {
+        // Profile already exists — use update instead
+        try {
+          await profileApi.update(payload);
+          setSubmitted(true);
+        } catch (updateErr) {
+          setError(
+            updateErr.message || "Failed to save profile. Please try again.",
+          );
+        }
+      } else {
+        setError(err.message || "Something went wrong. Please try again.");
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const progressPct = ((step + 1) / STEPS.length) * 100;
+
+  // ── Loading state ───────────────────────────────────────
+  if (loading) {
+    return (
+      <div className={styles.loadingPage}>
+        <FiLoader className={styles.spinner} size={28} />
+        <p className={styles.loadingText}>Preparing your profile...</p>
+      </div>
+    );
+  }
 
   if (submitted) {
-    return <SuccessScreen name={form.fullName.split(" ")[0]} />;
+    return <SuccessScreen name={form.fullName.split(" ")[0] || userName} />;
   }
 
   return (
     <div className={styles.page}>
-      {/* LEFT PANEL */}
+      {/* ── LEFT PANEL ─────────────────────────────────────── */}
       <aside className={styles.leftPanel}>
         <div className={styles.leftTop}>
           <div className={styles.brand}>
-            <div className={styles.brandLogo}>✚</div>
+            <div className={styles.brandLogo}>+</div>
             <span className={styles.brandName}>E-Sanjeevani 2.0</span>
           </div>
           <div className={styles.leftBadge}>ONE-TIME SETUP</div>
@@ -99,35 +232,38 @@ export default function ProfileCompletion() {
             <em className={styles.leftTitleAccent}>health profile.</em>
           </h1>
           <p className={styles.leftDesc}>
-            We collect this information once to ensure every consultation is
-            clinically accurate and personalized to your needs.
+            We collect this once so every consultation is accurate and
+            personalised to your needs.
           </p>
         </div>
 
-        {/* Step indicators */}
         <nav className={styles.stepNav}>
           {STEPS.map((s, i) => (
             <button
               key={s.id}
-              className={`${styles.stepItem} ${i === step ? styles.stepActive : ""} ${i < step ? styles.stepDone : ""}`}
+              className={`${styles.stepItem}
+                ${i === step ? styles.stepActive : ""}
+                ${i < step ? styles.stepDone : ""}`}
               onClick={() => i < step && setStep(i)}
             >
-              <span className={styles.stepNum}>{i < step ? "✓" : s.label}</span>
+              <span className={styles.stepNum}>
+                {i < step ? <FiCheck size={13} /> : s.label}
+              </span>
               <span className={styles.stepLabel}>{s.title}</span>
             </button>
           ))}
         </nav>
 
         <div className={styles.leftFooter}>
+          <FiShield size={13} className={styles.privacyIcon} />
           <p className={styles.privacyNote}>
-            🔒 Your data is encrypted and used solely for clinical purposes.
+            Your data is encrypted and used solely for clinical purposes.
           </p>
         </div>
       </aside>
 
-      {/* RIGHT PANEL */}
+      {/* ── RIGHT PANEL ────────────────────────────────────── */}
       <main className={styles.rightPanel}>
-        {/* Progress bar */}
         <div className={styles.progressBar}>
           <div
             className={styles.progressFill}
@@ -142,6 +278,14 @@ export default function ProfileCompletion() {
             </span>
             <h2 className={styles.formTitle}>{STEPS[step].title}</h2>
           </div>
+
+          {/* Inline error */}
+          {error && (
+            <div className={styles.errorBanner}>
+              <FiAlertCircle size={16} />
+              <span>{error}</span>
+            </div>
+          )}
 
           <div className={styles.formBody}>
             {step === 0 && <StepBasic form={form} updateField={updateField} />}
@@ -162,12 +306,33 @@ export default function ProfileCompletion() {
 
           <div className={styles.formActions}>
             {step > 0 && (
-              <button className={styles.backBtn} onClick={handleBack}>
-                ← Back
+              <button
+                className={styles.backBtn}
+                onClick={handleBack}
+                disabled={saving}
+              >
+                <FiArrowLeft size={14} />
+                Back
               </button>
             )}
-            <button className={styles.nextBtn} onClick={handleNext}>
-              {step === STEPS.length - 1 ? "Complete Profile ✓" : "Continue →"}
+            <button
+              className={styles.nextBtn}
+              onClick={handleNext}
+              disabled={saving}
+            >
+              {saving ? (
+                <>
+                  <FiLoader size={14} className={styles.btnSpinner} /> Saving...
+                </>
+              ) : step === STEPS.length - 1 ? (
+                <>
+                  <FiCheckCircle size={14} /> Complete Profile
+                </>
+              ) : (
+                <>
+                  Continue <FiArrowRight size={14} />
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -176,17 +341,21 @@ export default function ProfileCompletion() {
   );
 }
 
-/* ─── STEP 1: BASIC INFO ──────────────────────────────────── */
+// ─── STEP 1: Basic Info ───────────────────────────────────────
 function StepBasic({ form, updateField }) {
   return (
     <div className={styles.stepContent}>
       <Row>
-        <Field label="FULL NAME" hint="Auto-filled from your account">
+        <Field
+          label="FULL NAME"
+          Icon={FiUser}
+          hint="Auto-filled from your account"
+        >
           <input
             className={styles.input}
             value={form.fullName}
             onChange={(e) => updateField("fullName", e.target.value)}
-            placeholder="Full name"
+            placeholder="Your full name"
           />
         </Field>
         <Field label="AGE">
@@ -217,7 +386,7 @@ function StepBasic({ form, updateField }) {
       </Field>
 
       <Row>
-        <Field label="PHONE NUMBER">
+        <Field label="PHONE NUMBER" Icon={FiPhone}>
           <input
             className={styles.input}
             type="tel"
@@ -226,7 +395,7 @@ function StepBasic({ form, updateField }) {
             placeholder="+91 98765 43210"
           />
         </Field>
-        <Field label="EMERGENCY CONTACT" hint="Optional">
+        <Field label="EMERGENCY CONTACT" Icon={FiPhone} hint="Optional">
           <input
             className={styles.input}
             type="tel"
@@ -240,7 +409,7 @@ function StepBasic({ form, updateField }) {
   );
 }
 
-/* ─── STEP 2: MEDICAL HISTORY ─────────────────────────────── */
+// ─── STEP 2: Medical History ──────────────────────────────────
 function StepMedical({ form, updateField, toggleCondition }) {
   return (
     <div className={styles.stepContent}>
@@ -253,7 +422,7 @@ function StepMedical({ form, updateField, toggleCondition }) {
               onClick={() => toggleCondition(cond)}
             >
               <span className={styles.checkBox}>
-                {form.conditions.includes(cond) ? "✓" : ""}
+                {form.conditions.includes(cond) && <FiCheck size={11} />}
               </span>
               {cond}
             </button>
@@ -276,7 +445,7 @@ function StepMedical({ form, updateField, toggleCondition }) {
 
       <Field
         label="CURRENT MEDICATIONS"
-        hint="Optional — helps doctors avoid drug interactions"
+        hint="Optional — helps avoid drug interactions"
       >
         <textarea
           className={`${styles.input} ${styles.textarea}`}
@@ -290,15 +459,15 @@ function StepMedical({ form, updateField, toggleCondition }) {
   );
 }
 
-/* ─── STEP 3: LIFESTYLE ───────────────────────────────────── */
+// ─── STEP 3: Lifestyle ────────────────────────────────────────
 function StepLifestyle({ form, updateField }) {
   return (
     <div className={styles.stepContent}>
       <div className={styles.lifestyleNote}>
-        <span>💡</span>
+        <FiInfo size={16} className={styles.lifestyleNoteIcon} />
         <p>
-          Lifestyle data helps our AI predict risk factors and personalize
-          health recommendations. All fields optional.
+          Lifestyle data helps our AI predict risk factors and personalise
+          recommendations. All fields are optional.
         </p>
       </div>
 
@@ -333,13 +502,14 @@ function StepLifestyle({ form, updateField }) {
   );
 }
 
-/* ─── STEP 4: PREFERENCES ─────────────────────────────────── */
+// ─── STEP 4: Preferences ─────────────────────────────────────
 function StepPreferences({ form, updateField }) {
   return (
     <div className={styles.stepContent}>
       <Field
         label="PREFERRED LANGUAGE"
-        hint="For doctor matching and consultation"
+        Icon={FiGlobe}
+        hint="For consultation and doctor matching"
       >
         <div className={styles.langGrid}>
           {LANGUAGES.map((lang) => (
@@ -355,7 +525,7 @@ function StepPreferences({ form, updateField }) {
       </Field>
 
       <Row>
-        <Field label="CITY">
+        <Field label="CITY" Icon={FiMapPin}>
           <input
             className={styles.input}
             value={form.city}
@@ -363,7 +533,7 @@ function StepPreferences({ form, updateField }) {
             placeholder="e.g. Mumbai"
           />
         </Field>
-        <Field label="STATE">
+        <Field label="STATE" Icon={FiMapPin}>
           <input
             className={styles.input}
             value={form.state}
@@ -373,7 +543,6 @@ function StepPreferences({ form, updateField }) {
         </Field>
       </Row>
 
-      {/* Summary card */}
       <div className={styles.summaryCard}>
         <p className={styles.summaryLabel}>PROFILE SUMMARY</p>
         <div className={styles.summaryGrid}>
@@ -393,45 +562,52 @@ function StepPreferences({ form, updateField }) {
   );
 }
 
-/* ─── SUCCESS SCREEN ──────────────────────────────────────── */
+// ─── SUCCESS SCREEN ───────────────────────────────────────────
 function SuccessScreen({ name }) {
   return (
     <div className={styles.successPage}>
       <div className={styles.successCard}>
-        <div className={styles.successIcon}>✓</div>
+        <div className={styles.successIcon}>
+          <FiCheckCircle size={32} />
+        </div>
         <span className={styles.successBadge}>PROFILE COMPLETE</span>
-        <h1 className={styles.successTitle}>You're all set, {name}!</h1>
+        <h1 className={styles.successTitle}>You are all set, {name}!</h1>
         <p className={styles.successDesc}>
           Your health profile is saved. All features are now unlocked — start
           your first AI consultation.
         </p>
         <div className={styles.successUnlocked}>
           {[
-            "🤖 AI Symptom Check",
-            "👨‍⚕️ Doctor Matching",
-            "📊 Health Records",
-            "📸 Skin Analysis",
-          ].map((f) => (
-            <div key={f} className={styles.successFeature}>
-              <span className={styles.successCheck}>✓</span>
-              {f}
+            { Icon: FiCpu, label: "AI Symptom Check" },
+            { Icon: FiUserCheck, label: "Doctor Matching" },
+            { Icon: FiActivity, label: "Health Records" },
+            { Icon: FiCamera, label: "Skin Analysis" },
+          ].map(({ Icon, label }) => (
+            <div key={label} className={styles.successFeature}>
+              <FiCheck size={13} className={styles.successCheck} />
+              <Icon size={15} className={styles.successFeatureIcon} />
+              {label}
             </div>
           ))}
         </div>
         <a href="/dashboard" className={styles.successBtn}>
-          Go to Dashboard →
+          Go to Dashboard
+          <FiArrowRight size={15} />
         </a>
       </div>
     </div>
   );
 }
 
-/* ─── HELPERS ─────────────────────────────────────────────── */
-function Field({ label, hint, children }) {
+// ─── Helpers ──────────────────────────────────────────────────
+function Field({ label, hint, Icon, children }) {
   return (
     <div className={styles.field}>
       <div className={styles.fieldLabelRow}>
-        <label className={styles.fieldLabel}>{label}</label>
+        <label className={styles.fieldLabel}>
+          {Icon && <Icon size={11} className={styles.fieldLabelIcon} />}
+          {label}
+        </label>
         {hint && <span className={styles.fieldHint}>{hint}</span>}
       </div>
       {children}

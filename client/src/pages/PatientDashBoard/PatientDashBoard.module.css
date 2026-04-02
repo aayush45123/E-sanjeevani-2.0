@@ -747,6 +747,107 @@
   margin: 0;
 }
 
+/* ─── LOADING ─────────────────────────────────────────────── */
+.loadingPage {
+  min-height: 100vh;
+  background: var(--bg-dark);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+}
+
+.spinner {
+  color: var(--brand-green-dark);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loadingText {
+  font-family: var(--font-secondary);
+  font-size: var(--text-xs);
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0;
+}
+
+/* ─── ICON HELPERS ─────────────────────────────────────────── */
+.navIconBtn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  transition: color 0.2s;
+}
+.navIconBtn:hover {
+  color: var(--brand-white);
+}
+
+.bannerIconSvg {
+  color: var(--brand-orange);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.lockIconSvg {
+  color: rgba(0, 0, 0, 0.45);
+}
+.cardIconSvg {
+  color: var(--text-secondary);
+}
+.tipIconSvg {
+  color: var(--brand-green-mid);
+}
+
+.statIconRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+.statIcon {
+  color: rgba(0, 0, 0, 0.3);
+}
+
+/* Emergency btn flex */
+.emergencyBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* Card btn flex */
+.cardBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Sign out flex */
+.signOutBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Dark variant of section badge (used on dark bg sections) */
+.sectionBadgeDark {
+  color: var(--brand-green-mid);
+  border-color: rgba(122, 227, 119, 0.35);
+}
+
 /* ─── RESPONSIVE ──────────────────────────────────────────── */
 @media (max-width: 900px) {
   .statsGrid {
