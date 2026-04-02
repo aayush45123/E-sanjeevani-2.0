@@ -19,7 +19,7 @@ import {
 } from "react-icons/fi";
 
 import styles from "./ProfileCompletion.module.css";
-import { profileApi, authApi } from "./api.js";
+import { profileApi, authApi } from "../../utils/api";
 
 // ─── Constants ───────────────────────────────────────────────
 const STEPS = [

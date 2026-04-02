@@ -20,7 +20,7 @@ import {
 } from "react-icons/fi";
 
 import styles from "./PatientDashboard.module.css";
-import { profileApi, authApi } from "./api.js";
+import { profileApi, authApi } from "../../utils/api";
 
 // ─── Feature card definitions ────────────────────────────────
 const featureCards = [
