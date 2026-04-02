@@ -6,6 +6,7 @@ import Navbar from "./components/Navbar/Navbar";
 import Footer from "./components/Footer/Footer";
 import Auth from "./pages/Auth/Auth";
 import PatientDashboard from "./pages/PatientDashBoard/PatientDashBoard";
+import ProfileCompletion from "./pages/ProfileCompletion/ProfileCompletion";
 
 const App = () => {
   return (
@@ -15,6 +16,7 @@ const App = () => {
         <Route path="/" element={<Home />}></Route>
         <Route path="/auth" element={<Auth />}></Route>
         <Route path="/dashboard" element={<PatientDashboard />}></Route>
+        <Route path="/profile-setup" element={<ProfileCompletion />}></Route>
       </Routes>
       <Footer></Footer>
     </>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import styles from "./PatientDashboard.module.css";
+import styles from "./PatientDashBoard.module.css";
 
 const mockUser = {
   name: "Aayush Sharma",
