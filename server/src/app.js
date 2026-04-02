@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 
 import authRoutes from "./routes/authRoutes.js";
+import patientProfileRoutes from "./routes/patientProfileRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -12,10 +13,7 @@ const app = express();
 
 app.use(express.json());
 
-const allowedOrigins = [
-  "http://localhost:5173",
-  "http://localhost:3000",
-];
+const allowedOrigins = ["http://localhost:5173", "http://localhost:3000"];
 
 app.use(
   cors({
@@ -27,15 +25,14 @@ app.use(
       }
     },
     credentials: true,
-  })
+  }),
 );
 
 app.use("/api/auth", authRoutes);
+app.use("/api/patient/profile", patientProfileRoutes);
 
 app.get("/", (req, res) => {
   res.send("API running...");
 });
-
-
 
 export default app;
