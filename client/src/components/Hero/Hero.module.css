@@ -1,8 +1,9 @@
 /* Hero.module.css */
 
 .pageWrapper {
-  background-color: var(--bg-dark);
-  /* Deep green #1E3834 */
+  /* True black base with a subtle green radial glow at the top center */
+  background-color: #000000;
+  background-image: radial-gradient(ellipse at top, rgba(30, 56, 52, 0.8) 0%, #000000 70%);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -11,155 +12,243 @@
   overflow: hidden;
 }
 
-/* ===== CENTERED HERO CONTENT ===== */
 .heroContent {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  /* Vertically centers everything */
   text-align: center;
-
-  /* 140px top padding ensures it clears your fixed global Navbar */
-  padding: 140px var(--space-4) var(--space-12);
-
-  max-width: 900px;
+  padding: 160px var(--space-4) 0;
+  max-width: 1000px;
   margin: 0 auto;
-  gap: var(--space-6);
   position: relative;
   z-index: 2;
 }
 
-/* Top Technical Tag */
-/* Top Technical Badge (Translucent Pill + Pulse) */
+/* ===== TOP TAG (SaaS Style) ===== */
 .topTag {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  background-color: rgba(122, 227, 119, 0.08);
-  /* Extremely subtle green glass */
-  border: 1px solid rgba(122, 227, 119, 0.2);
-  /* Soft illuminated border */
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 40px;
-  padding: 6px 16px;
-  font-family: var(--font-secondary);
-  /* Geist Mono */
-  font-size: 11px;
-  color: var(--brand-green-mid);
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  margin-bottom: var(--space-4);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  padding: 6px 16px 6px 6px;
+  font-family: var(--font-primary);
+  font-size: 13px;
+  color: var(--brand-white);
+  margin-bottom: var(--space-6);
 }
 
-/* The Live 'Active' Dot inside the badge */
-.topTag::before {
-  content: '';
-  display: block;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
+.tagBadge {
   background-color: var(--brand-green-dark);
-  box-shadow: 0 0 8px var(--brand-green-dark);
-  animation: badgePulse 2s infinite;
+  color: #000000;
+  font-weight: 700;
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.05em;
 }
 
-/* @keyframes badgePulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(0.8); }
-} */
-/* Massive Editorial Title */
-/* Massive Editorial Title - Elegant & Professional */
+/* ===== MAIN TITLE (Clean & Bold) ===== */
 .title {
-  font-family: var(--font-serif);
-  font-size: clamp(48px, 6vw, 80px);
-  font-weight: 500;
+  font-family: var(--font-primary); /* Crucial: Switched to Sans-Serif */
+  font-size: clamp(40px, 6vw, 68px);
+  font-weight: 700;
   line-height: 1.15;
   color: var(--brand-white);
-  letter-spacing: -0.015em;
-  margin: 0;
+  letter-spacing: -0.03em; /* Tight kerning for tech feel */
+  margin: 0 0 var(--space-6) 0;
 }
 
-/* Accent Text - Elegant Italic for Emphasis */
-.titleAccent {
-  color: var(--brand-green-dark);
-  font-weight: 500;
-  font-style: italic;
-  letter-spacing: -0.01em;
-}
-
-/* Narrow Subtitle */
+/* ===== DESCRIPTION ===== */
 .description {
   font-family: var(--font-primary);
-  /* Public Sans for clean readability */
   font-size: 18px;
-  font-weight: 400;
-  color: var(--brand-light-gray);
-  opacity: 0.85;
-  max-width: 600px;
-  margin: 0;
+  color: rgba(255, 255, 255, 0.7);
+  max-width: 650px;
+  margin: 0 0 var(--space-8) 0;
   line-height: 1.6;
 }
 
-/* CTA Area */
+/* ===== CTA BUTTONS (Side-by-Side) ===== */
 .ctaWrapper {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: var(--space-5);
-  margin-top: var(--space-4);
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 80px;
 }
 
-/* CTA Button */
 .btnPrimary {
   background-color: var(--brand-green-dark);
   color: var(--brand-black);
   border: none;
-  border-radius: var(--radius-lg); 
-  padding: 18px 36px; /* Slightly larger hit area */
-  font-family: var(--font-primary); /* Public Sans */
-  font-size: 18px; /* Larger, more confident text */
-  font-weight: 700; /* Bold execution command */
-  letter-spacing: -0.02em; /* Tight tracking makes it look like a premium SaaS app */
+  border-radius: 8px; /* Slightly sharper corners */
+  padding: 16px 32px;
+  font-family: var(--font-primary);
+  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 0 30px rgba(81, 218, 77, 0.25);
+  transition: all 0.2s ease;
+  box-shadow: 0 0 20px rgba(81, 218, 77, 0.2);
 }
 
 .btnPrimary:hover {
+  background-color: var(--brand-green-light);
   transform: translateY(-2px);
-  /* box-shadow: 0 0 45px rgba(81, 218, 77, 0.45);  */
 }
 
-/* Bottom Technical Link */
-.bottomLink {
-  font-family: var(--font-secondary);
-  /* Geist Mono */
-  font-size: 11px;
-  color: var(--brand-light-gray);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
+.btnSecondary {
+  background-color: rgba(255, 255, 255, 0.03);
+  color: var(--brand-white);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 16px 32px;
+  font-family: var(--font-primary);
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  opacity: 0.6;
-  cursor: pointer;
+  gap: 8px;
   transition: all 0.2s ease;
 }
 
-.bottomLink:hover {
-  opacity: 1;
-  color: var(--brand-white);
+.btnSecondary:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* ===== GLOWING DASHBOARD MOCKUP ===== */
+.dashboardAnchor {
+  position: relative;
+  width: 100%;
+  max-width: 1050px;
+  perspective: 1000px;
+}
+
+.dashboardGlow {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  height: 60%;
+  background: radial-gradient(circle, rgba(81, 218, 77, 0.3) 0%, transparent 70%);
+  filter: blur(80px);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.dashboardMockup {
+  position: relative;
+  z-index: 1;
+  background: rgba(15, 20, 18, 0.7); /* Extremely dark, slight transparency */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(81, 218, 77, 0.5); /* The neon top rim light */
+  border-radius: 16px 16px 0 0; /* Flat bottom */
+  height: 500px;
+  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(0,0,0,0.3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  /* subtle tilt effect to make it dynamic */
+  transform: rotateX(2deg) translateY(20px); 
+}
+
+.mockupHeader {
+  height: 60px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 40px;
+}
+
+.mockupDots {
+  display: flex;
+  gap: 8px;
+}
+
+.mockupDots span {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.mockupTabs {
+  display: flex;
+  gap: 16px;
+}
+
+.mockupTab {
+  width: 80px;
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tabActive {
+  background: rgba(81, 218, 77, 0.4);
+}
+
+.mockupBody {
+  display: flex;
+  flex: 1;
+  padding: 24px;
+  gap: 24px;
+}
+
+.mockupSidebar {
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sidebarItem {
+  height: 36px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+}
+
+.mockupMain {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.mockupCardTop {
+  height: 180px;
+  background: linear-gradient(135deg, rgba(81, 218, 77, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+}
+
+.mockupCardsBottom {
+  display: flex;
+  gap: 24px;
+  flex: 1;
+}
+
+.mockupCardSmall {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
 }
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
-  .heroContent {
-    padding: 120px var(--space-4) var(--space-8);
-  }
-
-  .title {
-    font-size: clamp(36px, 8vw, 48px);
-  }
+  .title { font-size: 36px; }
+  .ctaWrapper { flex-direction: column; width: 100%; }
+  .btnPrimary, .btnSecondary { width: 100%; justify-content: center; }
+  .dashboardMockup { transform: none; height: 300px; }
+  .mockupSidebar { display: none; }
 }

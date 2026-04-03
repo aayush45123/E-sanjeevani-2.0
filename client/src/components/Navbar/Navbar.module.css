@@ -1,4 +1,4 @@
-/* Navbar.module.css */
+/* Navbar.module.css - Premium Glassmorphism Update */
 
 .navbar {
   position: fixed;
@@ -6,23 +6,25 @@
   left: 0;
   right: 0;
   z-index: 1000;
-  background: rgba(30, 56, 52, 0.92);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  /* Start completely transparent so the hero background flows through */
+  background: transparent;
+  border-bottom: 1px solid transparent;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
 }
 
 .navbar.scrolled {
-  background: rgba(30, 56, 52, 0.95);
-  border-bottom: 1px solid rgba(81, 218, 77, 0.1);
-  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.15);
+  /* Dark, frosted glass effect when scrolling down */
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
 }
 
 .container {
   max-width: 1400px;
   margin: 0 auto;
-  padding: var(--space-4) var(--space-6);
+  padding: 16px var(--space-6);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -33,7 +35,7 @@
   text-decoration: none;
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: 10px;
   transition: opacity 0.2s ease;
 }
 
@@ -42,89 +44,85 @@
 }
 
 .logoIcon {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   object-fit: contain;
 }
 
 .logoText {
-  font-family: var(--font-serif);
-  font-size: 24px;
-  font-weight: 400;
+  font-family: var(--font-primary); /* Switched to clean Sans-Serif */
+  font-size: 20px;
+  font-weight: 700; /* Bolder */
   color: var(--brand-white);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 
 /* ===== DESKTOP NAVIGATION ===== */
 .navLinks {
   display: flex;
   align-items: center;
-  gap: 32px;
+  gap: 8px; /* Tighter gap because of the new pill padding */
 }
 
 .navLink {
   font-family: var(--font-primary);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(255, 255, 255, 0.6);
   text-decoration: none;
-  padding-bottom: 6px;
-  position: relative;
-  transition: color 0.2s ease;
+  padding: 8px 16px;
+  border-radius: 8px; /* Soft pill shape */
+  transition: all 0.2s ease;
 }
 
 .navLink:hover {
   color: var(--brand-white);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .navLink.active {
   color: var(--brand-white);
+  background: rgba(255, 255, 255, 0.1);
   font-weight: 600;
 }
 
-.navLink.active::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background-color: var(--brand-green-dark);
-}
+/* Removed the old underline effect entirely */
 
 /* ===== DESKTOP ACTIONS ===== */
 .navActions {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
+  gap: 16px;
 }
 
 .iconBtn {
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(255, 255, 255, 0.6);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4px;
-  transition: color 0.2s ease;
+  padding: 6px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
 }
 
 .iconBtn:hover {
   color: var(--brand-white);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 /* Sign In pill */
 .btnSignIn {
   font-family: var(--font-primary);
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--brand-white);
   background-color: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 40px;
-  padding: 8px 20px;
+  padding: 8px 24px;
   cursor: pointer;
   transition: all 0.2s ease;
   margin-left: 8px;
@@ -132,67 +130,62 @@
 
 .btnSignIn:hover {
   background-color: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.4);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
 }
 
-/* Logout pill — same shape, green accent */
+/* Logout pill */
 .btnLogout {
   font-family: var(--font-primary);
   font-size: 14px;
-  font-weight: 500;
-  color: var(--brand-green-dark);
-  background-color: rgba(81, 218, 77, 0.08);
-  border: 1px solid rgba(81, 218, 77, 0.3);
+  font-weight: 600;
+  color: var(--brand-black); /* Made text black for contrast */
+  background-color: var(--brand-green-dark);
+  border: none;
   border-radius: 40px;
-  padding: 8px 20px;
+  padding: 8px 24px;
   cursor: pointer;
   transition: all 0.2s ease;
   margin-left: 8px;
+  box-shadow: 0 4px 12px rgba(81, 218, 77, 0.2);
 }
 
 .btnLogout:hover {
-  background-color: rgba(81, 218, 77, 0.15);
-  border-color: rgba(81, 218, 77, 0.6);
+  background-color: var(--brand-green-light);
+  transform: translateY(-1px);
 }
 
 /* ===== MOBILE HAMBURGER ===== */
 .mobileMenuBtn {
   display: none;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
   background: none;
   border: none;
   cursor: pointer;
-  padding: var(--space-2);
+  padding: 8px;
 }
 
 .menuLine {
-  width: 24px;
+  width: 20px;
   height: 2px;
   background: var(--brand-white);
+  border-radius: 2px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.menuLine:nth-child(1).menuLineOpen {
-  transform: translateY(8px) rotate(45deg);
-}
-
-.menuLine:nth-child(2).menuLineOpen {
-  opacity: 0;
-}
-
-.menuLine:nth-child(3).menuLineOpen {
-  transform: translateY(-8px) rotate(-45deg);
-}
+.menuLine:nth-child(1).menuLineOpen { transform: translateY(7px) rotate(45deg); }
+.menuLine:nth-child(2).menuLineOpen { opacity: 0; }
+.menuLine:nth-child(3).menuLineOpen { transform: translateY(-7px) rotate(-45deg); }
 
 /* ===== MOBILE MENU ===== */
 .mobileMenu {
   position: fixed;
-  top: 70px;
+  top: 68px;
   left: 0;
   right: 0;
-  background: rgba(30, 56, 52, 0.98);
-  backdrop-filter: blur(12px);
+  background: rgba(10, 10, 10, 0.98); /* True dark mobile menu */
+  backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   max-height: 0;
   overflow: hidden;
@@ -204,89 +197,65 @@
 }
 
 .mobileMenuContent {
-  padding: var(--space-6);
+  padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: 8px;
 }
 
 .mobileNavLink {
   font-family: var(--font-primary);
   font-size: 16px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(255, 255, 255, 0.7);
   text-decoration: none;
-  padding: var(--space-4);
-  border-left: 2px solid transparent;
+  padding: 12px 16px;
+  border-radius: 8px;
   transition: all 0.2s;
 }
 
 .mobileNavLink:hover {
   color: var(--brand-white);
-  border-left-color: var(--brand-green-dark);
   background: rgba(255, 255, 255, 0.05);
 }
 
 .mobileActions {
-  margin-top: var(--space-6);
-  padding-top: var(--space-6);
+  margin-top: 16px;
+  padding-top: 24px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Mobile Sign In */
-.btnSignInMobile {
+/* Mobile Actions */
+.btnSignInMobile, .btnLogoutMobile {
   width: 100%;
   font-family: var(--font-primary);
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 600;
+  border-radius: 40px;
+  padding: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnSignInMobile {
   color: var(--brand-white);
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 40px;
-  padding: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.btnSignInMobile:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.4);
-}
-
-/* Mobile Logout */
 .btnLogoutMobile {
-  width: 100%;
-  font-family: var(--font-primary);
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--brand-green-dark);
-  background: rgba(81, 218, 77, 0.08);
-  border: 1px solid rgba(81, 218, 77, 0.3);
-  border-radius: 40px;
-  padding: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btnLogoutMobile:hover {
-  background: rgba(81, 218, 77, 0.15);
-  border-color: rgba(81, 218, 77, 0.6);
+  color: var(--brand-black);
+  background: var(--brand-green-dark);
+  border: none;
 }
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1024px) {
-  .navLinks {
-    gap: 20px;
-  }
+  .navLinks { gap: 4px; }
+  .navLink { padding: 8px 12px; }
 }
 
 @media (max-width: 768px) {
-  .navLinks,
-  .navActions {
-    display: none;
-  }
-
-  .mobileMenuBtn {
-    display: flex;
-  }
+  .navLinks, .navActions { display: none; }
+  .mobileMenuBtn { display: flex; }
 }
