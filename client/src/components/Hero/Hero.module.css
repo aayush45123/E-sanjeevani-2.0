@@ -1,9 +1,9 @@
-/* Hero.module.css */
+/* Hero.module.css - Premium Light SaaS Theme */
 
 .pageWrapper {
-  /* True black base with a subtle green radial glow at the top center */
-  background-color: #000000;
-  background-image: radial-gradient(ellipse at top, rgba(30, 56, 52, 0.8) 0%, #000000 70%);
+  /* Ultra-light grey base with a subtle green radial glow at the top */
+  background-color: #fafafa;
+  background-image: radial-gradient(ellipse at top, rgba(22, 163, 74, 0.08) 0%, #fafafa 70%);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -25,24 +25,26 @@
   z-index: 2;
 }
 
-/* ===== TOP TAG (SaaS Style) ===== */
+/* ===== TOP TAG ===== */
 .topTag {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  background-color: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
   border-radius: 40px;
   padding: 6px 16px 6px 6px;
   font-family: var(--font-primary);
   font-size: 13px;
-  color: var(--brand-white);
+  font-weight: 600;
+  color: #475569;
   margin-bottom: var(--space-6);
 }
 
 .tagBadge {
-  background-color: var(--brand-green-dark);
-  color: #000000;
+  background-color: #16a34a;
+  color: #ffffff;
   font-weight: 700;
   font-size: 11px;
   padding: 4px 10px;
@@ -50,14 +52,14 @@
   letter-spacing: 0.05em;
 }
 
-/* ===== MAIN TITLE (Clean & Bold) ===== */
+/* ===== MAIN TITLE ===== */
 .title {
-  font-family: var(--font-primary); /* Crucial: Switched to Sans-Serif */
+  font-family: var(--font-primary);
   font-size: clamp(40px, 6vw, 68px);
-  font-weight: 700;
+  font-weight: 800; /* Extra bold looks great in light mode */
   line-height: 1.15;
-  color: var(--brand-white);
-  letter-spacing: -0.03em; /* Tight kerning for tech feel */
+  color: #0f172a; /* Near black */
+  letter-spacing: -0.03em; 
   margin: 0 0 var(--space-6) 0;
 }
 
@@ -65,13 +67,13 @@
 .description {
   font-family: var(--font-primary);
   font-size: 18px;
-  color: rgba(255, 255, 255, 0.7);
+  color: #475569; /* Slate grey */
   max-width: 650px;
   margin: 0 0 var(--space-8) 0;
   line-height: 1.6;
 }
 
-/* ===== CTA BUTTONS (Side-by-Side) ===== */
+/* ===== CTA BUTTONS ===== */
 .ctaWrapper {
   display: flex;
   flex-direction: row;
@@ -82,46 +84,49 @@
 }
 
 .btnPrimary {
-  background-color: var(--brand-green-dark);
-  color: var(--brand-black);
+  background-color: #16a34a;
+  color: #ffffff;
   border: none;
-  border-radius: 8px; /* Slightly sharper corners */
+  border-radius: 8px; 
   padding: 16px 32px;
   font-family: var(--font-primary);
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 0 20px rgba(81, 218, 77, 0.2);
+  box-shadow: 0 8px 20px rgba(22, 163, 74, 0.25);
 }
 
 .btnPrimary:hover {
-  background-color: var(--brand-green-light);
+  background-color: #15803d;
   transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(22, 163, 74, 0.3);
 }
 
 .btnSecondary {
-  background-color: rgba(255, 255, 255, 0.03);
-  color: var(--brand-white);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background-color: #ffffff;
+  color: #0f172a;
+  border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 8px;
   padding: 16px 32px;
   font-family: var(--font-primary);
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 8px;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
 
 .btnSecondary:hover {
-  background-color: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.3);
+  background-color: #f8fafc;
+  border-color: rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
 }
 
-/* ===== GLOWING DASHBOARD MOCKUP ===== */
+/* ===== LIGHT DASHBOARD MOCKUP ===== */
 .dashboardAnchor {
   position: relative;
   width: 100%;
@@ -136,8 +141,8 @@
   transform: translate(-50%, -50%);
   width: 80%;
   height: 60%;
-  background: radial-gradient(circle, rgba(81, 218, 77, 0.3) 0%, transparent 70%);
-  filter: blur(80px);
+  background: radial-gradient(circle, rgba(22, 163, 74, 0.12) 0%, transparent 70%);
+  filter: blur(60px);
   z-index: 0;
   pointer-events: none;
 }
@@ -145,28 +150,29 @@
 .dashboardMockup {
   position: relative;
   z-index: 1;
-  background: rgba(15, 20, 18, 0.7); /* Extremely dark, slight transparency */
+  background: rgba(255, 255, 255, 0.95); /* White glass */
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-top: 1px solid rgba(81, 218, 77, 0.5); /* The neon top rim light */
-  border-radius: 16px 16px 0 0; /* Flat bottom */
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-top: 1px solid rgba(22, 163, 74, 0.3); /* Soft green rim light */
+  border-radius: 16px 16px 0 0; 
   height: 500px;
-  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(0,0,0,0.3);
+  /* Premium light shadow stack */
+  box-shadow: 0 40px 80px -12px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0,0,0,0.02);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  /* subtle tilt effect to make it dynamic */
   transform: rotateX(2deg) translateY(20px); 
 }
 
 .mockupHeader {
   height: 60px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   display: flex;
   align-items: center;
   padding: 0 24px;
   gap: 40px;
+  background: #ffffff;
 }
 
 .mockupDots {
@@ -178,7 +184,7 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.1);
 }
 
 .mockupTabs {
@@ -190,11 +196,11 @@
   width: 80px;
   height: 8px;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.04);
 }
 
 .tabActive {
-  background: rgba(81, 218, 77, 0.4);
+  background: rgba(22, 163, 74, 0.2);
 }
 
 .mockupBody {
@@ -202,6 +208,7 @@
   flex: 1;
   padding: 24px;
   gap: 24px;
+  background: #f8fafc; /* Slightly off-white body to let cards pop */
 }
 
 .mockupSidebar {
@@ -213,7 +220,8 @@
 
 .sidebarItem {
   height: 36px;
-  background: rgba(255, 255, 255, 0.03);
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.04);
   border-radius: 8px;
 }
 
@@ -226,9 +234,10 @@
 
 .mockupCardTop {
   height: 180px;
-  background: linear-gradient(135deg, rgba(81, 218, 77, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: linear-gradient(135deg, rgba(22, 163, 74, 0.03) 0%, #ffffff 100%);
+  border: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
 }
 
 .mockupCardsBottom {
@@ -239,9 +248,10 @@
 
 .mockupCardSmall {
   flex: 1;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
 }
 
 /* ===== RESPONSIVE ===== */

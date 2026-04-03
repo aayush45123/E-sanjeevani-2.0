@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./Auth.module.css";
-import { authApi } from "../../utils/api"; // ✅ UPDATED
+import { authApi } from "../../utils/api";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -21,11 +21,9 @@ const Auth = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // Shared: store token, notify Navbar, redirect
   const handleAuthSuccess = (token) => {
-    // ❌ localStorage.setItem("token", token);  // REMOVED (handled in api.js)
-    window.dispatchEvent(new Event("authChange")); // Navbar re-syncs instantly
-    navigate("/dashboard"); // React Router — no full reload
+    window.dispatchEvent(new Event("authChange"));
+    navigate("/dashboard");
   };
 
   const handleSubmit = async (e) => {
@@ -35,9 +33,7 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        // ── LOGIN ──
         const data = await authApi.login({
-          // ✅ UPDATED
           email: form.email,
           password: form.password,
         });
@@ -48,16 +44,12 @@ const Auth = () => {
           setMessage(data.message || "Login failed. Check your credentials.");
         }
       } else {
-        // ── SIGNUP ──
-        const signupData = await authApi.signup(form); // ✅ UPDATED
+        const signupData = await authApi.signup(form);
 
         if (signupData.token) {
-          // ✅ Direct login (since api.js already stores token)
           handleAuthSuccess(signupData.token);
         } else if (signupData.message === "User created") {
-          // fallback (if backend doesn't return token)
           const loginData = await authApi.login({
-            // ✅ UPDATED
             email: form.email,
             password: form.password,
           });
@@ -65,7 +57,6 @@ const Auth = () => {
           if (loginData.token) {
             handleAuthSuccess(loginData.token);
           } else {
-            // Fallback: send to login form manually
             setIsLogin(true);
             setForm({ name: "", email: "", password: "", role: "patient" });
             setMessage("✓ Account created! Please sign in.");
@@ -83,112 +74,93 @@ const Auth = () => {
 
   return (
     <div className={styles.wrapper}>
-      {/* LEFT SIDEBAR - Brand & Content */}
+      {/* LEFT SIDEBAR - Light & Airy Brand Section */}
       <div className={styles.leftSidebar}>
         <div className={styles.leftContent}>
           {/* Logo */}
           <div className={styles.logoSection}>
-            <svg className={styles.logo} viewBox="0 0 40 40" fill="none">
-              <rect x="5" y="5" width="30" height="30" fill="currentColor" />
-              <path
-                d="M20 12V28M12 20H28"
-                stroke="white"
-                strokeWidth="3"
-                strokeLinecap="round"
-              />
-            </svg>
+            <div className={styles.logoIconWrapper}>
+               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+               </svg>
+            </div>
+            <span className={styles.logoText}>E-Sanjeevani</span>
           </div>
 
-          {/* Headline */}
           <h1 className={styles.headline}>
             Your health,
             <br />
-            <span className={styles.highlight}>instantly accessible</span>
+            <span className={styles.highlight}>instantly accessible.</span>
           </h1>
 
-          {/* Description */}
           <p className={styles.tagline}>
-            Join thousands of patients getting expert healthcare from the
-            comfort of their homes. AI-powered triage meets clinical excellence.
+            Join thousands of patients getting expert healthcare from the comfort of their homes. AI-powered triage meets clinical excellence.
           </p>
 
-          {/* Features List */}
           <ul className={styles.featuresList}>
             <li className={styles.featureItem}>
               <span className={styles.featureIcon}>✓</span>
-              <span>24/7 availability to specialists</span>
+              <span>24/7 availability to top specialists</span>
             </li>
             <li className={styles.featureItem}>
               <span className={styles.featureIcon}>✓</span>
-              <span>AI-powered instant diagnosis</span>
+              <span>AI-powered instant symptom diagnosis</span>
             </li>
             <li className={styles.featureItem}>
               <span className={styles.featureIcon}>✓</span>
-              <span>Secure video consultations</span>
-            </li>
-            <li className={styles.featureItem}>
-              <span className={styles.featureIcon}>✓</span>
-              <span>Digital prescriptions & follow-ups</span>
+              <span>Military-grade secure video consultations</span>
             </li>
           </ul>
 
-          {/* Social Proof */}
           <div className={styles.socialProof}>
             <div className={styles.avatars}>
-              <div className={styles.avatar}>👤</div>
-              <div className={styles.avatar}>👩</div>
-              <div className={styles.avatar}>🧑</div>
+              <div className={styles.avatar}></div>
+              <div className={styles.avatar}></div>
+              <div className={styles.avatar}></div>
             </div>
             <p className={styles.proofText}>
-              Trusted by <strong>50,000+</strong> patients across India
+              Trusted by <strong>50,000+</strong> patients
             </p>
           </div>
         </div>
       </div>
 
-      {/* RIGHT FORM SECTION */}
+      {/* RIGHT FORM SECTION - Crisp & Clean */}
       <div className={styles.rightSection}>
         <div className={styles.formContainer}>
-          {/* Form Header */}
           <div className={styles.formHeader}>
             <h2 className={styles.formTitle}>
-              {isLogin ? "Welcome Back" : "Get Started"}
+              {isLogin ? "Welcome back" : "Create an account"}
             </h2>
             <p className={styles.formSubtitle}>
               {isLogin
-                ? "Login to access your healthcare dashboard"
-                : "Create your account to begin your healthcare journey"}
+                ? "Enter your details to access your dashboard."
+                : "Start your seamless healthcare journey today."}
             </p>
           </div>
 
-          {/* Role Selection (Signup Only) */}
+          {/* Premium Segmented Control for Roles */}
           {!isLogin && (
             <div className={styles.roleSelector}>
-              <label className={styles.roleLabel}>I am a:</label>
-              <div className={styles.roleButtons}>
+              <div className={styles.roleTrack}>
                 <button
                   type="button"
-                  className={`${styles.roleBtn} ${
-                    form.role === "patient" ? styles.roleActive : ""
-                  }`}
+                  className={`${styles.roleBtn} ${form.role === "patient" ? styles.roleActive : ""}`}
                   onClick={() => setForm({ ...form, role: "patient" })}
                 >
-                  👤 Patient
+                  Patient
                 </button>
                 <button
                   type="button"
-                  className={`${styles.roleBtn} ${
-                    form.role === "doctor" ? styles.roleActive : ""
-                  }`}
+                  className={`${styles.roleBtn} ${form.role === "doctor" ? styles.roleActive : ""}`}
                   onClick={() => setForm({ ...form, role: "doctor" })}
                 >
-                  👨‍⚕️ Doctor
+                  Doctor
                 </button>
               </div>
             </div>
           )}
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className={styles.form}>
             {!isLogin && (
               <div className={styles.formGroup}>
@@ -229,67 +201,35 @@ const Auth = () => {
                 required
                 className={styles.input}
               />
-              {!isLogin && (
-                <p className={styles.hint}>
-                  Min 8 characters with numbers & symbols
-                </p>
-              )}
             </div>
 
-            {/* Error/Success Message */}
             {message && (
-              <div
-                className={`${styles.message} ${
-                  message.includes("✕") ? styles.error : styles.success
-                }`}
-              >
+              <div className={`${styles.message} ${message.includes("✕") ? styles.error : styles.success}`}>
                 {message}
               </div>
             )}
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className={styles.submitBtn}
-            >
-              {loading
-                ? "Processing..."
-                : isLogin
-                  ? "Sign In"
-                  : "Create Account"}
+            <button type="submit" disabled={loading} className={styles.submitBtn}>
+              {loading ? "Processing..." : isLogin ? "Sign In" : "Create Account"}
             </button>
           </form>
 
-          {/* Toggle Auth Mode */}
           <div className={styles.authToggle}>
             <p className={styles.toggleText}>
-              {isLogin ? "New here?" : "Already have an account?"}
+              {isLogin ? "Don't have an account?" : "Already have an account?"}
               <button
                 type="button"
                 onClick={() => {
                   setIsLogin(!isLogin);
-                  setForm({
-                    name: "",
-                    email: "",
-                    password: "",
-                    role: "patient",
-                  });
+                  setForm({ name: "", email: "", password: "", role: "patient" });
                   setMessage("");
                 }}
                 className={styles.toggleLink}
               >
-                {isLogin ? "Sign Up" : "Sign In"}
+                {isLogin ? "Sign up" : "Log in"}
               </button>
             </p>
           </div>
-
-          {/* Terms & Privacy */}
-          <p className={styles.terms}>
-            By signing up, you agree to our{" "}
-            <a href="#terms">Terms of Service</a> and{" "}
-            <a href="#privacy">Privacy Policy</a>
-          </p>
         </div>
       </div>
     </div>
