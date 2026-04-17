@@ -188,16 +188,14 @@
 }
 
 .microUiA, .microUiB {
-  background: #f8fafc;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08); /* Uniform, crisp border */
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  box-shadow: 0 8px 24px -8px rgba(0,0,0,0.05); /* Softer, wider shadow */
 }
 
-/* A has a subtle green rim, B has a subtle purple rim */
-.microUiA { border-top: 2px solid #22c55e; }
-.microUiB { border-top: 2px solid #8b5cf6; }
+
 
 .uiHeader {
   background: #ffffff;

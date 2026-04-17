@@ -17,6 +17,10 @@ import {
   FiUsers,
   FiFileText,
   FiLoader,
+  FiHome,
+  FiGrid,
+  FiFolder,
+  FiSettings
 } from "react-icons/fi";
 
 import styles from "./PatientDashboard.module.css";
@@ -27,60 +31,41 @@ const featureCards = [
   {
     id: "ai-check",
     Icon: FiCpu,
-    label: "AI TRIAGE",
-    title: "AI Symptom Check",
-    desc: "Describe your symptoms and get an instant urgency score.",
-    tag: "KNOWLEDGE LAYER",
+    label: "KNOWLEDGE LAYER",
+    title: "AI Symptom Triage",
+    desc: "Interact with our clinical NLP model to instantly extract symptoms and receive an accurate 1-10 Urgency Score.",
     tagColor: "tagGreen",
   },
   {
     id: "consult",
     Icon: FiUserCheck,
     label: "CLINICAL LAYER",
-    title: "Consult Doctor",
-    desc: "Get matched to the right specialist in real-time.",
-    tag: "SMART ROUTING",
+    title: "Smart Doctor Match",
+    desc: "Bypass the standard queue. Get matched to the right specialist based on urgency, specialty, and availability.",
     tagColor: "tagPurple",
   },
   {
     id: "skin",
     Icon: FiCamera,
-    label: "DERMA AI",
-    title: "Upload Skin Image",
-    desc: "AI-powered dermatology screening in seconds.",
-    tag: "VISION MODEL",
+    label: "VISION MODEL",
+    title: "Dermatology Scan",
+    desc: "Upload clinical-grade images of skin conditions for immediate AI-powered preliminary screening.",
     tagColor: "tagOrange",
   },
 ];
 
 const healthTips = [
-  { Icon: FiDroplet, tip: "Drink 8 glasses of water daily" },
-  { Icon: FiActivity, tip: "30 minutes of walking improves heart health" },
-  { Icon: FiMoon, tip: "7–9 hours of sleep boosts immunity" },
-  { Icon: FiHeart, tip: "Include greens in every meal" },
+  { Icon: FiDroplet, tip: "Hydration telemetry: 8 glasses daily" },
+  { Icon: FiActivity, tip: "Cardiovascular baseline: 30m daily activity" },
+  { Icon: FiMoon, tip: "Recovery cycle: 7–9 hours required" },
+  { Icon: FiHeart, tip: "Nutritional input: Optimize green intake" },
 ];
 
 const flowSteps = [
-  {
-    num: "01",
-    title: "Profile & Chatbot",
-    desc: "Set up your health profile and chat with the AI Symptom Engine.",
-  },
-  {
-    num: "02",
-    title: "AI Triage Engine",
-    desc: "Get a decision route: Low (Self-Care), Mid (Match), or Emergency (Priority Alert).",
-  },
-  {
-    num: "03",
-    title: "Smart Routing",
-    desc: "Receive a Match Score and get routed to the correct specialist's queue.",
-  },
-  {
-    num: "04",
-    title: "Service Delivery",
-    desc: "Doctor reviews your info, conducts video consultation, and generates prescription.",
-  },
+  { num: "01", title: "AI Intake", desc: "Patient interacts with AI. Complex issues trigger symptom collection." },
+  { num: "02", title: "Urgency Scoring", desc: "Engine assigns a 1-10 severity score and predicts required specialty." },
+  { num: "03", title: "Dynamic Match", desc: "Weighted algorithm cross-references parameters to bypass standard queues." },
+  { num: "04", title: "Instant Connection", desc: "Emergency patients connected to optimal doctor in <3 minutes." },
 ];
 
 // ─────────────────────────────────────────────────────────────
@@ -90,7 +75,6 @@ export default function PatientDashboard() {
   const [loading, setLoading] = useState(true);
   const [emergencyActive, setEmergencyActive] = useState(false);
 
-  // Fetch current user info + profile completion status on mount
   useEffect(() => {
     async function init() {
       try {
@@ -103,9 +87,8 @@ export default function PatientDashboard() {
       } catch (err) {
         if (err.status === 401) {
           localStorage.removeItem("token");
-          window.location.href = "/login";
+          window.location.href = "/auth";
         }
-        console.error("Dashboard init failed:", err.message);
       } finally {
         setLoading(false);
       }
@@ -115,274 +98,197 @@ export default function PatientDashboard() {
 
   const handleSignOut = () => {
     localStorage.removeItem("token");
-    window.location.href = "/login";
+    window.location.href = "/auth";
   };
 
-  // Name comes from the User document fetched via /api/auth/me
-  // Falls back to the part before @ in email if name isn't set
-  const firstName =
-    user?.name?.split(" ")[0] || user?.email?.split("@")[0] || "there";
-
+  const firstName = user?.name?.split(" ")[0] || user?.email?.split("@")[0] || "User";
   const avatarChar = firstName[0]?.toUpperCase() || "U";
+  const currentDate = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
   if (loading) {
     return (
       <div className={styles.loadingPage}>
         <FiLoader className={styles.spinner} size={28} />
-        <p className={styles.loadingText}>Loading your dashboard...</p>
+        <p className={styles.loadingText}>Initializing Workspace...</p>
       </div>
     );
   }
 
   return (
-    <div className={styles.page}>
-      {/* ── NAVBAR ─────────────────────────────────────────── */}
-      <nav className={styles.navbar}>
-        <div className={styles.navBrand}>
-          <div className={styles.navLogo}>+</div>
-          <span className={styles.navName}>E-Sanjeevani 2.0</span>
-        </div>
-        <div className={styles.navLinks}>
-          <a href="#" className={styles.navLinkActive}>
-            Platform
-          </a>
-          <a href="#" className={styles.navLink}>
-            AI Triage
-          </a>
-          <a href="#" className={styles.navLink}>
-            Specialties
-          </a>
-          <a href="#" className={styles.navLink}>
-            History
-          </a>
-        </div>
-        <div className={styles.navActions}>
-          <button className={styles.navIconBtn} aria-label="Notifications">
-            <FiBell size={18} />
-          </button>
-          <div className={styles.navProfile}>{avatarChar}</div>
-          <button className={styles.signOutBtn} onClick={handleSignOut}>
-            <FiLogOut size={14} />
-            Sign Out
-          </button>
-        </div>
-      </nav>
-
-      {/* ── HERO ───────────────────────────────────────────── */}
-      <section className={styles.heroSection}>
-        <div className={styles.heroBadge}>
-          <span className={styles.heroBadgeDot} />
-          PATIENT DASHBOARD
-        </div>
-        <h1 className={styles.heroTitle}>
-          Welcome back,
-          <br />
-          <em className={styles.heroName}>{firstName}.</em>
-        </h1>
-        <p className={styles.heroSubtitle}>
-          Your health command center — smart care, instant access.
-        </p>
-
-        {!profileComplete && (
-          <div className={styles.profileBanner}>
-            <div className={styles.bannerLeft}>
-              <FiAlertTriangle size={22} className={styles.bannerIconSvg} />
-              <div>
-                <p className={styles.bannerTitle}>Profile Incomplete</p>
-                <p className={styles.bannerDesc}>
-                  Complete your health profile to unlock AI consultations and
-                  doctor matching.
-                </p>
-              </div>
+    <div className={styles.appLayout}>
+      
+      {/* ── LEFT SIDEBAR (The SaaS Standard) ── */}
+      <aside className={styles.sidebar}>
+        <div className={styles.sidebarTop}>
+          <div className={styles.brand}>
+            <div className={styles.logoIcon}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                 <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+              </svg>
             </div>
-            <a href="/profile-setup" className={styles.bannerBtn}>
-              Complete Profile
-              <FiArrowRight size={14} />
-            </a>
+            <span className={styles.brandName}>E-Sanjeevani</span>
           </div>
-        )}
-      </section>
 
-      {/* ── STATS ──────────────────────────────────────────── */}
-      <section className={styles.statsSection}>
-        <div className={styles.statsGrid}>
-          {[
-            {
-              Icon: FiActivity,
-              label: "CONSULTATIONS",
-              value: "0",
-              sub: "No sessions yet",
-            },
-            {
-              Icon: FiBarChart2,
-              label: "URGENCY SCORE",
-              value: "—",
-              sub: "Run AI Triage first",
-            },
-            {
-              Icon: FiUsers,
-              label: "MATCHED DOCTORS",
-              value: "—",
-              sub: "Profile needed",
-            },
-            {
-              Icon: FiFileText,
-              label: "HEALTH RECORDS",
-              value: "0",
-              sub: "Upload your first",
-            },
-          ].map(({ Icon, label, value, sub }) => (
-            <div key={label} className={styles.statCard}>
-              <div className={styles.statIconRow}>
-                <Icon size={15} className={styles.statIcon} />
-                <p className={styles.statLabel}>{label}</p>
-              </div>
-              <p className={styles.statValue}>{value}</p>
-              <p className={styles.statSub}>{sub}</p>
+          <nav className={styles.navMenu}>
+            <div className={styles.navGroup}>
+              <span className={styles.navLabel}>Overview</span>
+              <a href="#" className={`${styles.navItem} ${styles.active}`}><FiHome size={16}/> Dashboard</a>
+              <a href="#" className={styles.navItem}><FiActivity size={16}/> Consultations</a>
+              <a href="#" className={styles.navItem}><FiFolder size={16}/> Clinical Records</a>
             </div>
-          ))}
+            
+            <div className={styles.navGroup}>
+              <span className={styles.navLabel}>Applications</span>
+              <a href="#" className={styles.navItem}><FiGrid size={16}/> AI Triage Engine</a>
+              <a href="#" className={styles.navItem}><FiUsers size={16}/> Specialist Directory</a>
+            </div>
+          </nav>
         </div>
-      </section>
 
-      {/* ── EMERGENCY ──────────────────────────────────────── */}
-      <section className={styles.emergencySection}>
-        <div className={styles.emergencyInner}>
-          <div className={styles.emergencyText}>
-            <span className={styles.emergencyLabel}>ALWAYS AVAILABLE</span>
-            <h2 className={styles.emergencyTitle}>Emergency Consultation</h2>
-            <p className={styles.emergencyDesc}>
-              Critical cases bypass all queues. Instantly routed to an available
-              specialist.
-            </p>
+        <div className={styles.sidebarBottom}>
+          <a href="#" className={styles.navItem}><FiSettings size={16}/> Settings</a>
+          
+          <div className={styles.userProfile}>
+            <div className={styles.avatar}>{avatarChar}</div>
+            <div className={styles.userInfo}>
+              <span className={styles.userName}>{user?.name || "Patient"}</span>
+              <span className={styles.userRole}>Standard Tier</span>
+            </div>
+            <button className={styles.logoutBtn} onClick={handleSignOut} title="Log out">
+              <FiLogOut size={16} />
+            </button>
           </div>
-          <button
-            className={`${styles.emergencyBtn} ${emergencyActive ? styles.emergencyBtnActive : ""}`}
-            onClick={() => setEmergencyActive(true)}
-            disabled={emergencyActive}
-          >
-            <FiAlertOctagon size={18} />
-            {emergencyActive ? "Connecting..." : "Start Emergency"}
-          </button>
         </div>
-      </section>
+      </aside>
 
-      {/* ── FEATURE CARDS ──────────────────────────────────── */}
-      <section className={styles.featuresSection}>
-        <div className={styles.sectionHeader}>
-          <span className={styles.sectionBadge}>CORE FEATURES</span>
-          <h2 className={styles.sectionTitle}>
-            Two distinct paths.
-            <br />
-            One intelligent platform.
-          </h2>
-          <p className={styles.sectionDesc}>
-            E-Sanjeevani 2.0 routes patients based on real-time urgency data —
-            instantly.
-          </p>
-        </div>
-
-        <div className={styles.featuresGrid}>
-          {featureCards.map(
-            ({ id, Icon, label, title, desc, tag, tagColor }) => (
-              <div
-                key={id}
-                className={`${styles.featureCard} ${!profileComplete ? styles.featureCardLocked : ""}`}
+      {/* ── RIGHT MAIN CANVAS ── */}
+      <main className={styles.mainCanvas}>
+        <div className={styles.contentWrapper}>
+          
+          {/* Top Canvas Header */}
+          <header className={styles.canvasHeader}>
+            <div>
+              <p className={styles.dateText}>{currentDate}</p>
+              <h1 className={styles.greetingTitle}>Welcome, {firstName}</h1>
+            </div>
+            <div className={styles.headerActions}>
+              <button className={styles.notificationBtn}>
+                <FiBell size={18} />
+                <span className={styles.dot}></span>
+              </button>
+              <button 
+                className={`${styles.emergencyBtn} ${emergencyActive ? styles.emergencyActive : ""}`}
+                onClick={() => setEmergencyActive(true)}
+                disabled={emergencyActive}
               >
-                {!profileComplete && (
-                  <div className={styles.lockOverlay}>
-                    <FiLock size={24} className={styles.lockIconSvg} />
-                    <p className={styles.lockMsg}>Complete profile to access</p>
-                  </div>
-                )}
-                <div className={styles.cardInner}>
-                  <div className={styles.cardTopRow}>
-                    <span className={`${styles.cardTag} ${styles[tagColor]}`}>
-                      {tag}
-                    </span>
-                    <Icon size={26} className={styles.cardIconSvg} />
-                  </div>
-                  <p className={styles.cardLabel}>{label}</p>
-                  <h3 className={styles.cardTitle}>{title}</h3>
-                  <p className={styles.cardDesc}>{desc}</p>
-                  <button
-                    className={styles.cardBtn}
-                    disabled={!profileComplete}
-                  >
-                    {profileComplete ? (
-                      <>
-                        <span>Launch</span>
-                        <FiArrowRight size={13} />
-                      </>
-                    ) : (
-                      <>
-                        <FiLock size={12} />
-                        <span>Locked</span>
-                      </>
-                    )}
-                  </button>
+                <FiAlertOctagon size={16} />
+                {emergencyActive ? "Routing..." : "Declare Emergency"}
+              </button>
+            </div>
+          </header>
+
+          {/* Profile Alert Banner */}
+          {!profileComplete && (
+            <div className={styles.alertBanner}>
+              <div className={styles.alertContent}>
+                <div className={styles.alertIconBox}>
+                  <FiAlertTriangle size={18} />
+                </div>
+                <div>
+                  <h3 className={styles.alertTitle}>Profile Incomplete</h3>
+                  <p className={styles.alertDesc}>Complete your clinical profile to enable Smart Routing and AI Match algorithms.</p>
                 </div>
               </div>
-            ),
+              <button onClick={() => window.location.href = "/profile-setup"} className={styles.alertBtn}>
+                Complete Profile
+              </button>
+            </div>
           )}
-        </div>
-      </section>
 
-      {/* ── HEALTH TIPS ────────────────────────────────────── */}
-      <section className={styles.tipsSection}>
-        <div className={styles.tipsSectionInner}>
-          <div className={styles.tipsHeader}>
-            <span
-              className={`${styles.sectionBadge} ${styles.sectionBadgeDark}`}
-            >
-              DAILY HEALTH
-            </span>
-            <h2 className={styles.tipsSectionTitle}>
-              Stay informed. Stay healthy.
-            </h2>
-          </div>
-          <div className={styles.tipsGrid}>
-            {healthTips.map(({ Icon, tip }, i) => (
-              <div key={i} className={styles.tipCard}>
-                <Icon size={22} className={styles.tipIconSvg} />
-                <p className={styles.tipText}>{tip}</p>
+          {/* KPI Stats Grid */}
+          <div className={styles.statsGrid}>
+            {[
+              { id: 1, label: "Total Consults", value: "0", Icon: FiActivity },
+              { id: 2, label: "Urgency Score", value: "—", Icon: FiBarChart2 },
+              { id: 3, label: "Network Doctors", value: "842", Icon: FiUsers },
+              { id: 4, label: "Vault Records", value: "0", Icon: FiFileText },
+            ].map(stat => (
+              <div key={stat.id} className={styles.statCard}>
+                <div className={styles.statHeader}>
+                  <span className={styles.statLabel}>{stat.label}</span>
+                  <stat.Icon size={16} className={styles.statIcon} />
+                </div>
+                <div className={styles.statValue}>{stat.value}</div>
               </div>
             ))}
           </div>
-        </div>
-      </section>
 
-      {/* ── PATIENT FLOW ───────────────────────────────────── */}
-      <section className={styles.flowSection}>
-        <span className={`${styles.sectionBadge} ${styles.sectionBadgeDark}`}>
-          THE PATIENT FLOW
-        </span>
-        <h2 className={styles.flowTitle}>How it works.</h2>
-        <div className={styles.flowGrid}>
-          {flowSteps.map((step, i) => (
-            <div key={i} className={styles.flowStep}>
-              <p className={styles.flowNum}>{step.num}</p>
-              <h3 className={styles.flowStepTitle}>{step.title}</h3>
-              <p className={styles.flowStepDesc}>{step.desc}</p>
-              {i < 3 && <span className={styles.flowArrow}>· · · · ·</span>}
+          {/* Core Modules (Software Cards) */}
+          <section className={styles.moduleSection}>
+            <h2 className={styles.sectionTitle}>Platform Modules</h2>
+            <div className={styles.moduleGrid}>
+              {featureCards.map(card => (
+                <div key={card.id} className={`${styles.moduleCard} ${!profileComplete ? styles.lockedCard : ""}`}>
+                  
+                  {/* Glassmorphism Lock Overlay */}
+                  {!profileComplete && (
+                    <div className={styles.lockOverlay}>
+                      <div className={styles.lockBadge}>
+                        <FiLock size={14} /> Profile Required
+                      </div>
+                    </div>
+                  )}
+
+                  <div className={styles.moduleHeader}>
+                    <div className={`${styles.moduleIconBox} ${styles[card.tagColor]}`}>
+                      <card.Icon size={20} />
+                    </div>
+                    <span className={styles.moduleTag}>{card.label}</span>
+                  </div>
+                  <h3 className={styles.moduleTitle}>{card.title}</h3>
+                  <p className={styles.moduleDesc}>{card.desc}</p>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </section>
+          </section>
 
-      {/* ── FOOTER ─────────────────────────────────────────── */}
-      <footer className={styles.footer}>
-        <div className={styles.footerBrand}>
-          <div className={styles.navLogo}>+</div>
-          <span className={styles.navName}>E-Sanjeevani 2.0</span>
+          {/* Bottom Split */}
+          <div className={styles.bottomGrid}>
+            <div className={styles.dataCard}>
+              <div className={styles.cardHeader}>
+                <h3 className={styles.cardTitle}>Algorithm Pipeline</h3>
+              </div>
+              <div className={styles.timeline}>
+                {flowSteps.map((step, i) => (
+                  <div key={i} className={styles.timelineStep}>
+                    <div className={styles.stepDot}></div>
+                    <div className={styles.stepContent}>
+                      <h4 className={styles.stepTitle}>{step.num}. {step.title}</h4>
+                      <p className={styles.stepDesc}>{step.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className={styles.dataCard}>
+              <div className={styles.cardHeader}>
+                <h3 className={styles.cardTitle}>System Telemetry</h3>
+              </div>
+              <div className={styles.tipsList}>
+                {healthTips.map((tip, i) => (
+                  <div key={i} className={styles.tipItem}>
+                    <tip.Icon size={16} className={styles.tipIcon} />
+                    <span className={styles.tipText}>{tip.tip}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
         </div>
-        <p className={styles.footerDesc}>
-          AI-powered telemedicine delivering smart healthcare consultations with
-          instant specialist matching and 24/7 availability.
-        </p>
-        <p className={styles.footerCopy}>
-          © 2026 E-Sanjeevani 2.0 · National Infrastructure V2.0
-        </p>
-      </footer>
+      </main>
+
     </div>
   );
 }
