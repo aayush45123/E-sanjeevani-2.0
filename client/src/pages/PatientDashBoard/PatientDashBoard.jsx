@@ -20,13 +20,33 @@ import {
   FiHome,
   FiGrid,
   FiFolder,
-  FiSettings
+  FiSettings,
+  FiZap
 } from "react-icons/fi";
 
-import styles from "./PatientDashboard.module.css";
+import styles from "./PatientDashBoard.module.css";
 import { profileApi, authApi } from "../../utils/api";
 
-// ─── Feature card definitions ────────────────────────────────
+// Simple Text Logo Instead of SVG
+const LogoIcon = () => (
+  <div style={{
+    width: "28px",
+    height: "28px",
+    background: "#51da4d",
+    borderRadius: "6px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "14px",
+    fontWeight: "800",
+    color: "#ffffff",
+    flexShrink: 0
+  }}>
+    E
+  </div>
+);
+
+// Feature card definitions
 const featureCards = [
   {
     id: "ai-check",
@@ -68,7 +88,6 @@ const flowSteps = [
   { num: "04", title: "Instant Connection", desc: "Emergency patients connected to optimal doctor in <3 minutes." },
 ];
 
-// ─────────────────────────────────────────────────────────────
 export default function PatientDashboard() {
   const [user, setUser] = useState(null);
   const [profileComplete, setProfileComplete] = useState(false);
@@ -117,36 +136,47 @@ export default function PatientDashboard() {
   return (
     <div className={styles.appLayout}>
       
-      {/* ── LEFT SIDEBAR (The SaaS Standard) ── */}
+      {/* LEFT SIDEBAR */}
       <aside className={styles.sidebar}>
         <div className={styles.sidebarTop}>
+          {/* Brand Logo */}
           <div className={styles.brand}>
-            <div className={styles.logoIcon}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                 <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
-              </svg>
-            </div>
+            <LogoIcon />
             <span className={styles.brandName}>E-Sanjeevani</span>
           </div>
 
+          {/* Navigation Menu */}
           <nav className={styles.navMenu}>
             <div className={styles.navGroup}>
               <span className={styles.navLabel}>Overview</span>
-              <a href="#" className={`${styles.navItem} ${styles.active}`}><FiHome size={16}/> Dashboard</a>
-              <a href="#" className={styles.navItem}><FiActivity size={16}/> Consultations</a>
-              <a href="#" className={styles.navItem}><FiFolder size={16}/> Clinical Records</a>
+              <a href="#" className={`${styles.navItem} ${styles.active}`}>
+                <FiHome size={18} /> Dashboard
+              </a>
+              <a href="#" className={styles.navItem}>
+                <FiActivity size={18} /> Consultations
+              </a>
+              <a href="#" className={styles.navItem}>
+                <FiFolder size={18} /> Clinical Records
+              </a>
             </div>
             
             <div className={styles.navGroup}>
               <span className={styles.navLabel}>Applications</span>
-              <a href="#" className={styles.navItem}><FiGrid size={16}/> AI Triage Engine</a>
-              <a href="#" className={styles.navItem}><FiUsers size={16}/> Specialist Directory</a>
+              <a href="#" className={styles.navItem}>
+                <FiCpu size={18} /> AI Triage Engine
+              </a>
+              <a href="#" className={styles.navItem}>
+                <FiUsers size={18} /> Specialist Directory
+              </a>
             </div>
           </nav>
         </div>
 
+        {/* User Profile Section */}
         <div className={styles.sidebarBottom}>
-          <a href="#" className={styles.navItem}><FiSettings size={16}/> Settings</a>
+          <a href="#" className={styles.navItem}>
+            <FiSettings size={18} /> Settings
+          </a>
           
           <div className={styles.userProfile}>
             <div className={styles.avatar}>{avatarChar}</div>
@@ -161,13 +191,13 @@ export default function PatientDashboard() {
         </div>
       </aside>
 
-      {/* ── RIGHT MAIN CANVAS ── */}
+      {/* RIGHT MAIN CANVAS */}
       <main className={styles.mainCanvas}>
         <div className={styles.contentWrapper}>
           
-          {/* Top Canvas Header */}
+          {/* Canvas Header */}
           <header className={styles.canvasHeader}>
-            <div>
+            <div className={styles.headerTitles}>
               <p className={styles.dateText}>{currentDate}</p>
               <h1 className={styles.greetingTitle}>Welcome, {firstName}</h1>
             </div>
@@ -181,56 +211,63 @@ export default function PatientDashboard() {
                 onClick={() => setEmergencyActive(true)}
                 disabled={emergencyActive}
               >
-                <FiAlertOctagon size={16} />
-                {emergencyActive ? "Routing..." : "Declare Emergency"}
+                {emergencyActive ? (
+                  <><FiLoader className={styles.spinIcon} size={16} /> Routing...</>
+                ) : (
+                  <><FiAlertOctagon size={16} /> Declare Emergency</>
+                )}
               </button>
             </div>
           </header>
 
-          {/* Profile Alert Banner */}
+          {/* Alert Banner */}
           {!profileComplete && (
             <div className={styles.alertBanner}>
               <div className={styles.alertContent}>
                 <div className={styles.alertIconBox}>
-                  <FiAlertTriangle size={18} />
+                  <FiAlertTriangle size={20} />
                 </div>
-                <div>
+                <div className={styles.alertTexts}>
                   <h3 className={styles.alertTitle}>Profile Incomplete</h3>
                   <p className={styles.alertDesc}>Complete your clinical profile to enable Smart Routing and AI Match algorithms.</p>
                 </div>
               </div>
               <button onClick={() => window.location.href = "/profile-setup"} className={styles.alertBtn}>
-                Complete Profile
+                Complete Profile <FiArrowRight size={14} />
               </button>
             </div>
           )}
 
-          {/* KPI Stats Grid */}
+          {/* Stats Grid */}
           <div className={styles.statsGrid}>
             {[
               { id: 1, label: "Total Consults", value: "0", Icon: FiActivity },
-              { id: 2, label: "Urgency Score", value: "—", Icon: FiBarChart2 },
+              { id: 2, label: "Urgency Score", value: "—", Icon: FiZap },
               { id: 3, label: "Network Doctors", value: "842", Icon: FiUsers },
               { id: 4, label: "Vault Records", value: "0", Icon: FiFileText },
             ].map(stat => (
               <div key={stat.id} className={styles.statCard}>
                 <div className={styles.statHeader}>
                   <span className={styles.statLabel}>{stat.label}</span>
-                  <stat.Icon size={16} className={styles.statIcon} />
+                  <div className={styles.statIconBox}>
+                    <stat.Icon size={16} />
+                  </div>
                 </div>
                 <div className={styles.statValue}>{stat.value}</div>
               </div>
             ))}
           </div>
 
-          {/* Core Modules (Software Cards) */}
+          {/* Module Cards */}
           <section className={styles.moduleSection}>
             <h2 className={styles.sectionTitle}>Platform Modules</h2>
             <div className={styles.moduleGrid}>
               {featureCards.map(card => (
-                <div key={card.id} className={`${styles.moduleCard} ${!profileComplete ? styles.lockedCard : ""}`}>
+                <div 
+                  key={card.id} 
+                  className={`${styles.moduleCard} ${!profileComplete ? styles.lockedCard : ""}`}
+                >
                   
-                  {/* Glassmorphism Lock Overlay */}
                   {!profileComplete && (
                     <div className={styles.lockOverlay}>
                       <div className={styles.lockBadge}>
@@ -252,8 +289,9 @@ export default function PatientDashboard() {
             </div>
           </section>
 
-          {/* Bottom Split */}
+          {/* Bottom Split Grid */}
           <div className={styles.bottomGrid}>
+            {/* Algorithm Pipeline */}
             <div className={styles.dataCard}>
               <div className={styles.cardHeader}>
                 <h3 className={styles.cardTitle}>Algorithm Pipeline</h3>
@@ -271,6 +309,7 @@ export default function PatientDashboard() {
               </div>
             </div>
 
+            {/* System Telemetry */}
             <div className={styles.dataCard}>
               <div className={styles.cardHeader}>
                 <h3 className={styles.cardTitle}>System Telemetry</h3>
@@ -278,7 +317,9 @@ export default function PatientDashboard() {
               <div className={styles.tipsList}>
                 {healthTips.map((tip, i) => (
                   <div key={i} className={styles.tipItem}>
-                    <tip.Icon size={16} className={styles.tipIcon} />
+                    <div className={styles.tipIconWrap}>
+                      <tip.Icon size={16} />
+                    </div>
                     <span className={styles.tipText}>{tip.tip}</span>
                   </div>
                 ))}
