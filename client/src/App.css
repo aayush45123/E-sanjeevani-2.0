@@ -1,19 +1,19 @@
 @import url("https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Montagu+Slab:opsz,wght@16..144,100..700&family=Public+Sans:ital,wght@0,100..900;1,100..900&display=swap");
 
 :root {
-  /* ===== PAPERGUIDE INSPIRED COLORS ===== */
+  /* ===== MINIMALIST COLORS ===== */
   --bg-primary: #ffffff;
-  --bg-secondary: #fdfdfd; /* Very subtle off-white for main area */
+  --bg-secondary: #fdfdfd;
   --bg-hover: #f3f4f6;
-  --text-primary: #111827; /* Near black for headings */
-  --text-secondary: #6b7280; /* Gray for standard text */
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
   --text-light: #9ca3af;
   --border-light: #e5e7eb;
   --border-focus: #d1d5db;
 
-  /* Retained brand accents for buttons/icons if needed */
+  /* Retained brand accents */
   --brand-accent: #111827;
-  --brand-danger: #ef4444; /* For declare emergency */
+  --brand-danger: #ef4444;
 
   /* ===== SPACING SYSTEM ===== */
   --space-1: 0.25rem;
@@ -50,12 +50,8 @@ body {
   font-family: var(--font-primary);
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  display: flex;
-  height: 100vh;
-  overflow: hidden;
 }
 
-/* Universal box-sizing */
 *,
 *::before,
 *::after {
