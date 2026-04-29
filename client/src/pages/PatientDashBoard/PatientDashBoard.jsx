@@ -2,26 +2,51 @@ import { useState, useEffect } from "react";
 import {
   FiAlertTriangle,
   FiArrowRight,
+  FiLogOut,
   FiBell,
+  FiCpu,
+  FiUserCheck,
+  FiCamera,
   FiLock,
   FiActivity,
   FiDroplet,
   FiMoon,
   FiHeart,
   FiAlertOctagon,
+  FiBarChart2,
   FiUsers,
   FiFileText,
   FiLoader,
-  FiZap,
-  FiCpu,
-  FiUserCheck,
-  FiCamera,
+  FiHome,
+  FiGrid,
+  FiFolder,
+  FiSettings,
+  FiZap
 } from "react-icons/fi";
 
-import styles from "./PatientDashboard.module.css";
-import Sidebar from "../../components/Sidebar/Sidebar";
+import styles from "./PatientDashBoard.module.css";
 import { profileApi, authApi } from "../../utils/api";
 
+// Simple Text Logo Instead of SVG
+const LogoIcon = () => (
+  <div style={{
+    width: "28px",
+    height: "28px",
+    background: "#51da4d",
+    borderRadius: "6px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "14px",
+    fontWeight: "800",
+    color: "#ffffff",
+    flexShrink: 0
+  }}>
+    E
+  </div>
+);
+
+// Feature card definitions
 const featureCards = [
   {
     id: "ai-check",
@@ -36,7 +61,7 @@ const featureCards = [
     Icon: FiUserCheck,
     label: "CLINICAL LAYER",
     title: "Smart Doctor Match",
-    desc: "Get matched to the right specialist based on urgency, specialty, and availability.",
+    desc: "Bypass the standard queue. Get matched to the right specialist based on urgency, specialty, and availability.",
     tagColor: "tagPurple",
   },
   {
@@ -44,32 +69,23 @@ const featureCards = [
     Icon: FiCamera,
     label: "VISION MODEL",
     title: "Dermatology Scan",
-    desc: "Upload skin condition images for AI-powered preliminary screening.",
+    desc: "Upload clinical-grade images of skin conditions for immediate AI-powered preliminary screening.",
     tagColor: "tagOrange",
   },
 ];
 
-const quickStats = [
-  {
-    title: "Total Consultations",
-    value: "24",
-    icon: <FiActivity />,
-  },
-  {
-    title: "Doctors Available",
-    value: "128",
-    icon: <FiUsers />,
-  },
-  {
-    title: "Medical Records",
-    value: "16",
-    icon: <FiFileText />,
-  },
-  {
-    title: "Urgency Score",
-    value: "Low",
-    icon: <FiZap />,
-  },
+const healthTips = [
+  { Icon: FiDroplet, tip: "Hydration telemetry: 8 glasses daily" },
+  { Icon: FiActivity, tip: "Cardiovascular baseline: 30m daily activity" },
+  { Icon: FiMoon, tip: "Recovery cycle: 7–9 hours required" },
+  { Icon: FiHeart, tip: "Nutritional input: Optimize green intake" },
+];
+
+const flowSteps = [
+  { num: "01", title: "AI Intake", desc: "Patient interacts with AI. Complex issues trigger symptom collection." },
+  { num: "02", title: "Urgency Scoring", desc: "Engine assigns a 1-10 severity score and predicts required specialty." },
+  { num: "03", title: "Dynamic Match", desc: "Weighted algorithm cross-references parameters to bypass standard queues." },
+  { num: "04", title: "Instant Connection", desc: "Emergency patients connected to optimal doctor in <3 minutes." },
 ];
 
 export default function PatientDashboard() {
@@ -85,7 +101,6 @@ export default function PatientDashboard() {
           authApi.me(),
           profileApi.getStatus(),
         ]);
-
         setUser(userRes.data);
         setProfileComplete(statusRes.data.isProfileComplete);
       } catch (err) {
@@ -97,7 +112,6 @@ export default function PatientDashboard() {
         setLoading(false);
       }
     }
-
     init();
   }, []);
 
@@ -106,10 +120,9 @@ export default function PatientDashboard() {
     window.location.href = "/auth";
   };
 
-  const firstName =
-    user?.name?.split(" ")[0] || user?.email?.split("@")[0] || "User";
-
+  const firstName = user?.name?.split(" ")[0] || user?.email?.split("@")[0] || "User";
   const avatarChar = firstName[0]?.toUpperCase() || "U";
+  const currentDate = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
   if (loading) {
     return (
@@ -122,108 +135,201 @@ export default function PatientDashboard() {
 
   return (
     <div className={styles.appLayout}>
-      <Sidebar
-        user={user}
-        avatarChar={avatarChar}
-        handleSignOut={handleSignOut}
-      />
-
-      <main className={styles.mainCanvas}>
-        <div className={styles.contentWrapper}>
-          <div className={styles.headerSection}>
-            <div>
-              <p className={styles.subTitle}>Patient Dashboard</p>
-              <h1 className={styles.pageTitle}>Welcome back, {firstName}</h1>
-              <p className={styles.description}>
-                Monitor your health journey, consultations, and AI-powered
-                healthcare services from one place.
-              </p>
-            </div>
-
-            <button
-              className={`${styles.emergencyBtn} ${
-                emergencyActive ? styles.emergencyActive : ""
-              }`}
-              onClick={() => setEmergencyActive(true)}
-              disabled={emergencyActive}
-            >
-              {emergencyActive ? (
-                <>
-                  <FiLoader className={styles.spinner} />
-                  Routing...
-                </>
-              ) : (
-                <>
-                  <FiAlertOctagon />
-                  Declare Emergency
-                </>
-              )}
-            </button>
+      
+      {/* LEFT SIDEBAR */}
+      <aside className={styles.sidebar}>
+        <div className={styles.sidebarTop}>
+          {/* Brand Logo */}
+          <div className={styles.brand}>
+            <LogoIcon />
+            <span className={styles.brandName}>E-Sanjeevani</span>
           </div>
 
+          {/* Navigation Menu */}
+          <nav className={styles.navMenu}>
+            <div className={styles.navGroup}>
+              <span className={styles.navLabel}>Overview</span>
+              <a href="#" className={`${styles.navItem} ${styles.active}`}>
+                <FiHome size={18} /> Dashboard
+              </a>
+              <a href="#" className={styles.navItem}>
+                <FiActivity size={18} /> Consultations
+              </a>
+              <a href="#" className={styles.navItem}>
+                <FiFolder size={18} /> Clinical Records
+              </a>
+            </div>
+            
+            <div className={styles.navGroup}>
+              <span className={styles.navLabel}>Applications</span>
+              <a href="#" className={styles.navItem}>
+                <FiCpu size={18} /> AI Triage Engine
+              </a>
+              <a href="#" className={styles.navItem}>
+                <FiUsers size={18} /> Specialist Directory
+              </a>
+            </div>
+          </nav>
+        </div>
+
+        {/* User Profile Section */}
+        <div className={styles.sidebarBottom}>
+          <a href="#" className={styles.navItem}>
+            <FiSettings size={18} /> Settings
+          </a>
+          
+          <div className={styles.userProfile}>
+            <div className={styles.avatar}>{avatarChar}</div>
+            <div className={styles.userInfo}>
+              <span className={styles.userName}>{user?.name || "Patient"}</span>
+              <span className={styles.userRole}>Standard Tier</span>
+            </div>
+            <button className={styles.logoutBtn} onClick={handleSignOut} title="Log out">
+              <FiLogOut size={16} />
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      {/* RIGHT MAIN CANVAS */}
+      <main className={styles.mainCanvas}>
+        <div className={styles.contentWrapper}>
+          
+          {/* Canvas Header */}
+          <header className={styles.canvasHeader}>
+            <div className={styles.headerTitles}>
+              <p className={styles.dateText}>{currentDate}</p>
+              <h1 className={styles.greetingTitle}>Welcome, {firstName}</h1>
+            </div>
+            <div className={styles.headerActions}>
+              <button className={styles.notificationBtn}>
+                <FiBell size={18} />
+                <span className={styles.dot}></span>
+              </button>
+              <button 
+                className={`${styles.emergencyBtn} ${emergencyActive ? styles.emergencyActive : ""}`}
+                onClick={() => setEmergencyActive(true)}
+                disabled={emergencyActive}
+              >
+                {emergencyActive ? (
+                  <><FiLoader className={styles.spinIcon} size={16} /> Routing...</>
+                ) : (
+                  <><FiAlertOctagon size={16} /> Declare Emergency</>
+                )}
+              </button>
+            </div>
+          </header>
+
+          {/* Alert Banner */}
           {!profileComplete && (
-            <div className={styles.alertBox}>
-              <div className={styles.alertLeft}>
-                <FiAlertTriangle />
-                <div>
-                  <h3>Profile Incomplete</h3>
-                  <p>
-                    Complete your profile to unlock smart doctor matching and
-                    emergency priority routing.
-                  </p>
+            <div className={styles.alertBanner}>
+              <div className={styles.alertContent}>
+                <div className={styles.alertIconBox}>
+                  <FiAlertTriangle size={20} />
+                </div>
+                <div className={styles.alertTexts}>
+                  <h3 className={styles.alertTitle}>Profile Incomplete</h3>
+                  <p className={styles.alertDesc}>Complete your clinical profile to enable Smart Routing and AI Match algorithms.</p>
                 </div>
               </div>
-
-              <button
-                className={styles.completeBtn}
-                onClick={() => (window.location.href = "/profile-setup")}
-              >
-                Complete Profile
-                <FiArrowRight />
+              <button onClick={() => window.location.href = "/profile-setup"} className={styles.alertBtn}>
+                Complete Profile <FiArrowRight size={14} />
               </button>
             </div>
           )}
 
+          {/* Stats Grid */}
           <div className={styles.statsGrid}>
-            {quickStats.map((item, index) => (
-              <div className={styles.statCard} key={index}>
-                <div className={styles.statIcon}>{item.icon}</div>
-                <h3>{item.value}</h3>
-                <p>{item.title}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className={styles.sectionTitle}>
-            <h2>Platform Modules</h2>
-          </div>
-
-          <div className={styles.cardGrid}>
-            {featureCards.map((card) => (
-              <div
-                key={card.id}
-                className={`${styles.card} ${
-                  !profileComplete ? styles.lockedCard : ""
-                }`}
-              >
-                {!profileComplete && (
-                  <div className={styles.lockOverlay}>
-                    <FiLock />
-                    Profile Required
+            {[
+              { id: 1, label: "Total Consults", value: "0", Icon: FiActivity },
+              { id: 2, label: "Urgency Score", value: "—", Icon: FiZap },
+              { id: 3, label: "Network Doctors", value: "842", Icon: FiUsers },
+              { id: 4, label: "Vault Records", value: "0", Icon: FiFileText },
+            ].map(stat => (
+              <div key={stat.id} className={styles.statCard}>
+                <div className={styles.statHeader}>
+                  <span className={styles.statLabel}>{stat.label}</span>
+                  <div className={styles.statIconBox}>
+                    <stat.Icon size={16} />
                   </div>
-                )}
-
-                <div className={styles.cardIcon}>
-                  <card.Icon />
                 </div>
-
-                <h3 className={styles.cardTitle}>{card.title}</h3>
-                <p className={styles.cardText}>{card.desc}</p>
+                <div className={styles.statValue}>{stat.value}</div>
               </div>
             ))}
           </div>
+
+          {/* Module Cards */}
+          <section className={styles.moduleSection}>
+            <h2 className={styles.sectionTitle}>Platform Modules</h2>
+            <div className={styles.moduleGrid}>
+              {featureCards.map(card => (
+                <div 
+                  key={card.id} 
+                  className={`${styles.moduleCard} ${!profileComplete ? styles.lockedCard : ""}`}
+                >
+                  
+                  {!profileComplete && (
+                    <div className={styles.lockOverlay}>
+                      <div className={styles.lockBadge}>
+                        <FiLock size={14} /> Profile Required
+                      </div>
+                    </div>
+                  )}
+
+                  <div className={styles.moduleHeader}>
+                    <div className={`${styles.moduleIconBox} ${styles[card.tagColor]}`}>
+                      <card.Icon size={20} />
+                    </div>
+                    <span className={styles.moduleTag}>{card.label}</span>
+                  </div>
+                  <h3 className={styles.moduleTitle}>{card.title}</h3>
+                  <p className={styles.moduleDesc}>{card.desc}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Bottom Split Grid */}
+          <div className={styles.bottomGrid}>
+            {/* Algorithm Pipeline */}
+            <div className={styles.dataCard}>
+              <div className={styles.cardHeader}>
+                <h3 className={styles.cardTitle}>Algorithm Pipeline</h3>
+              </div>
+              <div className={styles.timeline}>
+                {flowSteps.map((step, i) => (
+                  <div key={i} className={styles.timelineStep}>
+                    <div className={styles.stepDot}></div>
+                    <div className={styles.stepContent}>
+                      <h4 className={styles.stepTitle}>{step.num}. {step.title}</h4>
+                      <p className={styles.stepDesc}>{step.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* System Telemetry */}
+            <div className={styles.dataCard}>
+              <div className={styles.cardHeader}>
+                <h3 className={styles.cardTitle}>System Telemetry</h3>
+              </div>
+              <div className={styles.tipsList}>
+                {healthTips.map((tip, i) => (
+                  <div key={i} className={styles.tipItem}>
+                    <div className={styles.tipIconWrap}>
+                      <tip.Icon size={16} />
+                    </div>
+                    <span className={styles.tipText}>{tip.tip}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
         </div>
       </main>
+
     </div>
   );
 }
