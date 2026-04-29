@@ -92,6 +92,12 @@ export const profileApi = {
       method: "PATCH",
       body: JSON.stringify(body),
     }),
+
+  updateProfile: (body) =>
+    request("/patient/profile", {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
 };
 
 // ── Decode JWT locally (fallback — no network call) ──────────

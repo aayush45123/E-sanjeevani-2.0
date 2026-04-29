@@ -1,11 +1,18 @@
 import PatientProfile from "../models/PatientProfile.js";
 
+/*
+========================================================
+CREATE PROFILE
+POST /api/patient/profile
+========================================================
+*/
 const createProfile = async (req, res) => {
   try {
-    const userId = req.user.id; // injected by your JWT middleware
+    const userId = req.user.id;
 
     // Prevent duplicate profile creation
     const existing = await PatientProfile.findOne({ userId });
+
     if (existing) {
       return res.status(409).json({
         success: false,
@@ -13,45 +20,39 @@ const createProfile = async (req, res) => {
       });
     }
 
-    const {
-      fullName,
-      age,
-      gender,
-      phone,
-      emergencyContact,
-      conditions,
-      allergies,
-      medications,
-      smoking,
-      alcohol,
-      language,
-      city,
-      state,
-    } = req.body;
-
     const profile = new PatientProfile({
       userId,
-      fullName,
-      age,
-      gender,
-      phone,
-      emergencyContact: emergencyContact || null,
-      conditions: conditions || [],
-      allergies: allergies || "",
-      medications: medications || "",
-      smoking: smoking || "",
-      alcohol: alcohol || "",
-      language,
-      city: city || "",
-      state: state || "",
+
+      // STEP 1 - Personal Details
+      age: req.body.age,
+      gender: req.body.gender,
+      bloodGroup: req.body.bloodGroup,
+      maritalStatus: req.body.maritalStatus,
+
+      // STEP 2 - Physical Vitals
+      height: req.body.height,
+      weight: req.body.weight,
+      bloodPressure: req.body.bloodPressure || "",
+
+      // STEP 3 - Lifestyle Habits
+      smoking: req.body.smoking,
+      alcohol: req.body.alcohol,
+      diet: req.body.diet,
+      exercise: req.body.exercise,
+
+      // STEP 4 - Medical History
+      allergies: req.body.allergies || "",
+      chronicConditions: req.body.chronicConditions || "",
+      currentMedications: req.body.currentMedications || "",
+      pastSurgeries: req.body.pastSurgeries || "",
     });
 
-    // pre-save hook sets isProfileComplete automatically
+    // pre-save hook will auto set isProfileComplete
     await profile.save();
 
     return res.status(201).json({
       success: true,
-      message: "Profile created successfully.",
+      message: "Profile created successfully",
       data: {
         isProfileComplete: profile.isProfileComplete,
         profile: sanitizeProfile(profile),
@@ -62,19 +63,19 @@ const createProfile = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// GET /api/patient/profile
-// Fetches the logged-in patient's profile.
-// Dashboard calls this on load to check isProfileComplete.
-// ─────────────────────────────────────────────────────────────
+/*
+========================================================
+GET PROFILE
+GET /api/patient/profile
+========================================================
+*/
 const getProfile = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const profile = await PatientProfile.findOne({ userId }).lean();
+    const profile = await PatientProfile.findOne({ userId });
 
     if (!profile) {
-      // Profile not yet created — return a safe default
       return res.status(200).json({
         success: true,
         data: {
@@ -96,64 +97,75 @@ const getProfile = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// PATCH /api/patient/profile
-// Partial update — user can edit their profile later.
-// Any field from the form can be updated individually.
-// ─────────────────────────────────────────────────────────────
+/*
+========================================================
+UPDATE PROFILE
+PATCH /api/patient/profile
+========================================================
+This is the main method your frontend uses
+(profileApi.updateProfile())
+========================================================
+*/
 const updateProfile = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // Whitelist updatable fields — never let userId or
-    // isProfileComplete be set directly from the request body
+    let profile = await PatientProfile.findOne({ userId });
+
+    /*
+    IMPORTANT:
+    If profile does not exist,
+    create it automatically
+    */
+    if (!profile) {
+      profile = new PatientProfile({
+        userId,
+      });
+    }
+
+    /*
+    Only update allowed fields
+    Never allow direct update of:
+    - userId
+    - isProfileComplete
+    */
+
     const allowedFields = [
-      "fullName",
       "age",
       "gender",
-      "phone",
-      "emergencyContact",
-      "conditions",
-      "allergies",
-      "medications",
+      "bloodGroup",
+      "maritalStatus",
+
+      "height",
+      "weight",
+      "bloodPressure",
+
       "smoking",
       "alcohol",
-      "language",
-      "city",
-      "state",
+      "diet",
+      "exercise",
+
+      "allergies",
+      "chronicConditions",
+      "currentMedications",
+      "pastSurgeries",
     ];
 
-    const updates = {};
     allowedFields.forEach((field) => {
       if (req.body[field] !== undefined) {
-        updates[field] = req.body[field];
+        profile[field] = req.body[field];
       }
     });
 
-    if (Object.keys(updates).length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "No valid fields provided for update.",
-      });
-    }
-
-    // findOne + save instead of findOneAndUpdate so that
-    // the pre-save hook recalculates isProfileComplete
-    const profile = await PatientProfile.findOne({ userId });
-
-    if (!profile) {
-      return res.status(404).json({
-        success: false,
-        message: "Profile not found. Create one first.",
-      });
-    }
-
-    Object.assign(profile, updates);
+    /*
+    pre-save hook runs here and updates:
+    isProfileComplete automatically
+    */
     await profile.save();
 
     return res.status(200).json({
       success: true,
-      message: "Profile updated successfully.",
+      message: "Profile saved successfully",
       data: {
         isProfileComplete: profile.isProfileComplete,
         profile: sanitizeProfile(profile),
@@ -164,11 +176,14 @@ const updateProfile = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// GET /api/patient/profile/status
-// Lightweight endpoint — dashboard polls this to decide
-// whether to show the lock banner. No heavy data returned.
-// ─────────────────────────────────────────────────────────────
+/*
+========================================================
+GET PROFILE STATUS
+GET /api/patient/profile/status
+========================================================
+Dashboard uses this to lock/unlock features
+========================================================
+*/
 const getProfileStatus = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -180,7 +195,9 @@ const getProfileStatus = async (req, res) => {
     return res.status(200).json({
       success: true,
       data: {
-        isProfileComplete: profile ? profile.isProfileComplete : false,
+        isProfileComplete: profile
+          ? profile.isProfileComplete
+          : false,
       },
     });
   } catch (err) {
@@ -188,50 +205,54 @@ const getProfileStatus = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// HELPERS
-// ─────────────────────────────────────────────────────────────
+/*
+========================================================
+HELPERS
+========================================================
+*/
 
-/**
- * Strip internal Mongoose fields before sending to client.
- * Never expose __v, and userId is redundant on the client.
- */
 function sanitizeProfile(profile) {
   const obj = profile.toObject ? profile.toObject() : { ...profile };
+
   delete obj.__v;
   delete obj.userId;
+
   return obj;
 }
 
-/**
- * Centralised error handler.
- * Separates Mongoose validation errors (400) from server errors (500).
- */
 function handleError(res, err, source) {
-  console.error(`[PatientProfile:${source}]`, err.message);
+  console.error(`[PatientProfile:${source}]`, err);
 
-  // Mongoose validation error
+  // Validation error
   if (err.name === "ValidationError") {
-    const messages = Object.values(err.errors).map((e) => e.message);
+    const messages = Object.values(err.errors).map(
+      (e) => e.message
+    );
+
     return res.status(400).json({
       success: false,
-      message: "Validation failed.",
+      message: "Validation failed",
       errors: messages,
     });
   }
 
-  // Mongoose duplicate key (userId unique constraint)
+  // Duplicate key error
   if (err.code === 11000) {
     return res.status(409).json({
       success: false,
-      message: "A profile already exists for this user.",
+      message: "A profile already exists for this user",
     });
   }
 
   return res.status(500).json({
     success: false,
-    message: "Internal server error.",
+    message: "Internal server error",
   });
-}
+};
 
-export { createProfile, getProfile, updateProfile, getProfileStatus };
+export {
+  createProfile,
+  getProfile,
+  updateProfile,
+  getProfileStatus,
+};

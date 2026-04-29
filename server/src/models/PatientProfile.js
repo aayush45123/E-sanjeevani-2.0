@@ -2,165 +2,138 @@ import mongoose from "mongoose";
 
 const patientProfileSchema = new mongoose.Schema(
   {
-    // ── Linked to auth user ──────────────────────────────────
+    // linked user
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      unique: true, // one profile per user, enforced at DB level
+      unique: true,
     },
 
-    // ── Step 1: Basic Info ───────────────────────────────────
-    fullName: {
-      type: String,
-      required: [true, "Full name is required"],
-      trim: true,
-      maxlength: [100, "Name cannot exceed 100 characters"],
-    },
-
+    // STEP 1 - Personal Details
     age: {
       type: Number,
-      required: [true, "Age is required"],
-      min: [1, "Age must be at least 1"],
-      max: [120, "Age must be realistic"],
+      required: true,
+      min: 1,
+      max: 120,
     },
 
     gender: {
       type: String,
-      required: [true, "Gender is required"],
-      enum: {
-        values: ["Male", "Female", "Other", "Prefer not to say"],
-        message: "Invalid gender value",
-      },
+      required: true,
+      enum: ["Male", "Female", "Other"],
     },
 
-    phone: {
+    bloodGroup: {
       type: String,
-      required: [true, "Phone number is required"],
-      match: [/^[+]?[\d\s\-()]{7,15}$/, "Invalid phone number format"],
+      required: true,
+      enum: ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"],
     },
 
-    emergencyContact: {
+    maritalStatus: {
       type: String,
-      match: [/^[+]?[\d\s\-()]{7,15}$/, "Invalid emergency contact format"],
-      default: null,
+      required: true,
+      enum: ["Single", "Married", "Divorced"],
     },
 
-    // ── Step 2: Medical History ──────────────────────────────
-    conditions: {
-      type: [String],
-      enum: {
-        values: [
-          "Diabetes",
-          "Hypertension (BP)",
-          "Heart Disease",
-          "Asthma",
-          "Thyroid",
-          "None of the above",
-        ],
-        message: "Invalid condition value: {VALUE}",
-      },
-      default: [],
+    // STEP 2 - Physical Vitals
+    height: {
+      type: Number,
+      required: true,
     },
 
-    allergies: {
+    weight: {
+      type: Number,
+      required: true,
+    },
+
+    bloodPressure: {
       type: String,
-      trim: true,
-      maxlength: [500, "Allergies description too long"],
       default: "",
     },
 
-    medications: {
-      type: String,
-      trim: true,
-      maxlength: [500, "Medications description too long"],
-      default: "",
-    },
-
-    // ── Step 3: Lifestyle ────────────────────────────────────
+    // STEP 3 - Lifestyle
     smoking: {
       type: String,
-      enum: {
-        values: ["Never", "Occasionally", "Regularly", "Ex-smoker", ""],
-        message: "Invalid smoking status",
-      },
-      default: "",
+      required: true,
+      enum: ["Yes", "No"],
     },
 
     alcohol: {
       type: String,
-      enum: {
-        values: ["Never", "Occasionally", "Regularly", ""],
-        message: "Invalid alcohol status",
-      },
+      required: true,
+      enum: ["Yes", "No"],
+    },
+
+    diet: {
+      type: String,
+      required: true,
+      enum: ["Vegetarian", "Non-Vegetarian", "Vegan"],
+    },
+
+    exercise: {
+      type: String,
+      required: true,
+      enum: ["Daily", "Weekly", "Rarely", "Never"],
+    },
+
+    // STEP 4 - Medical History
+    allergies: {
+      type: String,
       default: "",
     },
 
-    // ── Step 4: Preferences ──────────────────────────────────
-    language: {
+    chronicConditions: {
       type: String,
-      required: [true, "Language preference is required"],
-      enum: {
-        values: [
-          "English",
-          "Hindi",
-          "Bengali",
-          "Tamil",
-          "Telugu",
-          "Marathi",
-          "Other",
-        ],
-        message: "Invalid language value",
-      },
-    },
-
-    city: {
-      type: String,
-      trim: true,
-      maxlength: [100, "City name too long"],
       default: "",
     },
 
-    state: {
+    currentMedications: {
       type: String,
-      trim: true,
-      maxlength: [100, "State name too long"],
       default: "",
     },
 
-    // ── Profile completion flag ──────────────────────────────
-    // Drives the dashboard lock/unlock logic on the frontend
+    pastSurgeries: {
+      type: String,
+      default: "",
+    },
+
+    // important for dashboard unlock
     isProfileComplete: {
       type: Boolean,
       default: false,
     },
   },
   {
-    timestamps: true, // createdAt, updatedAt auto-managed
+    timestamps: true,
   },
 );
 
-
-// ── Virtual: patient age group (used by triage model) ────────
-patientProfileSchema.virtual("ageGroup").get(function () {
-  if (this.age < 18) return "pediatric";
-  if (this.age < 60) return "adult";
-  return "senior";
-});
-
-// ── Instance method: check if all required fields are filled ─
+// auto profile completion checker
 patientProfileSchema.methods.checkCompletion = function () {
-  const required = ["fullName", "age", "gender", "phone", "language"];
-  return required.every((field) => {
-    const val = this[field];
-    return val !== undefined && val !== null && val !== "";
+  const requiredFields = [
+    "age",
+    "gender",
+    "bloodGroup",
+    "maritalStatus",
+    "height",
+    "weight",
+    "smoking",
+    "alcohol",
+    "diet",
+    "exercise",
+  ];
+
+  return requiredFields.every((field) => {
+    return (
+      this[field] !== undefined && this[field] !== null && this[field] !== ""
+    );
   });
 };
 
-// ── Pre-save: auto-set isProfileComplete ─────────────────────
-patientProfileSchema.pre("save", function (next) {
+// before save
+patientProfileSchema.pre("save", function () {
   this.isProfileComplete = this.checkCompletion();
-  next();
 });
 
 export default mongoose.model("PatientProfile", patientProfileSchema);
