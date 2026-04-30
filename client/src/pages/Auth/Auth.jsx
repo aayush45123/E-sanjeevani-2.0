@@ -22,9 +22,10 @@ const Auth = () => {
   };
 
   const handleAuthSuccess = (token) => {
-    window.dispatchEvent(new Event("authChange"));
-    navigate("/dashboard");
-  };
+  localStorage.setItem("token", token);
+  window.dispatchEvent(new Event("authChange"));  // ← Fire auth change event
+  navigate("/dashboard");
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();

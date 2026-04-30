@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import {
   FiHome,
   FiActivity,
@@ -6,8 +7,9 @@ import {
   FiUsers,
   FiSettings,
   FiLogOut,
+  FiChevronDown,
+  FiAlertCircle,
 } from "react-icons/fi";
-
 import styles from "./Sidebar.module.css";
 
 const LogoIcon = () => (
@@ -30,73 +32,111 @@ const LogoIcon = () => (
   </div>
 );
 
-export default function Sidebar({ user, avatarChar, handleSignOut }) {
+export default function Sidebar({ user = {}, onLogout = () => {} }) {
+  const [expandedGroup, setExpandedGroup] = useState("overview");
+
+  const navGroups = [
+    {
+      id: "overview",
+      label: "Overview",
+      items: [
+        { icon: FiHome, label: "Dashboard", href: "#" },
+        { icon: FiActivity, label: "Consultations", href: "#" },
+        { icon: FiFolder, label: "Clinical Records", href: "#" },
+      ],
+    },
+    {
+      id: "applications",
+      label: "Applications",
+      items: [
+        { icon: FiCpu, label: "AI Triage Engine", href: "#" },
+        { icon: FiUsers, label: "Specialist Directory", href: "#" },
+      ],
+    },
+    {
+      id: "support",
+      label: "Support",
+      items: [
+        { icon: FiAlertCircle, label: "Help Center", href: "#" },
+        { icon: FiSettings, label: "Settings", href: "#" },
+      ],
+    },
+  ];
+
+  const firstName =
+    user?.name?.split(" ")[0] || user?.email?.split("@")[0] || "User";
+  const avatarChar = firstName[0]?.toUpperCase() || "U";
+
   return (
     <aside className={styles.sidebar}>
+      {/* Top Section */}
       <div className={styles.sidebarTop}>
+        {/* Brand */}
         <div className={styles.brand}>
           <LogoIcon />
           <span className={styles.brandName}>E-Sanjeevani</span>
         </div>
 
+        {/* Navigation Menu */}
         <nav className={styles.navMenu}>
-          <div className={styles.navGroup}>
-            <span className={styles.navLabel}>Overview</span>
+          {navGroups.map((group) => (
+            <div key={group.id} className={styles.navGroup}>
+              <button
+                className={styles.navGroupLabel}
+                onClick={() =>
+                  setExpandedGroup(expandedGroup === group.id ? null : group.id)
+                }
+              >
+                <span>{group.label}</span>
+                <FiChevronDown
+                  size={16}
+                  style={{
+                    transform:
+                      expandedGroup === group.id
+                        ? "rotate(180deg)"
+                        : "rotate(0deg)",
+                    transition: "transform 0.3s ease",
+                  }}
+                />
+              </button>
 
-            <a href="#" className={`${styles.navItem} ${styles.active}`}>
-              <FiHome size={18} />
-              Dashboard
-            </a>
-
-            <a href="#" className={styles.navItem}>
-              <FiActivity size={18} />
-              Consultations
-            </a>
-
-            <a href="#" className={styles.navItem}>
-              <FiFolder size={18} />
-              Clinical Records
-            </a>
-          </div>
-
-          <div className={styles.navGroup}>
-            <span className={styles.navLabel}>Applications</span>
-
-            <a href="#" className={styles.navItem}>
-              <FiCpu size={18} />
-              AI Triage Engine
-            </a>
-
-            <a href="#" className={styles.navItem}>
-              <FiUsers size={18} />
-              Specialist Directory
-            </a>
-          </div>
+              {expandedGroup === group.id && (
+                <div className={styles.navItems}>
+                  {group.items.map((item, idx) => (
+                    <a
+                      key={idx}
+                      href={item.href}
+                      className={`${styles.navItem} ${
+                        idx === 0 && group.id === "overview"
+                          ? styles.active
+                          : ""
+                      }`}
+                    >
+                      <item.icon size={18} />
+                      <span>{item.label}</span>
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
         </nav>
       </div>
 
+      {/* Bottom Section - User Profile */}
       <div className={styles.sidebarBottom}>
-        <a href="#" className={styles.navItem}>
-          <FiSettings size={18} />
-          Settings
-        </a>
-
         <div className={styles.userProfile}>
           <div className={styles.avatar}>{avatarChar}</div>
-
           <div className={styles.userInfo}>
             <span className={styles.userName}>{user?.name || "Patient"}</span>
             <span className={styles.userRole}>Standard Tier</span>
           </div>
-
-          <button
-            className={styles.logoutBtn}
-            onClick={handleSignOut}
-            title="Log out"
-          >
-            <FiLogOut size={16} />
-          </button>
         </div>
+
+        <button className={styles.logoutBtn} onClick={onLogout} title="Log out">
+          <FiLogOut size={18} />
+          <span>Logout</span>
+        </button>
       </div>
     </aside>
   );

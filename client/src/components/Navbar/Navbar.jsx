@@ -32,10 +32,11 @@ const Navbar = () => {
   }, []);
 
   // Same logout logic as Sidebar
-  const logout = () => {
-    localStorage.removeItem("token");
-    window.location.href = "/";
-  };
+ const logout = () => {
+  localStorage.removeItem("token");
+  window.dispatchEvent(new Event("authChange"));  // ← Fire auth change event
+  window.location.href = "/";
+};
 
   const toggleMobileMenu = () => setIsMobileMenuOpen((prev) => !prev);
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
