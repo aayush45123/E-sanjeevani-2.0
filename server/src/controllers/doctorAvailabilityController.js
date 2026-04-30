@@ -44,7 +44,10 @@ export const createDoctorAvailability = async (req, res) => {
 
     const doctor = await User.findById(req.user.id);
 
-    if (!doctor || doctor.role !== "doctor") {
+    // In createDoctorAvailability, replace the role check:
+
+    // ✅ FIX: case-insensitive role check for DB-inserted doctors
+    if (!doctor || doctor.role.toLowerCase() !== "doctor") {
       return res.status(403).json({
         success: false,
         message: "Only doctors can create availability",

@@ -8,6 +8,7 @@ import {
   getPatientProfile,
   updatePatientProfile,
   completePatientProfile,
+  fixDoctorPassword,
 } from "../controllers/authController.js";
 
 const router = express.Router();
@@ -24,5 +25,6 @@ router.get("/me", authMiddleware, me);
 router.get("/patient/me", authMiddleware, getPatientProfile);
 router.put("/patient/update", authMiddleware, updatePatientProfile);
 router.put("/patient/complete-profile", authMiddleware, completePatientProfile);
+router.post("/admin/fix-password", fixDoctorPassword);
 
 export default router;

@@ -43,24 +43,35 @@ export const authApi = {
 };
 
 // Consultations API
+// src/utils/api.js — only the consultationApi object needs to change
+
 export const consultationApi = {
   getMyConsultations: (params) =>
     apiClient.get("/consultations/my-consultations", { params }),
+
   getDoctorConsultations: () =>
     apiClient.get("/consultations/doctor-dashboard"),
+
   getConsultationDetails: (id) => apiClient.get(`/consultations/${id}`),
+
   getAvailableDoctors: (params) =>
     apiClient.get("/consultations/doctors/available", { params }),
+
   getDoctorAvailableSlots: (params) =>
     apiClient.get("/consultations/doctor-slots", { params }),
+
   getDoctorProfile: (id) => apiClient.get(`/consultations/doctors/${id}`),
-  createConsultation: (data) => apiClient.post("/consultations", data),
+
+  // ✅ FIX: was POST /consultations, must be POST /consultations/book
+  createConsultation: (data) => apiClient.post("/consultations/book", data),
+
   updateConsultation: (id, data) => apiClient.put(`/consultations/${id}`, data),
+
   cancelConsultation: (id, data) =>
     apiClient.post(`/consultations/${id}/cancel`, data),
+
   getStats: () => apiClient.get("/consultations/stats"),
 };
-
 export const doctorProfileApi = {
   /*
   CREATE / UPDATE PROFILE

@@ -38,7 +38,7 @@ export const register = async (req, res) => {
     const token = jwt.sign(
       { userId: user._id, email: user.email, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "7d" },
     );
 
     res.status(201).json({
@@ -94,7 +94,7 @@ export const login = async (req, res) => {
     const token = jwt.sign(
       { userId: user._id, email: user.email, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "7d" },
     );
 
     res.json({
@@ -136,13 +136,11 @@ export const me = async (req, res) => {
     }
     res.json({ success: true, user });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Failed to fetch user",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch user",
+      error: error.message,
+    });
   }
 };
 
@@ -208,7 +206,7 @@ export const updatePatientProfile = async (req, res) => {
         state,
         zipCode,
       },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     ).select("-password");
 
     res.json({ success: true, message: "Profile updated successfully", user });
@@ -265,7 +263,7 @@ export const completePatientProfile = async (req, res) => {
         zipCode,
         profileCompleted: true,
       },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     ).select("-password");
 
     res.json({
@@ -278,6 +276,74 @@ export const completePatientProfile = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to complete profile",
+      error: error.message,
+    });
+  }
+};
+
+// ─── ADD TO BOTTOM OF authController.js ─────────────────────────────────────
+
+/*
+Fix plain-text passwords for doctors added directly via DB queries.
+
+POST /api/auth/admin/fix-password
+Body: { email, plainPassword, adminSecret }
+
+Use once per doctor, then remove or gate behind env check.
+adminSecret must match process.env.ADMIN_SECRET in your .env
+*/
+export const fixDoctorPassword = async (req, res) => {
+  try {
+    const { email, plainPassword, adminSecret } = req.body;
+
+    // Basic protection — set ADMIN_SECRET in your .env
+    if (!adminSecret || adminSecret !== process.env.ADMIN_SECRET) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    if (!email || !plainPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "email and plainPassword are required",
+      });
+    }
+
+    // Load user WITH password to check if it's already hashed
+    const user = await User.findOne({ email }).select("+password");
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // If password is already a bcrypt hash, skip
+    const isAlreadyHashed = user.password?.startsWith("$2");
+    if (isAlreadyHashed) {
+      return res.json({
+        success: true,
+        message: "Password is already hashed — no change made",
+      });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(plainPassword, salt);
+
+    user.password = hashedPassword;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: `Password hashed successfully for ${email}`,
+    });
+  } catch (error) {
+    console.error("fixDoctorPassword error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fix password",
       error: error.message,
     });
   }

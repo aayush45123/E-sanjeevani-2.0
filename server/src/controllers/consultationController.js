@@ -1,3 +1,4 @@
+// controllers/consultationController.js
 import mongoose from "mongoose";
 import Consultation from "../models/Consultation.js";
 import DoctorAvailability from "../models/DoctorAvailability.js";
@@ -5,8 +6,6 @@ import DoctorProfile from "../models/DoctorProfile.js";
 import User from "../models/User.js";
 
 const SLOT_DURATION_MINUTES = 30;
-
-// ─── Helpers ────────────────────────────────────────────────────────────────
 
 const getDateOnly = (date) => {
   const normalized = new Date(date);
@@ -66,31 +65,118 @@ const findAvailabilityForDay = async (doctorId, dateOnly) => {
   });
 };
 
-// ─── Controllers ────────────────────────────────────────────────────────────
-
 /*
 ==================================================
 GET AVAILABLE DOCTORS
+✅ FIX: Join DoctorProfile so specialization, qualification,
+experience are populated from DoctorProfile, not just User.
+Doctors registered via DB queries will also appear here.
 ==================================================
 */
 export const getAvailableDoctors = async (req, res) => {
   try {
     const { specialization, limit = 10, page = 1 } = req.query;
-    const skip = (page - 1) * limit;
+    const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
 
-    const query = { role: { $regex: "^doctor$", $options: "i" } };
+    // ✅ Use aggregation to join DoctorProfile data
+    const matchStage = {
+      $match: {
+        role: { $regex: "^doctor$", $options: "i" },
+      },
+    };
+
+    const pipeline = [
+      matchStage,
+      {
+        $lookup: {
+          from: "doctorprofiles",
+          localField: "_id",
+          foreignField: "userId",
+          as: "profile",
+        },
+      },
+      {
+        $addFields: {
+          profileData: { $arrayElemAt: ["$profile", 0] },
+        },
+      },
+      {
+        $addFields: {
+          // Prefer DoctorProfile fields, fall back to User fields
+          specialization: {
+            $ifNull: ["$profileData.specialization", "$specialization"],
+          },
+          qualification: {
+            $ifNull: ["$profileData.qualification", "$qualification"],
+          },
+          experience: {
+            $ifNull: ["$profileData.experience", "$experience"],
+          },
+          hospitalName: "$profileData.hospitalName",
+          consultationFee: "$profileData.consultationFee",
+          consultationModes: "$profileData.consultationModes",
+          aboutDoctor: "$profileData.aboutDoctor",
+          shortBio: "$profileData.shortBio",
+        },
+      },
+    ];
+
+    // Filter by specialization if provided
     if (specialization) {
-      query.specialization = { $regex: specialization, $options: "i" };
+      pipeline.push({
+        $match: {
+          specialization: { $regex: specialization, $options: "i" },
+        },
+      });
     }
 
-    const doctors = await User.find(query)
-      .select(
-        "name specialization qualification experience profileImage averageRating totalConsultations",
-      )
-      .skip(skip)
-      .limit(parseInt(limit, 10));
+    pipeline.push(
+      {
+        $project: {
+          password: 0,
+          profile: 0,
+          profileData: 0,
+        },
+      },
+      { $skip: skip },
+      { $limit: parseInt(limit, 10) },
+    );
 
-    const total = await User.countDocuments(query);
+    const doctors = await User.aggregate(pipeline);
+
+    // Count for pagination (separate simpler query)
+    const countPipeline = [matchStage];
+    if (specialization) {
+      countPipeline.push(
+        {
+          $lookup: {
+            from: "doctorprofiles",
+            localField: "_id",
+            foreignField: "userId",
+            as: "profile",
+          },
+        },
+        {
+          $addFields: {
+            specialization: {
+              $ifNull: [
+                { $arrayElemAt: ["$profile.specialization", 0] },
+                "$specialization",
+              ],
+            },
+          },
+        },
+        {
+          $match: {
+            specialization: { $regex: specialization, $options: "i" },
+          },
+        },
+      );
+    }
+    countPipeline.push({ $count: "total" });
+
+    const countResult = await User.aggregate(countPipeline);
+    const total = countResult[0]?.total || 0;
 
     res.json({
       success: true,
@@ -102,6 +188,7 @@ export const getAvailableDoctors = async (req, res) => {
       },
     });
   } catch (error) {
+    console.error("getAvailableDoctors error:", error);
     res.status(500).json({
       success: false,
       message: "Failed to fetch doctors",
@@ -113,7 +200,7 @@ export const getAvailableDoctors = async (req, res) => {
 /*
 ==================================================
 CREATE CONSULTATION
-Patient books consultation after filling form
+✅ FIX: req.user.id is now always set by middleware
 ==================================================
 */
 export const createConsultation = async (req, res) => {
@@ -131,7 +218,6 @@ export const createConsultation = async (req, res) => {
       endTime,
     } = req.body;
 
-    // Basic validation
     if (
       !doctorId ||
       !consultationType ||
@@ -147,16 +233,15 @@ export const createConsultation = async (req, res) => {
       });
     }
 
-    // Validate doctor
+    // ✅ FIX: Accept both "doctor" and "Doctor" roles
     const doctor = await User.findById(doctorId);
-    if (!doctor || doctor.role !== "doctor") {
+    if (!doctor || doctor.role.toLowerCase() !== "doctor") {
       return res.status(404).json({
         success: false,
         message: "Doctor not found",
       });
     }
 
-    // Find or create availability with fallback to DoctorProfile
     const selectedDate = getDateOnly(consultationDate);
     let availability = await findAvailabilityForDay(doctorId, selectedDate);
 
@@ -165,7 +250,7 @@ export const createConsultation = async (req, res) => {
       if (!fallbackSlots.length) {
         return res.status(400).json({
           success: false,
-          message: "Doctor is not available on selected date",
+          message: "Doctor is not available on the selected date",
         });
       }
       availability = await DoctorAvailability.create({
@@ -176,7 +261,6 @@ export const createConsultation = async (req, res) => {
       });
     }
 
-    // Check slot
     const selectedSlot = availability.slots.find(
       (slot) =>
         slot.startTime === startTime &&
@@ -191,7 +275,7 @@ export const createConsultation = async (req, res) => {
       });
     }
 
-    // Create consultation
+    // ✅ req.user.id is now reliably set by authMiddleware
     const consultation = new Consultation({
       patient: req.user.id,
       doctor: doctorId,
@@ -209,7 +293,6 @@ export const createConsultation = async (req, res) => {
 
     await consultation.save();
 
-    // Mark slot as booked
     selectedSlot.isBooked = true;
     selectedSlot.bookedBy = req.user.id;
     selectedSlot.consultationId = consultation._id;
@@ -267,9 +350,7 @@ export const getDoctorAvailableSlots = async (req, res) => {
       });
     }
 
-    const availableSlots = availability.slots.filter(
-      (slot) => slot.isBooked === false,
-    );
+    const availableSlots = availability.slots.filter((slot) => !slot.isBooked);
 
     res.json({ success: true, slots: availableSlots });
   } catch (error) {
@@ -285,6 +366,7 @@ export const getDoctorAvailableSlots = async (req, res) => {
 /*
 ==================================================
 DOCTOR DASHBOARD CONSULTATIONS
+✅ FIX: req.user.id is now reliably set
 ==================================================
 */
 export const getDoctorConsultations = async (req, res) => {
@@ -329,7 +411,6 @@ export const getPatientConsultations = async (req, res) => {
 /*
 ==================================================
 UPDATE CONSULTATION STATUS
-Doctor can update: scheduled → ongoing → completed
 ==================================================
 */
 export const updateConsultationStatus = async (req, res) => {
