@@ -8,6 +8,7 @@ import connectDB from "./config/db.js"; // ✅ Import DB connector
 import authRoutes from "./routes/authRoutes.js";
 import consultationRoutes from "./routes/consultationRoutes.js";
 import patientProfileRoutes from "./routes/patientProfileRoutes.js";
+import doctorAvailabilityRoutes from "./routes/doctorAvailabilityRoutes.js";
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.get("/health", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/consultations", consultationRoutes);
 app.use("/api/patient/profile", patientProfileRoutes);
+app.use("/api/doctor-availability", doctorAvailabilityRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

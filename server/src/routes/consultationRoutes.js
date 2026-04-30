@@ -1,34 +1,85 @@
 import express from "express";
 import authMiddleware from "../middlewares/authMiddleware.js";
+
 import {
-  getPatientConsultations,
-  getConsultationDetail,
-  getAvailableDoctors,
-  getDoctorProfile,
   createConsultation,
-  updateConsultation,
-  cancelConsultation,
-  getConsultationStats,
+  getDoctorAvailableSlots,
+  getDoctorConsultations,
+  getPatientConsultations,
+  updateConsultationStatus,
+  addDoctorNotes,
+  getAvailableDoctors,
 } from "../controllers/consultationController.js";
 
 const router = express.Router();
 
-// All routes require auth
+/*
+==================================================
+ALL ROUTES REQUIRE AUTH
+==================================================
+*/
+
 router.use(authMiddleware);
 
-// ✅ IMPORTANT: Specific/static routes MUST come before param routes like /:consultationId
-// If /:consultationId is first, Express treats "doctors" and "stats" as IDs
-
-// Stats & doctor listing — defined BEFORE /:consultationId
-router.get("/my-consultations", getPatientConsultations);
-router.get("/stats", getConsultationStats);
+/*
+==================================================
+PATIENT ROUTES
+==================================================
+*/
 router.get("/doctors/available", getAvailableDoctors); // ✅ moved above /:consultationId
-router.get("/doctors/:doctorId", getDoctorProfile); // ✅ moved above /:consultationId
 
-// Param routes — come AFTER all static routes
-router.get("/:consultationId", getConsultationDetail);
-router.post("/", createConsultation);
-router.put("/:consultationId", updateConsultation);
-router.post("/:consultationId/cancel", cancelConsultation);
+/*
+Book consultation
+POST /api/consultations/book
+*/
+router.post("/book", createConsultation);
+
+/*
+Get patient's own consultations
+GET /api/consultations/my-consultations
+*/
+router.get("/my-consultations", getPatientConsultations);
+
+/*
+==================================================
+DOCTOR SLOT ROUTES
+==================================================
+*/
+
+/*
+Get available slots for selected doctor + date
+
+GET /api/consultations/doctor-slots
+?doctorId=xxx
+&date=2026-04-30
+*/
+router.get("/doctor-slots", getDoctorAvailableSlots);
+
+/*
+==================================================
+DOCTOR DASHBOARD ROUTES
+==================================================
+*/
+
+/*
+Doctor dashboard consultation list
+
+GET /api/consultations/doctor-dashboard
+*/
+router.get("/doctor-dashboard", getDoctorConsultations);
+
+/*
+Update consultation status
+
+PATCH /api/consultations/:consultationId/status
+*/
+router.patch("/:consultationId/status", updateConsultationStatus);
+
+/*
+Add doctor notes + prescription
+
+PATCH /api/consultations/:consultationId/notes
+*/
+router.patch("/:consultationId/notes", addDoctorNotes);
 
 export default router;

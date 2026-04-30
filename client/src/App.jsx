@@ -9,6 +9,7 @@ import PatientDashboard from "./pages/PatientDashBoard/PatientDashBoard";
 import DoctorDashboard from "./pages/DoctorDashboard/DoctorDashboard";
 import ProfileCompletion from "./pages/ProfileCompletion/ProfileCompletion";
 import Consultations from "./pages/Consultations/Consultations";
+import ConsultationBookingForm from "./pages/ConsultationBookingForm/ConsultationBookingForm";
 
 const App = () => {
   const location = useLocation();
@@ -96,6 +97,17 @@ const App = () => {
           path="/consultations"
           element={
             isLoggedIn ? <Consultations /> : <Navigate to="/auth" replace />
+          }
+        />
+
+        <Route
+          path="/consultation-booking"
+          element={
+            isLoggedIn ? (
+              <ConsultationBookingForm />
+            ) : (
+              <Navigate to="/auth" replace />
+            )
           }
         />
 
