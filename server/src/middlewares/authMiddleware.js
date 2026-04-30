@@ -24,7 +24,10 @@ const authMiddleware = async (req, res, next) => {
       });
     }
 
-    req.user = decoded; // Store token payload
+    req.user = {
+      ...decoded,
+      id: decoded.userId,
+    }; // Normalize payload for controllers that expect req.user.id
     next();
   } catch (err) {
     console.error("Auth middleware error:", err);

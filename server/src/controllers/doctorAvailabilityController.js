@@ -1,6 +1,12 @@
 import DoctorAvailability from "../models/DoctorAvailability.js";
 import User from "../models/User.js";
 
+const getDateOnly = (date) => {
+  const normalized = new Date(date);
+  normalized.setHours(0, 0, 0, 0);
+  return normalized;
+};
+
 /*
 ==================================================
 CREATE DOCTOR AVAILABILITY
@@ -69,11 +75,16 @@ export const createDoctorAvailability = async (req, res) => {
     ==========================================
     */
 
-    const selectedDate = new Date(availableDate);
+    const selectedDate = getDateOnly(availableDate);
+    const nextDate = new Date(selectedDate);
+    nextDate.setDate(nextDate.getDate() + 1);
 
     let availability = await DoctorAvailability.findOne({
       doctor: req.user.id,
-      availableDate: selectedDate,
+      availableDate: {
+        $gte: selectedDate,
+        $lt: nextDate,
+      },
     });
 
     /*

@@ -1,30 +1,77 @@
+// FULL UPDATED App.jsx
+// Added Doctor Profile Setup Navigation + Redirect Logic
+
 import React, { useEffect, useState } from "react";
 import "./App.css";
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
+
 import Home from "./pages/Home/Home";
 import Navbar from "./components/Navbar/Navbar";
 import Footer from "./components/Footer/Footer";
 import Auth from "./pages/Auth/Auth";
+
 import PatientDashboard from "./pages/PatientDashBoard/PatientDashBoard";
 import DoctorDashboard from "./pages/DoctorDashboard/DoctorDashboard";
 import ProfileCompletion from "./pages/ProfileCompletion/ProfileCompletion";
 import Consultations from "./pages/Consultations/Consultations";
 import ConsultationBookingForm from "./pages/ConsultationBookingForm/ConsultationBookingForm";
+import DoctorProfileSetup from "./pages/DoctorProfileSetup/DoctorProfileSetup";
+
+import { doctorProfileApi } from "./utils/api";
 
 const App = () => {
   const location = useLocation();
+
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
+
   const [userRole, setUserRole] = useState(localStorage.getItem("userRole"));
+
+  const [doctorProfileCompleted, setDoctorProfileCompleted] = useState(true);
+
   const [isChecking, setIsChecking] = useState(true);
 
-  // Check token and role on mount and when route changes
+  /*
+  ==================================================
+  CHECK AUTH + ROLE + DOCTOR PROFILE STATUS
+  ==================================================
+  */
+
   useEffect(() => {
-    setIsLoggedIn(!!localStorage.getItem("token"));
-    setUserRole(localStorage.getItem("userRole"));
-    setIsChecking(false);
+    const checkAccess = async () => {
+      const token = localStorage.getItem("token");
+      const role = localStorage.getItem("userRole");
+
+      setIsLoggedIn(!!token);
+      setUserRole(role);
+
+      /*
+      Check doctor profile completion only for doctors
+      */
+
+      if (token && role === "doctor") {
+        try {
+          const response = await doctorProfileApi.checkProfileStatus();
+
+          setDoctorProfileCompleted(response.data.profileCompleted || false);
+        } catch (error) {
+          console.error("Doctor profile check failed:", error);
+
+          setDoctorProfileCompleted(false);
+        }
+      }
+
+      setIsChecking(false);
+    };
+
+    checkAccess();
   }, [location.pathname]);
 
-  // Listen for auth changes (login/logout events)
+  /*
+  ==================================================
+  AUTH CHANGE LISTENER
+  ==================================================
+  */
+
   useEffect(() => {
     const handleAuthChange = () => {
       setIsLoggedIn(!!localStorage.getItem("token"));
@@ -32,47 +79,78 @@ const App = () => {
     };
 
     window.addEventListener("authChange", handleAuthChange);
+
     return () => window.removeEventListener("authChange", handleAuthChange);
   }, []);
 
-  // Determine if current route is an app route (dashboard, profile-setup, consultations)
+  /*
+  ==================================================
+  APP ROUTES CHECK
+  ==================================================
+  */
+
   const isAppRoute =
     location.pathname.startsWith("/dashboard") ||
     location.pathname.startsWith("/profile-setup") ||
-    location.pathname.startsWith("/consultations");
+    location.pathname.startsWith("/doctor-profile-setup") ||
+    location.pathname.startsWith("/consultations") ||
+    location.pathname.startsWith("/consultation-booking");
 
-  // Show loading while checking token
+  /*
+  ==================================================
+  LOADING
+  ==================================================
+  */
+
   if (isChecking) {
     return null;
   }
 
-  // Render appropriate dashboard based on user role
+  /*
+  ==================================================
+  DASHBOARD LOGIC
+  ==================================================
+  */
+
   const getDashboardComponent = () => {
+    /*
+    If doctor profile incomplete → force setup page
+    */
+
+    if (userRole === "doctor" && !doctorProfileCompleted) {
+      return <Navigate to="/doctor-profile-setup" replace />;
+    }
+
     if (userRole === "doctor") {
       return <DoctorDashboard />;
     }
+
     return <PatientDashboard />;
   };
 
   return (
     <>
-      {/* Only show the global Navbar if we are NOT in the app routes */}
+      {/* Global Navbar */}
+
       {!isAppRoute && <Navbar />}
 
       <Routes>
-        {/* Home/Landing Page - Redirect to dashboard if logged in */}
+        {/* HOME */}
+
         <Route
           path="/"
           element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <Home />}
         />
 
-        {/* Auth Page - Redirect to dashboard if already logged in */}
+        {/* AUTH */}
+
         <Route
           path="/auth"
           element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <Auth />}
         />
 
-        {/* Dashboard - Route based on user role */}
+        {/* DASHBOARD */}
+
         <Route
           path="/dashboard"
           element={
@@ -84,7 +162,8 @@ const App = () => {
           }
         />
 
-        {/* Profile Setup - Redirect to auth if not logged in */}
+        {/* PATIENT PROFILE */}
+
         <Route
           path="/profile-setup"
           element={
@@ -92,13 +171,29 @@ const App = () => {
           }
         />
 
-        {/* Consultations - Redirect to auth if not logged in */}
+        {/* DOCTOR PROFILE SETUP */}
+
+        <Route
+          path="/doctor-profile-setup"
+          element={
+            isLoggedIn ? (
+              <DoctorProfileSetup />
+            ) : (
+              <Navigate to="/auth" replace />
+            )
+          }
+        />
+
+        {/* CONSULTATIONS */}
+
         <Route
           path="/consultations"
           element={
             isLoggedIn ? <Consultations /> : <Navigate to="/auth" replace />
           }
         />
+
+        {/* CONSULTATION BOOKING */}
 
         <Route
           path="/consultation-booking"
@@ -111,7 +206,8 @@ const App = () => {
           }
         />
 
-        {/* Catch-all - Redirect to home or dashboard based on login status */}
+        {/* FALLBACK */}
+
         <Route
           path="*"
           element={
@@ -124,7 +220,8 @@ const App = () => {
         />
       </Routes>
 
-      {/* Only show the global Footer if we are NOT in the app routes */}
+      {/* Global Footer */}
+
       {!isAppRoute && <Footer />}
     </>
   );

@@ -1,24 +1,31 @@
+/* =========================================
+   DoctorDashboard.module.css
+   Premium Minimal SaaS Theme
+   Dynamic Database-Driven Dashboard
+========================================= */
+
 .dashboardLayout {
   display: flex;
-  height: 100vh;
-  width: 100vw;
-  background-color: #f9fafb;
+  min-height: 100vh;
+  width: 100%;
+  background: #fafafa;
   font-family: var(--font-primary, system-ui, -apple-system, sans-serif);
   color: #111827;
-  overflow: hidden;
 }
 
 .mainContent {
   flex: 1;
-  display: flex;
-  flex-direction: column;
+  background: #ffffff;
   overflow-y: auto;
-  background: #f9fafb;
 }
 
+/* =========================================
+   LOADING
+========================================= */
+
 .loadingContainer {
+  width: 100%;
   height: 100vh;
-  width: 100vw;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -26,8 +33,8 @@
 }
 
 .spinner {
-  color: #10b981;
-  animation: spin 1s linear infinite;
+  color: #111827;
+  animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
@@ -36,85 +43,72 @@
   }
 }
 
-/* ─── Page Header ─── */
+/* =========================================
+   HEADER
+========================================= */
+
 .pageHeader {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 28px 32px 20px;
+  align-items: center;
+  padding: 32px 40px 20px;
+  border-bottom: 1px solid #eaeaea;
   background: #ffffff;
-  border-bottom: 1px solid #f3f4f6;
-  position: sticky;
-  top: 0;
-  z-index: 20;
 }
 
 .pageTitle {
-  font-size: 22px;
+  margin: 0;
+  font-size: 28px;
   font-weight: 600;
   color: #111827;
-  margin: 0 0 2px;
   letter-spacing: -0.02em;
 }
 
 .pageSubtitle {
-  font-size: 13px;
-  color: #9ca3af;
-  margin: 0;
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: #6b7280;
 }
 
-.newConsultationBtn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 9px 16px;
-  background: #111827;
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-}
+/* =========================================
+   CONTENT GRID
+========================================= */
 
-.newConsultationBtn:hover {
-  background: #000000;
-}
-
-/* ─── Content Grid ─── */
 .contentGrid {
-  padding: 24px 32px 32px;
+  padding: 32px 40px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 28px;
 }
 
-/* ─── Stats Row ─── */
+/* =========================================
+   STATS ROW
+========================================= */
+
 .statsRow {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  gap: 18px;
 }
 
 .statCard {
   background: #ffffff;
-  border: 1px solid #f3f4f6;
-  border-radius: 12px;
-  padding: 20px;
+  border: 1px solid #eaeaea;
+  border-radius: 14px;
+  padding: 22px;
   display: flex;
-  align-items: flex-start;
   gap: 16px;
-  transition: box-shadow 0.2s;
+  transition: all 0.2s ease;
 }
 
 .statCard:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  border-color: #d1d5db;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.03);
 }
 
 .statIconWrapper {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -125,55 +119,60 @@
 .statBody {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
 
 .statLabel {
-  font-size: 12px;
-  color: #9ca3af;
-  font-weight: 500;
   margin: 0;
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 500;
 }
 
 .statValue {
-  font-size: 24px;
+  margin: 0;
+  font-size: 26px;
   font-weight: 700;
   color: #111827;
-  margin: 0;
-  letter-spacing: -0.03em;
   line-height: 1.2;
 }
 
 .statTrend {
-  font-size: 12px;
-  color: #6b7280;
   margin: 0;
+  font-size: 12px;
+  color: #9ca3af;
 }
 
-/* ─── Main Grid (2-col) ─── */
+/* =========================================
+   MAIN GRID
+========================================= */
+
 .mainGrid {
   display: grid;
   grid-template-columns: 1fr 360px;
-  gap: 20px;
+  gap: 22px;
   align-items: start;
 }
 
-/* ─── Cards ─── */
+/* =========================================
+   COMMON CARDS
+========================================= */
+
 .scheduleCard,
 .quickCard,
 .recentCard {
   background: #ffffff;
-  border: 1px solid #f3f4f6;
+  border: 1px solid #eaeaea;
   border-radius: 14px;
   overflow: hidden;
 }
 
 .cardHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   padding: 18px 20px;
-  border-bottom: 1px solid #f9fafb;
+  border-bottom: 1px solid #f4f4f5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .cardTitleGroup {
@@ -187,93 +186,82 @@
 }
 
 .cardTitle {
-  font-size: 14px;
+  margin: 0;
+  font-size: 15px;
   font-weight: 600;
   color: #111827;
-  margin: 0;
 }
 
 .badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: #f4f4f5;
+  color: #111827;
   font-size: 12px;
   font-weight: 600;
-  color: #059669;
-  background: #f0fdf4;
-  padding: 3px 10px;
-  border-radius: 20px;
 }
 
 .viewAllBtn {
+  border: none;
+  background: transparent;
   display: flex;
   align-items: center;
   gap: 4px;
-  background: none;
-  border: none;
-  font-size: 12px;
-  font-weight: 500;
-  color: #6b7280;
+  font-size: 13px;
   cursor: pointer;
-  transition: color 0.2s;
+  color: #6b7280;
 }
 
 .viewAllBtn:hover {
   color: #111827;
 }
 
-/* ─── Appointment List ─── */
+/* =========================================
+   APPOINTMENT LIST
+========================================= */
+
 .appointmentList {
   display: flex;
   flex-direction: column;
-  gap: 0;
 }
 
 .appointmentRow {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 14px 20px;
-  border-bottom: 1px solid #f9fafb;
-  transition: background 0.15s;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f8fafc;
 }
 
 .appointmentRow:last-child {
   border-bottom: none;
 }
 
-.appointmentRow:hover {
+.appointmentNext {
   background: #fafafa;
 }
 
-.appointmentNext {
-  background: #f0fdf4;
-  border-left: 3px solid #10b981;
-}
-
-.appointmentNext:hover {
-  background: #ecfdf5;
-}
-
 .apptTime {
+  min-width: 90px;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   font-size: 12px;
-  font-weight: 600;
   color: #6b7280;
-  min-width: 80px;
-  flex-shrink: 0;
+  font-weight: 500;
 }
 
 .apptAvatar {
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   background: #111827;
   color: #ffffff;
-  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
   flex-shrink: 0;
 }
 
@@ -283,19 +271,16 @@
 }
 
 .apptName {
+  margin: 0 0 4px;
   font-size: 14px;
   font-weight: 600;
   color: #111827;
-  margin: 0 0 2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .apptReason {
-  font-size: 12px;
-  color: #9ca3af;
   margin: 0;
+  font-size: 12px;
+  color: #6b7280;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -304,18 +289,17 @@
 .apptActions {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
+  gap: 10px;
 }
 
 .typePill {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 20px;
   font-size: 11px;
   font-weight: 600;
-  padding: 4px 9px;
-  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
 .typeVideo {
@@ -329,35 +313,41 @@
 }
 
 .joinBtn {
-  padding: 5px 14px;
-  background: #10b981;
-  color: #ffffff;
+  height: 34px;
+  padding: 0 16px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
+  background: #111827;
+  color: #ffffff;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
 }
 
 .joinBtn:hover {
-  background: #059669;
+  background: #000000;
 }
 
-/* ─── Right Column ─── */
+/* =========================================
+   RIGHT COLUMN
+========================================= */
+
 .rightCol {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 22px;
 }
 
-/* ─── Weekly Overview ─── */
+/* =========================================
+   WEEKLY OVERVIEW
+========================================= */
+
 .weeklyBars {
   display: flex;
   align-items: flex-end;
-  gap: 8px;
-  padding: 16px 20px 8px;
-  height: 110px;
+  gap: 10px;
+  height: 140px;
+  padding: 20px;
 }
 
 .barGroup {
@@ -365,15 +355,14 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  height: 100%;
+  gap: 8px;
 }
 
 .barTrack {
-  flex: 1;
   width: 100%;
-  background: #f3f4f6;
-  border-radius: 4px;
+  height: 100px;
+  background: #f4f4f5;
+  border-radius: 8px;
   display: flex;
   align-items: flex-end;
   overflow: hidden;
@@ -381,115 +370,113 @@
 
 .bar {
   width: 100%;
-  background: #10b981;
-  border-radius: 4px;
-  transition: height 0.6s ease;
+  background: #111827;
+  border-radius: 8px;
 }
 
 .barLabel {
-  font-size: 10px;
-  color: #9ca3af;
-  font-weight: 500;
+  font-size: 11px;
+  color: #6b7280;
 }
 
 .weeklyNote {
+  margin: 0;
+  padding: 0 20px 20px;
+  font-size: 13px;
+  color: #6b7280;
   display: flex;
   align-items: center;
   gap: 6px;
-  margin: 0;
-  padding: 10px 20px 16px;
-  font-size: 12px;
-  color: #d97706;
 }
 
-/* ─── Recent Patients ─── */
+/* =========================================
+   PATIENT LIST
+========================================= */
+
 .patientList {
   display: flex;
   flex-direction: column;
-  gap: 0;
 }
 
 .patientRow {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 20px;
-  border-bottom: 1px solid #f9fafb;
-  transition: background 0.15s;
+  gap: 14px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f8fafc;
 }
 
 .patientRow:last-child {
   border-bottom: none;
 }
 
-.patientRow:hover {
-  background: #fafafa;
-}
-
 .patientAvatar {
-  width: 34px;
-  height: 34px;
-  background: #f3f4f6;
-  color: #374151;
-  border-radius: 8px;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: #f4f4f5;
+  color: #111827;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
-  font-weight: 700;
-  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .patientInfo {
   flex: 1;
-  min-width: 0;
 }
 
 .patientName {
-  font-size: 13px;
+  margin: 0 0 4px;
+  font-size: 14px;
   font-weight: 600;
   color: #111827;
-  margin: 0 0 2px;
 }
 
 .patientMeta {
-  font-size: 12px;
-  color: #9ca3af;
   margin: 0;
+  font-size: 12px;
+  color: #6b7280;
 }
 
 .patientRight {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 3px;
-  flex-shrink: 0;
+  align-items: center;
 }
 
 .statusPill {
+  padding: 5px 10px;
+  border-radius: 20px;
   font-size: 11px;
   font-weight: 600;
-  padding: 3px 8px;
-  border-radius: 20px;
 }
 
 .statusStable {
   background: #f0fdf4;
-  color: #059669;
+  color: #16a34a;
 }
 
 .statusReview {
-  background: #fffbeb;
-  color: #d97706;
+  background: #fff7ed;
+  color: #ea580c;
 }
 
-.lastVisit {
-  font-size: 11px;
-  color: #d1d5db;
-  margin: 0;
+/* =========================================
+   EMPTY STATE
+========================================= */
+
+.emptyState {
+  padding: 40px 20px;
+  text-align: center;
+  font-size: 14px;
+  color: #6b7280;
 }
 
-/* ─── Responsive ─── */
+/* =========================================
+   RESPONSIVE
+========================================= */
+
 @media (max-width: 1200px) {
   .statsRow {
     grid-template-columns: repeat(2, 1fr);
@@ -500,27 +487,30 @@
   }
 
   .rightCol {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 768px) {
+  .pageHeader,
   .contentGrid {
-    padding: 16px;
-  }
-
-  .pageHeader {
-    padding: 16px;
-    flex-wrap: wrap;
-    gap: 12px;
+    padding: 20px;
   }
 
   .statsRow {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
   }
 
-  .rightCol {
-    grid-template-columns: 1fr;
+  .appointmentRow,
+  .patientRow {
+    flex-wrap: wrap;
+  }
+
+  .mainGrid {
+    gap: 18px;
+  }
+
+  .pageTitle {
+    font-size: 24px;
   }
 }

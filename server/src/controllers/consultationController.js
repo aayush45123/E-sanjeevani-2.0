@@ -1,51 +1,114 @@
 import mongoose from "mongoose";
 import Consultation from "../models/Consultation.js";
 import DoctorAvailability from "../models/DoctorAvailability.js";
+import DoctorProfile from "../models/DoctorProfile.js";
 import User from "../models/User.js";
 
+const SLOT_DURATION_MINUTES = 30;
 
+// ─── Helpers ────────────────────────────────────────────────────────────────
 
-export const getDoctorProfile = async (req, res) => {
+const getDateOnly = (date) => {
+  const normalized = new Date(date);
+  normalized.setHours(0, 0, 0, 0);
+  return normalized;
+};
+
+const getDayName = (date) =>
+  date.toLocaleDateString("en-US", { weekday: "long" });
+
+const buildSlots = (startTime, endTime) => {
+  const slots = [];
+  if (!startTime || !endTime) return slots;
+
+  const [startHour, startMinute] = startTime.split(":").map(Number);
+  const [endHour, endMinute] = endTime.split(":").map(Number);
+
+  const current = new Date(2000, 0, 1, startHour, startMinute, 0, 0);
+  const end = new Date(2000, 0, 1, endHour, endMinute, 0, 0);
+
+  const formatTime = (d) =>
+    `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+
+  while (current < end) {
+    const next = new Date(current.getTime() + SLOT_DURATION_MINUTES * 60000);
+    if (next > end) break;
+
+    slots.push({
+      startTime: formatTime(current),
+      endTime: formatTime(next),
+      isBooked: false,
+      bookedBy: null,
+      consultationId: null,
+    });
+
+    current.setTime(next.getTime());
+  }
+
+  return slots;
+};
+
+const getFallbackSlots = async (doctorId, date) => {
+  const profile = await DoctorProfile.findOne({ userId: doctorId });
+  if (!profile || !Array.isArray(profile.workingDays)) return [];
+  if (!profile.workingDays.includes(getDayName(date))) return [];
+  return buildSlots(profile.startTime, profile.endTime);
+};
+
+const findAvailabilityForDay = async (doctorId, dateOnly) => {
+  const nextDate = new Date(dateOnly);
+  nextDate.setDate(nextDate.getDate() + 1);
+
+  return DoctorAvailability.findOne({
+    doctor: doctorId,
+    availableDate: { $gte: dateOnly, $lt: nextDate },
+    isActive: true,
+  });
+};
+
+// ─── Controllers ────────────────────────────────────────────────────────────
+
+/*
+==================================================
+GET AVAILABLE DOCTORS
+==================================================
+*/
+export const getAvailableDoctors = async (req, res) => {
   try {
-    const { doctorId } = req.params;
+    const { specialization, limit = 10, page = 1 } = req.query;
+    const skip = (page - 1) * limit;
 
-    const doctor = await User.findById(doctorId).select(
-      "name specialization qualification experience profileImage averageRating totalConsultations bio",
-    );
-
-    if (!doctor || doctor.role !== "doctor") {
-      return res.status(404).json({
-        success: false,
-        message: "Doctor not found",
-      });
+    const query = { role: { $regex: "^doctor$", $options: "i" } };
+    if (specialization) {
+      query.specialization = { $regex: specialization, $options: "i" };
     }
 
-    // Get recent consultations for ratings/feedback
-    const recentConsultations = await Consultation.find({
-      doctor: doctorId,
-      status: "completed",
-      "rating.score": { $exists: true },
-    })
-      .select("rating createdAt")
-      .sort({ createdAt: -1 })
-      .limit(5);
+    const doctors = await User.find(query)
+      .select(
+        "name specialization qualification experience profileImage averageRating totalConsultations",
+      )
+      .skip(skip)
+      .limit(parseInt(limit, 10));
+
+    const total = await User.countDocuments(query);
 
     res.json({
       success: true,
-      doctor: {
-        ...doctor.toObject(),
-        recentRatings: recentConsultations,
+      doctors,
+      pagination: {
+        total,
+        pages: Math.ceil(total / limit),
+        currentPage: parseInt(page, 10),
       },
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Failed to fetch doctor profile",
+      message: "Failed to fetch doctors",
       error: error.message,
     });
   }
 };
-
 
 /*
 ==================================================
@@ -53,7 +116,6 @@ CREATE CONSULTATION
 Patient books consultation after filling form
 ==================================================
 */
-
 export const createConsultation = async (req, res) => {
   try {
     const {
@@ -69,12 +131,7 @@ export const createConsultation = async (req, res) => {
       endTime,
     } = req.body;
 
-    /*
-    ==========================================
-    BASIC VALIDATION
-    ==========================================
-    */
-
+    // Basic validation
     if (
       !doctorId ||
       !consultationType ||
@@ -90,14 +147,8 @@ export const createConsultation = async (req, res) => {
       });
     }
 
-    /*
-    ==========================================
-    VALIDATE DOCTOR
-    ==========================================
-    */
-
+    // Validate doctor
     const doctor = await User.findById(doctorId);
-
     if (!doctor || doctor.role !== "doctor") {
       return res.status(404).json({
         success: false,
@@ -105,32 +156,32 @@ export const createConsultation = async (req, res) => {
       });
     }
 
-    /*
-    ==========================================
-    CHECK SLOT AVAILABILITY
-    ==========================================
-    */
-
-    const selectedDate = new Date(consultationDate);
-
-    const availability = await DoctorAvailability.findOne({
-      doctor: doctorId,
-      availableDate: selectedDate,
-      isActive: true,
-    });
+    // Find or create availability with fallback to DoctorProfile
+    const selectedDate = getDateOnly(consultationDate);
+    let availability = await findAvailabilityForDay(doctorId, selectedDate);
 
     if (!availability) {
-      return res.status(400).json({
-        success: false,
-        message: "Doctor is not available on selected date",
+      const fallbackSlots = await getFallbackSlots(doctorId, selectedDate);
+      if (!fallbackSlots.length) {
+        return res.status(400).json({
+          success: false,
+          message: "Doctor is not available on selected date",
+        });
+      }
+      availability = await DoctorAvailability.create({
+        doctor: doctorId,
+        availableDate: selectedDate,
+        slots: fallbackSlots,
+        isActive: true,
       });
     }
 
+    // Check slot
     const selectedSlot = availability.slots.find(
       (slot) =>
         slot.startTime === startTime &&
         slot.endTime === endTime &&
-        slot.isBooked === false
+        slot.isBooked === false,
     );
 
     if (!selectedSlot) {
@@ -140,12 +191,7 @@ export const createConsultation = async (req, res) => {
       });
     }
 
-    /*
-    ==========================================
-    CREATE CONSULTATION
-    ==========================================
-    */
-
+    // Create consultation
     const consultation = new Consultation({
       patient: req.user.id,
       doctor: doctorId,
@@ -163,21 +209,15 @@ export const createConsultation = async (req, res) => {
 
     await consultation.save();
 
-    /*
-    ==========================================
-    UPDATE SLOT AS BOOKED
-    ==========================================
-    */
-
+    // Mark slot as booked
     selectedSlot.isBooked = true;
     selectedSlot.bookedBy = req.user.id;
     selectedSlot.consultationId = consultation._id;
-
     await availability.save();
 
     await consultation.populate(
       "doctor",
-      "name specialization qualification experience"
+      "name specialization qualification experience",
     );
 
     res.status(201).json({
@@ -187,7 +227,6 @@ export const createConsultation = async (req, res) => {
     });
   } catch (error) {
     console.error("createConsultation error:", error);
-
     res.status(500).json({
       success: false,
       message: "Failed to create consultation",
@@ -196,14 +235,11 @@ export const createConsultation = async (req, res) => {
   }
 };
 
-
-
 /*
 ==================================================
 GET DOCTOR AVAILABLE SLOTS
 ==================================================
 */
-
 export const getDoctorAvailableSlots = async (req, res) => {
   try {
     const { doctorId, date } = req.query;
@@ -215,32 +251,29 @@ export const getDoctorAvailableSlots = async (req, res) => {
       });
     }
 
-    const selectedDate = new Date(date);
-
-    const availability = await DoctorAvailability.findOne({
-      doctor: doctorId,
-      availableDate: selectedDate,
-      isActive: true,
-    });
+    const selectedDate = getDateOnly(date);
+    let availability = await findAvailabilityForDay(doctorId, selectedDate);
 
     if (!availability) {
-      return res.json({
-        success: true,
-        slots: [],
+      const fallbackSlots = await getFallbackSlots(doctorId, selectedDate);
+      if (!fallbackSlots.length) {
+        return res.json({ success: true, slots: [] });
+      }
+      availability = await DoctorAvailability.create({
+        doctor: doctorId,
+        availableDate: selectedDate,
+        slots: fallbackSlots,
+        isActive: true,
       });
     }
 
     const availableSlots = availability.slots.filter(
-      (slot) => slot.isBooked === false
+      (slot) => slot.isBooked === false,
     );
 
-    res.json({
-      success: true,
-      slots: availableSlots,
-    });
+    res.json({ success: true, slots: availableSlots });
   } catch (error) {
     console.error("getDoctorAvailableSlots error:", error);
-
     res.status(500).json({
       success: false,
       message: "Failed to fetch doctor slots",
@@ -249,32 +282,20 @@ export const getDoctorAvailableSlots = async (req, res) => {
   }
 };
 
-
-
 /*
 ==================================================
 DOCTOR DASHBOARD CONSULTATIONS
 ==================================================
 */
-
 export const getDoctorConsultations = async (req, res) => {
   try {
-    const consultations = await Consultation.find({
-      doctor: req.user.id,
-    })
+    const consultations = await Consultation.find({ doctor: req.user.id })
       .populate("patient", "name email phone")
-      .sort({
-        consultationDate: 1,
-        startTime: 1,
-      });
+      .sort({ consultationDate: 1, startTime: 1 });
 
-    res.json({
-      success: true,
-      consultations,
-    });
+    res.json({ success: true, consultations });
   } catch (error) {
     console.error("getDoctorConsultations error:", error);
-
     res.status(500).json({
       success: false,
       message: "Failed to fetch doctor consultations",
@@ -283,34 +304,20 @@ export const getDoctorConsultations = async (req, res) => {
   }
 };
 
-
-
 /*
 ==================================================
 PATIENT CONSULTATIONS
 ==================================================
 */
-
 export const getPatientConsultations = async (req, res) => {
   try {
-    const consultations = await Consultation.find({
-      patient: req.user.id,
-    })
-      .populate(
-        "doctor",
-        "name specialization qualification experience"
-      )
-      .sort({
-        consultationDate: -1,
-      });
+    const consultations = await Consultation.find({ patient: req.user.id })
+      .populate("doctor", "name specialization qualification experience")
+      .sort({ consultationDate: -1 });
 
-    res.json({
-      success: true,
-      consultations,
-    });
+    res.json({ success: true, consultations });
   } catch (error) {
     console.error("getPatientConsultations error:", error);
-
     res.status(500).json({
       success: false,
       message: "Failed to fetch patient consultations",
@@ -319,16 +326,12 @@ export const getPatientConsultations = async (req, res) => {
   }
 };
 
-
-
 /*
 ==================================================
 UPDATE CONSULTATION STATUS
-Doctor can update:
-scheduled → ongoing → completed
+Doctor can update: scheduled → ongoing → completed
 ==================================================
 */
-
 export const updateConsultationStatus = async (req, res) => {
   try {
     const { consultationId } = req.params;
@@ -341,7 +344,6 @@ export const updateConsultationStatus = async (req, res) => {
       "cancelled",
       "missed",
     ];
-
     if (!allowedStatus.includes(status)) {
       return res.status(400).json({
         success: false,
@@ -349,10 +351,7 @@ export const updateConsultationStatus = async (req, res) => {
       });
     }
 
-    const consultation = await Consultation.findById(
-      consultationId
-    );
-
+    const consultation = await Consultation.findById(consultationId);
     if (!consultation) {
       return res.status(404).json({
         success: false,
@@ -361,7 +360,6 @@ export const updateConsultationStatus = async (req, res) => {
     }
 
     consultation.status = status;
-
     await consultation.save();
 
     res.json({
@@ -371,7 +369,6 @@ export const updateConsultationStatus = async (req, res) => {
     });
   } catch (error) {
     console.error("updateConsultationStatus error:", error);
-
     res.status(500).json({
       success: false,
       message: "Failed to update consultation status",
@@ -380,27 +377,17 @@ export const updateConsultationStatus = async (req, res) => {
   }
 };
 
-
-
 /*
 ==================================================
 DOCTOR NOTES + PRESCRIPTION
 ==================================================
 */
-
 export const addDoctorNotes = async (req, res) => {
   try {
     const { consultationId } = req.params;
-    const {
-      doctorNotes,
-      prescription,
-      followUpRequired,
-    } = req.body;
+    const { doctorNotes, prescription, followUpRequired } = req.body;
 
-    const consultation = await Consultation.findById(
-      consultationId
-    );
-
+    const consultation = await Consultation.findById(consultationId);
     if (!consultation) {
       return res.status(404).json({
         success: false,
@@ -410,8 +397,7 @@ export const addDoctorNotes = async (req, res) => {
 
     consultation.doctorNotes = doctorNotes || "";
     consultation.prescription = prescription || "";
-    consultation.followUpRequired =
-      followUpRequired || false;
+    consultation.followUpRequired = followUpRequired || false;
 
     await consultation.save();
 
@@ -422,7 +408,6 @@ export const addDoctorNotes = async (req, res) => {
     });
   } catch (error) {
     console.error("addDoctorNotes error:", error);
-
     res.status(500).json({
       success: false,
       message: "Failed to add doctor notes",

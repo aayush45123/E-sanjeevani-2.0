@@ -1,43 +1,84 @@
+// FULL UPDATED server/app.js
+// Added doctor profile routes
+
 import dotenv from "dotenv";
-dotenv.config(); // ✅ Must be FIRST — before any other imports that read process.env
+dotenv.config();
 
 import express from "express";
 import cors from "cors";
-import connectDB from "./config/db.js"; // ✅ Import DB connector
+import connectDB from "./config/db.js";
 
 import authRoutes from "./routes/authRoutes.js";
 import consultationRoutes from "./routes/consultationRoutes.js";
 import patientProfileRoutes from "./routes/patientProfileRoutes.js";
 import doctorAvailabilityRoutes from "./routes/doctorAvailabilityRoutes.js";
+import doctorProfileRoutes from "./routes/doctorProfileRoutes.js";
 
 const app = express();
 
-// Middleware
+/*
+==================================================
+MIDDLEWARE
+==================================================
+*/
+
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Health check
+/*
+==================================================
+HEALTH CHECK
+==================================================
+*/
+
 app.get("/health", (req, res) => {
-  res.json({ status: "Server is running ✅" });
+  res.json({
+    status: "Server is running successfully ✅",
+  });
 });
 
-// API Routes
+/*
+==================================================
+API ROUTES
+==================================================
+*/
+
 app.use("/api/auth", authRoutes);
+
 app.use("/api/consultations", consultationRoutes);
+
 app.use("/api/patient/profile", patientProfileRoutes);
+
 app.use("/api/doctor-availability", doctorAvailabilityRoutes);
 
-// Error handling middleware
+/*
+NEW: DOCTOR PROFILE ROUTES
+*/
+
+app.use("/api/doctor-profile", doctorProfileRoutes);
+
+/*
+==================================================
+ERROR HANDLER
+==================================================
+*/
+
 app.use((err, req, res, next) => {
-  console.error("Error:", err);
+  console.error("Server Error:", err);
+
   res.status(err.status || 500).json({
     success: false,
     message: err.message || "Internal server error",
   });
 });
 
-// 404 handler
+/*
+==================================================
+404 HANDLER
+==================================================
+*/
+
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -45,7 +86,12 @@ app.use((req, res) => {
   });
 });
 
-// ✅ Connect to DB first, THEN start server
+/*
+==================================================
+START SERVER
+==================================================
+*/
+
 const PORT = process.env.PORT || 5000;
 
 connectDB().then(() => {

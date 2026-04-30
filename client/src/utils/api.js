@@ -27,7 +27,7 @@ apiClient.interceptors.response.use(
       window.dispatchEvent(new Event("authChange"));
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 // Auth API
@@ -46,15 +46,39 @@ export const authApi = {
 export const consultationApi = {
   getMyConsultations: (params) =>
     apiClient.get("/consultations/my-consultations", { params }),
+  getDoctorConsultations: () =>
+    apiClient.get("/consultations/doctor-dashboard"),
   getConsultationDetails: (id) => apiClient.get(`/consultations/${id}`),
   getAvailableDoctors: (params) =>
     apiClient.get("/consultations/doctors/available", { params }),
+  getDoctorAvailableSlots: (params) =>
+    apiClient.get("/consultations/doctor-slots", { params }),
   getDoctorProfile: (id) => apiClient.get(`/consultations/doctors/${id}`),
   createConsultation: (data) => apiClient.post("/consultations", data),
   updateConsultation: (id, data) => apiClient.put(`/consultations/${id}`, data),
   cancelConsultation: (id, data) =>
     apiClient.post(`/consultations/${id}/cancel`, data),
   getStats: () => apiClient.get("/consultations/stats"),
+};
+
+export const doctorProfileApi = {
+  /*
+  CREATE / UPDATE PROFILE
+  POST /api/doctor-profile
+  */
+  createProfile: (data) => apiClient.post("/doctor-profile", data),
+
+  /*
+  GET LOGGED IN DOCTOR PROFILE
+  GET /api/doctor-profile/me
+  */
+  getProfile: () => apiClient.get("/doctor-profile/me"),
+
+  /*
+  CHECK PROFILE STATUS
+  GET /api/doctor-profile/status
+  */
+  checkProfileStatus: () => apiClient.get("/doctor-profile/status"),
 };
 
 export default apiClient;
