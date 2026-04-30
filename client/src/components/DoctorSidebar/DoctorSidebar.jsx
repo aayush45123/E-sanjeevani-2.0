@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   FiGrid,
   FiCalendar,
@@ -52,10 +52,15 @@ const navSections = [
 ];
 
 export default function DoctorSidebar({ user, onLogout }) {
+  const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState({});
 
   const toggleSection = (label) =>
     setCollapsed((prev) => ({ ...prev, [label]: !prev[label] }));
+
+  const handleProfileClick = () => {
+    navigate("/doctor-profile-edit");
+  };
 
   const initials = user?.name
     ? user.name
@@ -125,7 +130,7 @@ export default function DoctorSidebar({ user, onLogout }) {
 
       {/* Bottom: User Info + Logout */}
       <div className={styles.bottomSection}>
-        <div className={styles.userCard}>
+        <div className={styles.userCard} onClick={handleProfileClick}>
           <div className={styles.userAvatar}>{initials}</div>
           <div className={styles.userInfo}>
             <p className={styles.userName}>{user?.name || "Doctor"}</p>

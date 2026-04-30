@@ -78,7 +78,12 @@ export default function ProfileCompletion() {
 
       if (response.data.success) {
         alert("Profile completed successfully!");
-        navigate("/dashboard");
+        // Dispatch event to refresh profile status in App.jsx
+        window.dispatchEvent(new Event("profileUpdated"));
+        // Give time for the event to be processed
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 100);
       }
     } catch (error) {
       console.error("Error:", error);
@@ -92,7 +97,7 @@ export default function ProfileCompletion() {
     <div className={styles.profileCompletionContainer}>
       <div className={styles.formWrapper}>
         <div className={styles.header}>
-          <h1 className={styles.title}>Complete Your Profile</h1>
+          <h1 className={styles.title}>Your Profile</h1>
           <p className={styles.subtitle}>
             Help us know you better to provide personalized healthcare
           </p>

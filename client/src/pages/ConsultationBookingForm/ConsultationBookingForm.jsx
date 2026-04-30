@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import styles from "./ConsultationBookingForm.module.css";
-import { consultationApi } from "../../utils/api";
+import { consultationApi, doctorAvailabilityApi } from "../../utils/api";
 
 export default function ConsultationBookingForm() {
   const navigate = useNavigate();
@@ -39,10 +39,10 @@ export default function ConsultationBookingForm() {
 
   const fetchDoctorSlots = async () => {
     try {
-      const response = await consultationApi.getDoctorAvailableSlots({
-        doctorId: doctor._id,
-        date: formData.consultationDate,
-      });
+      const response = await doctorAvailabilityApi.getDoctorSlots(
+        doctor._id,
+        formData.consultationDate,
+      );
 
       setAvailableSlots(response.data.slots || []);
     } catch (error) {

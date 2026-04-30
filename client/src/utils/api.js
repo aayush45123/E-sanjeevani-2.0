@@ -80,6 +80,12 @@ export const doctorProfileApi = {
   createProfile: (data) => apiClient.post("/doctor-profile", data),
 
   /*
+  UPDATE PROFILE
+  POST /api/doctor-profile
+  */
+  updateProfile: (data) => apiClient.post("/doctor-profile", data),
+
+  /*
   GET LOGGED IN DOCTOR PROFILE
   GET /api/doctor-profile/me
   */
@@ -90,6 +96,36 @@ export const doctorProfileApi = {
   GET /api/doctor-profile/status
   */
   checkProfileStatus: () => apiClient.get("/doctor-profile/status"),
+};
+
+// Doctor Availability API
+export const doctorAvailabilityApi = {
+  /*
+  CREATE DOCTOR AVAILABILITY
+  POST /api/doctor-availability
+  */
+  createAvailability: (data) => apiClient.post("/doctor-availability", data),
+
+  /*
+  GET DOCTOR OWN AVAILABILITY
+  GET /api/doctor-availability/my-slots
+  */
+  getMySlots: () => apiClient.get("/doctor-availability/my-slots"),
+
+  /*
+  GET DOCTOR'S AVAILABLE SLOTS FOR A SPECIFIC DATE (for patient booking)
+  GET /api/doctor-availability/slots/:doctorId?date=2026-05-01
+  */
+  getDoctorSlots: (doctorId, date) =>
+    apiClient.get(`/doctor-availability/slots/${doctorId}`, {
+      params: { date },
+    }),
+
+  /*
+  DELETE DOCTOR AVAILABILITY
+  DELETE /api/doctor-availability/:id
+  */
+  deleteAvailability: (id) => apiClient.delete(`/doctor-availability/${id}`),
 };
 
 export default apiClient;

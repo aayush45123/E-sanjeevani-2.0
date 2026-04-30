@@ -16,8 +16,9 @@ import ProfileCompletion from "./pages/ProfileCompletion/ProfileCompletion";
 import Consultations from "./pages/Consultations/Consultations";
 import ConsultationBookingForm from "./pages/ConsultationBookingForm/ConsultationBookingForm";
 import DoctorProfileSetup from "./pages/DoctorProfileSetup/DoctorProfileSetup";
+import DoctorProfileEdit from "./pages/DoctorProfileEdit/DoctorProfileEdit";
 
-import { doctorProfileApi } from "./utils/api";
+import { doctorProfileApi, authApi } from "./utils/api";
 
 const App = () => {
   const location = useLocation();
@@ -27,6 +28,8 @@ const App = () => {
   const [userRole, setUserRole] = useState(localStorage.getItem("userRole"));
 
   const [doctorProfileCompleted, setDoctorProfileCompleted] = useState(true);
+
+  const [patientProfileCompleted, setPatientProfileCompleted] = useState(true);
 
   const [isChecking, setIsChecking] = useState(true);
 
@@ -60,6 +63,29 @@ const App = () => {
         }
       }
 
+      /*
+      Check patient profile completion only for patients
+      */
+
+      if (token && role === "patient") {
+        try {
+          const userRes = await authApi.me();
+          const userData = userRes.data.user || userRes.data;
+          // Check if user has basic profile info
+          setPatientProfileCompleted(
+            userData?.phone &&
+              userData?.age &&
+              userData?.gender &&
+              userData?.bloodType
+              ? true
+              : false,
+          );
+        } catch (error) {
+          console.error("Patient profile check failed:", error);
+          setPatientProfileCompleted(false);
+        }
+      }
+
       setIsChecking(false);
     };
 
@@ -78,9 +104,31 @@ const App = () => {
       setUserRole(localStorage.getItem("userRole"));
     };
 
-    window.addEventListener("authChange", handleAuthChange);
+    const handleProfileUpdated = async () => {
+      // Refresh patient profile completion status immediately
+      try {
+        const userRes = await authApi.me();
+        const userData = userRes.data.user || userRes.data;
+        setPatientProfileCompleted(
+          userData?.phone &&
+            userData?.age &&
+            userData?.gender &&
+            userData?.bloodType
+            ? true
+            : false,
+        );
+      } catch (error) {
+        console.error("Error refreshing profile status:", error);
+      }
+    };
 
-    return () => window.removeEventListener("authChange", handleAuthChange);
+    window.addEventListener("authChange", handleAuthChange);
+    window.addEventListener("profileUpdated", handleProfileUpdated);
+
+    return () => {
+      window.removeEventListener("authChange", handleAuthChange);
+      window.removeEventListener("profileUpdated", handleProfileUpdated);
+    };
   }, []);
 
   /*
@@ -93,6 +141,7 @@ const App = () => {
     location.pathname.startsWith("/dashboard") ||
     location.pathname.startsWith("/profile-setup") ||
     location.pathname.startsWith("/doctor-profile-setup") ||
+    location.pathname.startsWith("/doctor-profile-edit") ||
     location.pathname.startsWith("/consultations") ||
     location.pathname.startsWith("/consultation-booking");
 
@@ -119,6 +168,14 @@ const App = () => {
 
     if (userRole === "doctor" && !doctorProfileCompleted) {
       return <Navigate to="/doctor-profile-setup" replace />;
+    }
+
+    /*
+    If patient profile incomplete → force setup page
+    */
+
+    if (userRole === "patient" && !patientProfileCompleted) {
+      return <Navigate to="/profile-setup" replace />;
     }
 
     if (userRole === "doctor") {
@@ -181,6 +238,15 @@ const App = () => {
             ) : (
               <Navigate to="/auth" replace />
             )
+          }
+        />
+
+        {/* DOCTOR PROFILE EDIT */}
+
+        <Route
+          path="/doctor-profile-edit"
+          element={
+            isLoggedIn ? <DoctorProfileEdit /> : <Navigate to="/auth" replace />
           }
         />
 

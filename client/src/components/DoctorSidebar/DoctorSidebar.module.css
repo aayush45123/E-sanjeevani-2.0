@@ -127,6 +127,12 @@
   padding: 8px;
   border-radius: 8px;
   background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.userCard:hover {
+  background: #f3f4f6;
 }
 
 .userAvatar {

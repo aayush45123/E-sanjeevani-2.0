@@ -75,6 +75,10 @@ export default function Sidebar({ user = {}, onLogout = () => {} }) {
     navigate("/auth");
   };
 
+  const handleProfileClick = () => {
+    navigate("/profile-setup");
+  };
+
   const isNavItemActive = (path) => location.pathname === path;
 
   return (
@@ -137,7 +141,12 @@ export default function Sidebar({ user = {}, onLogout = () => {} }) {
 
       {/* Bottom Section - User Profile */}
       <div className={styles.sidebarBottom}>
-        <div className={styles.userProfile}>
+        <div
+          className={styles.userProfile}
+          onClick={handleProfileClick}
+          style={{ cursor: "pointer" }}
+          title="Click to edit profile"
+        >
           <div className={styles.avatar}>{avatarChar}</div>
           <div className={styles.userInfo}>
             <span className={styles.userName}>{user?.name || "Patient"}</span>

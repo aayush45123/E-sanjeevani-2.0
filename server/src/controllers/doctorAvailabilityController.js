@@ -1,10 +1,62 @@
 import DoctorAvailability from "../models/DoctorAvailability.js";
 import User from "../models/User.js";
+import DoctorProfile from "../models/DoctorProfile.js";
 
 const getDateOnly = (date) => {
   const normalized = new Date(date);
   normalized.setHours(0, 0, 0, 0);
   return normalized;
+};
+
+const getDayName = (date) =>
+  date.toLocaleDateString("en-US", { weekday: "long" });
+
+const SLOT_DURATION_MINUTES = 30;
+
+const buildSlots = (startTime, endTime) => {
+  const slots = [];
+
+  if (!startTime || !endTime) {
+    return slots;
+  }
+
+  const [startHour, startMinute] = startTime.split(":").map(Number);
+  const [endHour, endMinute] = endTime.split(":").map(Number);
+
+  const current = new Date(2000, 0, 1, startHour, startMinute, 0, 0);
+  const end = new Date(2000, 0, 1, endHour, endMinute, 0, 0);
+
+  while (current < end) {
+    const next = new Date(current.getTime() + SLOT_DURATION_MINUTES * 60000);
+
+    if (next > end) {
+      break;
+    }
+
+    const formatTime = (date) =>
+      `${String(date.getHours()).padStart(2, "0")}:${String(
+        date.getMinutes(),
+      ).padStart(2, "0")}`;
+
+    slots.push({
+      startTime: formatTime(current),
+      endTime: formatTime(next),
+      isBooked: false,
+      bookedBy: null,
+      consultationId: null,
+    });
+
+    current.setTime(next.getTime());
+  }
+
+  return slots;
+};
+
+const getFallbackSlots = async (doctorId, date) => {
+  const profile = await DoctorProfile.findOne({ userId: doctorId });
+  if (!profile || !Array.isArray(profile.workingDays)) return [];
+  if (!profile.workingDays.includes(getDayName(date))) return [];
+  return buildSlots(profile.startTime, profile.endTime);
 };
 
 /*
@@ -176,6 +228,78 @@ export const getDoctorOwnAvailability = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to fetch doctor availability",
+      error: error.message,
+    });
+  }
+};
+
+/*
+==================================================
+GET DOCTOR AVAILABILITY SLOTS
+Patient fetches available slots for a doctor on a specific date
+Falls back to doctor's working schedule if no explicit availability is set
+==================================================
+*/
+
+export const getDoctorAvailabilitySlots = async (req, res) => {
+  try {
+    const { doctorId } = req.params;
+    const { date } = req.query;
+
+    if (!doctorId || !date) {
+      return res.status(400).json({
+        success: false,
+        message: "doctorId and date are required",
+      });
+    }
+
+    // Normalize the date properly (handle timezone issues)
+    // Date comes as ISO string like "2026-05-01"
+    const dateOnly = getDateOnly(new Date(date));
+    const nextDate = new Date(dateOnly);
+    nextDate.setDate(nextDate.getDate() + 1);
+
+    // Find availability for the specific date
+    let availability = await DoctorAvailability.findOne({
+      doctor: doctorId,
+      availableDate: {
+        $gte: dateOnly,
+        $lt: nextDate,
+      },
+      isActive: true,
+    });
+
+    // If no explicit availability, check if date matches doctor's working days
+    if (!availability) {
+      const fallbackSlots = await getFallbackSlots(doctorId, dateOnly);
+      if (!fallbackSlots.length) {
+        return res.json({
+          success: true,
+          slots: [],
+        });
+      }
+      // Create availability from working schedule
+      availability = await DoctorAvailability.create({
+        doctor: doctorId,
+        availableDate: dateOnly,
+        slots: fallbackSlots,
+        isActive: true,
+      });
+    }
+
+    // Filter out booked slots and return only available ones
+    const availableSlots = availability.slots.filter((slot) => !slot.isBooked);
+
+    res.json({
+      success: true,
+      slots: availableSlots,
+    });
+  } catch (error) {
+    console.error("getDoctorAvailabilitySlots error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch doctor slots",
       error: error.message,
     });
   }
