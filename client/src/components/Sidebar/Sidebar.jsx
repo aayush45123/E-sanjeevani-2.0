@@ -14,23 +14,16 @@ import {
 import styles from "./Sidebar.module.css";
 
 const LogoIcon = () => (
-  <div
+  <img 
+    src="/logo-svg.svg" 
+    alt="Logo" 
     style={{
       width: "28px",
       height: "28px",
-      background: "#51da4d",
-      borderRadius: "6px",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      fontSize: "14px",
-      fontWeight: "800",
-      color: "#ffffff",
       flexShrink: 0,
+      objectFit: "contain"
     }}
-  >
-    E
-  </div>
+  />
 );
 
 export default function Sidebar({ user = {}, onLogout = () => {} }) {

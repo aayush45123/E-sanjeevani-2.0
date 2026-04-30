@@ -7,6 +7,8 @@ import {
   FiPhone,
   FiVideo,
   FiMessageSquare,
+  FiFileText,
+  FiCheckCircle,
 } from "react-icons/fi";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import styles from "./Consultations.module.css";
@@ -126,7 +128,7 @@ export default function Consultations() {
           </div>
 
           {/* History Tab */}
-          {activeTab === "history" && (
+ {activeTab === "history" && (
             <div className={styles.historySection}>
               {/* Stats Cards */}
               {stats && (
@@ -136,7 +138,7 @@ export default function Consultations() {
                       className={styles.statIcon}
                       style={{ color: "#51da4d" }}
                     >
-                      📋
+                      <FiFileText size={20} />
                     </div>
                     <div className={styles.statContent}>
                       <div className={styles.statValue}>{stats.total}</div>
@@ -150,7 +152,7 @@ export default function Consultations() {
                       className={styles.statIcon}
                       style={{ color: "#3b82f6" }}
                     >
-                      ⏳
+                      <FiClock size={20} />
                     </div>
                     <div className={styles.statContent}>
                       <div className={styles.statValue}>{stats.upcoming}</div>
@@ -162,7 +164,7 @@ export default function Consultations() {
                       className={styles.statIcon}
                       style={{ color: "#10b981" }}
                     >
-                      ✓
+                      <FiCheckCircle size={20} />
                     </div>
                     <div className={styles.statContent}>
                       <div className={styles.statValue}>{stats.completed}</div>
@@ -174,7 +176,7 @@ export default function Consultations() {
                       className={styles.statIcon}
                       style={{ color: "#f59e0b" }}
                     >
-                      ⭐
+                      <FiStar size={20} />
                     </div>
                     <div className={styles.statContent}>
                       <div className={styles.statValue}>
