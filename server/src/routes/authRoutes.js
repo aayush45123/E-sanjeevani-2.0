@@ -1,31 +1,28 @@
 import express from "express";
-import { signup, login, me } from "../controllers/authController.js";
-import auth from "../middlewares/authMiddleware.js";
+import authMiddleware from "../middlewares/authMiddleware.js";
+import {
+  register,
+  login,
+  logout,
+  me,
+  getPatientProfile,
+  updatePatientProfile,
+  completePatientProfile,
+} from "../controllers/authController.js";
 
 const router = express.Router();
 
-router.post("/signup", signup);
+// Public routes
+router.post("/register", register);
 router.post("/login", login);
 
-router.get("/test", (req, res) => {
-  res.send("Auth route working!");
-});
+// Protected routes
+router.post("/logout", authMiddleware, logout);
+router.get("/me", authMiddleware, me);
 
-// Logged-in user
-router.get("/me", auth, async (req, res) => {
-  try {
-    const user = req.user; 
-
-    res.json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      isAdmin: user.isAdmin === true,
-    });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
+// Patient profile routes
+router.get("/patient/me", authMiddleware, getPatientProfile);
+router.put("/patient/update", authMiddleware, updatePatientProfile);
+router.put("/patient/complete-profile", authMiddleware, completePatientProfile);
 
 export default router;

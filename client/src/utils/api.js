@@ -1,113 +1,60 @@
-// api.js
-// Central API utility — all backend calls go through here.
-// Automatically attaches the JWT from localStorage to every request.
+import axios from "axios";
 
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const API_BASE_URL = "http://localhost:5000/api";
 
-// ── Token Helpers ────────────────────────────────────────────
-function getToken() {
-  return localStorage.getItem("token");
-}
+export const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
-function setToken(token) {
-  localStorage.setItem("token", token);
-}
-
-function removeToken() {
-  localStorage.removeItem("token");
-}
-
-// ── Core Request Function ────────────────────────────────────
-async function request(path, options = {}) {
-  const token = getToken();
-
-  const res = await fetch(`${BASE_URL}${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(options.headers || {}),
-    },
-  });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    const error = new Error(data.message || "Request failed");
-    error.status = res.status;
-    error.errors = data.errors || [];
-    throw error;
+// Add token to requests
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
+  return config;
+});
 
-  return data;
-}
+// Response interceptor for error handling
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem("token");
+      window.dispatchEvent(new Event("authChange"));
+    }
+    return Promise.reject(error);
+  }
+);
 
-// ── Auth APIs ────────────────────────────────────────────────
+// Auth API
 export const authApi = {
-  signup: async (body) => {
-    const data = await request("/auth/signup", {
-      method: "POST",
-      body: JSON.stringify(body),
-    });
-
-    // Save token if returned
-    if (data.token) setToken(data.token);
-
-    return data;
-  },
-
-  login: async (body) => {
-    const data = await request("/auth/login", {
-      method: "POST",
-      body: JSON.stringify(body),
-    });
-
-    // Save token
-    if (data.token) setToken(data.token);
-
-    return data;
-  },
-
-  logout: () => {
-    removeToken();
-  },
-
-  me: () => request("/auth/me"),
+  register: (data) => apiClient.post("/auth/register", data),
+  signup: (data) => apiClient.post("/auth/register", data), // ✅ Alias
+  login: (data) => apiClient.post("/auth/login", data),
+  logout: () => apiClient.post("/auth/logout"),
+  me: () => apiClient.get("/auth/me"),
+  updateProfile: (data) => apiClient.put("/auth/patient/update", data),
+  completePatientProfile: (data) =>
+    apiClient.put("/auth/patient/complete-profile", data),
 };
 
-// ── Patient Profile ──────────────────────────────────────────
-export const profileApi = {
-  getStatus: () => request("/patient/profile/status"),
-
-  get: () => request("/patient/profile"),
-
-  create: (body) =>
-    request("/patient/profile", {
-      method: "POST",
-      body: JSON.stringify(body),
-    }),
-
-  update: (body) =>
-    request("/patient/profile", {
-      method: "PATCH",
-      body: JSON.stringify(body),
-    }),
-
-  updateProfile: (body) =>
-    request("/patient/profile", {
-      method: "PATCH",
-      body: JSON.stringify(body),
-    }),
+// Consultations API
+export const consultationApi = {
+  getMyConsultations: (params) =>
+    apiClient.get("/consultations/my-consultations", { params }),
+  getConsultationDetails: (id) => apiClient.get(`/consultations/${id}`),
+  getAvailableDoctors: (params) =>
+    apiClient.get("/consultations/doctors/available", { params }),
+  getDoctorProfile: (id) => apiClient.get(`/consultations/doctors/${id}`),
+  createConsultation: (data) => apiClient.post("/consultations", data),
+  updateConsultation: (id, data) => apiClient.put(`/consultations/${id}`, data),
+  cancelConsultation: (id, data) =>
+    apiClient.post(`/consultations/${id}/cancel`, data),
+  getStats: () => apiClient.get("/consultations/stats"),
 };
 
-// ── Decode JWT locally (fallback — no network call) ──────────
-export function decodeToken() {
-  const token = getToken();
-  if (!token) return null;
-
-  try {
-    return JSON.parse(atob(token.split(".")[1]));
-  } catch {
-    return null;
-  }
-}
+export default apiClient;

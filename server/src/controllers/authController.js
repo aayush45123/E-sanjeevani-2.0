@@ -1,103 +1,104 @@
 import User from "../models/User.js";
-import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import validator from "validator";
+import bcrypt from "bcryptjs";
 
-export const signup = async (req, res) => {
+// Register user
+export const register = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role = "patient" } = req.body;
 
     if (!name || !email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
-
-    if (!validator.isEmail(email)) {
-      return res.status(400).json({ message: "Invalid email format" });
-    }
-
-    if (
-      !validator.isStrongPassword(password, {
-        minLength: 6,
-        minNumbers: 1,
-        minUppercase: 1,
-        minSymbols: 1,
-      })
-    ) {
       return res.status(400).json({
-        message: "Password must be at least 6 characters and contain a number",
+        success: false,
+        message: "Name, email, and password are required",
       });
     }
 
     const existingUser = await User.findOne({ email });
-    if (existingUser)
-      return res.status(400).json({ message: "User already exists" });
+    if (existingUser) {
+      return res.status(409).json({
+        success: false,
+        message: "User already exists with this email",
+      });
+    }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create user
-    const user = await User.create({
-      name: name.trim(),
-      email: email.toLowerCase(),
+    const user = new User({
+      name,
+      email,
       password: hashedPassword,
-      role: role || "patient",
-      isAdmin: false,
+      role,
+      profileCompleted: false,
     });
 
+    await user.save();
+
+    const token = jwt.sign(
+      { userId: user._id, email: user.email, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
     res.status(201).json({
-      message: "User created",
+      success: true,
+      message: "User registered successfully",
+      token,
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,
-        isAdmin: user.isAdmin,
       },
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    console.error("Register error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Registration failed",
+      error: error.message,
+    });
   }
 };
 
-export const me = async (req, res) => {
-  const user = req.user;
-
-  res.json({
-    id: user._id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    isAdmin: user.isAdmin === true,
-  });
-};
-
+// Login user
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    //Validation
     if (!email || !password) {
-      return res.status(400).json({ message: "Email and password required" });
+      return res.status(400).json({
+        success: false,
+        message: "Email and password are required",
+      });
     }
 
-    if (!validator.isEmail(email)) {
-      return res.status(400).json({ message: "Invalid email format" });
+    // ✅ Must use .select("+password") because password has select:false in schema
+    const user = await User.findOne({ email }).select("+password");
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password",
+      });
     }
 
-    // Check user
-    const user = await User.findOne({ email });
-    if (!user)
-      return res.status(400).json({ message: "Invalid email or password" });
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
 
-    //password compare
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch)
-      return res.status(400).json({ message: "Invalid email or password" });
-
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
-    });
+    const token = jwt.sign(
+      { userId: user._id, email: user.email, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
 
     res.json({
+      success: true,
       message: "Login successful",
       token,
       user: {
@@ -105,10 +106,179 @@ export const login = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        isAdmin: user.isAdmin,
+        profileCompleted: user.profileCompleted,
       },
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    console.error("Login error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Login failed",
+      error: error.message,
+    });
+  }
+};
+
+// Logout (stateless JWT — just acknowledge on client side)
+export const logout = async (req, res) => {
+  res.json({ success: true, message: "Logout successful" });
+};
+
+// Get current user (GET /api/auth/me)
+export const me = async (req, res) => {
+  try {
+    // ✅ authMiddleware sets req.user = decoded token payload (has .userId)
+    const user = await User.findById(req.user.userId).select("-password");
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+    res.json({ success: true, user });
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Failed to fetch user",
+        error: error.message,
+      });
+  }
+};
+
+// Get patient profile (GET /api/auth/patient/me)
+export const getPatientProfile = async (req, res) => {
+  try {
+    // ✅ req.user is the decoded JWT payload — use .userId not ._id
+    const user = await User.findById(req.user.userId).select("-password");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.json({ success: true, user });
+  } catch (error) {
+    console.error("Get profile error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch profile",
+      error: error.message,
+    });
+  }
+};
+
+// Update patient profile (PUT /api/auth/patient/update)
+export const updatePatientProfile = async (req, res) => {
+  try {
+    const {
+      name,
+      email,
+      phone,
+      age,
+      gender,
+      bloodType,
+      allergies,
+      medicalHistory,
+      address,
+      city,
+      state,
+      zipCode,
+    } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      req.user.userId, // ✅ decoded JWT has .userId
+      {
+        name,
+        email,
+        phone,
+        age,
+        gender,
+        bloodType,
+        allergies: Array.isArray(allergies)
+          ? allergies
+          : allergies?.split(",").map((a) => a.trim()),
+        medicalHistory: Array.isArray(medicalHistory)
+          ? medicalHistory
+          : medicalHistory?.split(",").map((m) => m.trim()),
+        address,
+        city,
+        state,
+        zipCode,
+      },
+      { new: true, runValidators: true }
+    ).select("-password");
+
+    res.json({ success: true, message: "Profile updated successfully", user });
+  } catch (error) {
+    console.error("Update profile error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update profile",
+      error: error.message,
+    });
+  }
+};
+
+// Complete patient profile (PUT /api/auth/patient/complete-profile)
+export const completePatientProfile = async (req, res) => {
+  try {
+    const {
+      name,
+      phone,
+      age,
+      gender,
+      bloodType,
+      allergies,
+      medicalHistory,
+      address,
+      city,
+      state,
+      zipCode,
+    } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      req.user.userId, // ✅ decoded JWT has .userId
+      {
+        name,
+        phone,
+        age,
+        gender,
+        bloodType,
+        allergies: Array.isArray(allergies)
+          ? allergies
+          : allergies
+              ?.split(",")
+              .map((a) => a.trim())
+              .filter(Boolean),
+        medicalHistory: Array.isArray(medicalHistory)
+          ? medicalHistory
+          : medicalHistory
+              ?.split(",")
+              .map((m) => m.trim())
+              .filter(Boolean),
+        address,
+        city,
+        state,
+        zipCode,
+        profileCompleted: true,
+      },
+      { new: true, runValidators: true }
+    ).select("-password");
+
+    res.json({
+      success: true,
+      message: "Profile completed successfully",
+      user,
+    });
+  } catch (error) {
+    console.error("Complete profile error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to complete profile",
+      error: error.message,
+    });
   }
 };

@@ -1,4 +1,3 @@
-// Auth.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./Auth.module.css";
@@ -22,10 +21,10 @@ const Auth = () => {
   };
 
   const handleAuthSuccess = (token) => {
-  localStorage.setItem("token", token);
-  window.dispatchEvent(new Event("authChange"));  // ← Fire auth change event
-  navigate("/dashboard");
-};
+    localStorage.setItem("token", token);
+    window.dispatchEvent(new Event("authChange"));
+    navigate("/dashboard");
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,40 +33,45 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        const data = await authApi.login({
+        // Login
+        const response = await authApi.login({
           email: form.email,
           password: form.password,
         });
 
-        if (data.token) {
-          handleAuthSuccess(data.token);
+        if (response.data.success && response.data.token) {
+          setMessage("✓ Login successful!");
+          handleAuthSuccess(response.data.token);
         } else {
-          setMessage(data.message || "Login failed. Check your credentials.");
+          setMessage(
+            response.data.message || "✕ Login failed. Check your credentials."
+          );
         }
       } else {
-        const signupData = await authApi.signup(form);
+        // Signup
+        const signupResponse = await authApi.signup({
+          name: form.name,
+          email: form.email,
+          password: form.password,
+          role: form.role,
+        });
 
-        if (signupData.token) {
-          handleAuthSuccess(signupData.token);
-        } else if (signupData.message === "User created") {
-          const loginData = await authApi.login({
-            email: form.email,
-            password: form.password,
-          });
-
-          if (loginData.token) {
-            handleAuthSuccess(loginData.token);
-          } else {
-            setIsLogin(true);
-            setForm({ name: "", email: "", password: "", role: "patient" });
-            setMessage("✓ Account created! Please sign in.");
-          }
+        if (signupResponse.data.success && signupResponse.data.token) {
+          setMessage("✓ Account created successfully!");
+          handleAuthSuccess(signupResponse.data.token);
         } else {
-          setMessage(signupData.message || "Signup failed. Please try again.");
+          setMessage(
+            signupResponse.data.message || "✕ Signup failed. Please try again."
+          );
         }
       }
     } catch (err) {
-      setMessage(err.message || "✕ Something went wrong. Please try again.");
+      console.error("Auth error:", err);
+      setMessage(
+        err.response?.data?.message ||
+          err.message ||
+          "✕ Something went wrong. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -81,9 +85,16 @@ const Auth = () => {
           {/* Logo */}
           <div className={styles.logoSection}>
             <div className={styles.logoIconWrapper}>
-               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
-               </svg>
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+              </svg>
             </div>
             <span className={styles.logoText}>E-Sanjeevani</span>
           </div>
@@ -95,7 +106,8 @@ const Auth = () => {
           </h1>
 
           <p className={styles.tagline}>
-            Join thousands of patients getting expert healthcare from the comfort of their homes. AI-powered triage meets clinical excellence.
+            Join thousands of patients getting expert healthcare from the
+            comfort of their homes. AI-powered triage meets clinical excellence.
           </p>
 
           <ul className={styles.featuresList}>
@@ -146,14 +158,18 @@ const Auth = () => {
               <div className={styles.roleTrack}>
                 <button
                   type="button"
-                  className={`${styles.roleBtn} ${form.role === "patient" ? styles.roleActive : ""}`}
+                  className={`${styles.roleBtn} ${
+                    form.role === "patient" ? styles.roleActive : ""
+                  }`}
                   onClick={() => setForm({ ...form, role: "patient" })}
                 >
                   Patient
                 </button>
                 <button
                   type="button"
-                  className={`${styles.roleBtn} ${form.role === "doctor" ? styles.roleActive : ""}`}
+                  className={`${styles.roleBtn} ${
+                    form.role === "doctor" ? styles.roleActive : ""
+                  }`}
                   onClick={() => setForm({ ...form, role: "doctor" })}
                 >
                   Doctor
@@ -205,13 +221,25 @@ const Auth = () => {
             </div>
 
             {message && (
-              <div className={`${styles.message} ${message.includes("✕") ? styles.error : styles.success}`}>
+              <div
+                className={`${styles.message} ${
+                  message.includes("✕") ? styles.error : styles.success
+                }`}
+              >
                 {message}
               </div>
             )}
 
-            <button type="submit" disabled={loading} className={styles.submitBtn}>
-              {loading ? "Processing..." : isLogin ? "Sign In" : "Create Account"}
+            <button
+              type="submit"
+              disabled={loading}
+              className={styles.submitBtn}
+            >
+              {loading
+                ? "Processing..."
+                : isLogin
+                ? "Sign In"
+                : "Create Account"}
             </button>
           </form>
 
@@ -222,7 +250,12 @@ const Auth = () => {
                 type="button"
                 onClick={() => {
                   setIsLogin(!isLogin);
-                  setForm({ name: "", email: "", password: "", role: "patient" });
+                  setForm({
+                    name: "",
+                    email: "",
+                    password: "",
+                    role: "patient",
+                  });
                   setMessage("");
                 }}
                 className={styles.toggleLink}

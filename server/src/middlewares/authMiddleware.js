@@ -2,25 +2,37 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
 const authMiddleware = async (req, res, next) => {
-  const token = req.headers.authorization?.split(" ")[1];
-
-  if (!token) {
-    return res.status(401).json({ message: "No token, authorization denied" });
-  }
-
   try {
+    const token = req.headers.authorization?.split(" ")[1];
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: "No token, authorization denied",
+      });
+    }
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     // Load user document
     const user = await User.findById(decoded.userId).select("-password");
 
-    if (!user) return res.status(401).json({ message: "User not found" });
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "User not found",
+      });
+    }
 
-    req.user = user; // contains isAdmin also
-
+    req.user = decoded; // Store token payload
     next();
   } catch (err) {
-    return res.status(401).json({ message: "Invalid token" });
+    console.error("Auth middleware error:", err);
+    return res.status(401).json({
+      success: false,
+      message: "Invalid token",
+      error: err.message,
+    });
   }
 };
 

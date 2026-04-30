@@ -1,466 +1,285 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiChevronRight, FiChevronLeft } from "react-icons/fi";
 import styles from "./ProfileCompletion.module.css";
-import { profileApi } from "../../utils/api";
+import { authApi } from "../../utils/api";
 
-const stepsList = [
-  { id: 1, label: "Personal Details" },
-  { id: 2, label: "Physical Vitals" },
-  { id: 3, label: "Lifestyle Habits" },
-  { id: 4, label: "Medical History" },
-];
-
-const ProfileCompletion = () => {
+export default function ProfileCompletion() {
   const navigate = useNavigate();
-  const [step, setStep] = useState(1);
-  const [highestStep, setHighestStep] = useState(1); // Remembers furthest step reached
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (!localStorage.getItem("token")) {
-      navigate("/auth", { replace: true });
-    }
-  }, [navigate]);
-
   const [formData, setFormData] = useState({
+    name: "",
+    phone: "",
     age: "",
     gender: "",
-    bloodGroup: "",
-    maritalStatus: "",
-    height: "",
-    weight: "",
-    bloodPressure: "",
-    smoking: "",
-    alcohol: "",
-    diet: "",
-    exercise: "",
+    bloodType: "",
     allergies: "",
-    chronicConditions: "",
-    currentMedications: "",
-    pastSurgeries: "",
+    medicalHistory: "",
+    address: "",
+    city: "",
+    state: "",
+    zipCode: "",
   });
 
+  // Fetch existing profile data
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await authApi.me();
+        if (response.data.user) {
+          setFormData({
+            name: response.data.user.name || "",
+            phone: response.data.user.phone || "",
+            age: response.data.user.age || "",
+            gender: response.data.user.gender || "",
+            bloodType: response.data.user.bloodType || "",
+            allergies: response.data.user.allergies?.join(", ") || "",
+            medicalHistory: response.data.user.medicalHistory?.join(", ") || "",
+            address: response.data.user.address || "",
+            city: response.data.user.city || "",
+            state: response.data.user.state || "",
+            zipCode: response.data.user.zipCode || "",
+          });
+        }
+      } catch (error) {
+        console.error("Failed to fetch profile:", error);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSelect = (field, value) => {
-    setFormData({ ...formData, [field]: value });
-  };
-
-  // Move to next step and record progress
-  const nextStep = () => {
-    const next = Math.min(step + 1, 4);
-    setStep(next);
-    setHighestStep((prev) => Math.max(prev, next));
-  };
-
-  const prevStep = () => setStep((prev) => Math.max(prev - 1, 1));
-
-  // Sidebar clicking logic (can jump to any step you've already unlocked)
-  const jumpToStep = (targetStep) => {
-    if (targetStep <= highestStep) {
-      setStep(targetStep);
-    }
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!localStorage.getItem("token")) {
-      navigate("/auth", { replace: true });
-      return;
-    }
-
     setLoading(true);
+
     try {
-      await profileApi.updateProfile(formData);
-      navigate("/dashboard");
+      // Convert comma-separated strings to arrays
+      const submitData = {
+        ...formData,
+        allergies: formData.allergies
+          .split(",")
+          .map((item) => item.trim())
+          .filter((item) => item),
+        medicalHistory: formData.medicalHistory
+          .split(",")
+          .map((item) => item.trim())
+          .filter((item) => item),
+      };
+
+      const response = await authApi.completePatientProfile(submitData);
+
+      if (response.data.success) {
+        alert("Profile completed successfully!");
+        navigate("/dashboard");
+      }
     } catch (error) {
-      console.error("Profile update failed:", error);
+      console.error("Error:", error);
+      alert(error.response?.data?.message || "Failed to complete profile");
+    } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className={styles.pageWrapper}>
-      {/* ── FOCUS NAVBAR ── */}
-      <nav className={styles.focusNavbar}>
-        <div className={styles.brand}>
-          <img
-            src="/logo-svg.svg"
-            alt="E-Sanjeevani Logo"
-            className={styles.logoImg}
-          />
-          <span className={styles.brandName}>E-Sanjeevani 2.0</span>
+    <div className={styles.profileCompletionContainer}>
+      <div className={styles.formWrapper}>
+        <div className={styles.header}>
+          <h1 className={styles.title}>Complete Your Profile</h1>
+          <p className={styles.subtitle}>
+            Help us know you better to provide personalized healthcare
+          </p>
         </div>
-      </nav>
 
-      {/* ── SPLIT LAYOUT ── */}
-      <div className={styles.splitLayout}>
-        {/* LEFT SIDEBAR: Vertical Stepper */}
-        <aside className={styles.stepperSidebar}>
-          <div className={styles.stepperHeader}>
-            <h2 className={styles.stepperTitle}>Profile Setup</h2>
-            <p className={styles.stepperDesc}>
-              Please complete your clinical profile to enable smart routing.
-            </p>
-          </div>
+        <form onSubmit={handleSubmit} className={styles.form}>
+          {/* Personal Information */}
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>Personal Information</h2>
 
-          <div className={styles.stepperList}>
-            {stepsList.map((s, index) => {
-              const isActive = step === s.id;
-              const isCompleted = s.id < step;
-              const isClickable = s.id <= highestStep;
+            <div className={styles.formRow}>
+              <div className={styles.formGroup}>
+                <label htmlFor="name">Full Name *</label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  placeholder="Enter your full name"
+                />
+              </div>
 
-              return (
-                <div
-                  key={s.id}
-                  className={`${styles.stepItem} ${isClickable ? styles.clickableStep : ""}`}
-                  onClick={() => jumpToStep(s.id)}
-                >
-                  {/* Vertical Line Connector */}
-                  {index !== stepsList.length - 1 && (
-                    <div
-                      className={`${styles.stepConnector} ${isCompleted ? styles.connectorActive : ""}`}
-                    />
-                  )}
-
-                  {/* Circle Styling matching your reference */}
-                  <div
-                    className={`${styles.stepCircle} ${isActive ? styles.circleActive : isCompleted ? styles.circleCompleted : styles.circlePending}`}
-                  >
-                    {isActive && <div className={styles.innerDot}></div>}
-                  </div>
-
-                  <span
-                    className={`${styles.stepLabel} ${isActive ? styles.labelActive : ""}`}
-                  >
-                    {s.label}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className={styles.sidebarFooter}>
-            <button
-              className={styles.saveCloseBtn}
-              onClick={() => navigate("/dashboard")}
-            >
-              Save & Close
-            </button>
-          </div>
-        </aside>
-
-        {/* RIGHT CANVAS: The Form */}
-        <main className={styles.formCanvas}>
-          <div className={styles.formBody}>
-            <div className={styles.canvasHeader}>
-              <h1 className={styles.canvasTitle}>
-                {stepsList[step - 1].label}
-              </h1>
-              <p className={styles.canvasDesc}>
-                Please fill in the accurate details below for your medical
-                record.
-              </p>
+              <div className={styles.formGroup}>
+                <label htmlFor="phone">Phone Number</label>
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  placeholder="Enter your phone number"
+                />
+              </div>
             </div>
 
-            <form
-              onSubmit={
-                step === 4
-                  ? handleSubmit
-                  : (e) => {
-                      e.preventDefault();
-                      nextStep();
-                    }
-              }
-            >
-              {/* ── STEP 1: PERSONAL DETAILS ── */}
-              {step === 1 && (
-                <div className={styles.fadeEnter}>
-                  <div className={styles.formGrid2}>
-                    <div className={styles.inputGroup}>
-                      <label className={styles.label}>Patient Age</label>
-                      <input
-                        type="number"
-                        name="age"
-                        value={formData.age}
-                        onChange={handleChange}
-                        required
-                        className={styles.inputField}
-                        placeholder="e.g., 24"
-                      />
-                    </div>
-                  </div>
-
-                  <div className={styles.spacer} />
-
-                  <div className={styles.inputGroup}>
-                    <label className={styles.label}>Select Gender</label>
-                    <div className={styles.selectionGrid3}>
-                      {["Male", "Female", "Other"].map((g) => (
-                        <div
-                          key={g}
-                          className={`${styles.selectionCard} ${formData.gender === g ? styles.cardActive : ""}`}
-                          onClick={() => handleSelect("gender", g)}
-                        >
-                          {g}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className={styles.spacer} />
-
-                  <div className={styles.inputGroup}>
-                    <label className={styles.label}>Blood Group</label>
-                    <div className={styles.selectionGrid4}>
-                      {["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"].map(
-                        (bg) => (
-                          <div
-                            key={bg}
-                            className={`${styles.selectionCard} ${formData.bloodGroup === bg ? styles.cardActive : ""}`}
-                            onClick={() => handleSelect("bloodGroup", bg)}
-                          >
-                            {bg}
-                          </div>
-                        ),
-                      )}
-                    </div>
-                  </div>
-
-                  <div className={styles.spacer} />
-
-                  <div className={styles.inputGroup}>
-                    <label className={styles.label}>Marital Status</label>
-                    <div className={styles.selectionGrid3}>
-                      {["Single", "Married", "Divorced"].map((status) => (
-                        <div
-                          key={status}
-                          className={`${styles.selectionCard} ${formData.maritalStatus === status ? styles.cardActive : ""}`}
-                          onClick={() => handleSelect("maritalStatus", status)}
-                        >
-                          {status}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* ── STEP 2: PHYSICAL VITALS ── */}
-              {step === 2 && (
-                <div className={styles.fadeEnter}>
-                  <div className={styles.formGrid2}>
-                    <div className={styles.inputGroup}>
-                      <label className={styles.label}>Height (cm)</label>
-                      <input
-                        type="number"
-                        name="height"
-                        value={formData.height}
-                        onChange={handleChange}
-                        required
-                        className={styles.inputField}
-                        placeholder="e.g., 175"
-                      />
-                    </div>
-                    <div className={styles.inputGroup}>
-                      <label className={styles.label}>Weight (kg)</label>
-                      <input
-                        type="number"
-                        name="weight"
-                        value={formData.weight}
-                        onChange={handleChange}
-                        required
-                        className={styles.inputField}
-                        placeholder="e.g., 70"
-                      />
-                    </div>
-                  </div>
-
-                  <div className={styles.spacer} />
-
-                  <div className={styles.formGrid2}>
-                    <div className={styles.inputGroup}>
-                      <label className={styles.label}>
-                        Est. Blood Pressure (Optional)
-                      </label>
-                      <input
-                        type="text"
-                        name="bloodPressure"
-                        value={formData.bloodPressure}
-                        onChange={handleChange}
-                        className={styles.inputField}
-                        placeholder="e.g., 120/80"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* ── STEP 3: LIFESTYLE HABITS ── */}
-              {step === 3 && (
-                <div className={styles.fadeEnter}>
-                  <div className={styles.formGrid2}>
-                    <div className={styles.inputGroup}>
-                      <label className={styles.label}>Smoker Status</label>
-                      <div className={styles.selectionGrid2}>
-                        {["Yes", "No"].map((opt) => (
-                          <div
-                            key={opt}
-                            className={`${styles.selectionCard} ${formData.smoking === opt ? styles.cardActive : ""}`}
-                            onClick={() => handleSelect("smoking", opt)}
-                          >
-                            {opt}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    <div className={styles.inputGroup}>
-                      <label className={styles.label}>
-                        Alcohol Consumption
-                      </label>
-                      <div className={styles.selectionGrid2}>
-                        {["Yes", "No"].map((opt) => (
-                          <div
-                            key={opt}
-                            className={`${styles.selectionCard} ${formData.alcohol === opt ? styles.cardActive : ""}`}
-                            onClick={() => handleSelect("alcohol", opt)}
-                          >
-                            {opt}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className={styles.spacer} />
-
-                  <div className={styles.inputGroup}>
-                    <label className={styles.label}>Dietary Preference</label>
-                    <div className={styles.selectionGrid3}>
-                      {["Vegetarian", "Non-Vegetarian", "Vegan"].map((diet) => (
-                        <div
-                          key={diet}
-                          className={`${styles.selectionCard} ${formData.diet === diet ? styles.cardActive : ""}`}
-                          onClick={() => handleSelect("diet", diet)}
-                        >
-                          {diet}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className={styles.spacer} />
-
-                  <div className={styles.inputGroup}>
-                    <label className={styles.label}>Exercise Frequency</label>
-                    <div className={styles.selectionGrid4}>
-                      {["Daily", "Weekly", "Rarely", "Never"].map((freq) => (
-                        <div
-                          key={freq}
-                          className={`${styles.selectionCard} ${formData.exercise === freq ? styles.cardActive : ""}`}
-                          onClick={() => handleSelect("exercise", freq)}
-                        >
-                          {freq}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* ── STEP 4: MEDICAL HISTORY ── */}
-              {step === 4 && (
-                <div className={styles.fadeEnter}>
-                  <div className={styles.formGrid2}>
-                    <div className={styles.inputGroup}>
-                      <label className={styles.label}>Known Allergies</label>
-                      <textarea
-                        name="allergies"
-                        value={formData.allergies}
-                        onChange={handleChange}
-                        className={styles.textAreaField}
-                        placeholder="E.g., Penicillin, Peanuts. Leave empty if none."
-                      />
-                    </div>
-                    <div className={styles.inputGroup}>
-                      <label className={styles.label}>Chronic Conditions</label>
-                      <textarea
-                        name="chronicConditions"
-                        value={formData.chronicConditions}
-                        onChange={handleChange}
-                        className={styles.textAreaField}
-                        placeholder="E.g., Asthma, Diabetes. Leave empty if none."
-                      />
-                    </div>
-                  </div>
-
-                  <div className={styles.spacer} />
-
-                  <div className={styles.formGrid2}>
-                    <div className={styles.inputGroup}>
-                      <label className={styles.label}>
-                        Current Medications
-                      </label>
-                      <textarea
-                        name="currentMedications"
-                        value={formData.currentMedications}
-                        onChange={handleChange}
-                        className={styles.textAreaField}
-                        placeholder="E.g., Metformin 500mg. Leave empty if none."
-                      />
-                    </div>
-                    <div className={styles.inputGroup}>
-                      <label className={styles.label}>Past Surgeries</label>
-                      <textarea
-                        name="pastSurgeries"
-                        value={formData.pastSurgeries}
-                        onChange={handleChange}
-                        className={styles.textAreaField}
-                        placeholder="E.g., Appendectomy (2019). Leave empty if none."
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* ── ACTION BAR ── */}
-              <div className={styles.actionBar}>
-                {/* Back Button - Only render if past step 1 so it doesn't offset the Next button */}
-                {step > 1 && (
-                  <button
-                    type="button"
-                    onClick={prevStep}
-                    className={styles.btnBack}
-                  >
-                    <FiChevronLeft size={18} /> Back
-                  </button>
-                )}
-
-                {step < 4 ? (
-                  <button type="submit" className={styles.btnNext}>
-                    Next <FiChevronRight size={18} />
-                  </button>
-                ) : (
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className={styles.btnSubmit}
-                  >
-                    {loading ? "Saving..." : "Submit Profile"}{" "}
-                    <FiChevronRight size={18} />
-                  </button>
-                )}
+            <div className={styles.formRow}>
+              <div className={styles.formGroup}>
+                <label htmlFor="age">Age</label>
+                <input
+                  type="number"
+                  id="age"
+                  name="age"
+                  value={formData.age}
+                  onChange={handleChange}
+                  placeholder="Enter your age"
+                  min="0"
+                  max="120"
+                />
               </div>
-            </form>
+
+              <div className={styles.formGroup}>
+                <label htmlFor="gender">Gender</label>
+                <select
+                  id="gender"
+                  name="gender"
+                  value={formData.gender}
+                  onChange={handleChange}
+                >
+                  <option value="">Select gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
           </div>
-        </main>
+
+          {/* Medical Information */}
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>Medical Information</h2>
+
+            <div className={styles.formRow}>
+              <div className={styles.formGroup}>
+                <label htmlFor="bloodType">Blood Type</label>
+                <select
+                  id="bloodType"
+                  name="bloodType"
+                  value={formData.bloodType}
+                  onChange={handleChange}
+                >
+                  <option value="">Select blood type</option>
+                  <option value="O+">O+</option>
+                  <option value="O-">O-</option>
+                  <option value="A+">A+</option>
+                  <option value="A-">A-</option>
+                  <option value="B+">B+</option>
+                  <option value="B-">B-</option>
+                  <option value="AB+">AB+</option>
+                  <option value="AB-">AB-</option>
+                </select>
+              </div>
+            </div>
+
+            <div className={styles.formGroup}>
+              <label htmlFor="allergies">Allergies (comma-separated)</label>
+              <textarea
+                id="allergies"
+                name="allergies"
+                value={formData.allergies}
+                onChange={handleChange}
+                placeholder="e.g., Penicillin, Peanuts, Shellfish"
+                rows="3"
+              />
+            </div>
+
+            <div className={styles.formGroup}>
+              <label htmlFor="medicalHistory">
+                Medical History (comma-separated)
+              </label>
+              <textarea
+                id="medicalHistory"
+                name="medicalHistory"
+                value={formData.medicalHistory}
+                onChange={handleChange}
+                placeholder="e.g., Diabetes, Asthma, Hypertension"
+                rows="3"
+              />
+            </div>
+          </div>
+
+          {/* Address Information */}
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>Address</h2>
+
+            <div className={styles.formGroup}>
+              <label htmlFor="address">Street Address</label>
+              <input
+                type="text"
+                id="address"
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                placeholder="Enter your street address"
+              />
+            </div>
+
+            <div className={styles.formRow}>
+              <div className={styles.formGroup}>
+                <label htmlFor="city">City</label>
+                <input
+                  type="text"
+                  id="city"
+                  name="city"
+                  value={formData.city}
+                  onChange={handleChange}
+                  placeholder="Enter your city"
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label htmlFor="state">State</label>
+                <input
+                  type="text"
+                  id="state"
+                  name="state"
+                  value={formData.state}
+                  onChange={handleChange}
+                  placeholder="Enter your state"
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label htmlFor="zipCode">Zip Code</label>
+                <input
+                  type="text"
+                  id="zipCode"
+                  name="zipCode"
+                  value={formData.zipCode}
+                  onChange={handleChange}
+                  placeholder="Enter your zip code"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            className={styles.submitBtn}
+            disabled={loading || !formData.name}
+          >
+            {loading ? "Saving Profile..." : "Complete Profile"}
+          </button>
+        </form>
       </div>
     </div>
   );
-};
-
-export default ProfileCompletion;
+}

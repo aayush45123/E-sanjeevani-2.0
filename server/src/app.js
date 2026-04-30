@@ -1,38 +1,55 @@
+import dotenv from "dotenv";
+dotenv.config(); // ✅ Must be FIRST — before any other imports that read process.env
+
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
-import connectDB from "./config/db.js";
+import connectDB from "./config/db.js"; // ✅ Import DB connector
 
 import authRoutes from "./routes/authRoutes.js";
+import consultationRoutes from "./routes/consultationRoutes.js";
 import patientProfileRoutes from "./routes/patientProfileRoutes.js";
-
-dotenv.config();
-connectDB();
 
 const app = express();
 
+// Middleware
+app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-const allowedOrigins = ["http://localhost:5173", "http://localhost:3000"];
+// Health check
+app.get("/health", (req, res) => {
+  res.json({ status: "Server is running ✅" });
+});
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-  }),
-);
-
+// API Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/consultations", consultationRoutes);
 app.use("/api/patient/profile", patientProfileRoutes);
 
-app.get("/", (req, res) => {
-  res.send("API running...");
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error("Error:", err);
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || "Internal server error",
+  });
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Route not found",
+  });
+});
+
+// ✅ Connect to DB first, THEN start server
+const PORT = process.env.PORT || 5000;
+
+connectDB().then(() => {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+  });
 });
 
 export default app;
