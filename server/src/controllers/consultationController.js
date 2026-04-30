@@ -46,7 +46,7 @@ export const getConsultationDetail = async (req, res) => {
       .populate("patient", "name email phone")
       .populate(
         "doctor",
-        "name specialization qualification experience profileImage"
+        "name specialization qualification experience profileImage",
       );
 
     if (!consultation) {
@@ -85,8 +85,6 @@ export const getAvailableDoctors = async (req, res) => {
 
     let query = {
       role: "doctor",
-      isVerified: true,
-      isActive: true,
     };
 
     if (specialization) {
@@ -95,7 +93,7 @@ export const getAvailableDoctors = async (req, res) => {
 
     const doctors = await User.find(query)
       .select(
-        "name specialization qualification experience profileImage averageRating totalConsultations"
+        "name specialization qualification experience profileImage averageRating totalConsultations",
       )
       .skip(skip)
       .limit(parseInt(limit));
@@ -126,7 +124,7 @@ export const getDoctorProfile = async (req, res) => {
     const { doctorId } = req.params;
 
     const doctor = await User.findById(doctorId).select(
-      "name specialization qualification experience profileImage averageRating totalConsultations bio"
+      "name specialization qualification experience profileImage averageRating totalConsultations bio",
     );
 
     if (!doctor || doctor.role !== "doctor") {
@@ -243,7 +241,7 @@ export const updateConsultation = async (req, res) => {
 
     if (consultation.endTime && consultation.startTime) {
       consultation.duration = Math.round(
-        (consultation.endTime - consultation.startTime) / 60000
+        (consultation.endTime - consultation.startTime) / 60000,
       );
     }
 

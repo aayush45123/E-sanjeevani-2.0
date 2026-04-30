@@ -6,17 +6,20 @@ import Navbar from "./components/Navbar/Navbar";
 import Footer from "./components/Footer/Footer";
 import Auth from "./pages/Auth/Auth";
 import PatientDashboard from "./pages/PatientDashBoard/PatientDashBoard";
+import DoctorDashboard from "./pages/DoctorDashboard/DoctorDashboard";
 import ProfileCompletion from "./pages/ProfileCompletion/ProfileCompletion";
 import Consultations from "./pages/Consultations/Consultations";
 
 const App = () => {
   const location = useLocation();
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
+  const [userRole, setUserRole] = useState(localStorage.getItem("userRole"));
   const [isChecking, setIsChecking] = useState(true);
 
-  // Check token on mount and when route changes
+  // Check token and role on mount and when route changes
   useEffect(() => {
     setIsLoggedIn(!!localStorage.getItem("token"));
+    setUserRole(localStorage.getItem("userRole"));
     setIsChecking(false);
   }, [location.pathname]);
 
@@ -24,6 +27,7 @@ const App = () => {
   useEffect(() => {
     const handleAuthChange = () => {
       setIsLoggedIn(!!localStorage.getItem("token"));
+      setUserRole(localStorage.getItem("userRole"));
     };
 
     window.addEventListener("authChange", handleAuthChange);
@@ -40,6 +44,14 @@ const App = () => {
   if (isChecking) {
     return null;
   }
+
+  // Render appropriate dashboard based on user role
+  const getDashboardComponent = () => {
+    if (userRole === "doctor") {
+      return <DoctorDashboard />;
+    }
+    return <PatientDashboard />;
+  };
 
   return (
     <>
@@ -59,11 +71,15 @@ const App = () => {
           element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <Auth />}
         />
 
-        {/* Dashboard - Redirect to auth if not logged in */}
+        {/* Dashboard - Route based on user role */}
         <Route
           path="/dashboard"
           element={
-            isLoggedIn ? <PatientDashboard /> : <Navigate to="/auth" replace />
+            isLoggedIn ? (
+              getDashboardComponent()
+            ) : (
+              <Navigate to="/auth" replace />
+            )
           }
         />
 

@@ -66,8 +66,11 @@ export default function PatientDashboard() {
 
   const hasStartedChat = messages.length > 0;
 
-   
-  const mockRecords = ["Blood_Test_April2026.pdf", "MRI_Lumbar_Scan.jpg", "DrSmith_Prescription.docx"];
+  const mockRecords = [
+    "Blood_Test_April2026.pdf",
+    "MRI_Lumbar_Scan.jpg",
+    "DrSmith_Prescription.docx",
+  ];
 
   // Fetch user data
   useEffect(() => {
@@ -92,7 +95,7 @@ export default function PatientDashboard() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-const handleSendMessage = async (e) => {
+  const handleSendMessage = async (e) => {
     if (e) e.preventDefault();
     if (!inputValue.trim() && attachments.length === 0) return;
 
@@ -133,10 +136,11 @@ const handleSendMessage = async (e) => {
   };
 
   const handleRecordSelect = (record) => {
-    setInputValue((prev) => prev + (prev.trim() ? " " : "") + `[Referencing: ${record}] `);
+    setInputValue(
+      (prev) => prev + (prev.trim() ? " " : "") + `[Referencing: ${record}] `,
+    );
     setShowRecordMenu(false);
   };
-
 
   // const handleQuickPrompt = (prompt) => {
   //   setInputValue(prompt);
@@ -144,6 +148,7 @@ const handleSendMessage = async (e) => {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("userRole");
     window.location.href = "/auth";
   };
 
@@ -157,16 +162,16 @@ const handleSendMessage = async (e) => {
     );
   }
 
- return (
+  return (
     <div className={styles.dashboardLayout}>
       <Sidebar user={user} onLogout={handleLogout} />
 
       <main className={styles.mainContent}>
         {/* Hidden File Input */}
-        <input 
-          type="file" 
-          ref={fileInputRef} 
-          style={{ display: "none" }} 
+        <input
+          type="file"
+          ref={fileInputRef}
+          style={{ display: "none" }}
           accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
           multiple
           onChange={handleFileUpload}
@@ -174,11 +179,12 @@ const handleSendMessage = async (e) => {
 
         {!hasStartedChat ? (
           <div className={styles.idleState}>
-            <h1 className={styles.greeting}>Hello {firstName}, How can we help you today?</h1>
+            <h1 className={styles.greeting}>
+              Hello {firstName}, How can we help you today?
+            </h1>
 
             <div className={styles.searchContainer}>
               <div className={styles.searchInputWrapper}>
-                
                 {/* File Attachment Chips inside input */}
                 {attachments.length > 0 && (
                   <div className={styles.attachmentChips}>
@@ -186,7 +192,9 @@ const handleSendMessage = async (e) => {
                       <div key={idx} className={styles.chip}>
                         <FiFileText size={12} />
                         <span className={styles.chipText}>{file.name}</span>
-                        <button onClick={() => removeAttachment(idx)}><FiX size={12}/></button>
+                        <button onClick={() => removeAttachment(idx)}>
+                          <FiX size={12} />
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -198,20 +206,19 @@ const handleSendMessage = async (e) => {
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
+                    if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
                       handleSendMessage();
                     }
                   }}
                   rows={2}
                 />
-                
+
                 <div className={styles.inputBottomRow}>
                   <div className={styles.leftTools}>
-                    
                     {/* Models Dropdown */}
                     <div className={styles.relativeContainer}>
-                      <button 
+                      <button
                         className={`${styles.dropdownBtn} ${styles.bluePill}`}
                         onClick={() => {
                           setShowModelMenu(!showModelMenu);
@@ -219,17 +226,26 @@ const handleSendMessage = async (e) => {
                         }}
                       >
                         {/* Change selectedModel to selectedModel.name here */}
-                        <FiActivity size={14} /> <span>{selectedModel.name}</span> <FiChevronDown size={14} />
+                        <FiActivity size={14} />{" "}
+                        <span>{selectedModel.name}</span>{" "}
+                        <FiChevronDown size={14} />
                       </button>
-                       {showModelMenu && (
-                        <div className={`${styles.popoverMenu} ${styles.modelMenuWide}`}>
-                          <div className={styles.popoverHeader}>Select AI Model</div>
+                      {showModelMenu && (
+                        <div
+                          className={`${styles.popoverMenu} ${styles.modelMenuWide}`}
+                        >
+                          <div className={styles.popoverHeader}>
+                            Select AI Model
+                          </div>
                           <div className={styles.modelList}>
-                            {aiModelsData.map(model => (
-                              <div 
-                                key={model.id} 
-                                className={`${styles.modelItem} ${selectedModel.id === model.id ? styles.selectedModelItem : ''}`} 
-                                onClick={() => { setSelectedModel(model); setShowModelMenu(false); }}
+                            {aiModelsData.map((model) => (
+                              <div
+                                key={model.id}
+                                className={`${styles.modelItem} ${selectedModel.id === model.id ? styles.selectedModelItem : ""}`}
+                                onClick={() => {
+                                  setSelectedModel(model);
+                                  setShowModelMenu(false);
+                                }}
                               >
                                 <div className={styles.modelIconWrapper}>
                                   {model.icon ? (
@@ -240,10 +256,18 @@ const handleSendMessage = async (e) => {
                                 </div>
                                 <div className={styles.modelItemContent}>
                                   <div className={styles.modelItemHeader}>
-                                    <span className={styles.modelItemTitle}>{model.name}</span>
-                                    {model.isPro && <span className={styles.proBadge}>PRO</span>}
+                                    <span className={styles.modelItemTitle}>
+                                      {model.name}
+                                    </span>
+                                    {model.isPro && (
+                                      <span className={styles.proBadge}>
+                                        PRO
+                                      </span>
+                                    )}
                                   </div>
-                                  <span className={styles.modelItemProvider}>{model.provider} · {model.description}</span>
+                                  <span className={styles.modelItemProvider}>
+                                    {model.provider} · {model.description}
+                                  </span>
                                 </div>
                               </div>
                             ))}
@@ -254,35 +278,48 @@ const handleSendMessage = async (e) => {
 
                     {/* Records Dropdown */}
                     <div className={styles.relativeContainer}>
-                      <button 
+                      <button
                         className={styles.dropdownBtn}
                         onClick={() => {
                           setShowRecordMenu(!showRecordMenu);
                           setShowModelMenu(false);
                         }}
                       >
-                        <FiFileText size={14} /> <span>{setShowRecordMenu ? "Select Record" : "All Records"}</span> <FiChevronDown size={14} />
+                        <FiFileText size={14} />{" "}
+                        <span>
+                          {setShowRecordMenu ? "Select Record" : "All Records"}
+                        </span>{" "}
+                        <FiChevronDown size={14} />
                       </button>
                       {showRecordMenu && (
                         <div className={styles.popoverMenu}>
-                          <div className={styles.popoverHeader}>Your Clinical Records</div>
-                          {mockRecords.map(record => (
-                            <div key={record} className={styles.popoverItem} onClick={() => handleRecordSelect(record)}>
+                          <div className={styles.popoverHeader}>
+                            Your Clinical Records
+                          </div>
+                          {mockRecords.map((record) => (
+                            <div
+                              key={record}
+                              className={styles.popoverItem}
+                              onClick={() => handleRecordSelect(record)}
+                            >
                               {record}
                             </div>
                           ))}
                         </div>
                       )}
                     </div>
-
                   </div>
-                  
+
                   <div className={styles.rightTools}>
-                    <button className={styles.iconBtn} title="Attach Files" onClick={() => fileInputRef.current.click()}>
+                    <button
+                      className={styles.iconBtn}
+                      title="Attach Files"
+                      onClick={() => fileInputRef.current.click()}
+                    >
                       <FiPaperclip size={18} />
                     </button>
-                    <button 
-                      className={`${styles.submitActionBtn} ${inputValue.trim() || attachments.length > 0 ? styles.activeSubmit : ''}`}
+                    <button
+                      className={`${styles.submitActionBtn} ${inputValue.trim() || attachments.length > 0 ? styles.activeSubmit : ""}`}
                       onClick={() => handleSendMessage()}
                       disabled={!inputValue.trim() && attachments.length === 0}
                     >
@@ -292,30 +329,42 @@ const handleSendMessage = async (e) => {
                 </div>
               </div>
             </div>
-            
+
             {/* Quick Prompts (same as before) */}
             <div className={styles.quickPromptsSection}>
               {/* ...existing prompts code... */}
             </div>
           </div>
         ) : (
-           <div className={styles.chatView}>
-             {/* ...existing active chat code... */}
-             <div className={styles.chatInputWrapper}>
-              <form onSubmit={handleSendMessage} className={styles.chatFormContainer}>
-                <button type="button" className={styles.attachBtn} onClick={() => fileInputRef.current.click()}>
-                  <FiPaperclip size={18}/>
+          <div className={styles.chatView}>
+            {/* ...existing active chat code... */}
+            <div className={styles.chatInputWrapper}>
+              <form
+                onSubmit={handleSendMessage}
+                className={styles.chatFormContainer}
+              >
+                <button
+                  type="button"
+                  className={styles.attachBtn}
+                  onClick={() => fileInputRef.current.click()}
+                >
+                  <FiPaperclip size={18} />
                 </button>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                
                   placeholder={`Message ${selectedModel.name}...`}
                   className={styles.chatInput}
                 />
-                <button type="submit" disabled={(!inputValue.trim() && attachments.length === 0) || isTyping} className={styles.chatSubmitBtn}>
-                  <FiSend size={18}/>
+                <button
+                  type="submit"
+                  disabled={
+                    (!inputValue.trim() && attachments.length === 0) || isTyping
+                  }
+                  className={styles.chatSubmitBtn}
+                >
+                  <FiSend size={18} />
                 </button>
               </form>
             </div>

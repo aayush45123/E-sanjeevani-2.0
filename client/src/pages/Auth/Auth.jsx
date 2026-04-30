@@ -20,8 +20,9 @@ const Auth = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleAuthSuccess = (token) => {
+  const handleAuthSuccess = (token, role) => {
     localStorage.setItem("token", token);
+    localStorage.setItem("userRole", role);
     window.dispatchEvent(new Event("authChange"));
     navigate("/dashboard");
   };
@@ -41,10 +42,10 @@ const Auth = () => {
 
         if (response.data.success && response.data.token) {
           setMessage("✓ Login successful!");
-          handleAuthSuccess(response.data.token);
+          handleAuthSuccess(response.data.token, response.data.user.role);
         } else {
           setMessage(
-            response.data.message || "✕ Login failed. Check your credentials."
+            response.data.message || "✕ Login failed. Check your credentials.",
           );
         }
       } else {
@@ -58,10 +59,13 @@ const Auth = () => {
 
         if (signupResponse.data.success && signupResponse.data.token) {
           setMessage("✓ Account created successfully!");
-          handleAuthSuccess(signupResponse.data.token);
+          handleAuthSuccess(
+            signupResponse.data.token,
+            signupResponse.data.user.role,
+          );
         } else {
           setMessage(
-            signupResponse.data.message || "✕ Signup failed. Please try again."
+            signupResponse.data.message || "✕ Signup failed. Please try again.",
           );
         }
       }
@@ -70,7 +74,7 @@ const Auth = () => {
       setMessage(
         err.response?.data?.message ||
           err.message ||
-          "✕ Something went wrong. Please try again."
+          "✕ Something went wrong. Please try again.",
       );
     } finally {
       setLoading(false);
@@ -238,8 +242,8 @@ const Auth = () => {
               {loading
                 ? "Processing..."
                 : isLogin
-                ? "Sign In"
-                : "Create Account"}
+                  ? "Sign In"
+                  : "Create Account"}
             </button>
           </form>
 

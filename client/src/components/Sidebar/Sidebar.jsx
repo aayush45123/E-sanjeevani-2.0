@@ -14,14 +14,14 @@ import {
 import styles from "./Sidebar.module.css";
 
 const LogoIcon = () => (
-  <img 
-    src="/logo-svg.svg" 
-    alt="Logo" 
+  <img
+    src="/logo-svg.svg"
+    alt="Logo"
     style={{
       width: "28px",
       height: "28px",
       flexShrink: 0,
-      objectFit: "contain"
+      objectFit: "contain",
     }}
   />
 );
@@ -69,6 +69,7 @@ export default function Sidebar({ user = {}, onLogout = () => {} }) {
 
   const handleLogout = async () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("userRole");
     window.dispatchEvent(new Event("authChange"));
     onLogout();
     navigate("/auth");
