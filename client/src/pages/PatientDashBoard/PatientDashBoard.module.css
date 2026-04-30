@@ -60,6 +60,17 @@
   text-align: center;
 }
 
+
+/* ...existing code... */
+.greeting {
+  font-size: 28px;
+  font-weight: 500;
+  color: #111827;
+  margin-bottom: 40px;
+  letter-spacing: -0.02em;
+  text-align: center;
+}
+
 .searchContainer {
   width: 100%;
   max-width: 760px;
@@ -71,8 +82,11 @@
   border: 1px solid #e5e7eb;
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-  padding: 4px;
+  padding: 16px;
   transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .searchInputWrapper:focus-within {
@@ -84,9 +98,8 @@
   width: 100%;
   border: none;
   background: transparent;
-  padding: 16px;
   font-size: 15px;
-  color: #1f2937;
+  color: #111827;
   resize: none;
   outline: none;
   line-height: 1.5;
@@ -97,38 +110,69 @@
   color: #9ca3af;
 }
 
-.inputTools {
+/* Bottom Row of Input Box */
+.inputBottomRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
-  border-top: 1px solid transparent; /* Keeps spacing */
 }
 
-.toolGroup {
+.leftTools {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
 }
 
-.toolBtn {
+.dropdownBtn {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: #f3f4f6;
+  background: transparent;
   border: none;
-  padding: 6px 12px;
-  border-radius: 20px;
   font-size: 13px;
   font-weight: 500;
-  color: #4b5563;
+  color: #52525b;
   cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
   transition: background 0.2s;
 }
 
-.toolBtn:hover {
-  background: #e5e7eb;
-  color: #1f2937;
+.dropdownBtn:hover {
+  background: #f4f4f5;
+  color: #18181b;
+}
+
+.bluePill {
+  color: #2563eb;
+  background: #eff6ff;
+}
+
+.bluePill:hover {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.rightTools {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.iconBtn {
+  background: none;
+  border: none;
+  color: #71717a;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+  padding: 4px;
+}
+
+.iconBtn:hover {
+  color: #18181b;
 }
 
 .submitActionBtn {
@@ -138,23 +182,24 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #f3f4f6;
-  color: #9ca3af;
+  background: #18181b;
+  color: #ffffff;
   border: none;
+  opacity: 0.5;
   cursor: not-allowed;
   transition: all 0.2s;
 }
 
 .submitActionBtn.activeSubmit {
-  background: #111827;
-  color: #ffffff;
+  opacity: 1;
   cursor: pointer;
 }
 
 .submitActionBtn.activeSubmit:hover {
   background: #000000;
-  transform: translateY(-1px);
 }
+
+
 
 /* Quick Prompts */
 .quickPromptsSection {
@@ -456,4 +501,96 @@
   .messagesContainer { padding: 16px 16px 100px 16px; }
   .chatInputWrapper { padding: 16px; }
   .messageWrapper { max-width: 90%; }
+}
+/* ...existing code... */
+
+/* Functional UI Additions */
+.relativeContainer {
+  position: relative;
+}
+
+.popoverMenu {
+  position: absolute;
+  bottom: 110%; /* Shows above the button */
+  left: 0;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  min-width: 180px;
+  z-index: 50;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  animation: slideFadeUp 0.2s ease;
+}
+
+.popoverHeader {
+  font-size: 11px;
+  font-weight: 600;
+  color: #a1a1aa;
+  padding: 6px 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.popoverItem {
+  padding: 8px 10px;
+  font-size: 13px;
+  color: #3f3f46;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.popoverItem:hover {
+  background: #f4f4f5;
+  color: #18181b;
+}
+
+.attachmentChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f4f4f5;
+  border: 1px solid #e4e4e7;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #52525b;
+}
+
+.chip button {
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  color: #a1a1aa;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 2px;
+}
+
+.chip button:hover {
+  color: #ef4444;
+}
+
+.chipText {
+  max-width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@keyframes slideFadeUp {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }

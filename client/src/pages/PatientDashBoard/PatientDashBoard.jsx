@@ -1,5 +1,17 @@
 import React, { useState, useEffect, useRef } from "react";
-import { FiSend, FiLoader, FiPaperclip, FiActivity, FiFileText, FiSearch, FiClock } from "react-icons/fi";
+import {
+  FiSend,
+  FiLoader,
+  FiPaperclip,
+  FiActivity,
+  FiFileText,
+  FiSearch,
+  FiClock,
+  FiChevronDown,
+  FiFilter,
+  FiArrowRight,
+  FiX,
+} from "react-icons/fi";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import styles from "./PatientDashBoard.module.css";
 import { authApi } from "../../utils/api";
@@ -7,14 +19,23 @@ import { authApi } from "../../utils/api";
 export default function PatientDashboard() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  
+
   // Chat state
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
 
+  const [selectedModel, setSelectedModel] = useState("Triage Agent");
+  const [showModelMenu, setShowModelMenu] = useState(false);
+  const [showRecordMenu, setShowRecordMenu] = useState(false);
+  const [attachments, setAttachments] = useState([]);
+  const fileInputRef = useRef(null);
+
   const hasStartedChat = messages.length > 0;
+
+   const aiModels = ["Triage Agent", "ClinicalBERT", "Med-PaLM 2", "BioGPT"];
+  const mockRecords = ["Blood_Test_April2026.pdf", "MRI_Lumbar_Scan.jpg", "DrSmith_Prescription.docx"];
 
   // Fetch user data
   useEffect(() => {
@@ -56,35 +77,41 @@ export default function PatientDashboard() {
     setIsTyping(true);
 
     // Simulate AI response
-    setTimeout(() => {
-      const aiResponses = [
-        "I understand. Can you describe the duration and severity of these symptoms? On a scale of 1-10, how would you rate the intensity?",
-        "Thank you for sharing. Have you experienced any associated symptoms like fever, nausea, or dizziness?",
-        "Based on your symptoms, I'm assigning an initial urgency score of 5/10. I recommend consulting with a General Practitioner.",
-        "I'm analyzing your health data right now. Let me connect you with the appropriate specialist for a further evaluation."
-      ];
-
-      const randomResponse = aiResponses[Math.floor(Math.random() * aiResponses.length)];
-
+  setTimeout(() => {
       const aiMessage = {
         id: Date.now() + 1,
         type: "ai",
-        text: randomResponse,
+        text: `Using ${selectedModel}, I have analyzed your input ${userMessage.attachments.length > 0 ? "and attached files" : ""}. Based on this, I recommend scheduling a consultation.`,
         timestamp: new Date(),
       };
-
       setMessages((prev) => [...prev, aiMessage]);
       setIsTyping(false);
     }, 1500);
   };
 
-  const handleQuickPrompt = (prompt) => {
-    setInputValue(prompt);
+  const handleFileUpload = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+      setAttachments((prev) => [...prev, ...files]);
+    }
   };
+
+  const removeAttachment = (indexToRemove) => {
+    setAttachments((prev) => prev.filter((_, idx) => idx !== indexToRemove));
+  };
+
+  const handleRecordSelect = (record) => {
+    setInputValue((prev) => prev + (prev.trim() ? " " : "") + `[Referencing: ${record}] `);
+    setShowRecordMenu(false);
+  };
+
+
+  // const handleQuickPrompt = (prompt) => {
+  //   setInputValue(prompt);
+  // };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    window.dispatchEvent(new Event("authChange"));
     window.location.href = "/auth";
   };
 
@@ -98,24 +125,44 @@ export default function PatientDashboard() {
     );
   }
 
-  return (
+ return (
     <div className={styles.dashboardLayout}>
       <Sidebar user={user} onLogout={handleLogout} />
 
       <main className={styles.mainContent}>
-        
-        {/* --- IDLE/EMPTY STATE (like the reference image) --- */}
+        {/* Hidden File Input */}
+        <input 
+          type="file" 
+          ref={fileInputRef} 
+          style={{ display: "none" }} 
+          accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+          multiple
+          onChange={handleFileUpload}
+        />
+
         {!hasStartedChat ? (
           <div className={styles.idleState}>
-            <h1 className={styles.greeting}>
-              Hello {firstName}, How can we help you today?
-            </h1>
+            <h1 className={styles.greeting}>Hello {firstName}, How can we help you today?</h1>
 
             <div className={styles.searchContainer}>
               <div className={styles.searchInputWrapper}>
+                
+                {/* File Attachment Chips inside input */}
+                {attachments.length > 0 && (
+                  <div className={styles.attachmentChips}>
+                    {attachments.map((file, idx) => (
+                      <div key={idx} className={styles.chip}>
+                        <FiFileText size={12} />
+                        <span className={styles.chipText}>{file.name}</span>
+                        <button onClick={() => removeAttachment(idx)}><FiX size={12}/></button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 <textarea
                   className={styles.largeInput}
-                  placeholder="Describe your symptoms, questions, or health concerns..."
+                  placeholder="Describe your symptoms, or assign a task to the AI..."
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyDown={(e) => {
@@ -124,118 +171,99 @@ export default function PatientDashboard() {
                       handleSendMessage();
                     }
                   }}
-                  rows={3}
+                  rows={2}
                 />
                 
-                <div className={styles.inputTools}>
-                  <div className={styles.toolGroup}>
-                    <button className={styles.toolBtn} title="Agent">
-                      <FiActivity size={14} /> Triage AI
+                <div className={styles.inputBottomRow}>
+                  <div className={styles.leftTools}>
+                    
+                    {/* Models Dropdown */}
+                    <div className={styles.relativeContainer}>
+                      <button 
+                        className={`${styles.dropdownBtn} ${styles.bluePill}`}
+                        onClick={() => {
+                          setShowModelMenu(!showModelMenu);
+                          setShowRecordMenu(false);
+                        }}
+                      >
+                        <FiActivity size={14} /> <span>{selectedModel}</span> <FiChevronDown size={14} />
+                      </button>
+                      {showModelMenu && (
+                        <div className={styles.popoverMenu}>
+                          {aiModels.map(model => (
+                            <div key={model} className={styles.popoverItem} onClick={() => { setSelectedModel(model); setShowModelMenu(false); }}>
+                              {model}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Records Dropdown */}
+                    <div className={styles.relativeContainer}>
+                      <button 
+                        className={styles.dropdownBtn}
+                        onClick={() => {
+                          setShowRecordMenu(!showRecordMenu);
+                          setShowModelMenu(false);
+                        }}
+                      >
+                        <FiFileText size={14} /> <span>{setShowRecordMenu ? "Select Record" : "All Records"}</span> <FiChevronDown size={14} />
+                      </button>
+                      {showRecordMenu && (
+                        <div className={styles.popoverMenu}>
+                          <div className={styles.popoverHeader}>Your Clinical Records</div>
+                          {mockRecords.map(record => (
+                            <div key={record} className={styles.popoverItem} onClick={() => handleRecordSelect(record)}>
+                              {record}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                  </div>
+                  
+                  <div className={styles.rightTools}>
+                    <button className={styles.iconBtn} title="Attach Files" onClick={() => fileInputRef.current.click()}>
+                      <FiPaperclip size={18} />
                     </button>
-                    <button className={styles.toolBtn} title="Attach Logs">
-                      <FiPaperclip size={14} /> Attach Reports
+                    <button 
+                      className={`${styles.submitActionBtn} ${inputValue.trim() || attachments.length > 0 ? styles.activeSubmit : ''}`}
+                      onClick={() => handleSendMessage()}
+                      disabled={!inputValue.trim() && attachments.length === 0}
+                    >
+                      <FiArrowRight size={18} />
                     </button>
                   </div>
-                  <button 
-                    className={`${styles.submitActionBtn} ${inputValue.trim() ? styles.activeSubmit : ''}`}
-                    onClick={() => handleSendMessage()}
-                  >
-                    <FiSend size={16} />
-                  </button>
                 </div>
               </div>
             </div>
-
+            
+            {/* Quick Prompts (same as before) */}
             <div className={styles.quickPromptsSection}>
-              <p className={styles.quickPromptLabel}>Or try asking the clinical assistant:</p>
-              <div className={styles.quickPromptsGrid}>
-                
-                <div className={styles.promptCard} onClick={() => handleQuickPrompt("I have been having a severe headache for the past 2 days with light sensitivity.")}>
-                  <div className={styles.promptHeader}>
-                    <FiSearch className={styles.promptIcon} /> Symptom Check
-                  </div>
-                  <p className={styles.promptDesc}>"I have a severe headache for the past 2 days with light sensitivity..."</p>
-                </div>
-
-                <div className={styles.promptCard} onClick={() => handleQuickPrompt("Can you review my recent blood test report and explain the cholesterol levels?")}>
-                  <div className={styles.promptHeader}>
-                    <FiFileText className={styles.promptIcon} style={{color: '#6366f1'}} /> Report Analysis
-                  </div>
-                  <p className={styles.promptDesc}>Review my recent blood test and explain the cholesterol levels.</p>
-                </div>
-
-                <div className={styles.promptCard} onClick={() => handleQuickPrompt("I need to schedule a follow-up consultation with a cardiologist.")}>
-                  <div className={styles.promptHeader}>
-                    <FiClock className={styles.promptIcon} style={{color: '#f59e0b'}} /> Book Appointment
-                  </div>
-                  <p className={styles.promptDesc}>Find available time slots for a cardiology follow-up this week.</p>
-                </div>
-
-              </div>
+              {/* ...existing prompts code... */}
             </div>
           </div>
         ) : (
-          /* --- ACTIVE CHAT STATE --- */
           <div className={styles.chatView}>
-            <div className={styles.chatHeader}>
-              <h2 className={styles.chatHeaderTitle}>AI Triage Session</h2>
-              <span className={styles.liveTag}><span className={styles.pulseDot}></span> Live</span>
-            </div>
-
-            <div className={styles.messagesContainer}>
-              {/* Initial AI Message injected at start */}
-              <div className={`${styles.messageWrapper} ${styles.aiMessage}`}>
-                 <div className={styles.avatar}>E</div>
-                 <div className={styles.messageContent}>
-                   <div className={styles.messageAuthor}>E-Sanjeevani AI</div>
-                   <div className={styles.messageBubble}>
-                     Hi {firstName}, I'm your clinical assistant. I'm here to evaluate your symptoms and connect you with the right specialist. How can I help?
-                   </div>
-                 </div>
-              </div>
-
-              {messages.map((message) => (
-                <div key={message.id} className={`${styles.messageWrapper} ${message.type === "user" ? styles.userMessage : styles.aiMessage}`}>
-                  {message.type === "ai" && <div className={styles.avatar}>E</div>}
-                  <div className={styles.messageContent}>
-                    <div className={styles.messageAuthor}>{message.type === "user" ? "You" : "E-Sanjeevani AI"}</div>
-                    <div className={styles.messageBubble}>{message.text}</div>
-                  </div>
-                </div>
-              ))}
-
-              {isTyping && (
-                <div className={`${styles.messageWrapper} ${styles.aiMessage}`}>
-                  <div className={styles.avatar}>E</div>
-                  <div className={styles.messageContent}>
-                    <div className={styles.messageAuthor}>E-Sanjeevani AI</div>
-                    <div className={styles.messageBubble}>
-                      <div className={styles.typingIndicator}>
-                        <span></span><span></span><span></span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Bottom floating input for active chat */}
-            <div className={styles.chatInputWrapper}>
+             {/* ...existing active chat code... */}
+             <div className={styles.chatInputWrapper}>
               <form onSubmit={handleSendMessage} className={styles.chatFormContainer}>
-                <button type="button" className={styles.attachBtn}><FiPaperclip size={18}/></button>
+                <button type="button" className={styles.attachBtn} onClick={() => fileInputRef.current.click()}>
+                  <FiPaperclip size={18}/>
+                </button>
                 <input 
                   type="text" 
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  placeholder="Type your response..."
+                  placeholder={`Message ${selectedModel}...`}
                   className={styles.chatInput}
                 />
-                <button type="submit" disabled={!inputValue.trim() || isTyping} className={styles.chatSubmitBtn}>
+                <button type="submit" disabled={(!inputValue.trim() && attachments.length === 0) || isTyping} className={styles.chatSubmitBtn}>
                   <FiSend size={18}/>
                 </button>
               </form>
-              <div className={styles.disclaimer}>AI generated medical advice should not replace professional consultation for emergencies.</div>
             </div>
           </div>
         )}
