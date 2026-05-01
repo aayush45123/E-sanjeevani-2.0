@@ -12,6 +12,7 @@ import {
   FiArrowRight,
   FiX,
 } from "react-icons/fi";
+import ReactMarkdown from "react-markdown";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import styles from "./PatientDashBoard.module.css";
 import { authApi } from "../../utils/api";
@@ -27,6 +28,14 @@ export default function PatientDashboard() {
   const messagesEndRef = useRef(null);
 
   const aiModelsData = [
+    {
+      id: "ii-medical-8b",
+      name: "II-Medical-8B",
+      provider: "Hugging Face",
+      icon: "https://huggingface.co/front/assets/huggingface_logo-noborder.svg",
+      isPro: false,
+      description: "Specialized medical language model",
+    },
     {
       id: "gpt-4o",
       name: "GPT-4o",
@@ -99,10 +108,12 @@ export default function PatientDashboard() {
     if (e) e.preventDefault();
     if (!inputValue.trim() && attachments.length === 0) return;
 
+    const currentInput = inputValue; // Cache the input before clearing
+
     const userMessage = {
       id: Date.now(),
       type: "user",
-      text: inputValue,
+      text: currentInput,
       attachments: [...attachments],
       timestamp: new Date(),
     };
@@ -112,16 +123,52 @@ export default function PatientDashboard() {
     setAttachments([]);
     setIsTyping(true);
 
-    setTimeout(() => {
+    try {
+      // Note: Adjust the fetch URL base if your backend runs on a different port
+      const response = await fetch("http://localhost:5000/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`, // if auth is required
+        },
+        body: JSON.stringify({ prompt: currentInput }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      let cleanedText = data.reply
+        .replace(/<Answer>/gi, "")
+        .replace(/<\/Answer>/gi, "")
+        .replace(/^Answer:\s*/i, "") // ⬅️ add this line
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
+
       const aiMessage = {
         id: Date.now() + 1,
         type: "ai",
-        text: `Using ${selectedModel.name}, I have analyzed your input ${userMessage.attachments.length > 0 ? "and attached files" : ""}. Based on this, I recommend scheduling a consultation.`,
+        text: cleanedText,
         timestamp: new Date(),
       };
+
       setMessages((prev) => [...prev, aiMessage]);
+    } catch (error) {
+      console.error("AI Chat Error:", error);
+
+      const errorMessage = {
+        id: Date.now() + 1,
+        type: "ai",
+        text: "I am having trouble connecting to the network right now. Please try again later.",
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   const handleFileUpload = (e) => {
@@ -137,7 +184,7 @@ export default function PatientDashboard() {
 
   const handleRecordSelect = (record) => {
     setInputValue(
-      (prev) => prev + (prev.trim() ? " " : "") + `[Referencing: ${record}] `,
+      (prev) => prev + (prev.trim() ? " " : "") + `[Referencing: ${record}] `
     );
     setShowRecordMenu(false);
   };
@@ -241,7 +288,11 @@ export default function PatientDashboard() {
                             {aiModelsData.map((model) => (
                               <div
                                 key={model.id}
-                                className={`${styles.modelItem} ${selectedModel.id === model.id ? styles.selectedModelItem : ""}`}
+                                className={`${styles.modelItem} ${
+                                  selectedModel.id === model.id
+                                    ? styles.selectedModelItem
+                                    : ""
+                                }`}
                                 onClick={() => {
                                   setSelectedModel(model);
                                   setShowModelMenu(false);
@@ -319,7 +370,11 @@ export default function PatientDashboard() {
                       <FiPaperclip size={18} />
                     </button>
                     <button
-                      className={`${styles.submitActionBtn} ${inputValue.trim() || attachments.length > 0 ? styles.activeSubmit : ""}`}
+                      className={`${styles.submitActionBtn} ${
+                        inputValue.trim() || attachments.length > 0
+                          ? styles.activeSubmit
+                          : ""
+                      }`}
                       onClick={() => handleSendMessage()}
                       disabled={!inputValue.trim() && attachments.length === 0}
                     >
@@ -337,6 +392,114 @@ export default function PatientDashboard() {
           </div>
         ) : (
           <div className={styles.chatView}>
+            {/* RESTORED CHAT MESSAGES DISPLAY */}
+            <div className={styles.chatHeader}>
+              <h2 className={styles.chatHeaderTitle}>AI Triage Session</h2>
+              <span className={styles.liveTag}>
+                <span className={styles.pulseDot}></span> Live
+              </span>
+            </div>
+
+            <div className={styles.messagesContainer}>
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`${styles.messageWrapper} ${
+                    message.type === "user"
+                      ? styles.userMessage
+                      : styles.aiMessage
+                  }`}
+                >
+                  {message.type === "ai" && (
+                    <div className={styles.avatar}>E</div>
+                  )}
+                  <div className={styles.messageContent}>
+                    <div className={styles.messageAuthor}>
+                      {message.type === "user" ? "You" : selectedModel.name}
+                    </div>
+
+                    {/* Render Markdown for AI, normal text for User */}
+                    <div className={styles.messageBubble}>
+                      {message.type === "ai" ? (
+                        <div className={styles.markdownRender}>
+                          {/* <ReactMarkdown
+                            components={{
+                              // Paragraphs — no margin, just text
+                              p: ({ children }) => (
+                                <p style={{ margin: "0 0 4px 0" }}>
+                                  {children}
+                                </p>
+                              ),
+                              // Numbered list — tight
+                              ol: ({ children }) => (
+                                <ol
+                                  style={{
+                                    margin: "4px 0",
+                                    paddingLeft: "20px",
+                                  }}
+                                >
+                                  {children}
+                                </ol>
+                              ),
+                              // Bullet list — tight
+                              ul: ({ children }) => (
+                                <ul
+                                  style={{
+                                    margin: "2px 0",
+                                    paddingLeft: "18px",
+                                  }}
+                                >
+                                  {children}
+                                </ul>
+                              ),
+                              // List item — key fix: no p wrapper gap
+                              li: ({ children }) => (
+                                <li
+                                  style={{ margin: "1px 0", lineHeight: "1.5" }}
+                                >
+                                  {children}
+                                </li>
+                              ),
+                              // Bold heading inside li (e.g. "Overexertion:")
+                              strong: ({ children }) => (
+                                <strong style={{ fontWeight: 600 }}>
+                                  {children}
+                                </strong>
+                              ),
+                            }}
+                          >
+                            {message.text}
+                          </ReactMarkdown> */}
+                          <ReactMarkdown>{message.text}</ReactMarkdown>
+                        </div>
+                      ) : (
+                        message.text
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {isTyping && (
+                <div className={`${styles.messageWrapper} ${styles.aiMessage}`}>
+                  <div className={styles.avatar}>E</div>
+                  <div className={styles.messageContent}>
+                    <div className={styles.messageAuthor}>
+                      {selectedModel.name}
+                    </div>
+                    <div className={styles.messageBubble}>
+                      <div className={styles.typingIndicator}>
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
             {/* ...existing active chat code... */}
             <div className={styles.chatInputWrapper}>
               <form

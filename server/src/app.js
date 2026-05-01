@@ -12,6 +12,7 @@ import consultationRoutes from "./routes/consultationRoutes.js";
 import patientProfileRoutes from "./routes/patientProfileRoutes.js";
 import doctorAvailabilityRoutes from "./routes/doctorAvailabilityRoutes.js";
 import doctorProfileRoutes from "./routes/doctorProfileRoutes.js";
+import chatRoutes from './routes/chatRoutes.js'
 
 const app = express();
 
@@ -68,6 +69,11 @@ NEW: DOCTOR PROFILE ROUTES
 */
 
 app.use("/api/doctor-profile", doctorProfileRoutes);
+
+
+/*aichat*/
+app.use('/api/chat', chatRoutes);
+
 
 /*
 ==================================================
