@@ -6,7 +6,7 @@ import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
 import styles from "./DoctorProfileEdit.module.css";
 import { doctorProfileApi, doctorAvailabilityApi } from "../../utils/api";
 
-export default function DoctorProfileEdit() {
+export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
@@ -245,7 +245,7 @@ export default function DoctorProfileEdit() {
 
   return (
     <div className={styles.dashboardLayout}>
-      <DoctorSidebar />
+      <DoctorSidebar isProfileIncomplete={isProfileIncomplete} />
 
       <main className={styles.mainContent}>
         <div className={styles.wrapper}>

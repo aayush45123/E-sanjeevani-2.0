@@ -5,14 +5,20 @@ import { useNavigate } from "react-router-dom";
 import { FiEdit2, FiCheck } from "react-icons/fi";
 import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
 import styles from "./DoctorProfileSetup.module.css";
-import { doctorProfileApi } from "../../utils/api";
+import { doctorProfileApi, doctorAvailabilityApi } from "../../utils/api";
 
-export default function DoctorProfileSetup() {
+export default function DoctorProfileSetup({ isProfileIncomplete = true }) {
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
   const [isProfileComplete, setIsProfileComplete] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [showAvailabilitySection, setShowAvailabilitySection] = useState(false);
+  const [availabilityLoading, setAvailabilityLoading] = useState(false);
+  const [availabilityForm, setAvailabilityForm] = useState({
+    availableDate: "",
+    slots: [{ startTime: "", endTime: "" }],
+  });
 
   const [formData, setFormData] = useState({
     phone: "",
@@ -120,7 +126,7 @@ export default function DoctorProfileSetup() {
     });
   };
 
-  const handleSubmit = async (e) => {
+  const handleProfileSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
@@ -137,20 +143,48 @@ export default function DoctorProfileSetup() {
 
       alert("Doctor profile saved successfully!");
 
-      localStorage.setItem("doctorProfileCompleted", "true");
-      window.dispatchEvent(new Event("profileUpdated"));
-
       setIsProfileComplete(true);
       setIsEditMode(false);
-
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 200);
+      setShowAvailabilitySection(true);
     } catch (error) {
       console.error(error);
       alert(error?.response?.data?.message || "Failed to save doctor profile");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleProfileCompletionStep = () => {
+    setIsProfileComplete(true);
+    setIsEditMode(false);
+    setShowAvailabilitySection(true);
+  };
+
+  const handleAvailabilitySubmit = async (e) => {
+    e.preventDefault();
+    setAvailabilityLoading(true);
+
+    try {
+      await doctorAvailabilityApi.createAvailability({
+        availableDate: availabilityForm.availableDate,
+        slots: availabilityForm.slots,
+      });
+
+      alert("Availability set successfully!");
+
+      localStorage.setItem("doctorProfileCompleted", "true");
+      window.dispatchEvent(new Event("profileUpdated"));
+
+      setTimeout(() => {
+        window.location.href = "/dashboard";
+      }, 500);
+    } catch (error) {
+      console.error(error);
+      alert(
+        error?.response?.data?.message || "Failed to set availability hours",
+      );
+    } finally {
+      setAvailabilityLoading(false);
     }
   };
 
@@ -164,42 +198,62 @@ export default function DoctorProfileSetup() {
 
   return (
     <div className={styles.dashboardLayout}>
-      <DoctorSidebar />
+      <DoctorSidebar isProfileIncomplete={true} />
 
       <main className={styles.mainContent}>
         <div className={styles.wrapper}>
           <div className={styles.header}>
             <div className={styles.headerTop}>
-              <h1 className={styles.title}>Doctor Profile</h1>
+              <h1 className={styles.title}>
+                {showAvailabilitySection
+                  ? "Set Availability Hours"
+                  : "Complete Your Profile"}
+              </h1>
 
-              {isProfileComplete && (
+              {isProfileComplete && !showAvailabilitySection && (
                 <div className={styles.completeBadge}>
                   <FiCheck size={16} />
-                  <span>Complete</span>
+                  <span>Profile Complete</span>
                 </div>
               )}
             </div>
 
             <p className={styles.subtitle}>
-              {isEditMode
-                ? "Update your professional details"
-                : "Your professional information"}
+              {showAvailabilitySection
+                ? "Set your working hours and consultation availability"
+                : isEditMode
+                  ? "Please fill in all your professional details"
+                  : "Your professional information"}
             </p>
           </div>
 
-          {isProfileComplete && !isEditMode ? (
-            <ViewMode formData={formData} onEdit={handleEditClick} />
+          {!showAvailabilitySection ? (
+            <>
+              {isProfileComplete && !isEditMode ? (
+                <ViewMode formData={formData} onEdit={handleEditClick} />
+              ) : (
+                <EditForm
+                  formData={formData}
+                  handleChange={handleChange}
+                  handleCheckboxChange={handleCheckboxChange}
+                  handleSubmit={handleProfileSubmit}
+                  loading={loading}
+                  isProfileComplete={isProfileComplete}
+                  onCancel={handleCancelClick}
+                  workingDayOptions={workingDayOptions}
+                  modeOptions={modeOptions}
+                  onProfileComplete={handleProfileCompletionStep}
+                />
+              )}
+            </>
           ) : (
-            <EditForm
+            <AvailabilitySection
+              availabilityForm={availabilityForm}
+              setAvailabilityForm={setAvailabilityForm}
+              loading={availabilityLoading}
+              onSubmit={handleAvailabilitySubmit}
               formData={formData}
-              handleChange={handleChange}
-              handleCheckboxChange={handleCheckboxChange}
-              handleSubmit={handleSubmit}
-              loading={loading}
-              isProfileComplete={isProfileComplete}
-              onCancel={handleCancelClick}
               workingDayOptions={workingDayOptions}
-              modeOptions={modeOptions}
             />
           )}
         </div>
@@ -238,6 +292,7 @@ function EditForm({
   onCancel,
   workingDayOptions,
   modeOptions,
+  onProfileComplete,
 }) {
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
@@ -277,6 +332,13 @@ function EditForm({
         />
 
         <Input
+          label="Super Specialization"
+          name="superSpecialization"
+          value={formData.superSpecialization}
+          onChange={handleChange}
+        />
+
+        <Input
           label="Qualification"
           name="qualification"
           value={formData.qualification}
@@ -285,13 +347,111 @@ function EditForm({
         />
 
         <Input
-          label="Experience"
+          label="Medical Registration Number"
+          name="medicalRegistrationNumber"
+          value={formData.medicalRegistrationNumber}
+          onChange={handleChange}
+          required
+        />
+
+        <Input
+          label="Experience (years)"
           name="experience"
           type="number"
           value={formData.experience}
           onChange={handleChange}
           required
         />
+
+        <Input
+          label="Hospital Name"
+          name="hospitalName"
+          value={formData.hospitalName}
+          onChange={handleChange}
+          required
+        />
+
+        <Input
+          label="Consultation Fee"
+          name="consultationFee"
+          type="number"
+          value={formData.consultationFee}
+          onChange={handleChange}
+          required
+        />
+
+        <Input
+          label="Languages Spoken"
+          name="languagesSpoken"
+          value={formData.languagesSpoken}
+          onChange={handleChange}
+          placeholder="e.g., English, Hindi, Bengali"
+        />
+
+        <Input
+          label="About Doctor"
+          name="aboutDoctor"
+          value={formData.aboutDoctor}
+          onChange={handleChange}
+          placeholder="Brief description"
+        />
+
+        <Input
+          label="Short Bio"
+          name="shortBio"
+          value={formData.shortBio}
+          onChange={handleChange}
+        />
+
+        <Input
+          label="Start Time"
+          name="startTime"
+          type="time"
+          value={formData.startTime}
+          onChange={handleChange}
+          required
+        />
+
+        <Input
+          label="End Time"
+          name="endTime"
+          type="time"
+          value={formData.endTime}
+          onChange={handleChange}
+          required
+        />
+      </div>
+
+      <div className={styles.checkboxGroup}>
+        <label>Working Days</label>
+        <div className={styles.checkboxList}>
+          {workingDayOptions.map((day) => (
+            <label key={day} className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={formData.workingDays.includes(day)}
+                onChange={() => handleCheckboxChange("workingDays", day)}
+              />
+              {day}
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div className={styles.checkboxGroup}>
+        <label>Consultation Modes</label>
+        <div className={styles.checkboxList}>
+          {modeOptions.map((mode) => (
+            <label key={mode} className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={formData.consultationModes.includes(mode)}
+                onChange={() => handleCheckboxChange("consultationModes", mode)}
+              />
+              {mode.charAt(0).toUpperCase() + mode.slice(1)}
+            </label>
+          ))}
+        </div>
       </div>
 
       <div className={styles.buttonGroup}>
@@ -302,7 +462,7 @@ function EditForm({
         )}
 
         <button type="submit" className={styles.submitBtn} disabled={loading}>
-          {loading ? "Saving..." : "Save Profile"}
+          {loading ? "Saving..." : "Continue to Availability →"}
         </button>
       </div>
     </form>
@@ -330,6 +490,136 @@ function Select({ label, options, ...props }) {
           </option>
         ))}
       </select>
+    </div>
+  );
+}
+
+function AvailabilitySection({
+  availabilityForm,
+  setAvailabilityForm,
+  loading,
+  onSubmit,
+  formData,
+  workingDayOptions,
+}) {
+  const handleAddSlot = () => {
+    setAvailabilityForm((prev) => ({
+      ...prev,
+      slots: [...prev.slots, { startTime: "", endTime: "" }],
+    }));
+  };
+
+  const handleSlotChange = (index, field, value) => {
+    setAvailabilityForm((prev) => ({
+      ...prev,
+      slots: prev.slots.map((slot, i) =>
+        i === index ? { ...slot, [field]: value } : slot,
+      ),
+    }));
+  };
+
+  const handleRemoveSlot = (index) => {
+    setAvailabilityForm((prev) => ({
+      ...prev,
+      slots: prev.slots.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleSkipAvailability = () => {
+    if (
+      confirm(
+        "You can set availability hours later. Are you sure you want to skip?",
+      )
+    ) {
+      localStorage.setItem("doctorProfileCompleted", "true");
+      window.dispatchEvent(new Event("profileUpdated"));
+      window.location.href = "/dashboard";
+    }
+  };
+
+  return (
+    <div className={styles.availabilitySection}>
+      <div className={styles.availabilityInfo}>
+        <p>
+          📅 <strong>Optional:</strong> Set your first availability to help
+          patients book consultations faster.
+        </p>
+      </div>
+
+      <form onSubmit={onSubmit} className={styles.form}>
+        <div className={styles.formGroup}>
+          <label>Select Date *</label>
+          <input
+            type="date"
+            value={availabilityForm.availableDate}
+            onChange={(e) =>
+              setAvailabilityForm((prev) => ({
+                ...prev,
+                availableDate: e.target.value,
+              }))
+            }
+            required
+          />
+        </div>
+
+        <div className={styles.slotsContainer}>
+          <label>Time Slots (30-minute intervals)</label>
+          {availabilityForm.slots.map((slot, index) => (
+            <div key={index} className={styles.slotRow}>
+              <input
+                type="time"
+                value={slot.startTime}
+                onChange={(e) =>
+                  handleSlotChange(index, "startTime", e.target.value)
+                }
+                placeholder="Start Time"
+                required
+              />
+              <span className={styles.separator}>-</span>
+              <input
+                type="time"
+                value={slot.endTime}
+                onChange={(e) =>
+                  handleSlotChange(index, "endTime", e.target.value)
+                }
+                placeholder="End Time"
+                required
+              />
+              {availabilityForm.slots.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => handleRemoveSlot(index)}
+                  className={styles.removeSlotBtn}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          ))}
+
+          <button
+            type="button"
+            onClick={handleAddSlot}
+            className={styles.addSlotBtn}
+          >
+            + Add Another Slot
+          </button>
+        </div>
+
+        <div className={styles.buttonGroup}>
+          <button
+            type="button"
+            onClick={handleSkipAvailability}
+            className={styles.skipBtn}
+          >
+            Skip & Continue
+          </button>
+
+          <button type="submit" className={styles.submitBtn} disabled={loading}>
+            {loading ? "Saving..." : "Save & Complete Setup"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

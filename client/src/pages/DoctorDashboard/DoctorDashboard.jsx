@@ -16,7 +16,7 @@ import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
 import styles from "./DoctorDashboard.module.css";
 import { authApi, consultationApi } from "../../utils/api";
 
-export default function DoctorDashboard() {
+export default function DoctorDashboard({ isProfileIncomplete = false }) {
   const [user, setUser] = useState(null);
   const [consultations, setConsultations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -136,7 +136,11 @@ export default function DoctorDashboard() {
 
   return (
     <div className={styles.dashboardLayout}>
-      <DoctorSidebar user={user} onLogout={handleLogout} />
+      <DoctorSidebar
+        user={user}
+        onLogout={handleLogout}
+        isProfileIncomplete={isProfileIncomplete}
+      />
 
       <main className={styles.mainContent}>
         {/* HEADER */}

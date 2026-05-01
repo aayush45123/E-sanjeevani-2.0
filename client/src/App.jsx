@@ -179,7 +179,7 @@ const App = () => {
     }
 
     if (userRole === "doctor") {
-      return <DoctorDashboard />;
+      return <DoctorDashboard isProfileIncomplete={!doctorProfileCompleted} />;
     }
 
     return <PatientDashboard />;
@@ -234,7 +234,9 @@ const App = () => {
           path="/doctor-profile-setup"
           element={
             isLoggedIn ? (
-              <DoctorProfileSetup />
+              <DoctorProfileSetup
+                isProfileIncomplete={!doctorProfileCompleted}
+              />
             ) : (
               <Navigate to="/auth" replace />
             )
@@ -246,7 +248,13 @@ const App = () => {
         <Route
           path="/doctor-profile-edit"
           element={
-            isLoggedIn ? <DoctorProfileEdit /> : <Navigate to="/auth" replace />
+            isLoggedIn ? (
+              <DoctorProfileEdit
+                isProfileIncomplete={!doctorProfileCompleted}
+              />
+            ) : (
+              <Navigate to="/auth" replace />
+            )
           }
         />
 
