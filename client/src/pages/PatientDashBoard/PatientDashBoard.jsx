@@ -140,10 +140,10 @@ export default function PatientDashboard() {
 
       const data = await response.json();
 
-      let cleanedText = data.reply
+      let cleanedText = data.data.reply
         .replace(/<Answer>/gi, "")
         .replace(/<\/Answer>/gi, "")
-        .replace(/^Answer:\s*/i, "") // ⬅️ add this line
+        .replace(/^Answer:\s*/i, "")
         .replace(/\n{3,}/g, "\n\n")
         .trim();
 
@@ -184,7 +184,7 @@ export default function PatientDashboard() {
 
   const handleRecordSelect = (record) => {
     setInputValue(
-      (prev) => prev + (prev.trim() ? " " : "") + `[Referencing: ${record}] `
+      (prev) => prev + (prev.trim() ? " " : "") + `[Referencing: ${record}] `,
     );
     setShowRecordMenu(false);
   };

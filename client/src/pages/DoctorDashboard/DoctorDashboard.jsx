@@ -13,13 +13,17 @@ import {
   FiAlertCircle,
 } from "react-icons/fi";
 import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
+import { useNavigate } from "react-router-dom";
 import styles from "./DoctorDashboard.module.css";
 import { authApi, consultationApi } from "../../utils/api";
 
 export default function DoctorDashboard({ isProfileIncomplete = false }) {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [consultations, setConsultations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showAllPatients, setShowAllPatients] = useState(false);
+  const [weeklyData, setWeeklyData] = useState([60, 80, 45, 90, 70, 30]);
 
   const [stats, setStats] = useState({
     totalPatients: 0,
@@ -89,12 +93,44 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
       (item) => item.status === "completed",
     ).length;
 
+    // Calculate weekly overview data (Mon-Sat)
+    calculateWeeklyData(data);
+
     setStats({
       totalPatients: uniquePatients.size,
       todayConsultations,
       completedSessions,
       avgRating: 4.8,
     });
+  };
+
+  const calculateWeeklyData = (data) => {
+    // Get current week (Monday to Saturday)
+    const today = new Date();
+    const currentDay = today.getDay();
+    // Adjust to get Monday as start of week
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - (currentDay === 0 ? 6 : currentDay - 1));
+
+    // Days to track (Mon-Sat)
+    const daysMap = [0, 1, 2, 3, 4, 5]; // 0=Mon, 1=Tue, etc.
+    const consultationCounts = [0, 0, 0, 0, 0, 0];
+
+    data.forEach((consultation) => {
+      const consultationDate = new Date(consultation.consultationDate);
+      const dayDiff = Math.floor(
+        (consultationDate - monday) / (1000 * 60 * 60 * 24),
+      );
+
+      if (dayDiff >= 0 && dayDiff < 6) {
+        consultationCounts[dayDiff]++;
+      }
+    });
+
+    // Calculate heights (0-100%)
+    const maxCount = Math.max(...consultationCounts, 1);
+    const heights = consultationCounts.map((count) => (count / maxCount) * 100);
+    setWeeklyData(heights);
   };
 
   /*
@@ -126,7 +162,13 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
     month: "long",
   });
 
-  const recentPatients = consultations.slice(0, 5);
+  const recentPatients = showAllPatients
+    ? consultations
+    : consultations.slice(0, 5);
+
+  const handleViewAllPatients = () => {
+    setShowAllPatients(!showAllPatients);
+  };
 
   /*
   ==================================================
@@ -245,15 +287,13 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
 
                 <div className={styles.weeklyBars}>
                   {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day, i) => {
-                    const heights = [60, 80, 45, 90, 70, 30];
-
                     return (
                       <div key={day} className={styles.barGroup}>
                         <div className={styles.barTrack}>
                           <div
                             className={styles.bar}
                             style={{
-                              height: `${heights[i]}%`,
+                              height: `${weeklyData[i]}%`,
                             }}
                           />
                         </div>
@@ -279,8 +319,12 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
                     <h2 className={styles.cardTitle}>Recent Patients</h2>
                   </div>
 
-                  <button className={styles.viewAllBtn}>
-                    View all <FiChevronRight size={13} />
+                  <button
+                    className={styles.viewAllBtn}
+                    onClick={handleViewAllPatients}
+                  >
+                    {showAllPatients ? "Show Less" : "View all"}{" "}
+                    <FiChevronRight size={13} />
                   </button>
                 </div>
 
@@ -422,11 +466,13 @@ function AppointmentRow({ appt }) {
           {appt.consultationType || "video"}
         </span>
 
-        {/* JOIN BUTTON FOR EVERY ROW */}
+        {/* JOIN BUTTON - ONLY FOR NON-COMPLETED SESSIONS */}
 
-        <button className={styles.joinBtn} onClick={handleJoinConsultation}>
-          Join
-        </button>
+        {appt.status !== "completed" && (
+          <button className={styles.joinBtn} onClick={handleJoinConsultation}>
+            Join
+          </button>
+        )}
       </div>
     </div>
   );

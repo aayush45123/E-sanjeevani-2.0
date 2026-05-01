@@ -224,14 +224,16 @@ export default function Consultations() {
                             {consultation.consultationType?.toUpperCase()}
                           </span>
 
-                          <button
-                            className={styles.bookBtn}
-                            onClick={() =>
-                              navigate(`/video-call/${consultation._id}`)
-                            }
-                          >
-                            Join Consultation
-                          </button>
+                          {consultation.status !== "completed" && (
+                            <button
+                              className={styles.bookBtn}
+                              onClick={() =>
+                                navigate(`/video-call/${consultation._id}`)
+                              }
+                            >
+                              Join Consultation
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>

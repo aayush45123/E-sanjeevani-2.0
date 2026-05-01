@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import io from "socket.io-client";
 import styles from "./VideoCall.module.css";
 import { consultationApi } from "../../utils/api";
+import Sidebar from "../../components/Sidebar/Sidebar";
+import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
 
 const SOCKET_URL = "http://localhost:5000";
 
@@ -12,6 +14,7 @@ export default function VideoCall() {
 
   const [connectionError, setConnectionError] = useState("");
   const [usersInRoom, setUsersInRoom] = useState(0);
+  const userRole = localStorage.getItem("userRole");
 
   const myVideo = useRef(null);
   const remoteVideo = useRef(null);
@@ -254,44 +257,57 @@ export default function VideoCall() {
   };
 
   return (
-    <div className={styles.page}>
-      <h1>Live Consultation</h1>
+    <div style={{ display: "flex" }}>
+      {/* Sidebar based on user role */}
+      {userRole === "doctor" ? <DoctorSidebar /> : <Sidebar />}
 
-      <div className={styles.debugBanner}>
-        Room: {consultationId} | Users: {usersInRoom}/2
-      </div>
+      {/* Video Call Content */}
+      <div
+        style={{
+          flex: 1,
+          padding: "20px",
+          backgroundColor: "#f5f5f5",
+          minHeight: "100vh",
+        }}
+      >
+        <h1>Live Consultation</h1>
 
-      {connectionError && (
-        <div className={styles.errorBanner}>{connectionError}</div>
-      )}
-
-      <div className={styles.videoGrid}>
-        <div className={styles.videoCard}>
-          <h3>You</h3>
-          <video
-            ref={myVideo}
-            autoPlay
-            playsInline
-            muted
-            className={styles.video}
-          />
+        <div className={styles.debugBanner}>
+          Room: {consultationId} | Users: {usersInRoom}/2
         </div>
 
-        <div className={styles.videoCard}>
-          <h3>Participant</h3>
-          <video
-            ref={remoteVideo}
-            autoPlay
-            playsInline
-            className={styles.video}
-          />
-        </div>
-      </div>
+        {connectionError && (
+          <div className={styles.errorBanner}>{connectionError}</div>
+        )}
 
-      <div className={styles.controls}>
-        <button className={styles.endBtn} onClick={() => leaveCall(true)}>
-          End Call
-        </button>
+        <div className={styles.videoGrid}>
+          <div className={styles.videoCard}>
+            <h3>You</h3>
+            <video
+              ref={myVideo}
+              autoPlay
+              playsInline
+              muted
+              className={styles.video}
+            />
+          </div>
+
+          <div className={styles.videoCard}>
+            <h3>Participant</h3>
+            <video
+              ref={remoteVideo}
+              autoPlay
+              playsInline
+              className={styles.video}
+            />
+          </div>
+        </div>
+
+        <div className={styles.controls}>
+          <button className={styles.endBtn} onClick={() => leaveCall(true)}>
+            End Call
+          </button>
+        </div>
       </div>
     </div>
   );

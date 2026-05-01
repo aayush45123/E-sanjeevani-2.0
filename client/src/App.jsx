@@ -134,7 +134,7 @@ const App = () => {
 
   /*
   ==================================================
-  APP ROUTES CHECK
+  APP ROUTES CHECK - SHOW SIDEBAR, HIDE NAVBAR
   ==================================================
   */
 
@@ -144,7 +144,14 @@ const App = () => {
     location.pathname.startsWith("/doctor-profile-setup") ||
     location.pathname.startsWith("/doctor-profile-edit") ||
     location.pathname.startsWith("/consultations") ||
-    location.pathname.startsWith("/consultation-booking");
+    location.pathname.startsWith("/consultation-booking") ||
+    location.pathname.startsWith("/video-call") ||
+    location.pathname.startsWith("/auth");
+
+  /*
+  Show navbar only on landing page
+  */
+  const showNavbar = location.pathname === "/" || location.pathname === "";
 
   /*
   ==================================================
@@ -188,9 +195,9 @@ const App = () => {
 
   return (
     <>
-      {/* Global Navbar */}
+      {/* Navbar only on landing page */}
 
-      {!isAppRoute && <Navbar />}
+      {showNavbar && <Navbar />}
 
       <Routes>
         {/* HOME */}
