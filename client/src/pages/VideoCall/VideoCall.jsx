@@ -257,8 +257,8 @@ export default function VideoCall() {
   };
 
   return (
-    <div style={{ display: "flex" }}>
-      {/* Sidebar based on user role */}
+    <div style={{ display: "flex", width: "100vw", minHeight: "100vh" }}>
+      {/* Sidebar based on user role - fixed positioning */}
       {userRole === "doctor" ? <DoctorSidebar /> : <Sidebar />}
 
       {/* Video Call Content */}
@@ -268,6 +268,12 @@ export default function VideoCall() {
           padding: "20px",
           backgroundColor: "#f5f5f5",
           minHeight: "100vh",
+          width:
+            userRole === "doctor"
+              ? "calc(100vw - 230px)"
+              : "calc(100vw - 260px)",
+          marginLeft: userRole === "doctor" ? "230px" : "260px",
+          boxSizing: "border-box",
         }}
       >
         <h1>Live Consultation</h1>

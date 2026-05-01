@@ -2,6 +2,13 @@
 
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  FiClock,
+  FiCalendar,
+  FiPlus,
+  FiX,
+  FiCheckCircle,
+} from "react-icons/fi";
 import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
 import styles from "./DoctorProfileEdit.module.css";
 import { doctorProfileApi, doctorAvailabilityApi } from "../../utils/api";
@@ -595,9 +602,13 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
           {/* AVAILABILITY TAB */}
           {activeTab === "availability" && (
             <div className={styles.availabilityContainer}>
+              {/* LEFT: Form to Set Availability */}
               <form className={styles.form} onSubmit={handleAvailabilitySubmit}>
                 <div className={styles.formSection}>
-                  <h2>Set Availability for a Specific Date</h2>
+                  <h2>
+                    <FiCalendar size={18} />
+                    Set Availability for a Specific Date
+                  </h2>
 
                   <div className={styles.formGroup}>
                     <label htmlFor="availableDate">Select Date *</label>
@@ -611,7 +622,10 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
                   </div>
 
                   <div className={styles.slotsContainer}>
-                    <label>Time Slots *</label>
+                    <label htmlFor="slots">
+                      <FiClock size={14} style={{ marginRight: "6px" }} />
+                      Time Slots *
+                    </label>
                     <p className={styles.slotInfo}>
                       Each slot is typically 30 minutes
                     </p>
@@ -655,8 +669,9 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
                             type="button"
                             className={styles.removeSlotBtn}
                             onClick={() => removeSlot(index)}
+                            title="Remove this slot"
                           >
-                            Remove
+                            <FiX size={16} />
                           </button>
                         )}
                       </div>
@@ -667,7 +682,8 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
                       className={styles.addSlotBtn}
                       onClick={addSlot}
                     >
-                      + Add Another Slot
+                      <FiPlus size={14} style={{ marginRight: "6px" }} />
+                      Add Another Slot
                     </button>
                   </div>
 
@@ -683,13 +699,17 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
                 </div>
               </form>
 
-              {/* Display existing availability */}
+              {/* RIGHT: Display Existing Availability */}
               <div className={styles.existingAvailability}>
-                <h2>Your Existing Availability</h2>
+                <h2>
+                  <FiCheckCircle size={18} />
+                  Your Existing Availability
+                </h2>
 
                 {existingAvailability.length === 0 ? (
                   <p className={styles.noData}>
-                    No availability set yet. Create one above!
+                    No availability set yet. Create one using the form on the
+                    left!
                   </p>
                 ) : (
                   <div className={styles.availabilityList}>

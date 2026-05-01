@@ -3,31 +3,35 @@
 .dashboardLayout {
   display: flex;
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background-color: #f9fafb;
+  margin-left: 230px;
 }
 
 .mainContent {
   flex: 1;
   padding: 40px;
   overflow-y: auto;
+  background: #f9fafb;
 }
 
 .wrapper {
-  max-width: 1000px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
 .title {
   font-size: 32px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #111827;
   margin-bottom: 8px;
+  letter-spacing: -0.01em;
 }
 
 .subtitle {
   font-size: 16px;
-  color: #666;
+  color: #6b7280;
   margin-bottom: 32px;
+  font-weight: 400;
 }
 
 /* Loading Container */
@@ -74,7 +78,8 @@
   background: white;
   border-radius: 12px;
   padding: 32px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e5e7eb;
 }
 
 .formSection {
@@ -90,10 +95,13 @@
 }
 
 .formSection h2 {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
-  color: #1a1a1a;
-  margin-bottom: 20px;
+  color: #111827;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .formRow {
@@ -109,9 +117,9 @@
 }
 
 .formGroup label {
-  font-size: 14px;
-  font-weight: 500;
-  color: #333;
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
   margin-bottom: 8px;
 }
 
@@ -119,11 +127,19 @@
 .formGroup select,
 .formGroup textarea {
   padding: 10px 12px;
-  border: 1px solid #d0d0d0;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
   font-size: 14px;
   font-family: inherit;
-  transition: border-color 0.3s ease;
+  background-color: #ffffff;
+  color: #111827;
+  transition: all 0.2s ease;
+}
+
+.formGroup input:hover,
+.formGroup select:hover,
+.formGroup textarea:hover {
+  border-color: #d1d5db;
 }
 
 .formGroup input:focus,
@@ -144,6 +160,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   gap: 12px;
+  margin-top: 12px;
 }
 
 .checkboxLabel {
@@ -152,7 +169,9 @@
   gap: 8px;
   cursor: pointer;
   font-size: 14px;
-  color: #333;
+  color: #374151;
+  font-weight: 500;
+  user-select: none;
 }
 
 .checkboxLabel input[type="checkbox"] {
@@ -195,35 +214,61 @@
 .availabilityContainer {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 32px;
+  gap: 28px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .availabilityContainer {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
 }
 
 .availabilityContainer .form {
-  padding: 24px;
+  padding: 28px;
+  height: fit-content;
 }
 
 .availabilityContainer .existingAvailability {
-  margin-top: 0;
+  height: fit-content;
 }
 
 /* Slots Container */
 .slotsContainer {
   margin-top: 20px;
+  background: #f9fafb;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.slotsContainer label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  display: block;
+  margin-bottom: 4px;
 }
 
 .slotInfo {
   font-size: 13px;
-  color: #999;
-  margin-bottom: 12px;
-  margin-top: -8px;
+  color: #6b7280;
+  margin-bottom: 16px;
+  margin-top: 2px;
+  font-weight: 400;
 }
 
 .slotRow {
   display: grid;
   grid-template-columns: 1fr 1fr auto;
   gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   align-items: flex-end;
+  background: white;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
 }
 
 .slotGroup {
@@ -287,15 +332,19 @@
 .existingAvailability {
   background: white;
   border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 28px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e5e7eb;
 }
 
 .existingAvailability h2 {
   font-size: 18px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: #111827;
   margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .noData {
@@ -319,20 +368,24 @@
 .availabilityList {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
+  max-height: 600px;
+  overflow-y: auto;
+  padding-right: 8px;
 }
 
 .availabilityCard {
-  background: #f9f9f9;
-  border: 1px solid #e0e0e0;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 16px;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .availabilityCard:hover {
   border-color: #2563eb;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
+  background: #ffffff;
 }
 
 .cardHeader {
@@ -340,65 +393,88 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .cardHeader h3 {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: #111827;
   margin: 0;
 }
 
 .activeBadge {
-  padding: 4px 12px;
-  background-color: #dcfce7;
-  color: #16a34a;
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  background-color: #d1fae5;
+  color: #065f46;
   border-radius: 12px;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .inactiveBadge {
-  padding: 4px 12px;
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
   background-color: #fee2e2;
-  color: #dc2626;
+  color: #7f1d1d;
   border-radius: 12px;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .slotsDisplay {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 8px;
+  margin-top: 12px;
 }
 
 .slotDisplay {
   display: flex;
   flex-direction: column;
   background: white;
-  padding: 8px 12px;
+  padding: 10px 12px;
   border-radius: 6px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid #e5e7eb;
   font-size: 13px;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.slotDisplay:hover {
+  border-color: #2563eb;
+  background: #eff6ff;
 }
 
 .slotTime {
-  font-weight: 600;
-  color: #1a1a1a;
+  font-weight: 700;
+  color: #111827;
   margin-bottom: 4px;
+  font-size: 13px;
 }
 
 .slotAvailable {
-  color: #16a34a;
-  font-size: 12px;
-  font-weight: 500;
+  color: #059669;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .slotBooked {
   color: #dc2626;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 /* Responsive */

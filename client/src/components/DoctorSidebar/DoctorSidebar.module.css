@@ -7,7 +7,11 @@
   display: flex;
   flex-direction: column;
   padding: 0;
-  overflow: hidden;
+  overflow-y: auto;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 10;
   font-family: var(--font-primary, system-ui, -apple-system, sans-serif);
 }
 
@@ -29,6 +33,13 @@
   align-items: center;
   justify-content: center;
   color: #ffffff;
+  flex-shrink: 0;
+}
+
+.logoImage {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   flex-shrink: 0;
 }
 

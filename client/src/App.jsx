@@ -12,6 +12,7 @@ import Auth from "./pages/Auth/Auth";
 
 import PatientDashboard from "./pages/PatientDashBoard/PatientDashBoard";
 import DoctorDashboard from "./pages/DoctorDashboard/DoctorDashboard";
+import MyPatients from "./pages/DoctorDashboard/MyPatients";
 import ProfileCompletion from "./pages/ProfileCompletion/ProfileCompletion";
 import Consultations from "./pages/Consultations/Consultations";
 import ConsultationBookingForm from "./pages/ConsultationBookingForm/ConsultationBookingForm";
@@ -140,6 +141,7 @@ const App = () => {
 
   const isAppRoute =
     location.pathname.startsWith("/dashboard") ||
+    location.pathname.startsWith("/doctor-dashboard") ||
     location.pathname.startsWith("/profile-setup") ||
     location.pathname.startsWith("/doctor-profile-setup") ||
     location.pathname.startsWith("/doctor-profile-edit") ||
@@ -292,6 +294,18 @@ const App = () => {
         <Route
           path="/video-call/:consultationId"
           element={isLoggedIn ? <VideoCall /> : <Navigate to="/auth" replace />}
+        />
+
+        {/* DOCTOR DASHBOARD NESTED ROUTES */}
+        <Route
+          path="/doctor-dashboard/patients"
+          element={
+            isLoggedIn && userRole === "doctor" ? (
+              <MyPatients />
+            ) : (
+              <Navigate to="/auth" replace />
+            )
+          }
         />
 
         {/* FALLBACK */}

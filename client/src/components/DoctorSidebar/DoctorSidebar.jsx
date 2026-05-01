@@ -12,13 +12,14 @@ import {
   FiChevronDown,
   FiChevronUp,
 } from "react-icons/fi";
+import logoImage from "../../assets/logo-svg.svg";
 import styles from "./DoctorSidebar.module.css";
 
 const navSections = [
   {
     label: "OVERVIEW",
     items: [
-      { to: "/doctor-dashboard", icon: FiGrid, label: "Dashboard" },
+      { to: "/dashboard", icon: FiGrid, label: "Dashboard" },
       { to: "/doctor-dashboard/schedule", icon: FiCalendar, label: "Schedule" },
       { to: "/doctor-dashboard/patients", icon: FiUsers, label: "My Patients" },
     ],
@@ -98,18 +99,12 @@ export default function DoctorSidebar({
 
       {/* Logo */}
       <div className={styles.logo}>
-        <div className={styles.logoIcon}>
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-          >
-            <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-          </svg>
-        </div>
+        <img
+          src={logoImage}
+          alt="E-Sanjeevani"
+          className={styles.logoImage}
+          style={{ width: "32px", height: "32px" }}
+        />
         <span className={styles.logoText}>E-Sanjeevani</span>
       </div>
 
@@ -145,7 +140,7 @@ export default function DoctorSidebar({
                   >
                     <NavLink
                       to={isProfileIncomplete ? "#" : item.to}
-                      end={item.to === "/doctor-dashboard"}
+                      end={item.to === "/dashboard"}
                       onClick={(e) => handleNavClick(e, item.to)}
                       className={({ isActive }) =>
                         `${styles.navItem} ${isActive ? styles.navItemActive : ""} ${
