@@ -1,25 +1,219 @@
 // src/pages/DoctorProfileEdit/DoctorProfileEdit.jsx
 
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   FiClock,
   FiCalendar,
   FiPlus,
   FiX,
   FiCheckCircle,
+  FiRepeat,
+  FiGrid,
+  FiList,
 } from "react-icons/fi";
 import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
 import styles from "./DoctorProfileEdit.module.css";
 import { doctorProfileApi, doctorAvailabilityApi } from "../../utils/api";
 
-export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [fetchLoading, setFetchLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("profile"); // 'profile' or 'availability'
+// ─── Constants ───────────────────────────────────────────────────────────────
 
-  // Profile Form State
+const WORKING_DAYS = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
+
+const MODE_OPTIONS = ["video", "call", "chat"];
+
+const SCHEDULE_TYPES = [
+  { key: "custom", label: "Custom Date", icon: FiCalendar },
+  { key: "weekly", label: "Weekly", icon: FiRepeat },
+  { key: "monthly", label: "Monthly", icon: FiGrid },
+];
+
+const WEEK_DURATIONS = [
+  { value: 2, label: "Next 2 Weeks" },
+  { value: 4, label: "Next 4 Weeks" },
+  { value: 8, label: "Next 8 Weeks" },
+  { value: 12, label: "Next 12 Weeks" },
+];
+
+const MONTH_DAY_PRESETS = [
+  { key: "all", label: "All Days" },
+  { key: "weekdays", label: "Weekdays Only" },
+  { key: "weekends", label: "Weekends Only" },
+  { key: "custom", label: "Custom Days" },
+];
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const formatDate = (dateString) => {
+  if (!dateString) return "";
+  return new Date(dateString).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
+
+const toYYYYMMDD = (date) => {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
+
+const getDayName = (date) =>
+  new Date(date).toLocaleDateString("en-US", { weekday: "long" });
+
+/** Returns an array of YYYY-MM-DD strings for dates within
+ *  [startDate, endDate] whose weekday is in the selectedDays set. */
+const getDatesByDayNames = (startDate, endDate, dayNames) => {
+  const results = [];
+  const cur = new Date(startDate);
+  cur.setHours(0, 0, 0, 0);
+  const end = new Date(endDate);
+  end.setHours(0, 0, 0, 0);
+  while (cur <= end) {
+    if (dayNames.includes(getDayName(cur))) {
+      results.push(toYYYYMMDD(cur));
+    }
+    cur.setDate(cur.getDate() + 1);
+  }
+  return results;
+};
+
+/** Returns all dates in a given month (YYYY-MM) filtered by dayFilter preset
+ *  or custom day names. */
+const getDatesInMonth = (yearMonth, dayFilter, customDayNames = []) => {
+  const [year, month] = yearMonth.split("-").map(Number);
+  const start = new Date(year, month - 1, 1);
+  const end = new Date(year, month, 0); // last day
+  let dayNames = WORKING_DAYS;
+  if (dayFilter === "weekdays")
+    dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+  else if (dayFilter === "weekends") dayNames = ["Saturday", "Sunday"];
+  else if (dayFilter === "custom") dayNames = customDayNames;
+  return getDatesByDayNames(start, end, dayNames);
+};
+
+const emptySlot = () => ({ startTime: "", endTime: "" });
+
+// ─── Sub-components ──────────────────────────────────────────────────────────
+
+function ScheduleTypeSelector({ value, onChange }) {
+  return (
+    <div className={styles.scheduleTypeBar}>
+      {SCHEDULE_TYPES.map(({ key, label, icon: Icon }) => (
+        <button
+          key={key}
+          type="button"
+          className={`${styles.scheduleTypeBtn} ${
+            value === key ? styles.scheduleTypeBtnActive : ""
+          }`}
+          onClick={() => onChange(key)}
+        >
+          <Icon size={15} />
+          <span>{label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function SlotEditor({ slots, onChange, onAdd, onRemove }) {
+  return (
+    <div className={styles.slotsContainer}>
+      <div className={styles.slotsHeader}>
+        <FiClock size={14} />
+        <span>Time Slots</span>
+        <span className={styles.slotBadge}>
+          {slots.length} slot{slots.length !== 1 ? "s" : ""}
+        </span>
+      </div>
+      <p className={styles.slotInfo}>Each slot is typically 30 minutes</p>
+
+      <div className={styles.slotList}>
+        {slots.map((slot, i) => (
+          <div key={i} className={styles.slotRow}>
+            <div className={styles.slotIndex}>{i + 1}</div>
+            <div className={styles.slotGroup}>
+              <label>Start Time</label>
+              <input
+                type="time"
+                value={slot.startTime}
+                onChange={(e) => onChange(i, "startTime", e.target.value)}
+                required
+              />
+            </div>
+            <div className={styles.slotArrow}>→</div>
+            <div className={styles.slotGroup}>
+              <label>End Time</label>
+              <input
+                type="time"
+                value={slot.endTime}
+                onChange={(e) => onChange(i, "endTime", e.target.value)}
+                required
+              />
+            </div>
+            {slots.length > 1 && (
+              <button
+                type="button"
+                className={styles.removeSlotBtn}
+                onClick={() => onRemove(i)}
+                title="Remove slot"
+              >
+                <FiX size={14} />
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <button type="button" className={styles.addSlotBtn} onClick={onAdd}>
+        <FiPlus size={14} />
+        Add Another Slot
+      </button>
+    </div>
+  );
+}
+
+function DayCheckboxGrid({ selected, onChange, days = WORKING_DAYS }) {
+  return (
+    <div className={styles.dayGrid}>
+      {days.map((day) => {
+        const active = selected.includes(day);
+        return (
+          <button
+            key={day}
+            type="button"
+            className={`${styles.dayChip} ${active ? styles.dayChipActive : ""}`}
+            onClick={() => onChange(day)}
+          >
+            <span>{day.slice(0, 3)}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
+
+export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
+  const [fetchLoading, setFetchLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("profile");
+  const [successMsg, setSuccessMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+
+  // ── Profile State ──────────────────────────────────────────────────────────
   const [profileData, setProfileData] = useState({
     phone: "",
     gender: "",
@@ -40,246 +234,242 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
     shortBio: "",
   });
 
-  // Availability Form State
-  const [availabilityForm, setAvailabilityForm] = useState({
-    availableDate: "",
-    slots: [{ startTime: "", endTime: "" }],
-  });
-
+  // ── Availability State ─────────────────────────────────────────────────────
+  const [scheduleType, setScheduleType] = useState("custom"); // 'custom' | 'weekly' | 'monthly'
+  const [slots, setSlots] = useState([emptySlot()]);
   const [existingAvailability, setExistingAvailability] = useState([]);
 
-  const workingDayOptions = [
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-    "Sunday",
-  ];
+  // Custom date form
+  const [customDate, setCustomDate] = useState("");
 
-  const modeOptions = ["video", "call", "chat"];
+  // Weekly form
+  const [weeklyDays, setWeeklyDays] = useState([]);
+  const [weekDuration, setWeekDuration] = useState(4);
 
-  // Fetch profile data on mount
+  // Monthly form
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  });
+  const [monthDayFilter, setMonthDayFilter] = useState("weekdays");
+  const [monthCustomDays, setMonthCustomDays] = useState([]);
+
+  // ── Data Fetching ──────────────────────────────────────────────────────────
   useEffect(() => {
-    const fetchProfileData = async () => {
+    (async () => {
       try {
-        setFetchLoading(true);
-        const response = await doctorProfileApi.getProfile();
-        if (response.data.success) {
+        const res = await doctorProfileApi.getProfile();
+        if (res.data.success) {
           setProfileData({
-            ...response.data.profile,
-            languagesSpoken: Array.isArray(
-              response.data.profile.languagesSpoken,
-            )
-              ? response.data.profile.languagesSpoken.join(", ")
-              : response.data.profile.languagesSpoken,
+            ...res.data.profile,
+            languagesSpoken: Array.isArray(res.data.profile.languagesSpoken)
+              ? res.data.profile.languagesSpoken.join(", ")
+              : res.data.profile.languagesSpoken,
           });
         }
-      } catch (error) {
-        console.error("Failed to fetch profile:", error);
+      } catch (err) {
+        console.error("Failed to fetch profile:", err);
       } finally {
         setFetchLoading(false);
       }
-    };
-
-    fetchProfileData();
+    })();
   }, []);
 
-  // Fetch availability data when availability tab is opened
-  useEffect(() => {
-    if (activeTab === "availability") {
-      const fetchAvailability = async () => {
-        try {
-          const response = await doctorAvailabilityApi.getMySlots();
-          if (response.data.success && response.data.availability) {
-            setExistingAvailability(
-              Array.isArray(response.data.availability)
-                ? response.data.availability
-                : [],
-            );
-          } else {
-            setExistingAvailability([]);
-          }
-        } catch (error) {
-          console.error("Failed to fetch availability:", error);
-          setExistingAvailability([]);
-        }
-      };
-
-      fetchAvailability();
+  const fetchAvailability = useCallback(async () => {
+    try {
+      const res = await doctorAvailabilityApi.getMySlots();
+      setExistingAvailability(
+        res.data.success && Array.isArray(res.data.availability)
+          ? res.data.availability
+          : [],
+      );
+    } catch (err) {
+      console.error("Failed to fetch availability:", err);
+      setExistingAvailability([]);
     }
-  }, [activeTab]);
+  }, []);
 
-  // ===== PROFILE HANDLERS =====
-  const handleProfileChange = (e) => {
+  useEffect(() => {
+    if (activeTab === "availability") fetchAvailability();
+  }, [activeTab, fetchAvailability]);
+
+  // ── Notifications ──────────────────────────────────────────────────────────
+  const showSuccess = (msg) => {
+    setSuccessMsg(msg);
+    setErrorMsg("");
+    setTimeout(() => setSuccessMsg(""), 4000);
+  };
+  const showError = (msg) => {
+    setErrorMsg(msg);
+    setSuccessMsg("");
+    setTimeout(() => setErrorMsg(""), 5000);
+  };
+
+  // ── Profile Handlers ───────────────────────────────────────────────────────
+  const handleProfileChange = (e) =>
+    setProfileData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+
+  const handleProfileCheckbox = (field, value) =>
     setProfileData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [field]: prev[field].includes(value)
+        ? prev[field].filter((v) => v !== value)
+        : [...prev[field], value],
     }));
-  };
-
-  const handleProfileCheckboxChange = (field, value) => {
-    setProfileData((prev) => {
-      const existing = prev[field];
-      return {
-        ...prev,
-        [field]: existing.includes(value)
-          ? existing.filter((item) => item !== value)
-          : [...existing, value],
-      };
-    });
-  };
 
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     try {
-      const submitData = {
+      await doctorProfileApi.updateProfile({
         ...profileData,
         languagesSpoken: profileData.languagesSpoken
           .split(",")
-          .map((item) => item.trim())
+          .map((s) => s.trim())
           .filter(Boolean),
         experience: Number(profileData.experience),
         consultationFee: Number(profileData.consultationFee),
-      };
-
-      await doctorProfileApi.updateProfile(submitData);
-      alert("Profile updated successfully!");
-    } catch (error) {
-      console.error(error);
-      alert(error?.response?.data?.message || "Failed to update profile");
+      });
+      showSuccess("Profile updated successfully!");
+    } catch (err) {
+      showError(err?.response?.data?.message || "Failed to update profile");
     } finally {
       setLoading(false);
     }
   };
 
-  // ===== AVAILABILITY HANDLERS =====
-  const handleAvailabilityDateChange = (e) => {
-    setAvailabilityForm((prev) => ({
-      ...prev,
-      availableDate: e.target.value,
-    }));
+  // ── Slot Handlers ──────────────────────────────────────────────────────────
+  const handleSlotChange = (idx, field, val) =>
+    setSlots((prev) =>
+      prev.map((s, i) => (i === idx ? { ...s, [field]: val } : s)),
+    );
+  const addSlot = () => setSlots((prev) => [...prev, emptySlot()]);
+  const removeSlot = (idx) =>
+    setSlots((prev) => prev.filter((_, i) => i !== idx));
+
+  // ── Validate Slots ─────────────────────────────────────────────────────────
+  const validateSlots = () => {
+    if (!slots.every((s) => s.startTime && s.endTime)) {
+      showError("Please fill all time slot fields.");
+      return false;
+    }
+    for (const s of slots) {
+      if (s.startTime >= s.endTime) {
+        showError("Each start time must be before its end time.");
+        return false;
+      }
+    }
+    return true;
   };
 
-  const handleSlotChange = (index, field, value) => {
-    const newSlots = [...availabilityForm.slots];
-    newSlots[index] = {
-      ...newSlots[index],
-      [field]: value,
-    };
-    setAvailabilityForm((prev) => ({
-      ...prev,
-      slots: newSlots,
-    }));
+  // ── Build dates to submit ──────────────────────────────────────────────────
+  const buildDates = () => {
+    if (scheduleType === "custom") {
+      if (!customDate) {
+        showError("Please select a date.");
+        return null;
+      }
+      return [customDate];
+    }
+    if (scheduleType === "weekly") {
+      if (weeklyDays.length === 0) {
+        showError("Please select at least one weekday.");
+        return null;
+      }
+      const start = new Date();
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(start);
+      end.setDate(end.getDate() + weekDuration * 7 - 1);
+      return getDatesByDayNames(start, end, weeklyDays);
+    }
+    if (scheduleType === "monthly") {
+      if (monthDayFilter === "custom" && monthCustomDays.length === 0) {
+        showError("Please select at least one day.");
+        return null;
+      }
+      return getDatesInMonth(selectedMonth, monthDayFilter, monthCustomDays);
+    }
+    return null;
   };
 
-  const addSlot = () => {
-    setAvailabilityForm((prev) => ({
-      ...prev,
-      slots: [...prev.slots, { startTime: "", endTime: "" }],
-    }));
-  };
-
-  const removeSlot = (index) => {
-    setAvailabilityForm((prev) => ({
-      ...prev,
-      slots: prev.slots.filter((_, i) => i !== index),
-    }));
-  };
-
+  // ── Availability Submit ────────────────────────────────────────────────────
   const handleAvailabilitySubmit = async (e) => {
     e.preventDefault();
+    if (!validateSlots()) return;
+    const dates = buildDates();
+    if (!dates || dates.length === 0) {
+      showError("No valid dates found for the selected configuration.");
+      return;
+    }
+
     setLoading(true);
-
     try {
-      if (!availabilityForm.availableDate) {
-        alert("Please select a date");
-        setLoading(false);
-        return;
-      }
-
-      if (
-        !availabilityForm.slots.every((slot) => slot.startTime && slot.endTime)
-      ) {
-        alert("Please fill all time slots");
-        setLoading(false);
-        return;
-      }
-
-      // Validate time slots
-      for (let slot of availabilityForm.slots) {
-        if (slot.startTime >= slot.endTime) {
-          alert("Start time must be before end time");
-          setLoading(false);
-          return;
-        }
-      }
-
-      await doctorAvailabilityApi.createAvailability({
-        availableDate: availabilityForm.availableDate,
-        slots: availabilityForm.slots,
-      });
-
-      alert("Availability set successfully!");
-
-      // Reset form and refresh availability list
-      setAvailabilityForm({
-        availableDate: "",
-        slots: [{ startTime: "", endTime: "" }],
-      });
-
-      // Fetch updated availability
-      try {
-        const response = await doctorAvailabilityApi.getMySlots();
-        if (response.data.success && response.data.availability) {
-          setExistingAvailability(
-            Array.isArray(response.data.availability)
-              ? response.data.availability
-              : [],
-          );
-        }
-      } catch (error) {
-        console.error("Failed to refresh availability:", error);
-      }
-    } catch (error) {
-      console.error(error);
-      alert(error?.response?.data?.message || "Failed to set availability");
+      await Promise.all(
+        dates.map((date) =>
+          doctorAvailabilityApi.createAvailability({
+            availableDate: date,
+            slots: slots.map((s) => ({ ...s })),
+          }),
+        ),
+      );
+      showSuccess(
+        `Availability set for ${dates.length} day${dates.length > 1 ? "s" : ""}!`,
+      );
+      setSlots([emptySlot()]);
+      setCustomDate("");
+      setWeeklyDays([]);
+      await fetchAvailability();
+    } catch (err) {
+      showError(err?.response?.data?.message || "Failed to set availability");
     } finally {
       setLoading(false);
     }
   };
 
-  // Format date for display
-  const formatDate = (dateString) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
+  // ── Toggle helpers ─────────────────────────────────────────────────────────
+  const toggleWeeklyDay = (day) =>
+    setWeeklyDays((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day],
+    );
 
-  // Ensure date is in proper format (YYYY-MM-DD)
-  const formatDateForInput = (dateString) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
+  const toggleMonthCustomDay = (day) =>
+    setMonthCustomDays((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day],
+    );
 
+  // ── Preview date count ─────────────────────────────────────────────────────
+  const previewCount = (() => {
+    try {
+      if (scheduleType === "custom") return customDate ? 1 : 0;
+      if (scheduleType === "weekly") {
+        if (weeklyDays.length === 0) return 0;
+        const start = new Date();
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(start);
+        end.setDate(end.getDate() + weekDuration * 7 - 1);
+        return getDatesByDayNames(start, end, weeklyDays).length;
+      }
+      if (scheduleType === "monthly") {
+        if (monthDayFilter === "custom" && monthCustomDays.length === 0)
+          return 0;
+        return getDatesInMonth(selectedMonth, monthDayFilter, monthCustomDays)
+          .length;
+      }
+    } catch {
+      return 0;
+    }
+    return 0;
+  })();
+
+  // ── Render ─────────────────────────────────────────────────────────────────
   if (fetchLoading) {
     return (
       <div className={styles.dashboardLayout}>
         <DoctorSidebar />
         <main className={styles.mainContent}>
           <div className={styles.loadingContainer}>
-            <p>Loading...</p>
+            <div className={styles.loadingSpinner} />
+            <p>Loading your profile...</p>
           </div>
         </main>
       </div>
@@ -292,40 +482,58 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
 
       <main className={styles.mainContent}>
         <div className={styles.wrapper}>
-          <h1 className={styles.title}>Manage Your Profile</h1>
-          <p className={styles.subtitle}>
-            Update your professional details and availability hours
-          </p>
+          {/* Header */}
+          <div className={styles.pageHeader}>
+            <div>
+              <h1 className={styles.title}>Manage Your Profile</h1>
+              <p className={styles.subtitle}>
+                Update your professional details and availability schedule
+              </p>
+            </div>
+          </div>
+
+          {/* Toast Notifications */}
+          {successMsg && (
+            <div className={styles.toast + " " + styles.toastSuccess}>
+              <FiCheckCircle size={16} />
+              <span>{successMsg}</span>
+            </div>
+          )}
+          {errorMsg && (
+            <div className={styles.toast + " " + styles.toastError}>
+              <FiX size={16} />
+              <span>{errorMsg}</span>
+            </div>
+          )}
 
           {/* Tabs */}
           <div className={styles.tabsContainer}>
-            <button
-              className={`${styles.tab} ${
-                activeTab === "profile" ? styles.activeTab : ""
-              }`}
-              onClick={() => setActiveTab("profile")}
-            >
-              Profile Information
-            </button>
-            <button
-              className={`${styles.tab} ${
-                activeTab === "availability" ? styles.activeTab : ""
-              }`}
-              onClick={() => setActiveTab("availability")}
-            >
-              Availability Hours
-            </button>
+            {["profile", "availability"].map((tab) => (
+              <button
+                key={tab}
+                className={`${styles.tab} ${activeTab === tab ? styles.activeTab : ""}`}
+                onClick={() => setActiveTab(tab)}
+              >
+                {tab === "profile"
+                  ? "Profile Information"
+                  : "Availability Hours"}
+              </button>
+            ))}
           </div>
 
-          {/* PROFILE TAB */}
+          {/* ── PROFILE TAB ─────────────────────────────────────────────── */}
           {activeTab === "profile" && (
             <form className={styles.form} onSubmit={handleProfileSubmit}>
+              {/* Personal */}
               <div className={styles.formSection}>
-                <h2>Personal Information</h2>
-
+                <div className={styles.sectionHeader}>
+                  <h2>Personal Information</h2>
+                </div>
                 <div className={styles.formRow}>
                   <div className={styles.formGroup}>
-                    <label htmlFor="phone">Phone Number *</label>
+                    <label htmlFor="phone">
+                      Phone Number <span className={styles.required}>*</span>
+                    </label>
                     <input
                       id="phone"
                       type="tel"
@@ -335,9 +543,10 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
                       required
                     />
                   </div>
-
                   <div className={styles.formGroup}>
-                    <label htmlFor="gender">Gender *</label>
+                    <label htmlFor="gender">
+                      Gender <span className={styles.required}>*</span>
+                    </label>
                     <select
                       id="gender"
                       name="gender"
@@ -351,9 +560,10 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
                       <option value="other">Other</option>
                     </select>
                   </div>
-
                   <div className={styles.formGroup}>
-                    <label htmlFor="dateOfBirth">Date of Birth *</label>
+                    <label htmlFor="dateOfBirth">
+                      Date of Birth <span className={styles.required}>*</span>
+                    </label>
                     <input
                       id="dateOfBirth"
                       type="date"
@@ -370,14 +580,17 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
                 </div>
               </div>
 
+              {/* Professional */}
               <div className={styles.formSection}>
-                <h2>Professional Information</h2>
-
+                <div className={styles.sectionHeader}>
+                  <h2>Professional Information</h2>
+                </div>
                 <div className={styles.formRow}>
                   <div className={styles.formGroup}>
-                    <label htmlFor="specialization">Specialization *</label>
+                    <label>
+                      Specialization <span className={styles.required}>*</span>
+                    </label>
                     <input
-                      id="specialization"
                       type="text"
                       name="specialization"
                       value={profileData.specialization}
@@ -386,13 +599,9 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
                       required
                     />
                   </div>
-
                   <div className={styles.formGroup}>
-                    <label htmlFor="superSpecialization">
-                      Super Specialization
-                    </label>
+                    <label>Super Specialization</label>
                     <input
-                      id="superSpecialization"
                       type="text"
                       name="superSpecialization"
                       value={profileData.superSpecialization}
@@ -400,11 +609,11 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
                       placeholder="e.g., Pediatric Cardiology"
                     />
                   </div>
-
                   <div className={styles.formGroup}>
-                    <label htmlFor="qualification">Qualification *</label>
+                    <label>
+                      Qualification <span className={styles.required}>*</span>
+                    </label>
                     <input
-                      id="qualification"
                       type="text"
                       name="qualification"
                       value={profileData.qualification}
@@ -414,14 +623,13 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
                     />
                   </div>
                 </div>
-
                 <div className={styles.formRow}>
                   <div className={styles.formGroup}>
-                    <label htmlFor="medicalRegistrationNumber">
-                      Medical Registration Number *
+                    <label>
+                      Medical Registration No.{" "}
+                      <span className={styles.required}>*</span>
                     </label>
                     <input
-                      id="medicalRegistrationNumber"
                       type="text"
                       name="medicalRegistrationNumber"
                       value={profileData.medicalRegistrationNumber}
@@ -429,11 +637,12 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
                       required
                     />
                   </div>
-
                   <div className={styles.formGroup}>
-                    <label htmlFor="experience">Experience (Years) *</label>
+                    <label>
+                      Experience (Years){" "}
+                      <span className={styles.required}>*</span>
+                    </label>
                     <input
-                      id="experience"
                       type="number"
                       name="experience"
                       value={profileData.experience}
@@ -442,11 +651,11 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
                       required
                     />
                   </div>
-
                   <div className={styles.formGroup}>
-                    <label htmlFor="hospitalName">Hospital Name *</label>
+                    <label>
+                      Hospital Name <span className={styles.required}>*</span>
+                    </label>
                     <input
-                      id="hospitalName"
                       type="text"
                       name="hospitalName"
                       value={profileData.hospitalName}
@@ -455,14 +664,13 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
                     />
                   </div>
                 </div>
-
                 <div className={styles.formRow}>
                   <div className={styles.formGroup}>
-                    <label htmlFor="consultationFee">
-                      Consultation Fee (₹) *
+                    <label>
+                      Consultation Fee (₹){" "}
+                      <span className={styles.required}>*</span>
                     </label>
                     <input
-                      id="consultationFee"
                       type="number"
                       name="consultationFee"
                       value={profileData.consultationFee}
@@ -471,11 +679,9 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
                       required
                     />
                   </div>
-
                   <div className={styles.formGroup}>
-                    <label htmlFor="languagesSpoken">Languages Spoken</label>
+                    <label>Languages Spoken</label>
                     <input
-                      id="languagesSpoken"
                       type="text"
                       name="languagesSpoken"
                       value={profileData.languagesSpoken}
@@ -486,19 +692,23 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
                 </div>
               </div>
 
+              {/* Working Schedule */}
               <div className={styles.formSection}>
-                <h2>Working Schedule</h2>
-
+                <div className={styles.sectionHeader}>
+                  <h2>Working Schedule</h2>
+                </div>
                 <div className={styles.formGroup}>
-                  <label>Working Days *</label>
+                  <label>
+                    Working Days <span className={styles.required}>*</span>
+                  </label>
                   <div className={styles.checkboxGrid}>
-                    {workingDayOptions.map((day) => (
+                    {WORKING_DAYS.map((day) => (
                       <label key={day} className={styles.checkboxLabel}>
                         <input
                           type="checkbox"
                           checked={profileData.workingDays.includes(day)}
                           onChange={() =>
-                            handleProfileCheckboxChange("workingDays", day)
+                            handleProfileCheckbox("workingDays", day)
                           }
                         />
                         {day}
@@ -506,12 +716,12 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
                     ))}
                   </div>
                 </div>
-
-                <div className={styles.formRow}>
+                <div className={styles.formRow} style={{ marginTop: "20px" }}>
                   <div className={styles.formGroup}>
-                    <label htmlFor="startTime">Start Time *</label>
+                    <label>
+                      Start Time <span className={styles.required}>*</span>
+                    </label>
                     <input
-                      id="startTime"
                       type="time"
                       name="startTime"
                       value={profileData.startTime}
@@ -519,11 +729,11 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
                       required
                     />
                   </div>
-
                   <div className={styles.formGroup}>
-                    <label htmlFor="endTime">End Time *</label>
+                    <label>
+                      End Time <span className={styles.required}>*</span>
+                    </label>
                     <input
-                      id="endTime"
                       type="time"
                       name="endTime"
                       value={profileData.endTime}
@@ -534,22 +744,24 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
                 </div>
               </div>
 
+              {/* Consultation Preferences */}
               <div className={styles.formSection}>
-                <h2>Consultation Preferences</h2>
-
+                <div className={styles.sectionHeader}>
+                  <h2>Consultation Preferences</h2>
+                </div>
                 <div className={styles.formGroup}>
-                  <label>Consultation Modes *</label>
+                  <label>
+                    Consultation Modes{" "}
+                    <span className={styles.required}>*</span>
+                  </label>
                   <div className={styles.checkboxGrid}>
-                    {modeOptions.map((mode) => (
+                    {MODE_OPTIONS.map((mode) => (
                       <label key={mode} className={styles.checkboxLabel}>
                         <input
                           type="checkbox"
                           checked={profileData.consultationModes.includes(mode)}
                           onChange={() =>
-                            handleProfileCheckboxChange(
-                              "consultationModes",
-                              mode,
-                            )
+                            handleProfileCheckbox("consultationModes", mode)
                           }
                         />
                         {mode.charAt(0).toUpperCase() + mode.slice(1)}
@@ -557,12 +769,10 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
                     ))}
                   </div>
                 </div>
-
-                <div className={styles.formRow}>
+                <div className={styles.formRow} style={{ marginTop: "20px" }}>
                   <div className={styles.formGroup}>
-                    <label htmlFor="shortBio">Short Bio</label>
+                    <label>Short Bio</label>
                     <textarea
-                      id="shortBio"
                       name="shortBio"
                       value={profileData.shortBio}
                       onChange={handleProfileChange}
@@ -571,16 +781,14 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
                     />
                   </div>
                 </div>
-
                 <div className={styles.formRow}>
                   <div className={styles.formGroup}>
-                    <label htmlFor="aboutDoctor">About You</label>
+                    <label>About You</label>
                     <textarea
-                      id="aboutDoctor"
                       name="aboutDoctor"
                       value={profileData.aboutDoctor}
                       onChange={handleProfileChange}
-                      placeholder="Write about yourself, your experience, and approach to patient care"
+                      placeholder="Write about your experience and approach to patient care"
                       rows="5"
                     />
                   </div>
@@ -593,170 +801,297 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
                   className={styles.submitBtn}
                   disabled={loading}
                 >
-                  {loading ? "Saving..." : "Save Profile Changes"}
+                  {loading ? (
+                    <>
+                      <span className={styles.btnSpinner} /> Saving...
+                    </>
+                  ) : (
+                    "Save Profile Changes"
+                  )}
                 </button>
               </div>
             </form>
           )}
 
-          {/* AVAILABILITY TAB */}
+          {/* ── AVAILABILITY TAB ─────────────────────────────────────────── */}
           {activeTab === "availability" && (
             <div className={styles.availabilityContainer}>
-              {/* LEFT: Form to Set Availability */}
-              <form className={styles.form} onSubmit={handleAvailabilitySubmit}>
-                <div className={styles.formSection}>
-                  <h2>
-                    <FiCalendar size={18} />
-                    Set Availability for a Specific Date
-                  </h2>
+              {/* LEFT — Form */}
+              <form
+                className={styles.availabilityForm}
+                onSubmit={handleAvailabilitySubmit}
+              >
+                {/* Schedule type selector */}
+                <div className={styles.scheduleTypeSection}>
+                  <p className={styles.scheduleTypeLabel}>Schedule Type</p>
+                  <ScheduleTypeSelector
+                    value={scheduleType}
+                    onChange={(t) => {
+                      setScheduleType(t);
+                      setSlots([emptySlot()]);
+                    }}
+                  />
+                </div>
 
-                  <div className={styles.formGroup}>
-                    <label htmlFor="availableDate">Select Date *</label>
-                    <input
-                      id="availableDate"
-                      type="date"
-                      value={availabilityForm.availableDate}
-                      onChange={handleAvailabilityDateChange}
-                      required
+                {/* ── Custom Date Form ──────────────────────────────────── */}
+                {scheduleType === "custom" && (
+                  <div className={styles.scheduleFormBody}>
+                    <div className={styles.formSectionInner}>
+                      <div className={styles.innerSectionTitle}>
+                        <FiCalendar size={15} />
+                        <span>Select Date</span>
+                      </div>
+                      <div className={styles.formGroup}>
+                        <label>
+                          Date <span className={styles.required}>*</span>
+                        </label>
+                        <input
+                          type="date"
+                          value={customDate}
+                          onChange={(e) => setCustomDate(e.target.value)}
+                          min={toYYYYMMDD(new Date())}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <SlotEditor
+                      slots={slots}
+                      onChange={handleSlotChange}
+                      onAdd={addSlot}
+                      onRemove={removeSlot}
                     />
                   </div>
+                )}
 
-                  <div className={styles.slotsContainer}>
-                    <label htmlFor="slots">
-                      <FiClock size={14} style={{ marginRight: "6px" }} />
-                      Time Slots *
-                    </label>
-                    <p className={styles.slotInfo}>
-                      Each slot is typically 30 minutes
-                    </p>
-
-                    {availabilityForm.slots.map((slot, index) => (
-                      <div key={index} className={styles.slotRow}>
-                        <div className={styles.slotGroup}>
-                          <label htmlFor={`startTime-${index}`}>
-                            Start Time
-                          </label>
-                          <input
-                            id={`startTime-${index}`}
-                            type="time"
-                            value={slot.startTime}
-                            onChange={(e) =>
-                              handleSlotChange(
-                                index,
-                                "startTime",
-                                e.target.value,
-                              )
-                            }
-                            required
-                          />
-                        </div>
-
-                        <div className={styles.slotGroup}>
-                          <label htmlFor={`endTime-${index}`}>End Time</label>
-                          <input
-                            id={`endTime-${index}`}
-                            type="time"
-                            value={slot.endTime}
-                            onChange={(e) =>
-                              handleSlotChange(index, "endTime", e.target.value)
-                            }
-                            required
-                          />
-                        </div>
-
-                        {availabilityForm.slots.length > 1 && (
-                          <button
-                            type="button"
-                            className={styles.removeSlotBtn}
-                            onClick={() => removeSlot(index)}
-                            title="Remove this slot"
-                          >
-                            <FiX size={16} />
-                          </button>
-                        )}
+                {/* ── Weekly Form ───────────────────────────────────────── */}
+                {scheduleType === "weekly" && (
+                  <div className={styles.scheduleFormBody}>
+                    <div className={styles.formSectionInner}>
+                      <div className={styles.innerSectionTitle}>
+                        <FiRepeat size={15} />
+                        <span>Recurring Days</span>
                       </div>
-                    ))}
+                      <p className={styles.helperText}>
+                        Select which days of the week you'll be available
+                      </p>
+                      <DayCheckboxGrid
+                        selected={weeklyDays}
+                        onChange={toggleWeeklyDay}
+                      />
+                    </div>
 
-                    <button
-                      type="button"
-                      className={styles.addSlotBtn}
-                      onClick={addSlot}
-                    >
-                      <FiPlus size={14} style={{ marginRight: "6px" }} />
-                      Add Another Slot
-                    </button>
-                  </div>
+                    <div className={styles.formSectionInner}>
+                      <div className={styles.innerSectionTitle}>
+                        <FiCalendar size={15} />
+                        <span>Duration</span>
+                      </div>
+                      <div className={styles.durationGrid}>
+                        {WEEK_DURATIONS.map(({ value, label }) => (
+                          <button
+                            key={value}
+                            type="button"
+                            className={`${styles.durationChip} ${weekDuration === value ? styles.durationChipActive : ""}`}
+                            onClick={() => setWeekDuration(value)}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
 
-                  <div className={styles.formActions}>
-                    <button
-                      type="submit"
-                      className={styles.submitBtn}
-                      disabled={loading}
-                    >
-                      {loading ? "Setting..." : "Set Availability"}
-                    </button>
+                    <SlotEditor
+                      slots={slots}
+                      onChange={handleSlotChange}
+                      onAdd={addSlot}
+                      onRemove={removeSlot}
+                    />
                   </div>
+                )}
+
+                {/* ── Monthly Form ──────────────────────────────────────── */}
+                {scheduleType === "monthly" && (
+                  <div className={styles.scheduleFormBody}>
+                    <div className={styles.formSectionInner}>
+                      <div className={styles.innerSectionTitle}>
+                        <FiGrid size={15} />
+                        <span>Select Month</span>
+                      </div>
+                      <div className={styles.formGroup}>
+                        <label>
+                          Month <span className={styles.required}>*</span>
+                        </label>
+                        <input
+                          type="month"
+                          value={selectedMonth}
+                          onChange={(e) => setSelectedMonth(e.target.value)}
+                          min={`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`}
+                        />
+                      </div>
+                    </div>
+
+                    <div className={styles.formSectionInner}>
+                      <div className={styles.innerSectionTitle}>
+                        <FiCalendar size={15} />
+                        <span>Day Selection</span>
+                      </div>
+                      <div className={styles.presetGrid}>
+                        {MONTH_DAY_PRESETS.map(({ key, label }) => (
+                          <button
+                            key={key}
+                            type="button"
+                            className={`${styles.presetChip} ${monthDayFilter === key ? styles.presetChipActive : ""}`}
+                            onClick={() => {
+                              setMonthDayFilter(key);
+                              setMonthCustomDays([]);
+                            }}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+
+                      {monthDayFilter === "custom" && (
+                        <div style={{ marginTop: "16px" }}>
+                          <p className={styles.helperText}>
+                            Choose specific days
+                          </p>
+                          <DayCheckboxGrid
+                            selected={monthCustomDays}
+                            onChange={toggleMonthCustomDay}
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    <SlotEditor
+                      slots={slots}
+                      onChange={handleSlotChange}
+                      onAdd={addSlot}
+                      onRemove={removeSlot}
+                    />
+                  </div>
+                )}
+
+                {/* Preview Banner */}
+                {previewCount > 0 && (
+                  <div className={styles.previewBanner}>
+                    <FiCheckCircle size={15} />
+                    <span>
+                      This will create availability for{" "}
+                      <strong>
+                        {previewCount} day{previewCount !== 1 ? "s" : ""}
+                      </strong>
+                      {scheduleType === "weekly" && weeklyDays.length > 0 && (
+                        <>
+                          {" "}
+                          — {weeklyDays
+                            .map((d) => d.slice(0, 3))
+                            .join(", ")}{" "}
+                          for the next {weekDuration} weeks
+                        </>
+                      )}
+                      {scheduleType === "monthly" && (
+                        <>
+                          {" "}
+                          in{" "}
+                          {new Date(selectedMonth + "-01").toLocaleDateString(
+                            "en-US",
+                            { month: "long", year: "numeric" },
+                          )}
+                        </>
+                      )}
+                    </span>
+                  </div>
+                )}
+
+                <div className={styles.formActions}>
+                  <button
+                    type="submit"
+                    className={styles.submitBtn}
+                    disabled={loading || previewCount === 0}
+                  >
+                    {loading ? (
+                      <>
+                        <span className={styles.btnSpinner} /> Setting
+                        Availability...
+                      </>
+                    ) : previewCount > 0 ? (
+                      `Set Availability (${previewCount} day${previewCount !== 1 ? "s" : ""})`
+                    ) : (
+                      "Set Availability"
+                    )}
+                  </button>
                 </div>
               </form>
 
-              {/* RIGHT: Display Existing Availability */}
+              {/* RIGHT — Existing Availability */}
               <div className={styles.existingAvailability}>
-                <h2>
+                <div className={styles.existingHeader}>
                   <FiCheckCircle size={18} />
-                  Your Existing Availability
-                </h2>
+                  <h2>Your Existing Availability</h2>
+                </div>
 
                 {existingAvailability.length === 0 ? (
-                  <p className={styles.noData}>
-                    No availability set yet. Create one using the form on the
-                    left!
-                  </p>
+                  <div className={styles.emptyState}>
+                    <FiCalendar size={32} />
+                    <p>No availability set yet.</p>
+                    <span>Configure your schedule using the form.</span>
+                  </div>
                 ) : (
                   <div className={styles.availabilityList}>
-                    {existingAvailability.map((availability) => (
-                      <div
-                        key={availability._id || Math.random()}
-                        className={styles.availabilityCard}
-                      >
-                        <div className={styles.cardHeader}>
-                          <h3>{formatDate(availability.availableDate)}</h3>
-                          <span
-                            className={
-                              availability.isActive
-                                ? styles.activeBadge
-                                : styles.inactiveBadge
-                            }
-                          >
-                            {availability.isActive ? "Active" : "Inactive"}
-                          </span>
-                        </div>
+                    {existingAvailability.map((avail) => {
+                      const booked =
+                        avail.slots?.filter((s) => s.isBooked).length || 0;
+                      const total = avail.slots?.length || 0;
+                      return (
+                        <div
+                          key={avail._id || Math.random()}
+                          className={styles.availabilityCard}
+                        >
+                          <div className={styles.cardHeader}>
+                            <h3>{formatDate(avail.availableDate)}</h3>
+                            <div className={styles.cardMeta}>
+                              {booked > 0 && (
+                                <span className={styles.bookedCount}>
+                                  {booked}/{total} booked
+                                </span>
+                              )}
+                              <span
+                                className={
+                                  avail.isActive
+                                    ? styles.activeBadge
+                                    : styles.inactiveBadge
+                                }
+                              >
+                                {avail.isActive ? "Active" : "Inactive"}
+                              </span>
+                            </div>
+                          </div>
 
-                        <div className={styles.slotsDisplay}>
-                          {Array.isArray(availability.slots) &&
-                          availability.slots.length > 0 ? (
-                            availability.slots.map((slot, idx) => (
-                              <div key={idx} className={styles.slotDisplay}>
-                                <span className={styles.slotTime}>
-                                  {slot.startTime || "-"} -{" "}
-                                  {slot.endTime || "-"}
-                                </span>
-                                <span
-                                  className={
-                                    slot.isBooked
-                                      ? styles.slotBooked
-                                      : styles.slotAvailable
-                                  }
+                          <div className={styles.slotsDisplay}>
+                            {Array.isArray(avail.slots) &&
+                            avail.slots.length > 0 ? (
+                              avail.slots.map((slot, i) => (
+                                <div
+                                  key={i}
+                                  className={`${styles.slotPill} ${slot.isBooked ? styles.slotPillBooked : styles.slotPillAvailable}`}
                                 >
-                                  {slot.isBooked ? "Booked" : "Available"}
-                                </span>
-                              </div>
-                            ))
-                          ) : (
-                            <p className={styles.noSlots}>No slots available</p>
-                          )}
+                                  <span className={styles.slotTime}>
+                                    {slot.startTime} – {slot.endTime}
+                                  </span>
+                                  <span className={styles.slotStatus}>
+                                    {slot.isBooked ? "Booked" : "Free"}
+                                  </span>
+                                </div>
+                              ))
+                            ) : (
+                              <p className={styles.noSlots}>No slots</p>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>

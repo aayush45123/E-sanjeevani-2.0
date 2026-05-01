@@ -18,6 +18,7 @@ import Consultations from "./pages/Consultations/Consultations";
 import ConsultationBookingForm from "./pages/ConsultationBookingForm/ConsultationBookingForm";
 import DoctorProfileSetup from "./pages/DoctorProfileSetup/DoctorProfileSetup";
 import DoctorProfileEdit from "./pages/DoctorProfileEdit/DoctorProfileEdit";
+import DoctorSchedule from "./pages/DoctorDashboard/DoctorSchedule";
 import VideoCall from "./pages/VideoCall/VideoCall";
 
 import { doctorProfileApi, authApi } from "./utils/api";
@@ -302,6 +303,18 @@ const App = () => {
           element={
             isLoggedIn && userRole === "doctor" ? (
               <MyPatients />
+            ) : (
+              <Navigate to="/auth" replace />
+            )
+          }
+        />
+
+        {/* DOCTOR DASHBOARD SCHEDULE ROUTE */}
+        <Route
+          path="/doctor-dashboard/schedule"
+          element={
+            isLoggedIn && userRole === "doctor" ? (
+              <DoctorSchedule isProfileIncomplete={!doctorProfileCompleted} />
             ) : (
               <Navigate to="/auth" replace />
             )
