@@ -209,6 +209,21 @@ export default function DoctorSchedule({ isProfileIncomplete = false }) {
 
   /*
   ==================================================
+  CHECK IF SLOT HAS EXPIRED
+  ==================================================
+  */
+
+  const isSlotExpired = (date, endTime) => {
+    const slotDate = new Date(date);
+    const [hours, minutes] = endTime.split(":").map(Number);
+    slotDate.setHours(hours, minutes, 0, 0);
+
+    const now = new Date();
+    return slotDate < now;
+  };
+
+  /*
+  ==================================================
   GET STATUS COLOR
   ==================================================
   */
@@ -223,6 +238,8 @@ export default function DoctorSchedule({ isProfileIncomplete = false }) {
         return styles.statusCompleted;
       case "cancelled":
         return styles.statusCancelled;
+      case "expired":
+        return styles.statusExpired;
       default:
         return styles.statusScheduled;
     }
@@ -467,10 +484,21 @@ export default function DoctorSchedule({ isProfileIncomplete = false }) {
                         c.endTime === slot.endTime,
                     );
 
+                    const slotExpired = isSlotExpired(
+                      selectedDateAvailability.availableDate,
+                      slot.endTime,
+                    );
+
                     return (
                       <div
                         key={idx}
-                        className={`${styles.slotCard} ${slot.isBooked ? styles.slotBooked : styles.slotFree}`}
+                        className={`${styles.slotCard} ${
+                          slot.isBooked
+                            ? styles.slotBooked
+                            : slotExpired
+                              ? styles.slotExpired
+                              : styles.slotFree
+                        }`}
                       >
                         <div className={styles.slotTime}>
                           <FiClock className={styles.slotTimeIcon} />
@@ -501,6 +529,11 @@ export default function DoctorSchedule({ isProfileIncomplete = false }) {
                             >
                               {consultation.status}
                             </div>
+                          </div>
+                        ) : slotExpired ? (
+                          <div className={styles.slotExpiredInfo}>
+                            <FiX className={styles.expiredIcon} />
+                            <p>Expired</p>
                           </div>
                         ) : (
                           <div className={styles.slotFreeInfo}>
