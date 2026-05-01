@@ -1,7 +1,6 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import io from "socket.io-client";
-import Peer from "simple-peer";
 import styles from "./VideoCall.module.css";
 import { consultationApi } from "../../utils/api";
 
@@ -11,345 +10,195 @@ export default function VideoCall() {
   const { consultationId } = useParams();
   const navigate = useNavigate();
 
-  const [callStatus, setCallStatus] = useState("idle");
   const [connectionError, setConnectionError] = useState("");
-  const [debugInfo, setDebugInfo] = useState({
-    mySocketId: "",
-    usersInRoom: 0,
-  });
+  const [usersInRoom, setUsersInRoom] = useState(0);
 
   const myVideo = useRef(null);
-  const userVideo = useRef(null);
-  const connectionRef = useRef(null);
+  const remoteVideo = useRef(null);
+
   const socketRef = useRef(null);
-  const streamRef = useRef(null);
-  const mySocketId = useRef(null);
+  const peerRef = useRef(null);
+  const localStreamRef = useRef(null);
 
   /*
   ==================================================
-  INITIATOR (FIRST USER)
+  CREATE PEER CONNECTION
   ==================================================
   */
 
-  const createInitiatorPeer = useCallback((otherSocketId) => {
-    console.log("[INITIATOR] Creating peer →", otherSocketId);
+  const createPeerConnection = () => {
+    const peer = new RTCPeerConnection({
+      iceServers: [
+        {
+          urls: ["stun:stun.l.google.com:19302"],
+        },
+      ],
+    });
 
-    if (connectionRef.current) {
-      console.log("[INITIATOR] Peer already exists");
-      return;
-    }
+    /*
+    Send ICE candidates
+    */
 
-    if (!streamRef.current) {
-      console.log("[INITIATOR] No local stream");
-      return;
-    }
-
-    // ✅ Validate stream before creating peer
-    const videoTracks = streamRef.current.getVideoTracks();
-    const audioTracks = streamRef.current.getAudioTracks();
-
-    console.log("[INITIATOR] Stream validation:");
-    console.log("  - Video tracks:", videoTracks.length);
-    console.log("  - Audio tracks:", audioTracks.length);
-    console.log("  - Video enabled:", videoTracks[0]?.enabled);
-    console.log("  - Audio enabled:", audioTracks[0]?.enabled);
-    console.log("  - Stream active:", streamRef.current.active);
-
-    if (videoTracks.length === 0 || audioTracks.length === 0) {
-      console.error("[INITIATOR] ❌ Stream missing video or audio tracks");
-      setConnectionError("Media stream error: missing tracks");
-      return;
-    }
-
-    try {
-      // ✅ Simplified configuration - works better for localhost
-      const peer = new Peer({
-        initiator: true,
-        trickle: false,
-        stream: streamRef.current,
-        iceServers: [
-          { urls: "stun:stun.l.google.com:19302" },
-          { urls: "stun:stun1.l.google.com:19302" },
-        ],
-      });
-
-      console.log("[INITIATOR] ✅ Peer created successfully");
-
-      peer.on("signal", (signalData) => {
-        console.log("[INITIATOR] Sending offer");
-
-        socketRef.current?.emit("call-user", {
-          userToCall: otherSocketId,
-          signalData,
-          from: mySocketId.current,
+    peer.onicecandidate = (event) => {
+      if (event.candidate) {
+        socketRef.current.emit("ice-candidate", {
+          consultationId,
+          candidate: event.candidate,
         });
-      });
+      }
+    };
 
-      peer.on("stream", (remoteStream) => {
-        console.log("[INITIATOR] Remote stream received");
+    /*
+    Receive remote stream
+    */
 
-        if (userVideo.current) {
-          userVideo.current.srcObject = remoteStream;
-        }
+    peer.ontrack = (event) => {
+      if (remoteVideo.current) {
+        remoteVideo.current.srcObject = event.streams[0];
+      }
+    };
 
-        setCallStatus("connected");
-      });
+    /*
+    Add local tracks
+    */
 
-      peer.on("error", (err) => {
-        console.error("[INITIATOR] Peer error:", err);
-        setConnectionError("Connection failed. Refresh page.");
-        connectionRef.current = null;
-      });
+    localStreamRef.current.getTracks().forEach((track) => {
+      peer.addTrack(track, localStreamRef.current);
+    });
 
-      peer.on("close", () => {
-        console.log("[INITIATOR] Peer closed");
-        connectionRef.current = null;
-        setCallStatus("ended");
-      });
-
-      connectionRef.current = peer;
-      setCallStatus("connecting");
-    } catch (err) {
-      console.error("[INITIATOR] ❌ Failed to create peer:", err);
-      console.error("[INITIATOR] Error stack:", err.stack);
-      setConnectionError(`Peer creation failed: ${err.message}`);
-    }
-  }, []);
+    peerRef.current = peer;
+    return peer;
+  };
 
   /*
   ==================================================
-  RECEIVER (SECOND USER)
-  ==================================================
-  */
-
-  const createReceiverPeer = useCallback((callerId, callerSignal) => {
-    console.log("[RECEIVER] Answering →", callerId);
-
-    if (connectionRef.current) {
-      console.log("[RECEIVER] Peer already exists");
-      return;
-    }
-
-    if (!streamRef.current) {
-      console.log("[RECEIVER] No local stream");
-      return;
-    }
-
-    // ✅ Validate stream before creating peer
-    const videoTracks = streamRef.current.getVideoTracks();
-    const audioTracks = streamRef.current.getAudioTracks();
-
-    console.log("[RECEIVER] Stream validation:");
-    console.log("  - Video tracks:", videoTracks.length);
-    console.log("  - Audio tracks:", audioTracks.length);
-    console.log("  - Video enabled:", videoTracks[0]?.enabled);
-    console.log("  - Audio enabled:", audioTracks[0]?.enabled);
-    console.log("  - Stream active:", streamRef.current.active);
-
-    if (videoTracks.length === 0 || audioTracks.length === 0) {
-      console.error("[RECEIVER] ❌ Stream missing video or audio tracks");
-      setConnectionError("Media stream error: missing tracks");
-      return;
-    }
-
-    try {
-      // ✅ Simplified configuration - works better for localhost
-      const peer = new Peer({
-        initiator: false,
-        trickle: false,
-        stream: streamRef.current,
-        iceServers: [
-          { urls: "stun:stun.l.google.com:19302" },
-          { urls: "stun:stun1.l.google.com:19302" },
-        ],
-      });
-
-      console.log("[RECEIVER] ✅ Peer created successfully");
-
-      peer.on("signal", (signalData) => {
-        console.log("[RECEIVER] Sending answer");
-
-        socketRef.current?.emit("answer-call", {
-          to: callerId,
-          signal: signalData,
-        });
-      });
-
-      peer.on("stream", (remoteStream) => {
-        console.log("[RECEIVER] Remote stream received");
-
-        if (userVideo.current) {
-          userVideo.current.srcObject = remoteStream;
-        }
-
-        setCallStatus("connected");
-      });
-
-      peer.on("error", (err) => {
-        console.error("[RECEIVER] Peer error:", err);
-        setConnectionError("Connection failed. Refresh page.");
-        connectionRef.current = null;
-      });
-
-      peer.on("close", () => {
-        console.log("[RECEIVER] Peer closed");
-        connectionRef.current = null;
-        setCallStatus("ended");
-      });
-
-      /*
-      Apply received offer
-      */
-
-      peer.signal(callerSignal);
-
-      connectionRef.current = peer;
-      setCallStatus("connecting");
-    } catch (err) {
-      console.error("[RECEIVER] ❌ Failed to create peer:", err);
-      console.error("[RECEIVER] Error stack:", err.stack);
-      setConnectionError(`Peer creation failed: ${err.message}`);
-    }
-  }, []);
-
-  /*
-  ==================================================
-  MAIN SETUP
+  START VIDEO CALL
   ==================================================
   */
 
   useEffect(() => {
     let mounted = true;
 
-    const setupVideoCall = async () => {
+    const init = async () => {
       try {
         /*
         Get camera + mic
         */
 
-        const localStream = await navigator.mediaDevices.getUserMedia({
+        const stream = await navigator.mediaDevices.getUserMedia({
           video: true,
           audio: true,
         });
 
         if (!mounted) return;
 
-        streamRef.current = localStream;
+        localStreamRef.current = stream;
 
         if (myVideo.current) {
-          myVideo.current.srcObject = localStream;
+          myVideo.current.srcObject = stream;
         }
 
         /*
-        Socket connection
+        Connect socket
         */
 
         const socket = io(SOCKET_URL, {
           transports: ["websocket"],
-          reconnection: true,
         });
 
         socketRef.current = socket;
 
         socket.on("connect", () => {
-          console.log("[SOCKET] Connected:", socket.id);
-
-          mySocketId.current = socket.id;
-
-          setDebugInfo({
-            mySocketId: socket.id,
-            usersInRoom: 1,
-          });
-
-          /*
-          Join same consultation room
-          */
+          console.log("Socket connected:", socket.id);
 
           socket.emit("join-room", consultationId);
-
-          setCallStatus("waiting");
         });
 
         /*
-        FIRST USER:
-        receives second user joined
-        ONLY initiator starts here
+        First user initiates
         */
 
-        socket.on("other-user", ({ socketId, shouldInitiate, usersInRoom }) => {
-          console.log("[SOCKET] other-user:", socketId, shouldInitiate);
+        socket.on("other-user", async ({ shouldInitiate, usersInRoom }) => {
+          setUsersInRoom(usersInRoom || 2);
 
-          setDebugInfo((prev) => ({
-            ...prev,
-            usersInRoom: usersInRoom || 2,
-          }));
+          if (!shouldInitiate) return;
 
-          if (shouldInitiate) {
-            if (!connectionRef.current) {
-              createInitiatorPeer(socketId);
+          const peer = createPeerConnection();
+
+          const offer = await peer.createOffer();
+          await peer.setLocalDescription(offer);
+
+          socket.emit("call-user", {
+            consultationId,
+            signalData: offer,
+            from: socket.id,
+          });
+        });
+
+        /*
+        Second user receives offer
+        */
+
+        socket.on("incoming-call", async ({ signal, from }) => {
+          const peer = createPeerConnection();
+
+          await peer.setRemoteDescription(new RTCSessionDescription(signal));
+
+          const answer = await peer.createAnswer();
+          await peer.setLocalDescription(answer);
+
+          socket.emit("answer-call", {
+            consultationId,
+            signal: answer,
+          });
+        });
+
+        /*
+        First user receives answer
+        */
+
+        socket.on("call-accepted", async (signal) => {
+          if (!peerRef.current) return;
+
+          await peerRef.current.setRemoteDescription(
+            new RTCSessionDescription(signal),
+          );
+        });
+
+        /*
+        ICE candidate exchange
+        */
+
+        socket.on("ice-candidate", async ({ candidate }) => {
+          if (peerRef.current && candidate) {
+            try {
+              await peerRef.current.addIceCandidate(
+                new RTCIceCandidate(candidate),
+              );
+            } catch (err) {
+              console.log(err);
             }
           }
         });
 
         /*
-        SECOND USER:
-        just waits
+        Room status
         */
 
-        socket.on("existing-user", ({ socketId, usersInRoom }) => {
-          console.log("[SOCKET] existing-user:", socketId);
-
-          setDebugInfo((prev) => ({
-            ...prev,
-            usersInRoom: usersInRoom || 2,
-          }));
+        socket.on("existing-user", ({ usersInRoom }) => {
+          setUsersInRoom(usersInRoom || 2);
         });
 
         /*
-        SECOND USER:
-        receives incoming offer
-        */
-
-        socket.on("incoming-call", ({ signal, from }) => {
-          console.log("[SOCKET] incoming-call from:", from);
-
-          if (!connectionRef.current) {
-            createReceiverPeer(from, signal);
-          }
-        });
-
-        /*
-        FIRST USER:
-        receives answer
-        */
-
-        socket.on("call-accepted", (signal) => {
-          console.log("[SOCKET] call accepted");
-
-          if (connectionRef.current) {
-            connectionRef.current.signal(signal);
-          }
-        });
-
-        /*
-        End call handling
+        Call ended
         */
 
         socket.on("call-ended", () => {
-          console.log("[SOCKET] Call ended");
-
-          connectionRef.current?.destroy();
-          connectionRef.current = null;
-
-          if (userVideo.current) {
-            userVideo.current.srcObject = null;
-          }
-
-          setCallStatus("ended");
+          leaveCall(false);
         });
 
         /*
-        Consultation status update
+        Update consultation status
         */
 
         try {
@@ -365,22 +214,18 @@ export default function VideoCall() {
       }
     };
 
-    setupVideoCall();
+    init();
 
     return () => {
       mounted = false;
 
-      streamRef.current?.getTracks().forEach((track) => track.stop());
+      localStreamRef.current?.getTracks().forEach((track) => track.stop());
 
-      connectionRef.current?.destroy();
-      connectionRef.current = null;
+      peerRef.current?.close();
 
-      if (socketRef.current) {
-        socketRef.current.emit("end-call");
-        socketRef.current.disconnect();
-      }
+      socketRef.current?.disconnect();
     };
-  }, [consultationId, createInitiatorPeer, createReceiverPeer]);
+  }, [consultationId]);
 
   /*
   ==================================================
@@ -388,15 +233,7 @@ export default function VideoCall() {
   ==================================================
   */
 
-  const leaveCall = async () => {
-    connectionRef.current?.destroy();
-    connectionRef.current = null;
-
-    streamRef.current?.getTracks().forEach((track) => track.stop());
-
-    socketRef.current?.emit("end-call");
-    socketRef.current?.disconnect();
-
+  const leaveCall = async (shouldNavigate = true) => {
     try {
       await consultationApi.updateConsultationStatus(consultationId, {
         status: "completed",
@@ -405,7 +242,15 @@ export default function VideoCall() {
       console.log(err);
     }
 
-    navigate("/dashboard");
+    localStreamRef.current?.getTracks().forEach((track) => track.stop());
+
+    peerRef.current?.close();
+    socketRef.current?.emit("end-call");
+    socketRef.current?.disconnect();
+
+    if (shouldNavigate) {
+      navigate("/dashboard");
+    }
   };
 
   return (
@@ -413,7 +258,7 @@ export default function VideoCall() {
       <h1>Live Consultation</h1>
 
       <div className={styles.debugBanner}>
-        Room: {consultationId} | Users: {debugInfo.usersInRoom}/2
+        Room: {consultationId} | Users: {usersInRoom}/2
       </div>
 
       {connectionError && (
@@ -423,30 +268,28 @@ export default function VideoCall() {
       <div className={styles.videoGrid}>
         <div className={styles.videoCard}>
           <h3>You</h3>
-
           <video
             ref={myVideo}
+            autoPlay
             playsInline
             muted
-            autoPlay
             className={styles.video}
           />
         </div>
 
         <div className={styles.videoCard}>
           <h3>Participant</h3>
-
           <video
-            ref={userVideo}
-            playsInline
+            ref={remoteVideo}
             autoPlay
+            playsInline
             className={styles.video}
           />
         </div>
       </div>
 
       <div className={styles.controls}>
-        <button className={styles.endBtn} onClick={leaveCall}>
+        <button className={styles.endBtn} onClick={() => leaveCall(true)}>
           End Call
         </button>
       </div>

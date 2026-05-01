@@ -2,8 +2,9 @@ import { Server } from "socket.io";
 
 /*
 ==================================================
-FINAL PRODUCTION SOCKET.IO SIGNALING SERVER
+FINAL UPDATED ROOM-BASED SOCKET.IO SERVER
 E-Sanjeevani WebRTC Video Consultation
+FULLY MATCHED WITH NATIVE WEBRTC FRONTEND
 ==================================================
 
 FLOW:
@@ -12,15 +13,16 @@ User 1 joins room
 → waits
 
 User 2 joins same room
-→ User 1 receives "other-user"
-→ ONLY User 1 initiates call
+→ User 1 gets "other-user" and creates OFFER
 
-User 2 receives "incoming-call"
-→ answers automatically
+User 2 gets "incoming-call"
+→ creates ANSWER automatically
 
-User 1 receives "call-accepted"
+User 1 gets "call-accepted"
 
-Both streams connect successfully
+ICE candidates exchanged
+
+Remote participant video appears successfully
 
 ==================================================
 */
@@ -40,7 +42,6 @@ const initializeSocket = (server) => {
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
       credentials: true,
     },
-
     transports: ["websocket", "polling"],
   });
 
@@ -48,24 +49,24 @@ const initializeSocket = (server) => {
     console.log(`[Socket] Connected: ${socket.id}`);
 
     /*
-    =========================================
+    ==================================================
     SEND OWN SOCKET ID
-    =========================================
+    ==================================================
     */
 
     socket.emit("me", socket.id);
 
     /*
-    =========================================
+    ==================================================
     JOIN ROOM
-    =========================================
+    ==================================================
     */
 
     socket.on("join-room", (consultationId) => {
       if (!consultationId) return;
 
       /*
-      Prevent duplicate join
+      Prevent duplicate joins
       */
 
       if (socketRoomMap[socket.id] === consultationId) {
@@ -90,7 +91,7 @@ const initializeSocket = (server) => {
       );
 
       /*
-      EXACTLY 2 USERS REQUIRED
+      EXACTLY 2 USERS
       */
 
       if (room.length === 2) {
@@ -101,17 +102,15 @@ const initializeSocket = (server) => {
         */
 
         io.to(firstUser).emit("other-user", {
-          socketId: secondUser,
           shouldInitiate: true,
           usersInRoom: 2,
         });
 
         /*
-        SECOND USER ONLY WAITS
+        SECOND USER JUST WAITS
         */
 
         io.to(secondUser).emit("existing-user", {
-          socketId: firstUser,
           usersInRoom: 2,
         });
 
@@ -121,7 +120,7 @@ const initializeSocket = (server) => {
       }
 
       /*
-      Prevent room overflow
+      Prevent more than 2 users
       */
 
       if (room.length > 2) {
@@ -132,46 +131,68 @@ const initializeSocket = (server) => {
     });
 
     /*
-    =========================================
-    CALL USER (OFFER)
-    =========================================
+    ==================================================
+    OFFER → ROOM BASED
+    ==================================================
     */
 
-    socket.on("call-user", ({ userToCall, signalData, from }) => {
-      if (!userToCall || !signalData || !from) {
-        console.warn("[Signal] Invalid call-user payload");
+    socket.on("call-user", ({ consultationId, signalData, from }) => {
+      if (!consultationId || !signalData || !from) {
+        console.warn("[Signal] Invalid OFFER payload");
         return;
       }
 
-      console.log(`[Signal] OFFER → ${from} calling ${userToCall}`);
+      console.log(`[Signal] OFFER → ${from} → room ${consultationId}`);
 
-      io.to(userToCall).emit("incoming-call", {
+      /*
+        Send to everyone else in room
+        */
+
+      socket.to(consultationId).emit("incoming-call", {
         signal: signalData,
         from,
       });
     });
 
     /*
-    =========================================
-    ANSWER CALL (ANSWER)
-    =========================================
+    ==================================================
+    ANSWER → ROOM BASED
+    ==================================================
     */
 
-    socket.on("answer-call", ({ to, signal }) => {
-      if (!to || !signal) {
-        console.warn("[Signal] Invalid answer-call payload");
+    socket.on("answer-call", ({ consultationId, signal }) => {
+      if (!consultationId || !signal) {
+        console.warn("[Signal] Invalid ANSWER payload");
         return;
       }
 
-      console.log(`[Signal] ANSWER → ${socket.id} answering ${to}`);
+      console.log(`[Signal] ANSWER → room ${consultationId}`);
 
-      io.to(to).emit("call-accepted", signal);
+      /*
+        Send answer back to initiator
+        */
+
+      socket.to(consultationId).emit("call-accepted", signal);
     });
 
     /*
-    =========================================
+    ==================================================
+    ICE CANDIDATE EXCHANGE
+    ==================================================
+    */
+
+    socket.on("ice-candidate", ({ consultationId, candidate }) => {
+      if (!consultationId || !candidate) return;
+
+      socket.to(consultationId).emit("ice-candidate", {
+        candidate,
+      });
+    });
+
+    /*
+    ==================================================
     END CALL
-    =========================================
+    ==================================================
     */
 
     socket.on("end-call", () => {
@@ -185,9 +206,9 @@ const initializeSocket = (server) => {
     });
 
     /*
-    =========================================
+    ==================================================
     DISCONNECT
-    =========================================
+    ==================================================
     */
 
     socket.on("disconnect", () => {
