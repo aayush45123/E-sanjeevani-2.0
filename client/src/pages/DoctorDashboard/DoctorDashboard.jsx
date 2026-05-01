@@ -265,9 +265,22 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
                 {consultations.length === 0 ? (
                   <div className={styles.emptyState}>No appointments found</div>
                 ) : (
-                  consultations.map((appt) => (
-                    <AppointmentRow key={appt._id} appt={appt} />
-                  ))
+                  [...consultations]
+                    .sort((a, b) => {
+                      // Scheduled first, then others
+                      if (a.status === "scheduled" && b.status !== "scheduled")
+                        return -1;
+                      if (a.status !== "scheduled" && b.status === "scheduled")
+                        return 1;
+                      // Within same status, sort by date (newer first)
+                      return (
+                        new Date(b.consultationDate) -
+                        new Date(a.consultationDate)
+                      );
+                    })
+                    .map((appt) => (
+                      <AppointmentRow key={appt._id} appt={appt} />
+                    ))
                 )}
               </div>
             </section>

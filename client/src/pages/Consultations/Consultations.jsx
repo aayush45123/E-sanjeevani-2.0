@@ -165,79 +165,92 @@ export default function Consultations() {
                 </div>
               ) : (
                 <div className={styles.consultationList}>
-                  {consultations.map((consultation) => (
-                    <div
-                      key={consultation._id}
-                      className={styles.consultationCard}
-                    >
-                      <div className={styles.cardTop}>
-                        <div className={styles.doctorInfo}>
-                          <div className={styles.avatar}>
-                            {consultation.doctor?.name?.charAt(0) || "D"}
+                  {[...consultations]
+                    .sort((a, b) => {
+                      // Scheduled first, then others
+                      if (a.status === "scheduled" && b.status !== "scheduled")
+                        return -1;
+                      if (a.status !== "scheduled" && b.status === "scheduled")
+                        return 1;
+                      // Within same status, sort by date (newer first)
+                      return (
+                        new Date(b.consultationDate) -
+                        new Date(a.consultationDate)
+                      );
+                    })
+                    .map((consultation) => (
+                      <div
+                        key={consultation._id}
+                        className={styles.consultationCard}
+                      >
+                        <div className={styles.cardTop}>
+                          <div className={styles.doctorInfo}>
+                            <div className={styles.avatar}>
+                              {consultation.doctor?.name?.charAt(0) || "D"}
+                            </div>
+
+                            <div>
+                              <h3 className={styles.doctorName}>
+                                Dr. {consultation.doctor?.name || "Doctor"}
+                              </h3>
+
+                              <p className={styles.specialization}>
+                                {consultation.doctor?.specialization ||
+                                  "Specialist"}
+                              </p>
+                            </div>
                           </div>
 
-                          <div>
-                            <h3 className={styles.doctorName}>
-                              Dr. {consultation.doctor?.name || "Doctor"}
-                            </h3>
+                          <span
+                            className={`${styles.statusBadge} ${getStatusClass(
+                              consultation.status,
+                            )}`}
+                          >
+                            {consultation.status}
+                          </span>
+                        </div>
 
-                            <p className={styles.specialization}>
-                              {consultation.doctor?.specialization ||
-                                "Specialist"}
-                            </p>
+                        <div className={styles.cardBody}>
+                          <p>
+                            <strong>Symptoms:</strong> {consultation.symptoms}
+                          </p>
+
+                          <p>
+                            <strong>Current Problem:</strong>{" "}
+                            {consultation.currentProblem}
+                          </p>
+
+                          <div className={styles.metaRow}>
+                            <span>
+                              <FiCalendar />{" "}
+                              {new Date(
+                                consultation.consultationDate,
+                              ).toLocaleDateString()}
+                            </span>
+
+                            <span>
+                              <FiClock /> {consultation.startTime} -{" "}
+                              {consultation.endTime}
+                            </span>
+
+                            <span>
+                              {consultation.consultationType?.toUpperCase()}
+                            </span>
+
+                            {consultation.status !== "completed" && (
+                              <button
+                                className={styles.bookBtn}
+                                onClick={() =>
+                                  navigate(`/video-call/${consultation._id}`)
+                                }
+                              >
+                                Join Consultation
+                              </button>
+                            )}
                           </div>
                         </div>
-
-                        <span
-                          className={`${styles.statusBadge} ${getStatusClass(
-                            consultation.status,
-                          )}`}
-                        >
-                          {consultation.status}
-                        </span>
                       </div>
-
-                      <div className={styles.cardBody}>
-                        <p>
-                          <strong>Symptoms:</strong> {consultation.symptoms}
-                        </p>
-
-                        <p>
-                          <strong>Current Problem:</strong>{" "}
-                          {consultation.currentProblem}
-                        </p>
-
-                        <div className={styles.metaRow}>
-                          <span>
-                            <FiCalendar />{" "}
-                            {new Date(
-                              consultation.consultationDate,
-                            ).toLocaleDateString()}
-                          </span>
-
-                          <span>
-                            <FiClock /> {consultation.startTime} -{" "}
-                            {consultation.endTime}
-                          </span>
-
-                          <span>
-                            {consultation.consultationType?.toUpperCase()}
-                          </span>
-
-                          {consultation.status !== "completed" && (
-                            <button
-                              className={styles.bookBtn}
-                              onClick={() =>
-                                navigate(`/video-call/${consultation._id}`)
-                              }
-                            >
-                              Join Consultation
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               )}
             </div>
