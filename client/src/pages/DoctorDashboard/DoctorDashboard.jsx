@@ -55,6 +55,9 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
         if (err.status === 401 || err.response?.status === 401) {
           localStorage.removeItem("token");
           localStorage.removeItem("userRole");
+          localStorage.removeItem("user");
+          localStorage.removeItem("userId");
+
           window.location.href = "/auth";
         }
       } finally {
@@ -72,7 +75,9 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
   */
 
   const calculateStats = (data) => {
-    const uniquePatients = new Set(data.map((item) => item.patient?._id));
+    const uniquePatients = new Set(
+      data.filter((item) => item.patient?._id).map((item) => item.patient._id),
+    );
 
     const today = new Date().toDateString();
 
@@ -101,6 +106,9 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userRole");
+    localStorage.removeItem("user");
+    localStorage.removeItem("userId");
+
     window.location.href = "/auth";
   };
 
@@ -215,12 +223,8 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
                 {consultations.length === 0 ? (
                   <div className={styles.emptyState}>No appointments found</div>
                 ) : (
-                  consultations.map((appt, index) => (
-                    <AppointmentRow
-                      key={appt._id}
-                      appt={appt}
-                      isFirst={index === 0}
-                    />
+                  consultations.map((appt) => (
+                    <AppointmentRow key={appt._id} appt={appt} />
                   ))
                 )}
               </div>
@@ -348,27 +352,58 @@ APPOINTMENT ROW
 ==================================================
 */
 
-function AppointmentRow({ appt, isFirst }) {
+function AppointmentRow({ appt }) {
+  const handleJoinConsultation = () => {
+    if (!appt?._id) {
+      console.error("Consultation ID missing");
+      return;
+    }
+
+    console.log(
+      "Joining consultation room:",
+      appt._id,
+      "| Patient:",
+      appt.patient?.name,
+      "| Problem:",
+      appt.currentProblem,
+    );
+
+    /*
+    VERY IMPORTANT:
+    Must use consultation._id
+    NOT doctor._id
+    NOT patient._id
+    */
+
+    window.location.href = `/video-call/${appt._id}`;
+  };
+
   return (
-    <div
-      className={`${styles.appointmentRow} ${
-        isFirst ? styles.appointmentNext : ""
-      }`}
-    >
+    <div className={styles.appointmentRow}>
+      {/* TIME */}
+
       <div className={styles.apptTime}>
         <FiClock size={12} />
-        {appt.startTime}
+        {appt.startTime || "N/A"}
       </div>
+
+      {/* AVATAR */}
 
       <div className={styles.apptAvatar}>
         {appt.patient?.name?.charAt(0) || "P"}
       </div>
 
+      {/* INFO */}
+
       <div className={styles.apptInfo}>
         <p className={styles.apptName}>{appt.patient?.name || "Patient"}</p>
 
-        <p className={styles.apptReason}>{appt.currentProblem}</p>
+        <p className={styles.apptReason}>
+          {appt.currentProblem || "Consultation"}
+        </p>
       </div>
+
+      {/* ACTIONS */}
 
       <div className={styles.apptActions}>
         <span
@@ -384,16 +419,14 @@ function AppointmentRow({ appt, isFirst }) {
             <FiPhone size={11} />
           )}
 
-          {appt.consultationType}
+          {appt.consultationType || "video"}
         </span>
-        {isFirst && (
-          <button
-            className={styles.joinBtn}
-            onClick={() => (window.location.href = `/video-call/${appt._id}`)}
-          >
-            Join
-          </button>
-        )}{" "}
+
+        {/* JOIN BUTTON FOR EVERY ROW */}
+
+        <button className={styles.joinBtn} onClick={handleJoinConsultation}>
+          Join
+        </button>
       </div>
     </div>
   );
