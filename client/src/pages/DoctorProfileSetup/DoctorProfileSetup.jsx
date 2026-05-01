@@ -9,6 +9,7 @@ import { doctorProfileApi } from "../../utils/api";
 
 export default function DoctorProfileSetup() {
   const navigate = useNavigate();
+
   const [loading, setLoading] = useState(false);
   const [isProfileComplete, setIsProfileComplete] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -45,13 +46,14 @@ export default function DoctorProfileSetup() {
 
   const modeOptions = ["video", "call", "chat"];
 
-  // Fetch existing doctor profile
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const response = await doctorProfileApi.getProfile();
-        if (response.data.doctor) {
+
+        if (response?.data?.doctor) {
           const doc = response.data.doctor;
+
           setFormData({
             phone: doc.phone || "",
             gender: doc.gender || "",
@@ -74,24 +76,23 @@ export default function DoctorProfileSetup() {
             shortBio: doc.shortBio || "",
           });
 
-          // Check if profile is complete
-          const isComplete = !!(
-            doc.phone &&
-            doc.specialization &&
-            doc.qualification &&
-            doc.experience
-          );
+          const isComplete =
+            !!doc.phone &&
+            !!doc.specialization &&
+            !!doc.qualification &&
+            !!doc.experience;
+
           setIsProfileComplete(isComplete);
           setIsEditMode(!isComplete);
 
-          // Store completion status in localStorage
           if (isComplete) {
             localStorage.setItem("doctorProfileCompleted", "true");
           }
+        } else {
+          setIsEditMode(true);
         }
       } catch (error) {
-        console.error("Failed to fetch profile:", error);
-        // If profile doesn't exist, show edit mode for creation
+        console.error("Fetch profile error:", error);
         setIsEditMode(true);
       }
     };
@@ -108,7 +109,7 @@ export default function DoctorProfileSetup() {
 
   const handleCheckboxChange = (field, value) => {
     setFormData((prev) => {
-      const existing = prev[field];
+      const existing = prev[field] || [];
 
       return {
         ...prev,
@@ -135,15 +136,16 @@ export default function DoctorProfileSetup() {
       });
 
       alert("Doctor profile saved successfully!");
+
       localStorage.setItem("doctorProfileCompleted", "true");
       window.dispatchEvent(new Event("profileUpdated"));
+
       setIsProfileComplete(true);
       setIsEditMode(false);
 
-      // Redirect after a short delay
       setTimeout(() => {
         navigate("/dashboard");
-      }, 100);
+      }, 200);
     } catch (error) {
       console.error(error);
       alert(error?.response?.data?.message || "Failed to save doctor profile");
@@ -169,6 +171,7 @@ export default function DoctorProfileSetup() {
           <div className={styles.header}>
             <div className={styles.headerTop}>
               <h1 className={styles.title}>Doctor Profile</h1>
+
               {isProfileComplete && (
                 <div className={styles.completeBadge}>
                   <FiCheck size={16} />
@@ -176,6 +179,7 @@ export default function DoctorProfileSetup() {
                 </div>
               )}
             </div>
+
             <p className={styles.subtitle}>
               {isEditMode
                 ? "Update your professional details"
@@ -184,12 +188,7 @@ export default function DoctorProfileSetup() {
           </div>
 
           {isProfileComplete && !isEditMode ? (
-            <ViewMode
-              formData={formData}
-              workingDayOptions={workingDayOptions}
-              modeOptions={modeOptions}
-              onEdit={handleEditClick}
-            />
+            <ViewMode formData={formData} onEdit={handleEditClick} />
           ) : (
             <EditForm
               formData={formData}
@@ -207,176 +206,106 @@ export default function DoctorProfileSetup() {
       </main>
     </div>
   );
-            <div className={styles.grid}>
-              <Input
-                label="Phone Number"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                required
-              />
+}
 
-              <Select
-                label="Gender"
-                name="gender"
-                value={formData.gender}
-                onChange={handleChange}
-                options={["male", "female", "other"]}
-                required
-              />
+function ViewMode({ formData, onEdit }) {
+  return (
+    <div className={styles.viewMode}>
+      <button className={styles.editBtn} onClick={onEdit}>
+        <FiEdit2 size={16} />
+        Edit Profile
+      </button>
 
-              <Input
-                label="Date of Birth"
-                name="dateOfBirth"
-                type="date"
-                value={formData.dateOfBirth}
-                onChange={handleChange}
-                required
-              />
-
-              <Input
-                label="Specialization"
-                name="specialization"
-                value={formData.specialization}
-                onChange={handleChange}
-                required
-              />
-
-              <Input
-                label="Super Specialization"
-                name="superSpecialization"
-                value={formData.superSpecialization}
-                onChange={handleChange}
-              />
-
-              <Input
-                label="Qualification"
-                name="qualification"
-                value={formData.qualification}
-                onChange={handleChange}
-                required
-              />
-
-              <Input
-                label="Medical Registration Number"
-                name="medicalRegistrationNumber"
-                value={formData.medicalRegistrationNumber}
-                onChange={handleChange}
-                required
-              />
-
-              <Input
-                label="Years of Experience"
-                name="experience"
-                type="number"
-                value={formData.experience}
-                onChange={handleChange}
-                required
-              />
-
-              <Input
-                label="Hospital / Clinic Name"
-                name="hospitalName"
-                value={formData.hospitalName}
-                onChange={handleChange}
-                required
-              />
-
-              <Input
-                label="Consultation Fee"
-                name="consultationFee"
-                type="number"
-                value={formData.consultationFee}
-                onChange={handleChange}
-                required
-              />
-
-              <Input
-                label="Languages Spoken (comma separated)"
-                name="languagesSpoken"
-                value={formData.languagesSpoken}
-                onChange={handleChange}
-                required
-              />
-
-              <Input
-                label="Start Time"
-                name="startTime"
-                type="time"
-                value={formData.startTime}
-                onChange={handleChange}
-                required
-              />
-
-              <Input
-                label="End Time"
-                name="endTime"
-                type="time"
-                value={formData.endTime}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className={styles.checkboxSection}>
-              <h3>Working Days</h3>
-              <div className={styles.checkboxGrid}>
-                {workingDayOptions.map((day) => (
-                  <label key={day}>
-                    <input
-                      type="checkbox"
-                      checked={formData.workingDays.includes(day)}
-                      onChange={() => handleCheckboxChange("workingDays", day)}
-                    />
-                    {day}
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div className={styles.checkboxSection}>
-              <h3>Consultation Modes</h3>
-              <div className={styles.checkboxGrid}>
-                {modeOptions.map((mode) => (
-                  <label key={mode}>
-                    <input
-                      type="checkbox"
-                      checked={formData.consultationModes.includes(mode)}
-                      onChange={() =>
-                        handleCheckboxChange("consultationModes", mode)
-                      }
-                    />
-                    {mode}
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <TextArea
-              label="About Doctor"
-              name="aboutDoctor"
-              value={formData.aboutDoctor}
-              onChange={handleChange}
-            />
-
-            <TextArea
-              label="Short Bio"
-              name="shortBio"
-              value={formData.shortBio}
-              onChange={handleChange}
-            />
-
-            <button
-              type="submit"
-              className={styles.submitBtn}
-              disabled={loading}
-            >
-              {loading ? "Saving..." : "Complete Profile"}
-            </button>
-          </form>
-        </div>
-      </main>
+      <div className={styles.grid}>
+        {Object.entries(formData).map(([key, value]) => (
+          <div key={key} className={styles.formGroup}>
+            <label>{key}</label>
+            <p>{Array.isArray(value) ? value.join(", ") : value || "-"}</p>
+          </div>
+        ))}
+      </div>
     </div>
+  );
+}
+
+function EditForm({
+  formData,
+  handleChange,
+  handleCheckboxChange,
+  handleSubmit,
+  loading,
+  isProfileComplete,
+  onCancel,
+  workingDayOptions,
+  modeOptions,
+}) {
+  return (
+    <form onSubmit={handleSubmit} className={styles.form}>
+      <div className={styles.grid}>
+        <Input
+          label="Phone Number"
+          name="phone"
+          value={formData.phone}
+          onChange={handleChange}
+          required
+        />
+
+        <Select
+          label="Gender"
+          name="gender"
+          value={formData.gender}
+          onChange={handleChange}
+          options={["male", "female", "other"]}
+          required
+        />
+
+        <Input
+          label="Date of Birth"
+          name="dateOfBirth"
+          type="date"
+          value={formData.dateOfBirth}
+          onChange={handleChange}
+          required
+        />
+
+        <Input
+          label="Specialization"
+          name="specialization"
+          value={formData.specialization}
+          onChange={handleChange}
+          required
+        />
+
+        <Input
+          label="Qualification"
+          name="qualification"
+          value={formData.qualification}
+          onChange={handleChange}
+          required
+        />
+
+        <Input
+          label="Experience"
+          name="experience"
+          type="number"
+          value={formData.experience}
+          onChange={handleChange}
+          required
+        />
+      </div>
+
+      <div className={styles.buttonGroup}>
+        {isProfileComplete && (
+          <button type="button" onClick={onCancel} className={styles.cancelBtn}>
+            Cancel
+          </button>
+        )}
+
+        <button type="submit" className={styles.submitBtn} disabled={loading}>
+          {loading ? "Saving..." : "Save Profile"}
+        </button>
+      </div>
+    </form>
   );
 }
 
@@ -401,15 +330,6 @@ function Select({ label, options, ...props }) {
           </option>
         ))}
       </select>
-    </div>
-  );
-}
-
-function TextArea({ label, ...props }) {
-  return (
-    <div className={styles.formGroup}>
-      <label>{label}</label>
-      <textarea {...props} />
     </div>
   );
 }
