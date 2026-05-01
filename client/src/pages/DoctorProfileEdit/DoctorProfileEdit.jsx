@@ -85,11 +85,18 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
       const fetchAvailability = async () => {
         try {
           const response = await doctorAvailabilityApi.getMySlots();
-          if (response.data.success) {
-            setExistingAvailability(response.data.availability);
+          if (response.data.success && response.data.availability) {
+            setExistingAvailability(
+              Array.isArray(response.data.availability)
+                ? response.data.availability
+                : [],
+            );
+          } else {
+            setExistingAvailability([]);
           }
         } catch (error) {
           console.error("Failed to fetch availability:", error);
+          setExistingAvailability([]);
         }
       };
 
@@ -195,6 +202,15 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
         return;
       }
 
+      // Validate time slots
+      for (let slot of availabilityForm.slots) {
+        if (slot.startTime >= slot.endTime) {
+          alert("Start time must be before end time");
+          setLoading(false);
+          return;
+        }
+      }
+
       await doctorAvailabilityApi.createAvailability({
         availableDate: availabilityForm.availableDate,
         slots: availabilityForm.slots,
@@ -208,9 +224,18 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
         slots: [{ startTime: "", endTime: "" }],
       });
 
-      const response = await doctorAvailabilityApi.getMySlots();
-      if (response.data.success) {
-        setExistingAvailability(response.data.availability);
+      // Fetch updated availability
+      try {
+        const response = await doctorAvailabilityApi.getMySlots();
+        if (response.data.success && response.data.availability) {
+          setExistingAvailability(
+            Array.isArray(response.data.availability)
+              ? response.data.availability
+              : [],
+          );
+        }
+      } catch (error) {
+        console.error("Failed to refresh availability:", error);
       }
     } catch (error) {
       console.error(error);
@@ -222,12 +247,23 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
 
   // Format date for display
   const formatDate = (dateString) => {
+    if (!dateString) return "";
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
     });
+  };
+
+  // Ensure date is in proper format (YYYY-MM-DD)
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
   };
 
   if (fetchLoading) {
@@ -659,7 +695,7 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
                   <div className={styles.availabilityList}>
                     {existingAvailability.map((availability) => (
                       <div
-                        key={availability._id}
+                        key={availability._id || Math.random()}
                         className={styles.availabilityCard}
                       >
                         <div className={styles.cardHeader}>
@@ -676,22 +712,28 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
                         </div>
 
                         <div className={styles.slotsDisplay}>
-                          {availability.slots.map((slot, idx) => (
-                            <div key={idx} className={styles.slotDisplay}>
-                              <span className={styles.slotTime}>
-                                {slot.startTime} - {slot.endTime}
-                              </span>
-                              <span
-                                className={
-                                  slot.isBooked
-                                    ? styles.slotBooked
-                                    : styles.slotAvailable
-                                }
-                              >
-                                {slot.isBooked ? "Booked" : "Available"}
-                              </span>
-                            </div>
-                          ))}
+                          {Array.isArray(availability.slots) &&
+                          availability.slots.length > 0 ? (
+                            availability.slots.map((slot, idx) => (
+                              <div key={idx} className={styles.slotDisplay}>
+                                <span className={styles.slotTime}>
+                                  {slot.startTime || "-"} -{" "}
+                                  {slot.endTime || "-"}
+                                </span>
+                                <span
+                                  className={
+                                    slot.isBooked
+                                      ? styles.slotBooked
+                                      : styles.slotAvailable
+                                  }
+                                >
+                                  {slot.isBooked ? "Booked" : "Available"}
+                                </span>
+                              </div>
+                            ))
+                          ) : (
+                            <p className={styles.noSlots}>No slots available</p>
+                          )}
                         </div>
                       </div>
                     ))}

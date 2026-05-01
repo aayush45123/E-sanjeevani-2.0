@@ -198,6 +198,14 @@
   gap: 32px;
 }
 
+.availabilityContainer .form {
+  padding: 24px;
+}
+
+.availabilityContainer .existingAvailability {
+  margin-top: 0;
+}
+
 /* Slots Container */
 .slotsContainer {
   margin-top: 20px;
@@ -299,6 +307,15 @@
   border-radius: 8px;
 }
 
+.noSlots {
+  text-align: center;
+  padding: 16px;
+  color: #999;
+  font-size: 13px;
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
 .availabilityList {
   display: flex;
   flex-direction: column;
@@ -393,6 +410,10 @@
   .checkboxGrid {
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   }
+
+  .mainContent {
+    padding: 30px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -426,6 +447,15 @@
 
   .slotsDisplay {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .availabilityContainer {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .checkboxGrid {
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
   }
 }
 
@@ -479,5 +509,9 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
+  }
+
+  .availabilityContainer {
+    gap: 16px;
   }
 }
