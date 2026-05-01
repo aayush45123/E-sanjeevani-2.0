@@ -1,7 +1,8 @@
 // src/pages/DoctorProfileSetup/DoctorProfileSetup.jsx
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { FiEdit2, FiCheck } from "react-icons/fi";
 import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
 import styles from "./DoctorProfileSetup.module.css";
 import { doctorProfileApi } from "../../utils/api";
@@ -9,6 +10,8 @@ import { doctorProfileApi } from "../../utils/api";
 export default function DoctorProfileSetup() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [isProfileComplete, setIsProfileComplete] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const [formData, setFormData] = useState({
     phone: "",
@@ -41,6 +44,60 @@ export default function DoctorProfileSetup() {
   ];
 
   const modeOptions = ["video", "call", "chat"];
+
+  // Fetch existing doctor profile
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await doctorProfileApi.getProfile();
+        if (response.data.doctor) {
+          const doc = response.data.doctor;
+          setFormData({
+            phone: doc.phone || "",
+            gender: doc.gender || "",
+            dateOfBirth: doc.dateOfBirth || "",
+            specialization: doc.specialization || "",
+            superSpecialization: doc.superSpecialization || "",
+            qualification: doc.qualification || "",
+            medicalRegistrationNumber: doc.medicalRegistrationNumber || "",
+            experience: doc.experience || "",
+            hospitalName: doc.hospitalName || "",
+            consultationFee: doc.consultationFee || "",
+            languagesSpoken: Array.isArray(doc.languagesSpoken)
+              ? doc.languagesSpoken.join(", ")
+              : doc.languagesSpoken || "",
+            workingDays: doc.workingDays || [],
+            startTime: doc.startTime || "",
+            endTime: doc.endTime || "",
+            consultationModes: doc.consultationModes || [],
+            aboutDoctor: doc.aboutDoctor || "",
+            shortBio: doc.shortBio || "",
+          });
+
+          // Check if profile is complete
+          const isComplete = !!(
+            doc.phone &&
+            doc.specialization &&
+            doc.qualification &&
+            doc.experience
+          );
+          setIsProfileComplete(isComplete);
+          setIsEditMode(!isComplete);
+
+          // Store completion status in localStorage
+          if (isComplete) {
+            localStorage.setItem("doctorProfileCompleted", "true");
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch profile:", error);
+        // If profile doesn't exist, show edit mode for creation
+        setIsEditMode(true);
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -77,8 +134,16 @@ export default function DoctorProfileSetup() {
         consultationFee: Number(formData.consultationFee),
       });
 
-      alert("Doctor profile completed successfully");
-      navigate("/dashboard");
+      alert("Doctor profile saved successfully!");
+      localStorage.setItem("doctorProfileCompleted", "true");
+      window.dispatchEvent(new Event("profileUpdated"));
+      setIsProfileComplete(true);
+      setIsEditMode(false);
+
+      // Redirect after a short delay
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 100);
     } catch (error) {
       console.error(error);
       alert(error?.response?.data?.message || "Failed to save doctor profile");
@@ -87,18 +152,61 @@ export default function DoctorProfileSetup() {
     }
   };
 
+  const handleEditClick = () => {
+    setIsEditMode(true);
+  };
+
+  const handleCancelClick = () => {
+    setIsEditMode(false);
+  };
+
   return (
     <div className={styles.dashboardLayout}>
       <DoctorSidebar />
 
       <main className={styles.mainContent}>
         <div className={styles.wrapper}>
-          <h1 className={styles.title}>Complete Doctor Profile</h1>
-          <p className={styles.subtitle}>
-            Complete your professional details before accessing the dashboard
-          </p>
+          <div className={styles.header}>
+            <div className={styles.headerTop}>
+              <h1 className={styles.title}>Doctor Profile</h1>
+              {isProfileComplete && (
+                <div className={styles.completeBadge}>
+                  <FiCheck size={16} />
+                  <span>Complete</span>
+                </div>
+              )}
+            </div>
+            <p className={styles.subtitle}>
+              {isEditMode
+                ? "Update your professional details"
+                : "Your professional information"}
+            </p>
+          </div>
 
-          <form className={styles.form} onSubmit={handleSubmit}>
+          {isProfileComplete && !isEditMode ? (
+            <ViewMode
+              formData={formData}
+              workingDayOptions={workingDayOptions}
+              modeOptions={modeOptions}
+              onEdit={handleEditClick}
+            />
+          ) : (
+            <EditForm
+              formData={formData}
+              handleChange={handleChange}
+              handleCheckboxChange={handleCheckboxChange}
+              handleSubmit={handleSubmit}
+              loading={loading}
+              isProfileComplete={isProfileComplete}
+              onCancel={handleCancelClick}
+              workingDayOptions={workingDayOptions}
+              modeOptions={modeOptions}
+            />
+          )}
+        </div>
+      </main>
+    </div>
+  );
             <div className={styles.grid}>
               <Input
                 label="Phone Number"

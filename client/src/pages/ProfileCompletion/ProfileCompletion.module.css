@@ -26,12 +26,32 @@
   padding-bottom: 24px;
 }
 
+.headerTop {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
 .title {
   font-size: 32px;
   font-weight: 700;
   color: #1a1a1a;
-  margin: 0 0 8px 0;
+  margin: 0;
   letter-spacing: -0.5px;
+}
+
+.completeBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #dcfce7;
+  color: #166534;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .subtitle {
@@ -42,6 +62,12 @@
 }
 
 .form {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.viewMode {
   display: flex;
   flex-direction: column;
   gap: 32px;
@@ -113,6 +139,42 @@
   min-height: 100px;
 }
 
+/* View Mode Styles */
+.viewGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.viewField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px;
+  background: #f8fafb;
+  border-radius: 8px;
+  border: 1px solid #e8e8e8;
+}
+
+.viewField label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.viewField p {
+  font-size: 15px;
+  color: #1a1a1a;
+  margin: 0;
+  font-weight: 500;
+}
+
+.capitalize {
+  text-transform: capitalize;
+}
+
 .buttonGroup {
   display: flex;
   gap: 12px;
@@ -121,7 +183,8 @@
   border-top: 1px solid #e8e8e8;
 }
 
-.submitBtn {
+.submitBtn,
+.editBtn {
   flex: 1;
   padding: 14px 28px;
   background-color: #2563eb;
@@ -132,9 +195,14 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
-.submitBtn:hover:not(:disabled) {
+.submitBtn:hover:not(:disabled),
+.editBtn:hover {
   background-color: #1d4ed8;
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
@@ -143,6 +211,27 @@
   background-color: #ccc;
   cursor: not-allowed;
   opacity: 0.6;
+}
+
+.editBtn {
+  background-color: #2563eb;
+}
+
+.cancelBtn {
+  flex: 1;
+  padding: 14px 28px;
+  background-color: #e5e7eb;
+  color: #333;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cancelBtn:hover {
+  background-color: #d1d5db;
 }
 
 /* Responsive Design */
@@ -155,7 +244,16 @@
     font-size: 26px;
   }
 
+  .headerTop {
+    flex-direction: column;
+    gap: 12px;
+  }
+
   .formRow {
+    grid-template-columns: 1fr;
+  }
+
+  .viewGrid {
     grid-template-columns: 1fr;
   }
 
@@ -163,9 +261,15 @@
     font-size: 16px;
   }
 
-  .submitBtn {
+  .submitBtn,
+  .editBtn,
+  .cancelBtn {
     padding: 12px 20px;
     font-size: 14px;
+  }
+
+  .buttonGroup {
+    flex-direction: column;
   }
 }
 
@@ -194,11 +298,24 @@
     gap: 16px;
   }
 
-  .buttonGroup {
-    flex-direction: column;
+  .viewGrid {
+    gap: 16px;
   }
 
-  .submitBtn {
+  .buttonGroup {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .submitBtn,
+  .editBtn,
+  .cancelBtn {
     width: 100%;
+    padding: 12px 16px;
+  }
+
+  .completeBadge {
+    font-size: 12px;
+    padding: 5px 10px;
   }
 }
