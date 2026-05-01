@@ -82,6 +82,11 @@ const consultationSchema = new mongoose.Schema(
       default: "scheduled",
     },
 
+    roomId: {
+      type: String,
+      default: "",
+    },
+
     doctorNotes: {
       type: String,
       default: "",

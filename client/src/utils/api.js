@@ -67,6 +67,9 @@ export const consultationApi = {
 
   updateConsultation: (id, data) => apiClient.put(`/consultations/${id}`, data),
 
+  updateConsultationStatus: (consultationId, data) =>
+    apiClient.patch(`/consultations/${consultationId}/status`, data),
+
   cancelConsultation: (id, data) =>
     apiClient.post(`/consultations/${id}/cancel`, data),
 

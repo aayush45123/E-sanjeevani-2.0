@@ -17,6 +17,7 @@ import Consultations from "./pages/Consultations/Consultations";
 import ConsultationBookingForm from "./pages/ConsultationBookingForm/ConsultationBookingForm";
 import DoctorProfileSetup from "./pages/DoctorProfileSetup/DoctorProfileSetup";
 import DoctorProfileEdit from "./pages/DoctorProfileEdit/DoctorProfileEdit";
+import VideoCall from "./pages/VideoCall/VideoCall";
 
 import { doctorProfileApi, authApi } from "./utils/api";
 
@@ -278,6 +279,12 @@ const App = () => {
               <Navigate to="/auth" replace />
             )
           }
+        />
+
+        {/* VIDEO CALL */}
+        <Route
+          path="/video-call/:consultationId"
+          element={isLoggedIn ? <VideoCall /> : <Navigate to="/auth" replace />}
         />
 
         {/* FALLBACK */}

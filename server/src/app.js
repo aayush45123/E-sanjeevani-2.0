@@ -6,7 +6,6 @@ dotenv.config();
 
 import express from "express";
 import cors from "cors";
-import connectDB from "./config/db.js";
 
 import authRoutes from "./routes/authRoutes.js";
 import consultationRoutes from "./routes/consultationRoutes.js";
@@ -22,7 +21,19 @@ MIDDLEWARE
 ==================================================
 */
 
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:5174",
+      "http://127.0.0.1:5173",
+      "http://127.0.0.1:5174",
+    ],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -92,12 +103,7 @@ START SERVER
 ==================================================
 */
 
-const PORT = process.env.PORT || 5000;
-
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-  });
-});
+// Note: Server startup logic moved to server.js
+// This file only exports the configured Express app
 
 export default app;

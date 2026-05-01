@@ -5,36 +5,123 @@ import { authApi } from "../../utils/api";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
+
   const [form, setForm] = useState({
     name: "",
     email: "",
     password: "",
     role: "patient",
   });
+
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
+  /*
+  ==================================================
+  HANDLE INPUT CHANGE
+  ==================================================
+  */
+
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    setForm((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
   };
 
-  const handleAuthSuccess = (token, role) => {
+  /*
+  ==================================================
+  INDUSTRY LEVEL AUTH SUCCESS HANDLER
+  IMPORTANT:
+  Save full user object + userId + role + token
+  This fixes WebRTC video call issue
+  ==================================================
+  */
+
+  const handleAuthSuccess = (responseData) => {
+    const token = responseData.token;
+    const user = responseData.user;
+
+    if (!token || !user) {
+      setMessage("✕ Invalid login response from server");
+      return;
+    }
+
+    /*
+    Clear old broken localStorage first
+    */
+
+    localStorage.clear();
+
+    /*
+    Save auth token
+    */
+
     localStorage.setItem("token", token);
-    localStorage.setItem("userRole", role);
+
+    /*
+    Save user role
+    */
+
+    localStorage.setItem("userRole", user.role);
+
+    /*
+    VERY IMPORTANT
+    Save complete user object
+    */
+
+    localStorage.setItem("user", JSON.stringify(user));
+
+    /*
+    VERY IMPORTANT
+    Save userId separately for WebRTC socket room
+    */
+
+    localStorage.setItem("userId", user._id);
+
+    /*
+    Trigger global auth update
+    */
+
     window.dispatchEvent(new Event("authChange"));
+
+    /*
+    Debug (remove later if needed)
+    */
+
+    console.log("LOGIN SUCCESS");
+    console.log("Saved User:", user);
+    console.log("Saved User ID:", user._id);
+
+    /*
+    Navigate to dashboard
+    */
+
     navigate("/dashboard");
   };
 
+  /*
+  ==================================================
+  SUBMIT LOGIN / SIGNUP
+  ==================================================
+  */
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     setLoading(true);
     setMessage("");
 
     try {
+      /*
+      ==============================================
+      LOGIN
+      ==============================================
+      */
+
       if (isLogin) {
-        // Login
         const response = await authApi.login({
           email: form.email,
           password: form.password,
@@ -42,14 +129,20 @@ const Auth = () => {
 
         if (response.data.success && response.data.token) {
           setMessage("✓ Login successful!");
-          handleAuthSuccess(response.data.token, response.data.user.role);
+          handleAuthSuccess(response.data);
         } else {
           setMessage(
-            response.data.message || "✕ Login failed. Check your credentials.",
+            response.data.message ||
+              "✕ Login failed. Please check credentials.",
           );
         }
       } else {
-        // Signup
+
+      /*
+      ==============================================
+      SIGNUP
+      ==============================================
+      */
         const signupResponse = await authApi.signup({
           name: form.name,
           email: form.email,
@@ -59,10 +152,7 @@ const Auth = () => {
 
         if (signupResponse.data.success && signupResponse.data.token) {
           setMessage("✓ Account created successfully!");
-          handleAuthSuccess(
-            signupResponse.data.token,
-            signupResponse.data.user.role,
-          );
+          handleAuthSuccess(signupResponse.data);
         } else {
           setMessage(
             signupResponse.data.message || "✕ Signup failed. Please try again.",
@@ -71,6 +161,7 @@ const Auth = () => {
       }
     } catch (err) {
       console.error("Auth error:", err);
+
       setMessage(
         err.response?.data?.message ||
           err.message ||
@@ -81,12 +172,16 @@ const Auth = () => {
     }
   };
 
+  /*
+  ==================================================
+  UI
+  ==================================================
+  */
+
   return (
     <div className={styles.wrapper}>
-      {/* LEFT SIDEBAR - Light & Airy Brand Section */}
       <div className={styles.leftSidebar}>
         <div className={styles.leftContent}>
-          {/* Logo */}
           <div className={styles.logoSection}>
             <div className={styles.logoIconWrapper}>
               <svg
@@ -100,6 +195,7 @@ const Auth = () => {
                 <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
               </svg>
             </div>
+
             <span className={styles.logoText}>E-Sanjeevani</span>
           </div>
 
@@ -111,163 +207,82 @@ const Auth = () => {
 
           <p className={styles.tagline}>
             Join thousands of patients getting expert healthcare from the
-            comfort of their homes. AI-powered triage meets clinical excellence.
+            comfort of their homes.
           </p>
-
-          <ul className={styles.featuresList}>
-            <li className={styles.featureItem}>
-              <span className={styles.featureIcon}>✓</span>
-              <span>24/7 availability to top specialists</span>
-            </li>
-            <li className={styles.featureItem}>
-              <span className={styles.featureIcon}>✓</span>
-              <span>AI-powered instant symptom diagnosis</span>
-            </li>
-            <li className={styles.featureItem}>
-              <span className={styles.featureIcon}>✓</span>
-              <span>Military-grade secure video consultations</span>
-            </li>
-          </ul>
-
-          <div className={styles.socialProof}>
-            <div className={styles.avatars}>
-              <div className={styles.avatar}></div>
-              <div className={styles.avatar}></div>
-              <div className={styles.avatar}></div>
-            </div>
-            <p className={styles.proofText}>
-              Trusted by <strong>50,000+</strong> patients
-            </p>
-          </div>
         </div>
       </div>
 
-      {/* RIGHT FORM SECTION - Crisp & Clean */}
       <div className={styles.rightSection}>
         <div className={styles.formContainer}>
-          <div className={styles.formHeader}>
-            <h2 className={styles.formTitle}>
-              {isLogin ? "Welcome back" : "Create an account"}
-            </h2>
-            <p className={styles.formSubtitle}>
-              {isLogin
-                ? "Enter your details to access your dashboard."
-                : "Start your seamless healthcare journey today."}
-            </p>
-          </div>
-
-          {/* Premium Segmented Control for Roles */}
-          {!isLogin && (
-            <div className={styles.roleSelector}>
-              <div className={styles.roleTrack}>
-                <button
-                  type="button"
-                  className={`${styles.roleBtn} ${
-                    form.role === "patient" ? styles.roleActive : ""
-                  }`}
-                  onClick={() => setForm({ ...form, role: "patient" })}
-                >
-                  Patient
-                </button>
-                <button
-                  type="button"
-                  className={`${styles.roleBtn} ${
-                    form.role === "doctor" ? styles.roleActive : ""
-                  }`}
-                  onClick={() => setForm({ ...form, role: "doctor" })}
-                >
-                  Doctor
-                </button>
-              </div>
-            </div>
-          )}
+          <h2 className={styles.formTitle}>
+            {isLogin ? "Welcome back" : "Create account"}
+          </h2>
 
           <form onSubmit={handleSubmit} className={styles.form}>
             {!isLogin && (
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Full Name</label>
-                <input
-                  type="text"
-                  name="name"
-                  placeholder="John Doe"
-                  value={form.name}
-                  onChange={handleChange}
-                  required
-                  className={styles.input}
-                />
-              </div>
+              <input
+                type="text"
+                name="name"
+                placeholder="Full Name"
+                value={form.name}
+                onChange={handleChange}
+                required
+                className={styles.input}
+              />
             )}
 
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Email Address</label>
-              <input
-                type="email"
-                name="email"
-                placeholder="you@example.com"
-                value={form.email}
-                onChange={handleChange}
-                required
-                className={styles.input}
-              />
-            </div>
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              value={form.email}
+              onChange={handleChange}
+              required
+              className={styles.input}
+            />
 
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Password</label>
-              <input
-                type="password"
-                name="password"
-                placeholder="••••••••••"
-                value={form.password}
-                onChange={handleChange}
-                required
-                className={styles.input}
-              />
-            </div>
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              value={form.password}
+              onChange={handleChange}
+              required
+              className={styles.input}
+            />
 
-            {message && (
-              <div
-                className={`${styles.message} ${
-                  message.includes("✕") ? styles.error : styles.success
-                }`}
+            {!isLogin && (
+              <select
+                name="role"
+                value={form.role}
+                onChange={handleChange}
+                className={styles.input}
               >
-                {message}
-              </div>
+                <option value="patient">Patient</option>
+                <option value="doctor">Doctor</option>
+              </select>
             )}
+
+            {message && <div className={styles.message}>{message}</div>}
 
             <button
               type="submit"
               disabled={loading}
               className={styles.submitBtn}
             >
-              {loading
-                ? "Processing..."
-                : isLogin
-                  ? "Sign In"
-                  : "Create Account"}
+              {loading ? "Processing..." : isLogin ? "Login" : "Create Account"}
             </button>
           </form>
 
-          <div className={styles.authToggle}>
-            <p className={styles.toggleText}>
-              {isLogin ? "Don't have an account?" : "Already have an account?"}
-              <button
-                type="button"
-                onClick={() => {
-                  setIsLogin(!isLogin);
-                  setForm({
-                    name: "",
-                    email: "",
-                    password: "",
-                    role: "patient",
-                  });
-                  setMessage("");
-                }}
-                className={styles.toggleLink}
-              >
-                {isLogin ? "Sign up" : "Log in"}
-              </button>
-            </p>
-          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setIsLogin(!isLogin);
+              setMessage("");
+            }}
+          >
+            {isLogin ? "Create new account" : "Already have account?"}
+          </button>
         </div>
       </div>
     </div>

@@ -386,8 +386,14 @@ function AppointmentRow({ appt, isFirst }) {
 
           {appt.consultationType}
         </span>
-
-        {isFirst && <button className={styles.joinBtn}>Join</button>}
+        {isFirst && (
+          <button
+            className={styles.joinBtn}
+            onClick={() => (window.location.href = `/video-call/${appt._id}`)}
+          >
+            Join
+          </button>
+        )}{" "}
       </div>
     </div>
   );

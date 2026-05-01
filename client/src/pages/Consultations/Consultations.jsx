@@ -223,6 +223,15 @@ export default function Consultations() {
                           <span>
                             {consultation.consultationType?.toUpperCase()}
                           </span>
+
+                          <button
+                            className={styles.bookBtn}
+                            onClick={() =>
+                              navigate(`/video-call/${consultation._id}`)
+                            }
+                          >
+                            Join Consultation
+                          </button>
                         </div>
                       </div>
                     </div>
