@@ -44,65 +44,76 @@ export default function VideoCall() {
       return;
     }
 
-    const peer = new Peer({
-      initiator: true,
+    // ✅ Validate stream before creating peer
+    const videoTracks = streamRef.current.getVideoTracks();
+    const audioTracks = streamRef.current.getAudioTracks();
 
-      /*
-      IMPORTANT FIX:
-      Use FALSE for localhost stability
-      */
+    console.log("[INITIATOR] Stream validation:");
+    console.log("  - Video tracks:", videoTracks.length);
+    console.log("  - Audio tracks:", audioTracks.length);
+    console.log("  - Video enabled:", videoTracks[0]?.enabled);
+    console.log("  - Audio enabled:", audioTracks[0]?.enabled);
+    console.log("  - Stream active:", streamRef.current.active);
 
-      trickle: false,
+    if (videoTracks.length === 0 || audioTracks.length === 0) {
+      console.error("[INITIATOR] ❌ Stream missing video or audio tracks");
+      setConnectionError("Media stream error: missing tracks");
+      return;
+    }
 
-      stream: streamRef.current,
-
-      config: {
+    try {
+      // ✅ Simplified configuration - works better for localhost
+      const peer = new Peer({
+        initiator: true,
+        trickle: false,
+        stream: streamRef.current,
         iceServers: [
-          {
-            urls: [
-              "stun:stun.l.google.com:19302",
-              "stun:stun1.l.google.com:19302",
-              "stun:stun2.l.google.com:19302",
-            ],
-          },
+          { urls: "stun:stun.l.google.com:19302" },
+          { urls: "stun:stun1.l.google.com:19302" },
         ],
-      },
-    });
-
-    peer.on("signal", (signalData) => {
-      console.log("[INITIATOR] Sending offer");
-
-      socketRef.current?.emit("call-user", {
-        userToCall: otherSocketId,
-        signalData,
-        from: mySocketId.current,
       });
-    });
 
-    peer.on("stream", (remoteStream) => {
-      console.log("[INITIATOR] Remote stream received");
+      console.log("[INITIATOR] ✅ Peer created successfully");
 
-      if (userVideo.current) {
-        userVideo.current.srcObject = remoteStream;
-      }
+      peer.on("signal", (signalData) => {
+        console.log("[INITIATOR] Sending offer");
 
-      setCallStatus("connected");
-    });
+        socketRef.current?.emit("call-user", {
+          userToCall: otherSocketId,
+          signalData,
+          from: mySocketId.current,
+        });
+      });
 
-    peer.on("error", (err) => {
-      console.error("[INITIATOR] Peer error:", err);
-      setConnectionError("Connection failed. Refresh page.");
-      connectionRef.current = null;
-    });
+      peer.on("stream", (remoteStream) => {
+        console.log("[INITIATOR] Remote stream received");
 
-    peer.on("close", () => {
-      console.log("[INITIATOR] Peer closed");
-      connectionRef.current = null;
-      setCallStatus("ended");
-    });
+        if (userVideo.current) {
+          userVideo.current.srcObject = remoteStream;
+        }
 
-    connectionRef.current = peer;
-    setCallStatus("connecting");
+        setCallStatus("connected");
+      });
+
+      peer.on("error", (err) => {
+        console.error("[INITIATOR] Peer error:", err);
+        setConnectionError("Connection failed. Refresh page.");
+        connectionRef.current = null;
+      });
+
+      peer.on("close", () => {
+        console.log("[INITIATOR] Peer closed");
+        connectionRef.current = null;
+        setCallStatus("ended");
+      });
+
+      connectionRef.current = peer;
+      setCallStatus("connecting");
+    } catch (err) {
+      console.error("[INITIATOR] ❌ Failed to create peer:", err);
+      console.error("[INITIATOR] Error stack:", err.stack);
+      setConnectionError(`Peer creation failed: ${err.message}`);
+    }
   }, []);
 
   /*
@@ -124,70 +135,81 @@ export default function VideoCall() {
       return;
     }
 
-    const peer = new Peer({
-      initiator: false,
+    // ✅ Validate stream before creating peer
+    const videoTracks = streamRef.current.getVideoTracks();
+    const audioTracks = streamRef.current.getAudioTracks();
+
+    console.log("[RECEIVER] Stream validation:");
+    console.log("  - Video tracks:", videoTracks.length);
+    console.log("  - Audio tracks:", audioTracks.length);
+    console.log("  - Video enabled:", videoTracks[0]?.enabled);
+    console.log("  - Audio enabled:", audioTracks[0]?.enabled);
+    console.log("  - Stream active:", streamRef.current.active);
+
+    if (videoTracks.length === 0 || audioTracks.length === 0) {
+      console.error("[RECEIVER] ❌ Stream missing video or audio tracks");
+      setConnectionError("Media stream error: missing tracks");
+      return;
+    }
+
+    try {
+      // ✅ Simplified configuration - works better for localhost
+      const peer = new Peer({
+        initiator: false,
+        trickle: false,
+        stream: streamRef.current,
+        iceServers: [
+          { urls: "stun:stun.l.google.com:19302" },
+          { urls: "stun:stun1.l.google.com:19302" },
+        ],
+      });
+
+      console.log("[RECEIVER] ✅ Peer created successfully");
+
+      peer.on("signal", (signalData) => {
+        console.log("[RECEIVER] Sending answer");
+
+        socketRef.current?.emit("answer-call", {
+          to: callerId,
+          signal: signalData,
+        });
+      });
+
+      peer.on("stream", (remoteStream) => {
+        console.log("[RECEIVER] Remote stream received");
+
+        if (userVideo.current) {
+          userVideo.current.srcObject = remoteStream;
+        }
+
+        setCallStatus("connected");
+      });
+
+      peer.on("error", (err) => {
+        console.error("[RECEIVER] Peer error:", err);
+        setConnectionError("Connection failed. Refresh page.");
+        connectionRef.current = null;
+      });
+
+      peer.on("close", () => {
+        console.log("[RECEIVER] Peer closed");
+        connectionRef.current = null;
+        setCallStatus("ended");
+      });
 
       /*
-      IMPORTANT FIX:
-      Use FALSE for localhost stability
+      Apply received offer
       */
 
-      trickle: false,
+      peer.signal(callerSignal);
 
-      stream: streamRef.current,
-
-      config: {
-        iceServers: [
-          {
-            urls: [
-              "stun:stun.l.google.com:19302",
-              "stun:stun1.l.google.com:19302",
-              "stun:stun2.l.google.com:19302",
-            ],
-          },
-        ],
-      },
-    });
-
-    peer.on("signal", (signalData) => {
-      console.log("[RECEIVER] Sending answer");
-
-      socketRef.current?.emit("answer-call", {
-        to: callerId,
-        signal: signalData,
-      });
-    });
-
-    peer.on("stream", (remoteStream) => {
-      console.log("[RECEIVER] Remote stream received");
-
-      if (userVideo.current) {
-        userVideo.current.srcObject = remoteStream;
-      }
-
-      setCallStatus("connected");
-    });
-
-    peer.on("error", (err) => {
-      console.error("[RECEIVER] Peer error:", err);
-      setConnectionError("Connection failed. Refresh page.");
-      connectionRef.current = null;
-    });
-
-    peer.on("close", () => {
-      console.log("[RECEIVER] Peer closed");
-      connectionRef.current = null;
-      setCallStatus("ended");
-    });
-
-    /*
-    Apply received offer
-    */
-
-    peer.signal(callerSignal);
-
-    connectionRef.current = peer;
-    setCallStatus("connecting");
+      connectionRef.current = peer;
+      setCallStatus("connecting");
+    } catch (err) {
+      console.error("[RECEIVER] ❌ Failed to create peer:", err);
+      console.error("[RECEIVER] Error stack:", err.stack);
+      setConnectionError(`Peer creation failed: ${err.message}`);
+    }
   }, []);
 
   /*
