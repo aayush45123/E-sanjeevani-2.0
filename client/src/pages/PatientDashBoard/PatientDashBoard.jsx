@@ -17,6 +17,126 @@ import Sidebar from "../../components/Sidebar/Sidebar";
 import styles from "./PatientDashBoard.module.css";
 import { authApi } from "../../utils/api";
 
+// Tight markdown renderer — eliminates react-markdown's default <p>-in-<li> spacing
+const TightMarkdown = ({ children }) => (
+  <ReactMarkdown
+    components={{
+      p: ({ children }) => (
+        <p style={{ margin: "0 0 6px 0", lineHeight: "1.6" }}>{children}</p>
+      ),
+      ul: ({ children }) => (
+        <ul style={{ margin: "4px 0 6px 0", paddingLeft: "20px" }}>
+          {children}
+        </ul>
+      ),
+      ol: ({ children }) => (
+        <ol style={{ margin: "4px 0 6px 0", paddingLeft: "20px" }}>
+          {children}
+        </ol>
+      ),
+      li: ({ children }) => (
+        <li style={{ margin: "2px 0", lineHeight: "1.55" }}>
+          {/* Strip the <p> wrapper react-markdown injects inside <li> */}
+          {React.Children.map(children, (child) =>
+            child?.type === "p" ? child.props.children : child,
+          )}
+        </li>
+      ),
+      strong: ({ children }) => (
+        <strong style={{ fontWeight: 600 }}>{children}</strong>
+      ),
+      em: ({ children }) => <em style={{ fontStyle: "italic" }}>{children}</em>,
+      h1: ({ children }) => (
+        <h1
+          style={{
+            fontSize: "1.1rem",
+            fontWeight: 700,
+            margin: "8px 0 4px 0",
+            lineHeight: "1.3",
+          }}
+        >
+          {children}
+        </h1>
+      ),
+      h2: ({ children }) => (
+        <h2
+          style={{
+            fontSize: "1rem",
+            fontWeight: 700,
+            margin: "8px 0 4px 0",
+            lineHeight: "1.3",
+          }}
+        >
+          {children}
+        </h2>
+      ),
+      h3: ({ children }) => (
+        <h3
+          style={{
+            fontSize: "0.95rem",
+            fontWeight: 600,
+            margin: "6px 0 3px 0",
+            lineHeight: "1.3",
+          }}
+        >
+          {children}
+        </h3>
+      ),
+      code: ({ inline, children }) =>
+        inline ? (
+          <code
+            style={{
+              background: "#f1f5f9",
+              padding: "1px 5px",
+              borderRadius: "4px",
+              fontSize: "0.88em",
+              fontFamily: "monospace",
+            }}
+          >
+            {children}
+          </code>
+        ) : (
+          <pre
+            style={{
+              background: "#f1f5f9",
+              padding: "10px 14px",
+              borderRadius: "8px",
+              overflowX: "auto",
+              margin: "6px 0",
+            }}
+          >
+            <code style={{ fontSize: "0.88em", fontFamily: "monospace" }}>
+              {children}
+            </code>
+          </pre>
+        ),
+      blockquote: ({ children }) => (
+        <blockquote
+          style={{
+            borderLeft: "3px solid #94a3b8",
+            paddingLeft: "12px",
+            margin: "6px 0",
+            color: "#64748b",
+          }}
+        >
+          {children}
+        </blockquote>
+      ),
+      hr: () => (
+        <hr
+          style={{
+            border: "none",
+            borderTop: "1px solid #e2e8f0",
+            margin: "8px 0",
+          }}
+        />
+      ),
+    }}
+  >
+    {children}
+  </ReactMarkdown>
+);
+
 export default function PatientDashboard() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -108,7 +228,7 @@ export default function PatientDashboard() {
     if (e) e.preventDefault();
     if (!inputValue.trim() && attachments.length === 0) return;
 
-    const currentInput = inputValue; // Cache the input before clearing
+    const currentInput = inputValue;
 
     const userMessage = {
       id: Date.now(),
@@ -124,12 +244,11 @@ export default function PatientDashboard() {
     setIsTyping(true);
 
     try {
-      // Note: Adjust the fetch URL base if your backend runs on a different port
       const response = await fetch("http://localhost:5000/api/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`, // if auth is required
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: JSON.stringify({ prompt: currentInput }),
       });
@@ -188,10 +307,6 @@ export default function PatientDashboard() {
     );
     setShowRecordMenu(false);
   };
-
-  // const handleQuickPrompt = (prompt) => {
-  //   setInputValue(prompt);
-  // };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -272,9 +387,8 @@ export default function PatientDashboard() {
                           setShowRecordMenu(false);
                         }}
                       >
-                        {/* Change selectedModel to selectedModel.name here */}
-                        <FiActivity size={14} />{" "}
-                        <span>{selectedModel.name}</span>{" "}
+                        <FiActivity size={14} />
+                        <span>{selectedModel.name}</span>
                         <FiChevronDown size={14} />
                       </button>
                       {showModelMenu && (
@@ -336,10 +450,10 @@ export default function PatientDashboard() {
                           setShowModelMenu(false);
                         }}
                       >
-                        <FiFileText size={14} />{" "}
+                        <FiFileText size={14} />
                         <span>
-                          {setShowRecordMenu ? "Select Record" : "All Records"}
-                        </span>{" "}
+                          {showRecordMenu ? "Select Record" : "All Records"}
+                        </span>
                         <FiChevronDown size={14} />
                       </button>
                       {showRecordMenu && (
@@ -385,14 +499,13 @@ export default function PatientDashboard() {
               </div>
             </div>
 
-            {/* Quick Prompts (same as before) */}
+            {/* Quick Prompts */}
             <div className={styles.quickPromptsSection}>
               {/* ...existing prompts code... */}
             </div>
           </div>
         ) : (
           <div className={styles.chatView}>
-            {/* RESTORED CHAT MESSAGES DISPLAY */}
             <div className={styles.chatHeader}>
               <h2 className={styles.chatHeaderTitle}>AI Triage Session</h2>
               <span className={styles.liveTag}>
@@ -418,59 +531,10 @@ export default function PatientDashboard() {
                       {message.type === "user" ? "You" : selectedModel.name}
                     </div>
 
-                    {/* Render Markdown for AI, normal text for User */}
                     <div className={styles.messageBubble}>
                       {message.type === "ai" ? (
                         <div className={styles.markdownRender}>
-                          {/* <ReactMarkdown
-                            components={{
-                              // Paragraphs — no margin, just text
-                              p: ({ children }) => (
-                                <p style={{ margin: "0 0 4px 0" }}>
-                                  {children}
-                                </p>
-                              ),
-                              // Numbered list — tight
-                              ol: ({ children }) => (
-                                <ol
-                                  style={{
-                                    margin: "4px 0",
-                                    paddingLeft: "20px",
-                                  }}
-                                >
-                                  {children}
-                                </ol>
-                              ),
-                              // Bullet list — tight
-                              ul: ({ children }) => (
-                                <ul
-                                  style={{
-                                    margin: "2px 0",
-                                    paddingLeft: "18px",
-                                  }}
-                                >
-                                  {children}
-                                </ul>
-                              ),
-                              // List item — key fix: no p wrapper gap
-                              li: ({ children }) => (
-                                <li
-                                  style={{ margin: "1px 0", lineHeight: "1.5" }}
-                                >
-                                  {children}
-                                </li>
-                              ),
-                              // Bold heading inside li (e.g. "Overexertion:")
-                              strong: ({ children }) => (
-                                <strong style={{ fontWeight: 600 }}>
-                                  {children}
-                                </strong>
-                              ),
-                            }}
-                          >
-                            {message.text}
-                          </ReactMarkdown> */}
-                          <ReactMarkdown>{message.text}</ReactMarkdown>
+                          <TightMarkdown>{message.text}</TightMarkdown>
                         </div>
                       ) : (
                         message.text
@@ -500,7 +564,6 @@ export default function PatientDashboard() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* ...existing active chat code... */}
             <div className={styles.chatInputWrapper}>
               <form
                 onSubmit={handleSendMessage}
