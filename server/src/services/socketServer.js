@@ -2,33 +2,14 @@ import { Server } from "socket.io";
 
 /*
 ==================================================
-INDUSTRY LEVEL SOCKET.IO + WEBRTC SIGNALING SERVER
-FOR DOCTOR ↔ PATIENT LIVE VIDEO CONSULTATION
-==================================================
-
-FLOW:
-
-1. First user joins consultation room
-   → waits
-
-2. Second user joins same room
-   → first user gets notified
-
-3. First user clicks Start Call
-   → signaling starts
-
-4. Second user receives incoming call
-   → Answer Call button appears
-
-5. Both users connect successfully
-
-6. Proper disconnect handling included
-
+FIXED SOCKET.IO SIGNALING — E-Sanjeevani
+Key fix: only ONE side initiates (shouldInitiate flag)
+Both users must join the same consultationId room.
 ==================================================
 */
 
-const roomUsers = {}; // consultationId => [socketId1, socketId2]
-const socketUserMap = {}; // socketId => consultationId
+const roomUsers = {};
+const socketRoomMap = {};
 
 const initializeSocket = (server) => {
   const io = new Server(server, {
@@ -42,179 +23,118 @@ const initializeSocket = (server) => {
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
       credentials: true,
     },
-
     transports: ["websocket", "polling"],
   });
 
-  /*
-  ==================================================
-  SOCKET CONNECTION
-  ==================================================
-  */
-
   io.on("connection", (socket) => {
-    console.log("User connected:", socket.id);
-
-    /*
-    ==================================================
-    SEND OWN SOCKET ID
-    ==================================================
-    */
-
+    console.log(`[Socket] Connected: ${socket.id}`);
     socket.emit("me", socket.id);
-
-    /*
-    ==================================================
-    JOIN CONSULTATION ROOM
-    ==================================================
-    */
 
     socket.on("join-room", (consultationId) => {
       if (!consultationId) return;
+      if (socketRoomMap[socket.id] === consultationId) return; // no duplicate join
 
       socket.join(consultationId);
+      socketRoomMap[socket.id] = consultationId;
 
-      /*
-      Store socket-room mapping
-      */
-
-      socketUserMap[socket.id] = consultationId;
-
-      /*
-      Initialize room if not exists
-      */
-
-      if (!roomUsers[consultationId]) {
-        roomUsers[consultationId] = [];
-      }
-
-      /*
-      Prevent duplicate joins
-      */
+      if (!roomUsers[consultationId]) roomUsers[consultationId] = [];
 
       if (!roomUsers[consultationId].includes(socket.id)) {
         roomUsers[consultationId].push(socket.id);
       }
 
-      const usersInRoom = roomUsers[consultationId];
-
+      const room = roomUsers[consultationId];
       console.log(
-        `Socket ${socket.id} joined room ${consultationId}. Total users: ${usersInRoom.length}`,
+        `[Room ${consultationId}] ${socket.id} joined. Total: ${room.length}`,
       );
 
-      /*
-      Notify existing user when second participant joins
-      */
+      if (room.length === 2) {
+        const [firstUser, secondUser] = room;
 
-      if (usersInRoom.length === 2) {
-        const firstUser = usersInRoom[0];
-        const secondUser = usersInRoom[1];
+        // First user: initiate the call
+        io.to(firstUser).emit("other-user", {
+          socketId: secondUser,
+          shouldInitiate: true,
+          usersInRoom: 2,
+        });
 
-        io.to(firstUser).emit("other-user", secondUser);
-        io.to(secondUser).emit("other-user", firstUser);
+        // Second user: wait for incoming-call
+        io.to(secondUser).emit("existing-user", {
+          socketId: firstUser,
+          usersInRoom: 2,
+        });
 
         console.log(
-          `Room ready for call: ${consultationId} | ${firstUser} ↔ ${secondUser}`,
+          `[Room ${consultationId}] ✅ Both users ready. ${firstUser} → calls → ${secondUser}`,
         );
       }
 
-      /*
-      Safety:
-      Prevent >2 users in one consultation room
-      */
-
-      if (usersInRoom.length > 2) {
-        console.warn(
-          `More than 2 users joined consultation room ${consultationId}`,
-        );
+      if (room.length > 2) {
+        socket.emit("room-full");
+        console.warn(`[Room ${consultationId}] Full — ${socket.id} rejected`);
       }
     });
 
-    /*
-    ==================================================
-    CALL USER (INITIATOR)
-    ==================================================
-    */
-
-    socket.on("call-user", (data) => {
-      const { userToCall, signalData, from } = data;
-
-      if (!userToCall || !signalData || !from) return;
-
-      console.log(`Call initiated: ${from} → ${userToCall}`);
-
-      io.to(userToCall).emit("incoming-call", {
-        signal: signalData,
+    socket.on("call-user", ({ userToCall, signalData, from }) => {
+      console.log(`[Signal] call-user received:`, {
+        userToCall,
         from,
+        hasSignal: !!signalData,
       });
+      if (!userToCall || !signalData || !from) {
+        console.warn(`[Signal] Missing required fields:`, {
+          userToCall,
+          signalData: !!signalData,
+          from,
+        });
+        return;
+      }
+      console.log(`[Signal] ✅ call-user: ${from} → ${userToCall}`);
+      io.to(userToCall).emit("incoming-call", { signal: signalData, from });
+      console.log(`[Signal] ✅ incoming-call emitted to ${userToCall}`);
     });
 
-    /*
-    ==================================================
-    ANSWER CALL (RECEIVER)
-    ==================================================
-    */
-
-    socket.on("answer-call", (data) => {
-      const { to, signal } = data;
-
-      if (!to || !signal) return;
-
-      console.log(`Call answered: ${socket.id} → ${to}`);
-
+    socket.on("answer-call", ({ to, signal }) => {
+      console.log(`[Signal] answer-call received:`, {
+        to,
+        hasSignal: !!signal,
+        from: socket.id,
+      });
+      if (!to || !signal) {
+        console.warn(`[Signal] Missing required fields in answer-call`);
+        return;
+      }
+      console.log(`[Signal] ✅ answer-call: ${socket.id} → ${to}`);
       io.to(to).emit("call-accepted", signal);
+      console.log(`[Signal] ✅ call-accepted emitted to ${to}`);
     });
-
-    /*
-    ==================================================
-    OPTIONAL: MANUAL CALL END EVENT
-    ==================================================
-    */
 
     socket.on("end-call", () => {
-      const consultationId = socketUserMap[socket.id];
-
+      const consultationId = socketRoomMap[socket.id];
       if (consultationId) {
         socket.to(consultationId).emit("call-ended");
+        console.log(`[Room ${consultationId}] end-call by ${socket.id}`);
       }
     });
 
-    /*
-    ==================================================
-    DISCONNECT HANDLER
-    ==================================================
-    */
-
     socket.on("disconnect", () => {
-      console.log("User disconnected:", socket.id);
-
-      const consultationId = socketUserMap[socket.id];
+      console.log(`[Socket] Disconnected: ${socket.id}`);
+      const consultationId = socketRoomMap[socket.id];
 
       if (consultationId && roomUsers[consultationId]) {
-        /*
-        Remove disconnected socket from room
-        */
-
         roomUsers[consultationId] = roomUsers[consultationId].filter(
           (id) => id !== socket.id,
         );
-
-        /*
-        Notify remaining participant
-        */
-
         socket.to(consultationId).emit("call-ended");
-
-        /*
-        Cleanup empty room
-        */
+        console.log(
+          `[Room ${consultationId}] ${socket.id} left. Remaining: ${roomUsers[consultationId].length}`,
+        );
 
         if (roomUsers[consultationId].length === 0) {
           delete roomUsers[consultationId];
         }
       }
-
-      delete socketUserMap[socket.id];
+      delete socketRoomMap[socket.id];
     });
   });
 
