@@ -42,11 +42,17 @@ const AiTriage = () => {
 
     setIsLoading(true);
     try {
+      const token = localStorage.getItem("token");
+      console.log(
+        "📤 Sending triage request with token:",
+        token ? "✅ Present" : "❌ Missing",
+      );
+
       const response = await fetch("/api/triage/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           symptoms,
@@ -58,16 +64,20 @@ const AiTriage = () => {
       });
 
       const data = await response.json();
+      console.log("📥 Response:", response.status, data);
 
       if (response.ok) {
+        console.log("✅ Triage session created:", data.triageSessionId);
         setTriageSessionId(data.triageSessionId);
         setStep("review");
       } else {
-        alert(data.message || "Error creating triage session");
+        const errorMsg = data.message || `Error: ${response.status}`;
+        console.error("❌ Failed:", errorMsg);
+        alert(errorMsg);
       }
     } catch (error) {
-      console.error("Error:", error);
-      alert("Error creating triage session");
+      console.error("❌ Network error:", error);
+      alert("Error creating triage session: " + error.message);
     } finally {
       setIsLoading(false);
     }

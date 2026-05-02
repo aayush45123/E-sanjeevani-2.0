@@ -16,6 +16,10 @@ import {
 // Start/Create a new triage session
 export const createTriageSession = async (req, res) => {
   try {
+    console.log("🔍 createTriageSession called");
+    console.log("📦 Request body:", req.body);
+    console.log("👤 req.user:", req.user);
+
     const {
       symptoms,
       medicalHistory,
@@ -23,14 +27,28 @@ export const createTriageSession = async (req, res) => {
       allergies,
       additionalNotes,
     } = req.body;
-    const patientId = req.user._id;
+
+    // Get patientId from req.user
+    const patientId = req.user?._id;
+
+    if (!patientId) {
+      console.error("❌ ERROR: patientId not found. req.user:", req.user);
+      return res.status(401).json({
+        message: "User authentication failed. Please log in again.",
+        user: req.user,
+      });
+    }
 
     // Validate required data
     if (!symptoms || symptoms.length === 0) {
+      console.warn("⚠️ No symptoms provided");
       return res
         .status(400)
         .json({ message: "At least one symptom is required" });
     }
+
+    console.log("✅ Creating triage session for patient:", patientId);
+    console.log("📋 Symptoms:", symptoms);
 
     // Create new triage session
     const triageSession = new TriageSession({
@@ -45,13 +63,16 @@ export const createTriageSession = async (req, res) => {
 
     await triageSession.save();
 
+    console.log("✅ Triage session saved:", triageSession._id);
+
     res.status(201).json({
       message: "Triage session created successfully",
       triageSessionId: triageSession._id,
       session: triageSession,
     });
   } catch (error) {
-    console.error("Error creating triage session:", error);
+    console.error("❌ Error creating triage session:", error.message);
+    console.error("📍 Stack:", error.stack);
     res
       .status(500)
       .json({ message: "Error creating triage session", error: error.message });
@@ -61,23 +82,35 @@ export const createTriageSession = async (req, res) => {
 // Process triage and generate AI response
 export const processTriageResponse = async (req, res) => {
   try {
+    console.log("🔍 processTriageResponse called");
     const { triageSessionId } = req.params;
-    const patientId = req.user._id;
+    const patientId = req.user?._id;
+
+    console.log(
+      "📋 Processing triage:",
+      triageSessionId,
+      "for patient:",
+      patientId,
+    );
 
     // Get triage session
     const triageSession = await TriageSession.findById(triageSessionId);
     if (!triageSession) {
+      console.warn("⚠️ Triage session not found");
       return res.status(404).json({ message: "Triage session not found" });
     }
 
     // Verify ownership
     if (triageSession.patientId.toString() !== patientId.toString()) {
+      console.error("❌ Unauthorized access");
       return res.status(403).json({ message: "Unauthorized" });
     }
 
     // Get patient details for age-based scoring
     const patient = await User.findById(patientId);
-    const age = patient.age || 30;
+    const age = patient?.age || 30;
+
+    console.log("👤 Patient age:", age);
 
     // Calculate urgency score
     const urgencyScore = calculateUrgencyScore(
@@ -86,6 +119,8 @@ export const processTriageResponse = async (req, res) => {
       age,
     );
     const urgencyLevel = getUrgencyLevel(urgencyScore);
+
+    console.log("📊 Urgency score:", urgencyScore, "Level:", urgencyLevel);
 
     // Generate preliminary assessment (in real scenario, this would call GPT or similar AI)
     const preliminaryAssessment = generateAIPreliminaryAssessment(
@@ -201,7 +236,14 @@ export const processTriageResponse = async (req, res) => {
 // Get patient's triage history (summaries only)
 export const getTriageHistory = async (req, res) => {
   try {
-    const patientId = req.user._id;
+    console.log("🔍 getTriageHistory called");
+    const patientId = req.user?._id;
+    console.log("👤 PatientId:", patientId);
+
+    if (!patientId) {
+      console.error("❌ No patientId found");
+      return res.status(401).json({ message: "Unauthorized" });
+    }
 
     // Get all triage sessions for patient, showing only summary
     const triageSessions = await TriageSession.find({ patientId })
@@ -212,12 +254,15 @@ export const getTriageHistory = async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(10); // Get last 10 sessions
 
+    console.log("✅ Found triage sessions:", triageSessions.length);
+    console.log("📊 Sessions:", triageSessions);
+
     res.status(200).json({
       message: "Triage history retrieved",
       triageHistory: triageSessions,
     });
   } catch (error) {
-    console.error("Error getting triage history:", error);
+    console.error("❌ Error getting triage history:", error.message);
     res.status(500).json({
       message: "Error retrieving triage history",
       error: error.message,
@@ -228,8 +273,16 @@ export const getTriageHistory = async (req, res) => {
 // Get specific triage session details
 export const getTriageSessionDetails = async (req, res) => {
   try {
+    console.log("🔍 getTriageSessionDetails called");
     const { triageSessionId } = req.params;
-    const patientId = req.user._id;
+    const patientId = req.user?._id;
+
+    console.log(
+      "📋 Fetching triage:",
+      triageSessionId,
+      "for patient:",
+      patientId,
+    );
 
     // Get triage session
     const triageSession = await TriageSession.findById(triageSessionId)
@@ -240,20 +293,23 @@ export const getTriageSessionDetails = async (req, res) => {
       );
 
     if (!triageSession) {
+      console.warn("⚠️ Triage session not found");
       return res.status(404).json({ message: "Triage session not found" });
     }
 
     // Verify ownership
     if (triageSession.patientId.toString() !== patientId.toString()) {
+      console.error("❌ Unauthorized access");
       return res.status(403).json({ message: "Unauthorized" });
     }
 
+    console.log("✅ Returning triage session details");
     res.status(200).json({
       message: "Triage session details",
       triageSession,
     });
   } catch (error) {
-    console.error("Error getting triage session details:", error);
+    console.error("❌ Error getting triage session details:", error.message);
     res.status(500).json({
       message: "Error retrieving session details",
       error: error.message,

@@ -7,6 +7,7 @@ const authMiddleware = async (req, res, next) => {
     const token = req.headers.authorization?.split(" ")[1];
 
     if (!token) {
+      console.log("❌ No token provided");
       return res.status(401).json({
         success: false,
         message: "No token, authorization denied",
@@ -14,27 +15,32 @@ const authMiddleware = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("✅ Token decoded:", decoded);
 
     const user = await User.findById(decoded.userId).select("-password");
 
     if (!user) {
+      console.error("❌ User not found for userId:", decoded.userId);
       return res.status(401).json({
         success: false,
         message: "User not found",
       });
     }
 
-    // ✅ FIX: Normalize so both req.user.id and req.user.userId work
-    // decoded has: { userId, email, role }
+    // ✅ FIX: Properly set req.user with all necessary fields
     req.user = {
-      ...decoded,
-      id: decoded.userId, // controllers that use req.user.id
-      userId: decoded.userId, // controllers that use req.user.userId
+      _id: user._id, // MongoDB ObjectId for database queries
+      id: user._id.toString(), // String version
+      userId: decoded.userId, // From token
+      email: decoded.email,
+      role: decoded.role,
+      name: user.name,
     };
 
+    console.log("✅ Auth successful for user:", req.user._id);
     next();
   } catch (err) {
-    console.error("Auth middleware error:", err);
+    console.error("❌ Auth middleware error:", err.message);
     return res.status(401).json({
       success: false,
       message: "Invalid token",
