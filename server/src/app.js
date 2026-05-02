@@ -15,6 +15,7 @@ import doctorProfileRoutes from "./routes/doctorProfileRoutes.js";
 import chatRoutes from "./routes/chatRoutes.js";
 import triageRoutes from "./routes/triageRoutes.js";
 import aiTriageRoutes from "./routes/aiTriageRoutes.js";
+import doctorAssistantRoutes from "./routes/doctorAssistantRoutes.js";
 
 const app = express();
 
@@ -79,6 +80,8 @@ app.use("/api/doctor-availability", doctorAvailabilityRoutes);
 app.use("/api/triage", triageRoutes);
 
 app.use("/api/ai-triage", aiTriageRoutes);
+
+app.use("/api/doctor-assistant", doctorAssistantRoutes);
 
 /*
 NEW: DOCTOR PROFILE ROUTES

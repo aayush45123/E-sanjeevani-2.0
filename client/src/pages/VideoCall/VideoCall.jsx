@@ -14,8 +14,17 @@ export default function VideoCall() {
 
   const [connectionError, setConnectionError] = useState("");
   const [usersInRoom, setUsersInRoom] = useState(1);
-  const [callStatus, setCallStatus] = useState("connecting"); // connecting | active | ended
+  const [callStatus, setCallStatus] = useState("connecting");
+
+  // Doctor AI Assistant State
+  const [doctorAssistantData, setDoctorAssistantData] = useState(null);
+  const [doctorAiQuery, setDoctorAiQuery] = useState("");
+  const [doctorAiReply, setDoctorAiReply] = useState("");
+  const [doctorAiLoading, setDoctorAiLoading] = useState(false);
+
   const userRole = localStorage.getItem("userRole");
+  const token = localStorage.getItem("token");
+
   const userName =
     localStorage.getItem("userName") ||
     (userRole === "doctor" ? "Doctor" : "Patient");
@@ -271,6 +280,39 @@ export default function VideoCall() {
   };
 
   /*
+=============================================
+DOCTOR ASSISTANT DATA FETCH
+=============================================
+*/
+
+  useEffect(() => {
+    const fetchDoctorAssistantData = async () => {
+      if (userRole !== "doctor") return;
+
+      try {
+        const response = await fetch(
+          `http://localhost:5000/api/doctor-assistant/${consultationId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        const data = await response.json();
+
+        if (data.success) {
+          setDoctorAssistantData(data.data);
+        }
+      } catch (error) {
+        console.error("Doctor Assistant Error:", error);
+      }
+    };
+
+    fetchDoctorAssistantData();
+  }, [consultationId, userRole, token]);
+
+  /*
   =============================================
   INIT
   =============================================
@@ -386,6 +428,75 @@ export default function VideoCall() {
       socketRef.current?.disconnect();
     };
   }, [consultationId]);
+
+  /*
+=============================================
+DOCTOR AI QUERY FUNCTION
+=============================================
+*/
+
+  const handleDoctorAiQuery = async () => {
+    if (!doctorAiQuery.trim()) return;
+
+    setDoctorAiLoading(true);
+
+    try {
+      const patientSummary = `
+Patient Name: ${doctorAssistantData?.patientBasicInfo?.name || ""}
+Age: ${doctorAssistantData?.patientProfile?.age || ""}
+Gender: ${doctorAssistantData?.patientProfile?.gender || ""}
+Medical History: ${doctorAssistantData?.patientProfile?.medicalHistory || ""}
+Current Medications: ${doctorAssistantData?.patientProfile?.currentMedications || ""}
+Allergies: ${doctorAssistantData?.patientProfile?.allergies || ""}
+Symptoms: ${doctorAssistantData?.consultationDetails?.symptoms || ""}
+Problem Description: ${doctorAssistantData?.consultationDetails?.problemDescription || ""}
+Predicted Disease: ${doctorAssistantData?.latestAITriage?.predictedDisease || ""}
+Urgency: ${doctorAssistantData?.latestAITriage?.urgency || ""}
+Recommended Specialist: ${doctorAssistantData?.latestAITriage?.doctorType || ""}
+`;
+
+      const response = await fetch("http://localhost:5000/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          prompt: `
+You are a medical AI assistant helping a doctor during live consultation.
+
+Patient Information:
+${patientSummary}
+
+Doctor Question:
+${doctorAiQuery}
+
+Provide:
+1. Probable diagnosis
+2. Medicine suggestions
+3. Recommended tests
+4. Severity level
+5. Next steps
+
+Give a professional doctor-level response.
+          `,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data?.data?.reply) {
+        setDoctorAiReply(data.data.reply);
+      } else {
+        setDoctorAiReply("No AI response generated.");
+      }
+    } catch (error) {
+      console.error(error);
+      setDoctorAiReply("Failed to get AI response.");
+    }
+
+    setDoctorAiLoading(false);
+  };
 
   /*
   =============================================
@@ -598,7 +709,6 @@ export default function VideoCall() {
                 )}
               </button>
             )}
-
             {/* Main (patient) video */}
             <div className={styles.mainVideoWrapper}>
               <video
@@ -617,7 +727,6 @@ export default function VideoCall() {
                 {userRole === "doctor" ? "Patient" : "Doctor"}
               </div>
             </div>
-
             {/* PiP (self) video */}
             <div className={styles.pipWrapper}>
               <video
@@ -645,6 +754,87 @@ export default function VideoCall() {
               <div className={styles.pipLabel}>You</div>
             </div>
 
+            {/* DOCTOR AI ASSISTANT PANEL */}
+            {userRole === "doctor" && (
+              <div className={styles.doctorAssistantPanel}>
+                <h2>Doctor AI Assistant</h2>
+
+                <div className={styles.patientSummaryCard}>
+                  <h3>Patient Summary</h3>
+
+                  <p>
+                    <strong>Name:</strong>{" "}
+                    {doctorAssistantData?.patientBasicInfo?.name || "-"}
+                  </p>
+
+                  <p>
+                    <strong>Age:</strong>{" "}
+                    {doctorAssistantData?.patientProfile?.age || "-"}
+                  </p>
+
+                  <p>
+                    <strong>Gender:</strong>{" "}
+                    {doctorAssistantData?.patientProfile?.gender || "-"}
+                  </p>
+
+                  <p>
+                    <strong>Medical History:</strong>{" "}
+                    {doctorAssistantData?.patientProfile?.medicalHistory || "-"}
+                  </p>
+
+                  <p>
+                    <strong>Current Medications:</strong>{" "}
+                    {doctorAssistantData?.patientProfile?.currentMedications ||
+                      "-"}
+                  </p>
+
+                  <p>
+                    <strong>Allergies:</strong>{" "}
+                    {doctorAssistantData?.patientProfile?.allergies || "-"}
+                  </p>
+
+                  <p>
+                    <strong>AI Predicted Disease:</strong>{" "}
+                    {doctorAssistantData?.latestAITriage?.predictedDisease ||
+                      "-"}
+                  </p>
+
+                  <p>
+                    <strong>Urgency:</strong>{" "}
+                    {doctorAssistantData?.latestAITriage?.urgency || "-"}
+                  </p>
+
+                  <p>
+                    <strong>Recommended Specialist:</strong>{" "}
+                    {doctorAssistantData?.latestAITriage?.doctorType || "-"}
+                  </p>
+                </div>
+
+                <div className={styles.doctorAiQueryBox}>
+                  <h3>Ask AI Assistant</h3>
+
+                  <textarea
+                    value={doctorAiQuery}
+                    onChange={(e) => setDoctorAiQuery(e.target.value)}
+                    placeholder="Ask about diagnosis, medicines, tests, severity..."
+                  />
+
+                  <button
+                    onClick={handleDoctorAiQuery}
+                    disabled={doctorAiLoading}
+                  >
+                    {doctorAiLoading ? "Thinking..." : "Ask AI"}
+                  </button>
+
+                  {doctorAiReply && (
+                    <div className={styles.aiReplyCard}>
+                      <h3>AI Recommendation</h3>
+                      <p>{doctorAiReply}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
             {/* Bottom Controls */}
             <div className={styles.controls}>
               <button
