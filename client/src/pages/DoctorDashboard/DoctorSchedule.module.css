@@ -1,63 +1,66 @@
 .scheduleContainer {
   display: flex;
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #f0f2f5 100%);
+  background-color: #f9fafb; /* Lighter, cleaner background */
+  font-family: var(--font-primary, "Inter", sans-serif);
 }
 
 .scheduleContent {
   flex: 1;
-  padding: 2rem;
+  padding: 48px 40px; /* Consistent padding */
   overflow-y: auto;
   margin-left: 250px;
 }
 
 /* Header */
 .header {
-  margin-bottom: 2rem;
+  margin-bottom: 32px;
 }
 
 .header h1 {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #1a202c;
-  margin-bottom: 0.5rem;
+  font-size: 28px; /* Standard SaaS title size */
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 8px;
+  letter-spacing: -0.02em;
 }
 
 .header p {
-  font-size: 0.95rem;
-  color: #718096;
+  font-size: 14px; /* Standard subtitle size */
+  color: #6b7280;
 }
 
 /* Analytics Grid */
 .analyticsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
 }
 
 .analyticsCard {
-  background: white;
-  padding: 1.5rem;
+  background: #ffffff;
+  padding: 20px;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
   display: flex;
-  align-items: center;
-  gap: 1rem;
-  transition: all 0.3s ease;
-  border-left: 4px solid #3b82f6;
+  flex-direction: column; /* Changed direction */
+  gap: 12px;
+  transition: all 0.2s ease;
+  border-left: none; /* Removed colored border */
 }
 
 .analyticsCard:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+  border-color: #d1d5db;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 }
 
 .analyticsIconWrapper {
-  width: 60px;
-  height: 60px;
-  border-radius: 12px;
-  background: #e0e7ff;
+  width: 44px; /* Slightly smaller */
+  height: 44px;
+  border-radius: 10px;
+  background: #f3f4f6;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -65,49 +68,50 @@
 }
 
 .analyticsIconWrapper.bookedColor {
-  background: #fef3c7;
+  background: #fffbeb;
 }
 
 .analyticsIconWrapper.freeColor {
-  background: #d1fae5;
+  background: #f0fdf4;
 }
 
 .analyticsIconWrapper.workingColor {
-  background: #dbeafe;
+  background: #eff6ff;
 }
 
 .analyticsIconWrapper.completedColor {
-  background: #dcfce7;
+  background: #f0fdf4;
 }
 
 .analyticsIconWrapper.ongoingColor {
-  background: #fed7aa;
+  background: #fff7ed;
 }
 
 .analyticsIcon {
-  width: 28px;
-  height: 28px;
-  color: #3b82f6;
+  width: 20px;
+  height: 20px;
+  color: #374151;
 }
 
+
 .analyticsIconWrapper.bookedColor .analyticsIcon {
-  color: #f59e0b;
+  color: #d97706;
 }
 
 .analyticsIconWrapper.freeColor .analyticsIcon {
-  color: #10b981;
+  color: #16a34a;
 }
 
 .analyticsIconWrapper.workingColor .analyticsIcon {
-  color: #0ea5e9;
+  color: #2563eb;
 }
 
 .analyticsIconWrapper.completedColor .analyticsIcon {
-  color: #22c55e;
+  color: #16a34a;
 }
 
 .analyticsIconWrapper.ongoingColor .analyticsIcon {
-  color: #f97316;
+  color: #ea580c;
 }
 
 .analyticsContent {
@@ -115,292 +119,297 @@
 }
 
 .analyticsLabel {
-  font-size: 0.85rem;
-  color: #718096;
+  font-size: 13px;
+  color: #6b7280;
   font-weight: 500;
-  margin-bottom: 0.25rem;
+  margin-bottom: 4px;
 }
 
 .analyticsValue {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #1a202c;
+  font-size: 24px;
+  font-weight: 600;
+  color: #111827;
 }
 
 /* Type Breakdown */
 .typeBreakdownContainer {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  gap: 24px;
+  margin-bottom: 32px;
 }
 
 .typeBreakdownCard {
-  background: white;
-  padding: 1.5rem;
+  background: #ffffff;
+  padding: 20px;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
   display: flex;
-  gap: 1rem;
+  gap: 16px;
   align-items: center;
-  border-top: 3px solid #3b82f6;
-  transition: all 0.3s ease;
+  border-top: none; /* Removed top border */
+  transition: all 0.2s ease;
 }
 
 .typeBreakdownCard:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  border-color: #d1d5db;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 }
 
 .typeIcon {
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
 }
 
 .videoType {
-  color: #8b5cf6;
+  color: #7c3aed;
 }
 
 .callType {
-  color: #3b82f6;
+  color: #2563eb;
 }
 
 .chatType {
-  color: #10b981;
+  color: #16a34a;
 }
 
 .typeLabel {
-  font-size: 0.9rem;
-  color: #718096;
+  font-size: 13px;
+  color: #6b7280;
   font-weight: 500;
-  margin-bottom: 0.25rem;
+  margin-bottom: 2px;
 }
 
 .typeValue {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1a202c;
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
 }
 
 /* Week View */
 .weekViewContainer {
-  background: white;
-  padding: 2rem;
+  background: #ffffff;
+  padding: 24px;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 2rem;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 32px;
 }
 
 .weekHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1.5rem;
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #f3f4f6;
 }
 
 .weekTitle {
-  font-size: 1.3rem;
+  font-size: 18px;
   font-weight: 600;
-  color: #1a202c;
+  color: #111827;
 }
 
 .navButton {
-  background: #f3f4f6;
-  border: none;
-  width: 40px;
-  height: 40px;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  width: 36px;
+  height: 36px;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.3s ease;
-  color: #1a202c;
+  transition: all 0.2s ease;
+  color: #4b5563;
 }
 
 .navButton:hover {
-  background: #e5e7eb;
-  transform: scale(1.05);
+  background: #f9fafb;
+  border-color: #9ca3af;
+  transform: none;
 }
 
 .weekGrid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 1rem;
+  gap: 12px;
 }
 
 .dayCard {
-  padding: 1.25rem;
-  border: 2px solid #e5e7eb;
+  padding: 16px;
+  border: 1px solid transparent;
   border-radius: 10px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   background: #f9fafb;
   text-align: center;
 }
 
 .dayCard:hover {
-  border-color: #3b82f6;
-  background: #f0f4ff;
+  background: #f3f4f6;
+  border-color: transparent;
 }
 
 .dayCard.dayCardActive {
   border-color: #3b82f6;
   background: #eff6ff;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  box-shadow: none;
 }
 
 .dayName {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #718096;
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b7280;
   text-transform: uppercase;
-  margin-bottom: 0.5rem;
+  margin-bottom: 8px;
 }
-
 .dayDate {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #1a202c;
-  margin-bottom: 0.75rem;
+  font-size: 22px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 12px;
 }
 
 .dayStats {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 6px;
 }
 
 .slotBadge {
   display: inline-block;
-  font-size: 0.75rem;
-  background: #dbeafe;
-  color: #0369a1;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-weight: 600;
+  font-size: 11px;
+  background: #e0e7ff;
+  color: #3730a3;
+  padding: 3px 8px;
+  border-radius: 99px;
+  font-weight: 500;
 }
 
 .consultationBadge {
   display: inline-block;
-  font-size: 0.75rem;
+  font-size: 11px;
   background: #fef3c7;
   color: #92400e;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 99px;
+  font-weight: 500;
 }
 
 /* Day Detail View */
 .dayDetailContainer {
-  background: white;
-  padding: 2rem;
+  background: #ffffff;
+  padding: 24px;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 2rem;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 32px;
 }
 
 .dayDetailHeader {
-  border-bottom: 2px solid #e5e7eb;
-  padding-bottom: 1.5rem;
-  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #f3f4f6;
+  padding-bottom: 16px;
+  margin-bottom: 24px;
 }
 
 .dayDetailTitle {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1a202c;
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
   margin: 0;
 }
 
 /* Slots Container */
 .slotsContainer {
-  margin-top: 1.5rem;
+  margin-top: 0;
 }
-
 .slotsSectionTitle {
-  font-size: 1.1rem;
+  font-size: 16px;
   font-weight: 600;
-  color: #1a202c;
-  margin-bottom: 1rem;
+  color: #374151;
+  margin-bottom: 16px;
 }
 
 .slotsList {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
 }
 
 .slotCard {
-  padding: 1.25rem;
+  padding: 16px;
   border-radius: 10px;
-  border: 2px solid #e5e7eb;
+  border: 1px solid #e5e7eb;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: all 0.3s ease;
-  background: #f9fafb;
+  transition: all 0.2s ease;
+  background: #ffffff;
 }
-
 .slotCard.slotFree {
-  background: #f0fdf4;
-  border-color: #bbf7d0;
+  background: #ffffff;
+  border-color: #e5e7eb;
 }
 
 .slotCard.slotFree:hover {
-  border-color: #22c55e;
-  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.1);
+  border-color: #16a34a;
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.05);
+  transform: translateY(-1px);
 }
 
 .slotCard.slotBooked {
-  background: #fef9f3;
-  border-color: #fed7aa;
+  background: #fffbeb;
+  border-color: #fde68a;
 }
 
 .slotCard.slotBooked:hover {
-  border-color: #f97316;
-  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.1);
+  border-color: #facc15;
+  box-shadow: 0 2px 8px rgba(250, 204, 21, 0.1);
+  transform: translateY(-1px);
 }
 
 .slotCard.slotExpired {
-  background: #f5f5f5;
-  border-color: #d4d4d8;
-  opacity: 0.7;
+  background: #f9fafb;
+  border-color: #f3f4f6;
+  opacity: 0.8;
 }
 
+
 .slotCard.slotExpired:hover {
-  border-color: #a1a1aa;
-  box-shadow: 0 4px 12px rgba(161, 161, 170, 0.1);
+  border-color: #e5e7eb;
+  box-shadow: none;
 }
 
 .slotTime {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  font-weight: 600;
-  color: #1a202c;
+  gap: 10px;
+  font-weight: 500;
+  color: #374151;
   flex: 1;
+  font-size: 14px;
 }
 
 .slotCard.slotExpired .slotTime {
   color: #9ca3af;
-  text-decoration: line-through;
+  text-decoration: none;
 }
 
 .slotTimeIcon {
-  width: 20px;
-  height: 20px;
-  color: #3b82f6;
+  width: 16px;
+  height: 16px;
+  color: #9ca3af;
 }
 
 /* Slot Booked Info */
 .slotBookedInfo {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 12px;
   flex: 1;
-  margin-left: 1rem;
+  margin-left: 16px;
 }
 
 .slotPatientInfo {
@@ -408,57 +417,59 @@
 }
 
 .slotPatientName {
-  font-size: 0.95rem;
+  font-size: 14px;
   font-weight: 600;
-  color: #1a202c;
-  margin: 0 0 0.25rem 0;
+  color: #111827;
+  margin: 0 0 2px 0;
 }
 
 .slotConsultationType {
-  font-size: 0.85rem;
-  color: #718096;
+  font-size: 12px;
+  color: #6b7280;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 6px;
   margin: 0;
+  text-transform: capitalize;
 }
 
 .videoIcon {
-  color: #8b5cf6;
+  color: #7c3aed;
 }
 
 .callIcon {
-  color: #3b82f6;
+  color: #2563eb;
 }
 
 .slotStatus {
-  padding: 0.5rem 0.75rem;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-transform: capitalize;
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
   white-space: nowrap;
   flex-shrink: 0;
+  letter-spacing: 0.02em;
 }
 
 .statusScheduled {
-  background: #dbeafe;
-  color: #0369a1;
+  background: #eff6ff;
+  color: #1e40af;
 }
 
 .statusOngoing {
-  background: #fed7aa;
-  color: #92400e;
+  background: #fff7ed;
+  color: #c2410c;
 }
 
 .statusCompleted {
-  background: #dcfce7;
-  color: #166534;
+  background: #f0fdf4;
+  color: #15803d;
 }
 
 .statusCancelled {
-  background: #fee2e2;
-  color: #991b1b;
+  background: #fef2f2;
+  color: #b91c1c;
 }
 
 .statusExpired {
@@ -470,33 +481,35 @@
 .slotFreeInfo {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  color: #22c55e;
-  font-size: 0.95rem;
-  font-weight: 600;
+  gap: 8px;
+  color: #16a34a;
+  font-size: 14px;
+  font-weight: 500;
   flex: 1;
-  margin-left: 1rem;
+  margin-left: 16px;
+  justify-content: flex-end;
 }
 
 .freeCheckIcon {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
 }
 
 .slotExpiredInfo {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
   color: #9ca3af;
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 500;
   flex: 1;
-  margin-left: 1rem;
+  margin-left: 16px;
+  justify-content: flex-end;
 }
 
 .expiredIcon {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
 }
 
 /* No Slots Message */
@@ -505,21 +518,25 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 3rem 2rem;
+  padding: 48px 24px;
   text-align: center;
-  color: #718096;
+  color: #6b7280;
+  background-color: #f9fafb;
+  border-radius: 12px;
+  border: 1px dashed #e5e7eb;
 }
 
 .noSlotsIcon {
-  width: 48px;
-  height: 48px;
-  margin-bottom: 1rem;
-  color: #cbd5e1;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 16px;
+  color: #9ca3af;
 }
 
 .noSlotsMessage p {
-  font-size: 1rem;
+  font-size: 14px;
   margin: 0;
+  font-weight: 500;
 }
 
 /* Loading Container */
@@ -530,11 +547,12 @@
   align-items: center;
   justify-content: center;
   gap: 1rem;
+  margin-left: 250px;
 }
 
 .spinner {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   color: #3b82f6;
   animation: spin 1s linear infinite;
 }
@@ -544,6 +562,7 @@
     transform: rotate(360deg);
   }
 }
+
 
 /* Responsive */
 @media (max-width: 1024px) {
@@ -559,17 +578,17 @@
 @media (max-width: 768px) {
   .scheduleContent {
     margin-left: 0;
-    padding: 1rem;
+    padding: 24px 18px;
   }
 
   .analyticsGrid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+    gap: 16px;
   }
 
   .typeBreakdownContainer {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: 16px;
   }
 
   .weekGrid {
@@ -577,14 +596,14 @@
   }
 
   .header h1 {
-    font-size: 1.5rem;
+    font-size: 24px;
   }
 
   .dayCard {
-    padding: 0.75rem;
+    padding: 12px;
   }
 
   .dayDate {
-    font-size: 1.25rem;
+    font-size: 20px;
   }
 }
