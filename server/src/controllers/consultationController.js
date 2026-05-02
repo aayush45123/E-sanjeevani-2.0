@@ -1,4 +1,3 @@
-// controllers/consultationController.js
 import mongoose from "mongoose";
 import Consultation from "../models/Consultation.js";
 import DoctorAvailability from "../models/DoctorAvailability.js";
@@ -68,9 +67,11 @@ const findAvailabilityForDay = async (doctorId, dateOnly) => {
 /*
 ==================================================
 GET AVAILABLE DOCTORS
-✅ FIX: Join DoctorProfile so specialization, qualification,
-experience are populated from DoctorProfile, not just User.
-Doctors registered via DB queries will also appear here.
+✅ FIX: aggregation joins DoctorProfile so specialization,
+qualification, experience come from DoctorProfile.
+✅ FIX: doctors without a DoctorProfile still appear
+(patients can see the doctor and filter will just show
+no specialization for incomplete profiles).
 ==================================================
 */
 export const getAvailableDoctors = async (req, res) => {
@@ -78,7 +79,6 @@ export const getAvailableDoctors = async (req, res) => {
     const { specialization, limit = 10, page = 1 } = req.query;
     const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
 
-    // ✅ Use aggregation to join DoctorProfile data
     const matchStage = {
       $match: {
         role: { $regex: "^doctor$", $options: "i" },
@@ -102,7 +102,7 @@ export const getAvailableDoctors = async (req, res) => {
       },
       {
         $addFields: {
-          // Prefer DoctorProfile fields, fall back to User fields
+          // ✅ prefer DoctorProfile fields, fall back to User fields
           specialization: {
             $ifNull: ["$profileData.specialization", "$specialization"],
           },
@@ -117,11 +117,14 @@ export const getAvailableDoctors = async (req, res) => {
           consultationModes: "$profileData.consultationModes",
           aboutDoctor: "$profileData.aboutDoctor",
           shortBio: "$profileData.shortBio",
+          // ✅ expose whether profile is fully completed
+          profileCompleted: {
+            $ifNull: ["$profileData.profileCompleted", false],
+          },
         },
       },
     ];
 
-    // Filter by specialization if provided
     if (specialization) {
       pipeline.push({
         $match: {
@@ -144,7 +147,7 @@ export const getAvailableDoctors = async (req, res) => {
 
     const doctors = await User.aggregate(pipeline);
 
-    // Count for pagination (separate simpler query)
+    // count pipeline
     const countPipeline = [matchStage];
     if (specialization) {
       countPipeline.push(
@@ -200,7 +203,6 @@ export const getAvailableDoctors = async (req, res) => {
 /*
 ==================================================
 CREATE CONSULTATION
-✅ FIX: req.user.id is now always set by middleware
 ==================================================
 */
 export const createConsultation = async (req, res) => {
@@ -233,7 +235,7 @@ export const createConsultation = async (req, res) => {
       });
     }
 
-    // ✅ FIX: Accept both "doctor" and "Doctor" roles
+    // ✅ case-insensitive role check
     const doctor = await User.findById(doctorId);
     if (!doctor || doctor.role.toLowerCase() !== "doctor") {
       return res.status(404).json({
@@ -275,7 +277,6 @@ export const createConsultation = async (req, res) => {
       });
     }
 
-    // ✅ req.user.id is now reliably set by authMiddleware
     const consultation = new Consultation({
       patient: req.user.id,
       doctor: doctorId,
@@ -366,7 +367,6 @@ export const getDoctorAvailableSlots = async (req, res) => {
 /*
 ==================================================
 DOCTOR DASHBOARD CONSULTATIONS
-✅ FIX: req.user.id is now reliably set
 ==================================================
 */
 export const getDoctorConsultations = async (req, res) => {
