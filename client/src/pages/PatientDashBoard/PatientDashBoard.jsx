@@ -38,7 +38,7 @@ const TightMarkdown = ({ children }) => (
         <li style={{ margin: "2px 0", lineHeight: "1.55" }}>
           {/* Strip the <p> wrapper react-markdown injects inside <li> */}
           {React.Children.map(children, (child) =>
-            child?.type === "p" ? child.props.children : child,
+            child?.type === "p" ? child.props.children : child
           )}
         </li>
       ),
@@ -223,7 +223,6 @@ export default function PatientDashboard() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
-
   const handleSendMessage = async (e) => {
     if (e) e.preventDefault();
     if (!inputValue.trim() && attachments.length === 0) return;
@@ -259,11 +258,17 @@ export default function PatientDashboard() {
 
       const data = await response.json();
 
+      // Comprehensive text cleaning to remove XML tags and artifacts
       let cleanedText = data.data.reply
-        .replace(/<Answer>/gi, "")
-        .replace(/<\/Answer>/gi, "")
-        .replace(/^Answer:\s*/i, "")
+        // Remove XML answer tags (opening and closing, case-insensitive)
+        .replace(/<\/?[Aa]nswer>\s*/g, "")
+        // Remove "Answer: " prefix if present
+        .replace(/^[\s]*[Aa]nswer[\s]*:[\s]*/gm, "")
+        // Remove other common XML/HTML tags that might appear
+        .replace(/<[^>]*>/g, "")
+        // Normalize multiple newlines to max of 2 (single blank line)
         .replace(/\n{3,}/g, "\n\n")
+        // Remove leading/trailing whitespace
         .trim();
 
       const aiMessage = {
@@ -303,7 +308,7 @@ export default function PatientDashboard() {
 
   const handleRecordSelect = (record) => {
     setInputValue(
-      (prev) => prev + (prev.trim() ? " " : "") + `[Referencing: ${record}] `,
+      (prev) => prev + (prev.trim() ? " " : "") + `[Referencing: ${record}] `
     );
     setShowRecordMenu(false);
   };
@@ -534,7 +539,78 @@ export default function PatientDashboard() {
                     <div className={styles.messageBubble}>
                       {message.type === "ai" ? (
                         <div className={styles.markdownRender}>
-                          <TightMarkdown>{message.text}</TightMarkdown>
+                          <ReactMarkdown
+                            components={{
+                              h1: ({ children }) => (
+                                <h1 className={styles.mdH1}>{children}</h1>
+                              ),
+                              h2: ({ children }) => (
+                                <h2 className={styles.mdH2}>{children}</h2>
+                              ),
+                              h3: ({ children }) => (
+                                <h3 className={styles.mdH3}>{children}</h3>
+                              ),
+                              h4: ({ children }) => (
+                                <h4 className={styles.mdH4}>{children}</h4>
+                              ),
+                              h5: ({ children }) => (
+                                <h5 className={styles.mdH5}>{children}</h5>
+                              ),
+                              h6: ({ children }) => (
+                                <h6 className={styles.mdH6}>{children}</h6>
+                              ),
+                              p: ({ children }) => (
+                                <p className={styles.mdP}>{children}</p>
+                              ),
+                              ul: ({ children }) => (
+                                <ul className={styles.mdUl}>{children}</ul>
+                              ),
+                              ol: ({ children }) => (
+                                <ol className={styles.mdOl}>{children}</ol>
+                              ),
+                              li: ({ children }) => (
+                                <li className={styles.mdLi}>{children}</li>
+                              ),
+                              code: ({ inline, className, children }) =>
+                                inline ? (
+                                  <code className={styles.mdInlineCode}>
+                                    {children}
+                                  </code>
+                                ) : (
+                                  <pre className={styles.mdPre}>
+                                    <code className={className}>
+                                      {children}
+                                    </code>
+                                  </pre>
+                                ),
+                              a: ({ href, children }) => (
+                                <a
+                                  className={styles.mdLink}
+                                  href={href}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  {children}
+                                </a>
+                              ),
+                              blockquote: ({ children }) => (
+                                <blockquote className={styles.mdBlockquote}>
+                                  {children}
+                                </blockquote>
+                              ),
+                              strong: ({ children }) => (
+                                <strong className={styles.mdStrong}>
+                                  {children}
+                                </strong>
+                              ),
+                              em: ({ children }) => (
+                                <em className={styles.mdEm}>{children}</em>
+                              ),
+                              hr: () => <hr className={styles.mdHr} />,
+                            }}
+                          >
+                            {message.text}
+                          </ReactMarkdown>
                         </div>
                       ) : (
                         message.text
