@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const triageSessionSchema = new mongoose.Schema({
   patientId: {
@@ -56,4 +56,4 @@ triageSessionSchema.pre("save", function (next) {
   next();
 });
 
-module.exports = mongoose.model("TriageSession", triageSessionSchema);
+export default mongoose.model("TriageSession", triageSessionSchema);

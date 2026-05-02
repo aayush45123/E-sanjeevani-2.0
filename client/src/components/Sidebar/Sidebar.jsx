@@ -12,6 +12,7 @@ import {
   FiAlertCircle,
 } from "react-icons/fi";
 import styles from "./Sidebar.module.css";
+import TriageHistory from "../TriageHistory/TriageHistory";
 
 const LogoIcon = () => (
   <img
@@ -134,6 +135,20 @@ export default function Sidebar({ user = {}, onLogout = () => {} }) {
                   ))}
                 </div>
               )}
+
+              <div
+                style={{
+                  marginTop: "20px",
+                  borderTop: "1px solid #ddd",
+                  paddingTop: "20px",
+                }}
+              >
+                <TriageHistory
+                  onSelectTriage={(triageId) => {
+                    console.log("Selected triage:", triageId);
+                  }}
+                />
+              </div>
             </div>
           ))}
         </nav>

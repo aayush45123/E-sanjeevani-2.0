@@ -1,7 +1,7 @@
 // Urgency Scoring Service
 // Calculates urgency score based on symptoms and medical data
 
-const urgencyKeywords = {
+export const urgencyKeywords = {
   critical: [
     "chest pain",
     "difficulty breathing",
@@ -41,13 +41,13 @@ const urgencyKeywords = {
   ],
 };
 
-const severityScore = {
+export const severityScore = {
   mild: 1,
   moderate: 3,
   severe: 7,
 };
 
-const calculateUrgencyScore = (symptoms, medicalHistory, age) => {
+export const calculateUrgencyScore = (symptoms, medicalHistory, age) => {
   let score = 0;
 
   // Check for critical symptoms
@@ -109,14 +109,14 @@ const calculateUrgencyScore = (symptoms, medicalHistory, age) => {
   return Math.round(score * 10) / 10; // Round to 1 decimal
 };
 
-const getUrgencyLevel = (score) => {
+export const getUrgencyLevel = (score) => {
   if (score >= 8) return "critical";
   if (score >= 6) return "high";
   if (score >= 4) return "moderate";
   return "low";
 };
 
-const getRecommendedTests = (symptoms, conditions) => {
+export const getRecommendedTests = (symptoms, conditions) => {
   const tests = new Set();
 
   // Common tests based on symptoms
@@ -146,7 +146,7 @@ const getRecommendedTests = (symptoms, conditions) => {
   return Array.from(tests);
 };
 
-const getRecommendedSpecialties = (symptoms, urgencyScore) => {
+export const getRecommendedSpecialties = (symptoms, urgencyScore) => {
   const specialties = new Set();
 
   const symptomSpecialties = {
@@ -189,7 +189,7 @@ const getRecommendedSpecialties = (symptoms, urgencyScore) => {
   return Array.from(specialties);
 };
 
-const getImmediateRecommendations = (urgencyScore, symptoms) => {
+export const getImmediateRecommendations = (urgencyScore, symptoms) => {
   const recommendations = [];
 
   if (urgencyScore >= 8) {
@@ -229,12 +229,4 @@ const getImmediateRecommendations = (urgencyScore, symptoms) => {
   }
 
   return recommendations;
-};
-
-module.exports = {
-  calculateUrgencyScore,
-  getUrgencyLevel,
-  getRecommendedTests,
-  getRecommendedSpecialties,
-  getImmediateRecommendations,
 };

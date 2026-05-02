@@ -1,11 +1,11 @@
 // Doctor Auto-Matching Service
 // Matches patients with appropriate doctors based on symptoms and availability
 
-const DoctorProfile = require("../models/DoctorProfile");
-const DoctorAvailability = require("../models/DoctorAvailability");
-const Consultation = require("../models/Consultation");
+import DoctorProfile from "../models/DoctorProfile.js";
+import DoctorAvailability from "../models/DoctorAvailability.js";
+import Consultation from "../models/Consultation.js";
 
-const matchDoctorBySpecialty = async (specialties, urgencyScore) => {
+export const matchDoctorBySpecialty = async (specialties, urgencyScore) => {
   try {
     // Find doctors with matching specialties
     const doctors = await DoctorProfile.find({
@@ -62,7 +62,7 @@ const matchDoctorBySpecialty = async (specialties, urgencyScore) => {
   }
 };
 
-const calculateDoctorPriority = (doctor, urgencyScore, availability) => {
+export const calculateDoctorPriority = (doctor, urgencyScore, availability) => {
   let priority = 0;
 
   // Experience factor - more experienced doctors get higher priority for critical cases
@@ -93,7 +93,7 @@ const calculateDoctorPriority = (doctor, urgencyScore, availability) => {
   return priority;
 };
 
-const createAutoMatchedConsultation = async (
+export const createAutoMatchedConsultation = async (
   patientId,
   matchedDoctor,
   triageSessionId,
@@ -124,10 +124,4 @@ const createAutoMatchedConsultation = async (
     console.error("Error creating auto-matched consultation:", error);
     return null;
   }
-};
-
-module.exports = {
-  matchDoctorBySpecialty,
-  calculateDoctorPriority,
-  createAutoMatchedConsultation,
 };

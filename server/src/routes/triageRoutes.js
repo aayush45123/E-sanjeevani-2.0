@@ -1,6 +1,6 @@
-const express = require("express");
-const triageController = require("../controllers/triageController");
-const authMiddleware = require("../middlewares/authMiddleware");
+import express from "express";
+import * as triageController from "../controllers/triageController.js";
+import authMiddleware from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
@@ -25,4 +25,4 @@ router.get(
   triageController.getTriageSessionDetails,
 );
 
-module.exports = router;
+export default router;

@@ -20,6 +20,7 @@ import DoctorProfileSetup from "./pages/DoctorProfileSetup/DoctorProfileSetup";
 import DoctorProfileEdit from "./pages/DoctorProfileEdit/DoctorProfileEdit";
 import DoctorSchedule from "./pages/DoctorDashboard/DoctorSchedule";
 import VideoCall from "./pages/VideoCall/VideoCall";
+import AiTriage from "./components/AiTriage/AiTriage";
 
 import { doctorProfileApi, authApi } from "./utils/api";
 
@@ -296,6 +297,8 @@ const App = () => {
           path="/video-call/:consultationId"
           element={isLoggedIn ? <VideoCall /> : <Navigate to="/auth" replace />}
         />
+
+        <Route path="/ai-triage" element={<AiTriage />} />
 
         {/* DOCTOR DASHBOARD NESTED ROUTES */}
         <Route

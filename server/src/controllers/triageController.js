@@ -1,20 +1,20 @@
-const TriageSession = require("../models/TriageSession");
-const TriageResponse = require("../models/TriageResponse");
-const User = require("../models/User");
-const {
+import TriageSession from "../models/TriageSession.js";
+import TriageResponse from "../models/TriageResponse.js";
+import User from "../models/User.js";
+import {
   calculateUrgencyScore,
   getUrgencyLevel,
   getRecommendedTests,
   getRecommendedSpecialties,
   getImmediateRecommendations,
-} = require("../utils/urgencyScoring");
-const {
+} from "../utils/urgencyScoring.js";
+import {
   matchDoctorBySpecialty,
   createAutoMatchedConsultation,
-} = require("../utils/doctorMatching");
+} from "../utils/doctorMatching.js";
 
 // Start/Create a new triage session
-exports.createTriageSession = async (req, res) => {
+export const createTriageSession = async (req, res) => {
   try {
     const {
       symptoms,
@@ -59,9 +59,9 @@ exports.createTriageSession = async (req, res) => {
 };
 
 // Process triage and generate AI response
-exports.processTriageResponse = async (req, res) => {
+export const processTriageResponse = async (req, res) => {
   try {
-    const { triageSessionId } = req.req.params || req.body;
+    const { triageSessionId } = req.params;
     const patientId = req.user._id;
 
     // Get triage session
@@ -198,7 +198,7 @@ exports.processTriageResponse = async (req, res) => {
 };
 
 // Get patient's triage history (summaries only)
-exports.getTriageHistory = async (req, res) => {
+export const getTriageHistory = async (req, res) => {
   try {
     const patientId = req.user._id;
 
@@ -217,17 +217,15 @@ exports.getTriageHistory = async (req, res) => {
     });
   } catch (error) {
     console.error("Error getting triage history:", error);
-    res
-      .status(500)
-      .json({
-        message: "Error retrieving triage history",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Error retrieving triage history",
+      error: error.message,
+    });
   }
 };
 
 // Get specific triage session details
-exports.getTriageSessionDetails = async (req, res) => {
+export const getTriageSessionDetails = async (req, res) => {
   try {
     const { triageSessionId } = req.params;
     const patientId = req.user._id;
@@ -255,12 +253,10 @@ exports.getTriageSessionDetails = async (req, res) => {
     });
   } catch (error) {
     console.error("Error getting triage session details:", error);
-    res
-      .status(500)
-      .json({
-        message: "Error retrieving session details",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Error retrieving session details",
+      error: error.message,
+    });
   }
 };
 
@@ -383,5 +379,3 @@ const generatePossibleConditions = (symptoms) => {
 
   return conditions;
 };
-
-module.exports = exports;

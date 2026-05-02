@@ -12,7 +12,8 @@ import consultationRoutes from "./routes/consultationRoutes.js";
 import patientProfileRoutes from "./routes/patientProfileRoutes.js";
 import doctorAvailabilityRoutes from "./routes/doctorAvailabilityRoutes.js";
 import doctorProfileRoutes from "./routes/doctorProfileRoutes.js";
-import chatRoutes from './routes/chatRoutes.js'
+import chatRoutes from "./routes/chatRoutes.js";
+import triageRoutes from "./routes/triageRoutes.js";
 
 const app = express();
 
@@ -64,16 +65,16 @@ app.use("/api/patient/profile", patientProfileRoutes);
 
 app.use("/api/doctor-availability", doctorAvailabilityRoutes);
 
+app.use("/api/triage", triageRoutes);
+
 /*
 NEW: DOCTOR PROFILE ROUTES
 */
 
 app.use("/api/doctor-profile", doctorProfileRoutes);
 
-
 /*aichat*/
-app.use('/api/chat', chatRoutes);
-
+app.use("/api/chat", chatRoutes);
 
 /*
 ==================================================
