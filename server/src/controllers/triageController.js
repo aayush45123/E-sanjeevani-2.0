@@ -135,6 +135,7 @@ export const processTriageResponse = async (req, res) => {
     // Update triage session
     triageSession.aiResponse = triageResponse._id;
     triageSession.urgencyScore = urgencyScore;
+    triageSession.urgencyLevel = urgencyLevel;
     triageSession.recommendedSpecialty = recommendedSpecialties[0];
     triageSession.summaryTitle = `${urgencyLevel.toUpperCase()}: ${triageSession.symptoms[0].symptom}`;
     triageSession.summaryDescription = preliminaryAssessment;

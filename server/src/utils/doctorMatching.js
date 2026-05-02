@@ -63,34 +63,64 @@ export const matchDoctorBySpecialty = async (specialties, urgencyScore) => {
 };
 
 export const calculateDoctorPriority = (doctor, urgencyScore, availability) => {
-  let priority = 0;
+  // Matching Score = 0.40 Urgency + 0.25 Specialty Match + 0.20 Availability + 0.10 Language Preference + 0.05 Patient History
 
-  // Experience factor - more experienced doctors get higher priority for critical cases
-  if (urgencyScore >= 8) {
-    priority += (doctor.yearsOfExperience || 0) * 0.5;
-  }
+  // 1. URGENCY COMPONENT (0.40 weight)
+  // Normalize urgency score to 0-1 scale (urgency 10 = highest match)
+  const urgencyNormalized = Math.min(urgencyScore / 10, 1);
+  const urgencyComponent = urgencyNormalized * 0.4;
 
-  // Rating factor
-  priority += (doctor.rating || 0) * 2;
+  // 2. SPECIALTY MATCH COMPONENT (0.25 weight)
+  // Doctors already filtered by specialty, so max score here
+  // Could add nuance: perfect specialty match = 1.0, related specialty = 0.8
+  const specialtyMatch = 1.0; // Already matched by specialty
+  const specialtyComponent = specialtyMatch * 0.25;
 
-  // Availability immediacy - sooner availability gets higher priority
+  // 3. AVAILABILITY COMPONENT (0.20 weight)
+  // Sooner availability = higher score
   const timeUntilAvailable = availability.date.getTime() - new Date().getTime();
   const daysUntilAvailable = timeUntilAvailable / (1000 * 60 * 60 * 24);
 
-  if (daysUntilAvailable <= 1) {
-    priority += 10; // Available within 24 hours
+  let availabilityScore = 0;
+  if (daysUntilAvailable <= 0.5) {
+    availabilityScore = 1.0; // Available within 12 hours - perfect
+  } else if (daysUntilAvailable <= 1) {
+    availabilityScore = 0.9; // Available within 24 hours
   } else if (daysUntilAvailable <= 3) {
-    priority += 5;
+    availabilityScore = 0.7; // Available within 3 days
   } else if (daysUntilAvailable <= 7) {
-    priority += 2;
+    availabilityScore = 0.5; // Available within a week
+  } else {
+    availabilityScore = Math.max(0.2, 1 - daysUntilAvailable / 30); // Decays over time
   }
+  const availabilityComponent = availabilityScore * 0.2;
 
-  // Consultation fee factor - lower fee for same quality
-  if (doctor.consultationFee) {
-    priority += (500 - doctor.consultationFee) / 100;
-  }
+  // 4. LANGUAGE PREFERENCE COMPONENT (0.10 weight)
+  // Assuming doctor.languages is an array of languages they speak
+  // For now, give full score (assuming all doctors speak patient's language)
+  // In real implementation, check patient's preferred language
+  const languageScore =
+    doctor.languages && doctor.languages.length > 0 ? 1.0 : 0.8;
+  const languageComponent = languageScore * 0.1;
 
-  return priority;
+  // 5. PATIENT HISTORY COMPONENT (0.05 weight)
+  // Doctors with more experience get higher scores
+  // Normalize experience: 20 years = max score
+  const experienceNormalized = Math.min(
+    (doctor.yearsOfExperience || 0) / 20,
+    1,
+  );
+  const historyComponent = experienceNormalized * 0.05;
+
+  // TOTAL MATCHING SCORE (0-1 scale)
+  const totalScore =
+    urgencyComponent +
+    specialtyComponent +
+    availabilityComponent +
+    languageComponent +
+    historyComponent;
+
+  return totalScore;
 };
 
 export const createAutoMatchedConsultation = async (

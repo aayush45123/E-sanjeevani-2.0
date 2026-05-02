@@ -8,6 +8,17 @@ const TriageHistory = ({ onSelectTriage }) => {
 
   useEffect(() => {
     fetchTriageHistory();
+
+    // Refetch when user focuses on window (comes back to tab)
+    window.addEventListener("focus", fetchTriageHistory);
+
+    // Also set up interval to check for new triages every 10 seconds
+    const interval = setInterval(fetchTriageHistory, 10000);
+
+    return () => {
+      window.removeEventListener("focus", fetchTriageHistory);
+      clearInterval(interval);
+    };
   }, []);
 
   const fetchTriageHistory = async () => {

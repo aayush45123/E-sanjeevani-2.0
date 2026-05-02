@@ -28,6 +28,11 @@ const triageSessionSchema = new mongoose.Schema({
     max: 10,
     default: 0,
   },
+  urgencyLevel: {
+    type: String,
+    enum: ["low", "moderate", "high", "critical"],
+    default: "low",
+  },
   status: {
     type: String,
     enum: ["pending", "completed", "awaiting_doctor", "assigned_doctor"],

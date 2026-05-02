@@ -47,6 +47,67 @@ export default function VideoCall() {
 
   /*
   =============================================
+  LOAD CHAT HISTORY
+  =============================================
+  */
+  const loadChatHistory = async () => {
+    try {
+      const response = await fetch(
+        `/api/chat/consultation/${consultationId}/messages`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
+
+      const data = await response.json();
+
+      if (response.ok && data.data) {
+        // Convert fetched messages to component format
+        const formattedMessages = data.data.map((msg) => ({
+          id: msg._id,
+          sender:
+            msg.senderId === localStorage.getItem("userId") ? "me" : "remote",
+          senderName:
+            msg.senderName ||
+            (msg.senderRole === "doctor" ? "Doctor" : "Patient"),
+          text: msg.text,
+          timestamp: new Date(msg.createdAt),
+        }));
+        setMessages(formattedMessages);
+      }
+    } catch (error) {
+      console.error("Error loading chat history:", error);
+    }
+  };
+
+  /*
+  =============================================
+  SAVE MESSAGE TO BACKEND
+  =============================================
+  */
+  const saveMessageToBackend = async (text, senderName) => {
+    try {
+      await fetch(`/api/chat/consultation/${consultationId}/save`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          consultationId,
+          text,
+          senderName,
+        }),
+      });
+    } catch (error) {
+      console.error("Error saving message:", error);
+    }
+  };
+
+  /*
+  =============================================
   CREATE PEER CONNECTION WITH DATA CHANNEL
   =============================================
   */
@@ -122,6 +183,9 @@ export default function VideoCall() {
           };
           setMessages((prev) => [...prev, newMsg]);
 
+          // Save remote message to backend
+          saveMessageToBackend(data.text, newMsg.senderName);
+
           if (!isChatOpen) {
             setUnreadCount((c) => c + 1);
           }
@@ -159,6 +223,9 @@ export default function VideoCall() {
     };
 
     setMessages((prev) => [...prev, myMsg]);
+
+    // Save my message to backend
+    saveMessageToBackend(chatInput.trim(), userName);
 
     if (dataChannelRef.current?.readyState === "open") {
       dataChannelRef.current.send(JSON.stringify(payload));
@@ -235,6 +302,10 @@ export default function VideoCall() {
         // First user — create offer + data channel
         socket.on("other-user", async ({ shouldInitiate, usersInRoom }) => {
           setUsersInRoom(usersInRoom || 2);
+
+          // Load chat history when other user joins
+          loadChatHistory();
+
           if (!shouldInitiate) return;
 
           const peer = createPeerConnection();

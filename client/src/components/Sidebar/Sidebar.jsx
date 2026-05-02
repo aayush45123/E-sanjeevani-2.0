@@ -135,22 +135,23 @@ export default function Sidebar({ user = {}, onLogout = () => {} }) {
                   ))}
                 </div>
               )}
-
-              <div
-                style={{
-                  marginTop: "20px",
-                  borderTop: "1px solid #ddd",
-                  paddingTop: "20px",
-                }}
-              >
-                <TriageHistory
-                  onSelectTriage={(triageId) => {
-                    console.log("Selected triage:", triageId);
-                  }}
-                />
-              </div>
             </div>
           ))}
+
+          {/* Triage History - Outside of navGroups map to prevent 3x rendering */}
+          <div
+            style={{
+              marginTop: "20px",
+              borderTop: "1px solid #ddd",
+              paddingTop: "20px",
+            }}
+          >
+            <TriageHistory
+              onSelectTriage={(triageId) => {
+                console.log("Selected triage:", triageId);
+              }}
+            />
+          </div>
         </nav>
       </div>
 
