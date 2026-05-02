@@ -30,3 +30,14 @@ client/node_modules
 server/node_modules
 
 .env
+
+ai-model/data/Testing.csv
+ai-model/data/Training.csv
+ai-model/data/Symptom2Disease.csv
+ai-model/data/Final_Augmented_dataset_Diseases_and_Symptoms.csv
+ai-model/disease_model.pkl
+ai-model/symptom_columns.pkl
+ai-model/disease_label_encoder.pkl
+ai-model/label_encoder.pkl
+ai-model/vectorizer.pkl
+

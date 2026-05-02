@@ -171,36 +171,17 @@ const aiModelsData = [
     provider: "Hugging Face",
     icon: "https://huggingface.co/front/assets/huggingface_logo-noborder.svg",
     isPro: false,
-    description: "Specialized medical language model",
+    description: "Medical chatbot model (/api/chat)",
+    endpoint: "/api/chat",
   },
   {
-    id: "gpt-4o",
-    name: "GPT-4o",
-    provider: "OpenAI",
-    icon: "https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg",
-    isPro: true,
-    description: "Most capable model for complex tasks",
-  },
-  {
-    id: "claude-3.5",
-    name: "Claude 3.5 Sonnet",
-    provider: "Anthropic",
-    icon: "https://www.anthropic.com/favicon.ico",
-    isPro: true,
-    description: "Advanced reasoning and analysis",
-  },
-  {
-    id: "gemini-pro",
-    name: "Gemini Pro",
-    provider: "Google",
-    icon: "https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg",
-    description: "Fast and efficient for most tasks",
-  },
-  {
-    id: "llama-3",
-    name: "Llama 3",
-    provider: "Meta",
-    description: "Open source and customizable",
+    id: "custom-triage-ai",
+    name: "E-Sanjeevani AI Triage",
+    provider: "Custom Medical Model",
+    isPro: false,
+    description:
+      "Self-trained disease prediction model (/api/ai-triage/predict)",
+    endpoint: "/api/ai-triage/predict",
   },
 ];
 
@@ -287,6 +268,7 @@ export default function PatientDashboard() {
   // ── Send message ─────────────────────────────────────────────────────────
   const handleSendMessage = async (e) => {
     if (e) e.preventDefault();
+
     if (!inputValue.trim() && attachments.length === 0) return;
 
     const currentInput = inputValue;
@@ -305,44 +287,102 @@ export default function PatientDashboard() {
     setIsTyping(true);
 
     try {
-      const response = await fetch("http://localhost:5000/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({ prompt: currentInput }),
-      });
+      let response;
+      let aiMessageText = "";
 
-      if (!response.ok) {
-        throw new Error(`API error: ${response.statusText}`);
+      /*
+      MODEL 1:
+      II-Medical-8B
+      Existing chatbot API
+      → /api/chat
+    */
+      if (selectedModel.id === "ii-medical-8b") {
+        response = await fetch("http://localhost:5000/api/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({
+            prompt: currentInput,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`API error: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+
+        aiMessageText = data?.data?.reply
+          ?.replace(/<\/?[Aa]nswer>\s*/g, "")
+          ?.replace(/^[\s]*[Aa]nswer[\s]*:[\s]*/gm, "")
+          ?.replace(/<[^>]*>/g, "")
+          ?.replace(/\n{3,}/g, "\n\n")
+          ?.trim();
+      } else if (selectedModel.id === "custom-triage-ai") {
+
+      /*
+      MODEL 2:
+      E-Sanjeevani AI Triage
+      Your trained ML model
+      → /api/ai-triage/predict
+    */
+        response = await fetch("http://localhost:5000/api/ai-triage/predict", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({
+            userId: user?._id || user?.id,
+            message: currentInput,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`API error: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        const result = data.data;
+
+        aiMessageText = `
+## AI Triage Report
+
+### Predicted Disease
+${result.predictedDisease}
+
+### Urgency Level
+${result.urgency}
+
+### Recommended Specialist
+${result.doctorType}
+
+### Recommendation
+${result.recommendation}
+
+Please consult the assigned doctor for final diagnosis.
+      `;
       }
-
-      const data = await response.json();
-
-      let cleanedText = data.data.reply
-        .replace(/<\/?[Aa]nswer>\s*/g, "")
-        .replace(/^[\s]*[Aa]nswer[\s]*:[\s]*/gm, "")
-        .replace(/<[^>]*>/g, "")
-        .replace(/\n{3,}/g, "\n\n")
-        .trim();
 
       const aiMessage = {
         id: Date.now() + 1,
         type: "ai",
-        text: cleanedText,
+        text: aiMessageText || "No response generated",
         timestamp: new Date(),
       };
 
       setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {
       console.error("AI Chat Error:", error);
+
       setMessages((prev) => [
         ...prev,
         {
           id: Date.now() + 1,
           type: "ai",
-          text: "I am having trouble connecting to the network right now. Please try again later.",
+          text: "AI service is currently unavailable. Please try again later.",
           timestamp: new Date(),
         },
       ]);
