@@ -1,0 +1,361 @@
+.container {
+  padding: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  color: #1a237e;
+  margin-bottom: 10px;
+}
+
+.header p {
+  font-size: 1.1rem;
+  color: #666;
+}
+
+.card {
+  background: white;
+  border-radius: 8px;
+  padding: 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.card h2 {
+  color: #1a237e;
+  margin-bottom: 20px;
+  font-size: 1.8rem;
+}
+
+.card h3 {
+  color: #333;
+  margin-top: 20px;
+  margin-bottom: 15px;
+}
+
+.formGroup {
+  margin-bottom: 20px;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #333;
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: border-color 0.3s;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: none;
+  border-color: #1a237e;
+  box-shadow: 0 0 5px rgba(26, 35, 126, 0.3);
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.rowInputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.btnPrimary,
+.btnSecondary,
+.btnRemove {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: 600;
+}
+
+.btnPrimary {
+  background: #1a237e;
+  color: white;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.btnPrimary:hover:not(:disabled) {
+  background: #0d47a1;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(26, 35, 126, 0.3);
+}
+
+.btnPrimary:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.btnSecondary {
+  background: #f5f5f5;
+  color: #333;
+  border: 1px solid #ddd;
+  margin-top: 10px;
+}
+
+.btnSecondary:hover {
+  background: #e8e8e8;
+}
+
+.btnRemove {
+  background: #d32f2f;
+  color: white;
+  padding: 6px 12px;
+  font-size: 0.9rem;
+}
+
+.btnRemove:hover {
+  background: #b71c1c;
+}
+
+.symptomsList {
+  margin-top: 20px;
+  padding: 15px;
+  background: #f9f9f9;
+  border-radius: 4px;
+}
+
+.symptomItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: white;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  border-left: 4px solid #1a237e;
+}
+
+.symptomInfo {
+  flex: 1;
+}
+
+.symptomInfo strong {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.duration {
+  display: inline-block;
+  background: #e3f2fd;
+  color: #1a237e;
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-size: 0.85rem;
+  margin-right: 8px;
+}
+
+.severity {
+  display: inline-block;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.actions button {
+  flex: 1;
+}
+
+/* Review Section */
+.reviewSection {
+  background: #f9f9f9;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  border-left: 4px solid #1a237e;
+}
+
+.reviewItem {
+  padding: 10px;
+  background: white;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.reviewItem strong {
+  display: block;
+  margin-bottom: 5px;
+  color: #1a237e;
+}
+
+.reviewItem p {
+  color: #666;
+  font-size: 0.95rem;
+  margin: 5px 0 0 0;
+}
+
+/* Urgency Box */
+.urgencyBox {
+  background: #f5f5f5;
+  border-left: 5px solid;
+  padding: 20px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.urgencyScore {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.urgencyLevel {
+  font-size: 1.1rem;
+  color: #333;
+}
+
+/* Auto-Matched Box */
+.autoMatchedBox {
+  background: #c8e6c9;
+  border: 2px solid #388e3c;
+  border-radius: 4px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.autoMatchedBox h3 {
+  color: #1b5e20;
+  margin-top: 0;
+}
+
+.autoMatchedBox p {
+  color: #33691e;
+  margin: 10px 0;
+}
+
+.doctorInfo {
+  background: white;
+  padding: 15px;
+  border-radius: 4px;
+  margin-top: 10px;
+}
+
+.doctorInfo p {
+  margin: 8px 0;
+  color: #333;
+}
+
+/* Assessment Sections */
+.assessmentSection {
+  background: #f9f9f9;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  border-left: 4px solid #1a237e;
+}
+
+.assessmentSection ul {
+  margin: 10px 0;
+  padding-left: 20px;
+}
+
+.assessmentSection li {
+  margin: 8px 0;
+  color: #333;
+}
+
+.conditionItem {
+  background: white;
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  border-left: 3px solid #ff9800;
+}
+
+.conditionItem strong {
+  display: block;
+  color: #1a237e;
+  margin-bottom: 5px;
+}
+
+.conditionItem p {
+  margin: 5px 0;
+  color: #666;
+  font-size: 0.95rem;
+}
+
+.specialtiesList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.specialtyTag {
+  background: #1a237e;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 15px;
+  }
+
+  .header h1 {
+    font-size: 1.8rem;
+  }
+
+  .card {
+    padding: 20px;
+  }
+
+  .rowInputs {
+    grid-template-columns: 1fr;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .actions button {
+    width: 100%;
+  }
+
+  .symptomItem {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .btnRemove {
+    align-self: flex-end;
+    margin-top: 10px;
+  }
+}
