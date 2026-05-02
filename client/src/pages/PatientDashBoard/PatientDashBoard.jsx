@@ -5,19 +5,20 @@ import {
   FiPaperclip,
   FiActivity,
   FiFileText,
-  FiSearch,
   FiClock,
   FiChevronDown,
-  FiFilter,
   FiArrowRight,
   FiX,
+  FiTrash2,
 } from "react-icons/fi";
 import ReactMarkdown from "react-markdown";
 import Sidebar from "../../components/Sidebar/Sidebar";
+import TriageHistory from "../../components/TriageHistory/TriageHistory";
+import TriageDetailView from "../../components/TriageDetailView/TriageDetailView";
 import styles from "./PatientDashBoard.module.css";
 import { authApi } from "../../utils/api";
 
-// Tight markdown renderer — eliminates react-markdown's default <p>-in-<li> spacing
+// ─── Tight Markdown renderer ────────────────────────────────────────────────
 const TightMarkdown = ({ children }) => (
   <ReactMarkdown
     components={{
@@ -36,9 +37,8 @@ const TightMarkdown = ({ children }) => (
       ),
       li: ({ children }) => (
         <li style={{ margin: "2px 0", lineHeight: "1.55" }}>
-          {/* Strip the <p> wrapper react-markdown injects inside <li> */}
           {React.Children.map(children, (child) =>
-            child?.type === "p" ? child.props.children : child
+            child?.type === "p" ? child.props.children : child,
           )}
         </li>
       ),
@@ -137,76 +137,118 @@ const TightMarkdown = ({ children }) => (
   </ReactMarkdown>
 );
 
+// ─── Helpers ────────────────────────────────────────────────────────────────
+const getChatStorageKey = (userId) =>
+  userId ? `chat_messages_${userId}` : "chat_messages_anon";
+
+const loadMessagesFromStorage = (userId) => {
+  try {
+    const raw = localStorage.getItem(getChatStorageKey(userId));
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    // Re-hydrate timestamps as Date objects
+    return parsed.map((m) => ({ ...m, timestamp: new Date(m.timestamp) }));
+  } catch {
+    return [];
+  }
+};
+
+const saveMessagesToStorage = (userId, messages) => {
+  try {
+    // Keep only last 100 messages to avoid quota issues
+    const toSave = messages.slice(-100);
+    localStorage.setItem(getChatStorageKey(userId), JSON.stringify(toSave));
+  } catch (e) {
+    console.warn("Could not persist chat messages:", e);
+  }
+};
+
+// ─── AI Models ──────────────────────────────────────────────────────────────
+const aiModelsData = [
+  {
+    id: "ii-medical-8b",
+    name: "II-Medical-8B",
+    provider: "Hugging Face",
+    icon: "https://huggingface.co/front/assets/huggingface_logo-noborder.svg",
+    isPro: false,
+    description: "Specialized medical language model",
+  },
+  {
+    id: "gpt-4o",
+    name: "GPT-4o",
+    provider: "OpenAI",
+    icon: "https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg",
+    isPro: true,
+    description: "Most capable model for complex tasks",
+  },
+  {
+    id: "claude-3.5",
+    name: "Claude 3.5 Sonnet",
+    provider: "Anthropic",
+    icon: "https://www.anthropic.com/favicon.ico",
+    isPro: true,
+    description: "Advanced reasoning and analysis",
+  },
+  {
+    id: "gemini-pro",
+    name: "Gemini Pro",
+    provider: "Google",
+    icon: "https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg",
+    description: "Fast and efficient for most tasks",
+  },
+  {
+    id: "llama-3",
+    name: "Llama 3",
+    provider: "Meta",
+    description: "Open source and customizable",
+  },
+];
+
+const mockRecords = [
+  "Blood_Test_April2026.pdf",
+  "MRI_Lumbar_Scan.jpg",
+  "DrSmith_Prescription.docx",
+];
+
+// ─── Component ───────────────────────────────────────────────────────────────
 export default function PatientDashboard() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Chat state
+  // ── Chat state ──────────────────────────────────────────────────────────
+  // Messages start empty; once user loads we pull from localStorage
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [attachments, setAttachments] = useState([]);
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
 
-  const aiModelsData = [
-    {
-      id: "ii-medical-8b",
-      name: "II-Medical-8B",
-      provider: "Hugging Face",
-      icon: "https://huggingface.co/front/assets/huggingface_logo-noborder.svg",
-      isPro: false,
-      description: "Specialized medical language model",
-    },
-    {
-      id: "gpt-4o",
-      name: "GPT-4o",
-      provider: "OpenAI",
-      icon: "https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg",
-      isPro: true,
-      description: "Most capable model for complex tasks",
-    },
-    {
-      id: "claude-3.5",
-      name: "Claude 3.5 Sonnet",
-      provider: "Anthropic",
-      icon: "https://www.anthropic.com/favicon.ico",
-      isPro: true,
-      description: "Advanced reasoning and analysis",
-    },
-    {
-      id: "gemini-pro",
-      name: "Gemini Pro",
-      provider: "Google",
-      icon: "https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg",
-      description: "Fast and efficient for most tasks",
-    },
-    {
-      id: "llama-3",
-      name: "Llama 3",
-      provider: "Meta",
-      description: "Open source and customizable",
-    },
-  ];
-
+  // ── Model / dropdown state ───────────────────────────────────────────────
   const [selectedModel, setSelectedModel] = useState(aiModelsData[0]);
   const [showModelMenu, setShowModelMenu] = useState(false);
   const [showRecordMenu, setShowRecordMenu] = useState(false);
-  const [attachments, setAttachments] = useState([]);
-  const fileInputRef = useRef(null);
 
+  // ── Triage state ────────────────────────────────────────────────────────
+  const [selectedTriageId, setSelectedTriageId] = useState(null);
+
+  // ── Derived ─────────────────────────────────────────────────────────────
   const hasStartedChat = messages.length > 0;
 
-  const mockRecords = [
-    "Blood_Test_April2026.pdf",
-    "MRI_Lumbar_Scan.jpg",
-    "DrSmith_Prescription.docx",
-  ];
-
-  // Fetch user data
+  // ── Fetch user, then hydrate messages from localStorage ─────────────────
   useEffect(() => {
     async function init() {
       try {
         const response = await authApi.me();
-        setUser(response.data.user || response.data);
+        const fetchedUser = response.data.user || response.data;
+        setUser(fetchedUser);
+
+        // Now that we have userId, load persisted messages
+        const userId = fetchedUser._id || fetchedUser.id;
+        const persisted = loadMessagesFromStorage(userId);
+        if (persisted.length > 0) {
+          setMessages(persisted);
+        }
       } catch (err) {
         if (err.status === 401 || err.response?.status === 401) {
           localStorage.removeItem("token");
@@ -219,10 +261,30 @@ export default function PatientDashboard() {
     init();
   }, []);
 
-  // Auto-scroll to latest message
+  // ── Persist messages to localStorage whenever they change ────────────────
+  useEffect(() => {
+    if (user) {
+      const userId = user._id || user.id;
+      saveMessagesToStorage(userId, messages);
+    }
+  }, [messages, user]);
+
+  // ── Auto-scroll to latest message ────────────────────────────────────────
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // ── Close dropdowns on outside click ────────────────────────────────────
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setShowModelMenu(false);
+      setShowRecordMenu(false);
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
+
+  // ── Send message ─────────────────────────────────────────────────────────
   const handleSendMessage = async (e) => {
     if (e) e.preventDefault();
     if (!inputValue.trim() && attachments.length === 0) return;
@@ -233,7 +295,7 @@ export default function PatientDashboard() {
       id: Date.now(),
       type: "user",
       text: currentInput,
-      attachments: [...attachments],
+      attachments: attachments.map((f) => f.name),
       timestamp: new Date(),
     };
 
@@ -258,17 +320,11 @@ export default function PatientDashboard() {
 
       const data = await response.json();
 
-      // Comprehensive text cleaning to remove XML tags and artifacts
       let cleanedText = data.data.reply
-        // Remove XML answer tags (opening and closing, case-insensitive)
         .replace(/<\/?[Aa]nswer>\s*/g, "")
-        // Remove "Answer: " prefix if present
         .replace(/^[\s]*[Aa]nswer[\s]*:[\s]*/gm, "")
-        // Remove other common XML/HTML tags that might appear
         .replace(/<[^>]*>/g, "")
-        // Normalize multiple newlines to max of 2 (single blank line)
         .replace(/\n{3,}/g, "\n\n")
-        // Remove leading/trailing whitespace
         .trim();
 
       const aiMessage = {
@@ -281,20 +337,31 @@ export default function PatientDashboard() {
       setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {
       console.error("AI Chat Error:", error);
-
-      const errorMessage = {
-        id: Date.now() + 1,
-        type: "ai",
-        text: "I am having trouble connecting to the network right now. Please try again later.",
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, errorMessage]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now() + 1,
+          type: "ai",
+          text: "I am having trouble connecting to the network right now. Please try again later.",
+          timestamp: new Date(),
+        },
+      ]);
     } finally {
       setIsTyping(false);
     }
   };
 
+  // ── Clear chat ────────────────────────────────────────────────────────────
+  const handleClearChat = () => {
+    if (!window.confirm("Clear all chat messages?")) return;
+    setMessages([]);
+    if (user) {
+      const userId = user._id || user.id;
+      localStorage.removeItem(getChatStorageKey(userId));
+    }
+  };
+
+  // ── File upload ───────────────────────────────────────────────────────────
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files);
     if (files.length > 0) {
@@ -306,13 +373,15 @@ export default function PatientDashboard() {
     setAttachments((prev) => prev.filter((_, idx) => idx !== indexToRemove));
   };
 
+  // ── Record select ─────────────────────────────────────────────────────────
   const handleRecordSelect = (record) => {
     setInputValue(
-      (prev) => prev + (prev.trim() ? " " : "") + `[Referencing: ${record}] `
+      (prev) => prev + (prev.trim() ? " " : "") + `[Referencing: ${record}] `,
     );
     setShowRecordMenu(false);
   };
 
+  // ── Logout ────────────────────────────────────────────────────────────────
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userRole");
@@ -321,6 +390,7 @@ export default function PatientDashboard() {
 
   const firstName = user?.name?.split(" ")[0] || "Patient";
 
+  // ── Loading screen ────────────────────────────────────────────────────────
   if (loading) {
     return (
       <div className={styles.loadingContainer}>
@@ -329,22 +399,26 @@ export default function PatientDashboard() {
     );
   }
 
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className={styles.dashboardLayout}>
+      {/* Hidden file input */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        style={{ display: "none" }}
+        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+        multiple
+        onChange={handleFileUpload}
+      />
+
+      {/* Left sidebar */}
       <Sidebar user={user} onLogout={handleLogout} />
 
+      {/* Main chat area */}
       <main className={styles.mainContent}>
-        {/* Hidden File Input */}
-        <input
-          type="file"
-          ref={fileInputRef}
-          style={{ display: "none" }}
-          accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-          multiple
-          onChange={handleFileUpload}
-        />
-
         {!hasStartedChat ? (
+          /* ── Idle / landing state ── */
           <div className={styles.idleState}>
             <h1 className={styles.greeting}>
               Hello {firstName}, How can we help you today?
@@ -352,7 +426,7 @@ export default function PatientDashboard() {
 
             <div className={styles.searchContainer}>
               <div className={styles.searchInputWrapper}>
-                {/* File Attachment Chips inside input */}
+                {/* Attachment chips */}
                 {attachments.length > 0 && (
                   <div className={styles.attachmentChips}>
                     {attachments.map((file, idx) => (
@@ -383,12 +457,15 @@ export default function PatientDashboard() {
 
                 <div className={styles.inputBottomRow}>
                   <div className={styles.leftTools}>
-                    {/* Models Dropdown */}
-                    <div className={styles.relativeContainer}>
+                    {/* Models dropdown */}
+                    <div
+                      className={styles.relativeContainer}
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <button
                         className={`${styles.dropdownBtn} ${styles.bluePill}`}
                         onClick={() => {
-                          setShowModelMenu(!showModelMenu);
+                          setShowModelMenu((v) => !v);
                           setShowRecordMenu(false);
                         }}
                       >
@@ -446,12 +523,15 @@ export default function PatientDashboard() {
                       )}
                     </div>
 
-                    {/* Records Dropdown */}
-                    <div className={styles.relativeContainer}>
+                    {/* Records dropdown */}
+                    <div
+                      className={styles.relativeContainer}
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <button
                         className={styles.dropdownBtn}
                         onClick={() => {
-                          setShowRecordMenu(!showRecordMenu);
+                          setShowRecordMenu((v) => !v);
                           setShowModelMenu(false);
                         }}
                       >
@@ -504,18 +584,30 @@ export default function PatientDashboard() {
               </div>
             </div>
 
-            {/* Quick Prompts */}
+            {/* Quick prompts */}
             <div className={styles.quickPromptsSection}>
-              {/* ...existing prompts code... */}
+              {/* Keep your existing quick prompts here */}
             </div>
           </div>
         ) : (
+          /* ── Active chat state ── */
           <div className={styles.chatView}>
             <div className={styles.chatHeader}>
-              <h2 className={styles.chatHeaderTitle}>AI Triage Session</h2>
-              <span className={styles.liveTag}>
-                <span className={styles.pulseDot}></span> Live
-              </span>
+              <div className={styles.chatHeaderLeft}>
+                <h2 className={styles.chatHeaderTitle}>AI Triage Session</h2>
+                <span className={styles.liveTag}>
+                  <span className={styles.pulseDot}></span> Live
+                </span>
+              </div>
+              {/* Clear chat button */}
+              <button
+                className={styles.clearChatBtn}
+                onClick={handleClearChat}
+                title="Clear chat history"
+              >
+                <FiTrash2 size={14} />
+                <span>Clear</span>
+              </button>
             </div>
 
             <div className={styles.messagesContainer}>
@@ -535,7 +627,6 @@ export default function PatientDashboard() {
                     <div className={styles.messageAuthor}>
                       {message.type === "user" ? "You" : selectedModel.name}
                     </div>
-
                     <div className={styles.messageBubble}>
                       {message.type === "ai" ? (
                         <div className={styles.markdownRender}>
@@ -613,13 +704,41 @@ export default function PatientDashboard() {
                           </ReactMarkdown>
                         </div>
                       ) : (
-                        message.text
+                        <div>
+                          <span>{message.text}</span>
+                          {/* Show attachment names if any were sent */}
+                          {message.attachments &&
+                            message.attachments.length > 0 && (
+                              <div className={styles.messageAttachments}>
+                                {message.attachments.map((name, i) => (
+                                  <span
+                                    key={i}
+                                    className={styles.attachmentTag}
+                                  >
+                                    <FiFileText size={11} /> {name}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                        </div>
                       )}
+                    </div>
+                    <div className={styles.messageTimestamp}>
+                      {message.timestamp instanceof Date
+                        ? message.timestamp.toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : new Date(message.timestamp).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
                     </div>
                   </div>
                 </div>
               ))}
 
+              {/* Typing indicator */}
               {isTyping && (
                 <div className={`${styles.messageWrapper} ${styles.aiMessage}`}>
                   <div className={styles.avatar}>E</div>
@@ -640,7 +759,22 @@ export default function PatientDashboard() {
               <div ref={messagesEndRef} />
             </div>
 
+            {/* Chat input bar */}
             <div className={styles.chatInputWrapper}>
+              {/* Attachment chips in chat mode */}
+              {attachments.length > 0 && (
+                <div className={styles.chatAttachmentChips}>
+                  {attachments.map((file, idx) => (
+                    <div key={idx} className={styles.chip}>
+                      <FiFileText size={12} />
+                      <span className={styles.chipText}>{file.name}</span>
+                      <button onClick={() => removeAttachment(idx)}>
+                        <FiX size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
               <form
                 onSubmit={handleSendMessage}
                 className={styles.chatFormContainer}
@@ -673,6 +807,29 @@ export default function PatientDashboard() {
           </div>
         )}
       </main>
+
+      {/* ── Right panel: Triage History ── */}
+      <aside className={styles.rightPanel}>
+        <TriageHistory onSelectTriage={(id) => setSelectedTriageId(id)} />
+      </aside>
+
+      {/* ── Triage Detail Modal ── */}
+      {selectedTriageId && (
+        <div
+          className={styles.modalOverlay}
+          onClick={() => setSelectedTriageId(null)}
+        >
+          <div
+            className={styles.modalContent}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <TriageDetailView
+              triageSessionId={selectedTriageId}
+              onClose={() => setSelectedTriageId(null)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

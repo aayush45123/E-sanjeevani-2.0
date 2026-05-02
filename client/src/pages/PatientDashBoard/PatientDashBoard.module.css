@@ -310,7 +310,6 @@
 }
 
 @keyframes pulse {
-
   0%,
   100% {
     opacity: 1;
@@ -506,7 +505,6 @@
 }
 
 @keyframes typing {
-
   0%,
   80%,
   100% {
@@ -834,12 +832,12 @@
   line-height: 1.6;
 }
 
-.mdLi>p {
+.mdLi > p {
   margin: 0;
   display: inline;
 }
 
-.mdLi>p:not(:first-child) {
+.mdLi > p:not(:first-child) {
   display: block;
   margin-top: 0.3em;
 }
@@ -866,7 +864,7 @@
   border-radius: 3px;
   font-size: 0.9em;
   font-weight: 500;
-  font-family: 'Monaco', 'Courier New', monospace;
+  font-family: "Monaco", "Courier New", monospace;
 }
 
 /* Code block - dark background like IDE */
@@ -886,7 +884,7 @@
   background: none;
   padding: 0;
   font-size: inherit;
-  font-family: 'Monaco', 'Courier New', monospace;
+  font-family: "Monaco", "Courier New", monospace;
   color: inherit;
 }
 
@@ -919,4 +917,217 @@
   border: none;
   border-top: 1px solid #e5e7eb;
   margin: 1em 0;
+}
+/* ─────────────────────────────────────────────────────────────
+   PatientDashBoard.module.css  –  ADD THESE TO YOUR EXISTING FILE
+   (or paste the whole thing if starting fresh)
+   ───────────────────────────────────────────────────────────── */
+
+/* Layout: three-column – sidebar | main | triage panel */
+.dashboardLayout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background: #f8fafc;
+}
+
+/* ── Main content area ── */
+.mainContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0; /* prevents flex blowout */
+}
+
+/* ── Right triage-history panel ── */
+.rightPanel {
+  width: 300px;
+  min-width: 260px;
+  flex-shrink: 0;
+  border-left: 1px solid #e8ecf0;
+  overflow-y: auto;
+  background: #ffffff;
+}
+
+/* ── Modal overlay ── */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(2px);
+}
+
+.modalContent {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 620px;
+  max-width: 95vw;
+  max-height: 88vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.18);
+}
+
+/* ── Chat header (row with title + clear button) ── */
+.chatHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e8ecf0;
+  background: #ffffff;
+  flex-shrink: 0;
+}
+
+.chatHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.chatHeaderTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.liveTag {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #16a34a;
+  background: #dcfce7;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.pulseDot {
+  width: 6px;
+  height: 6px;
+  background: #16a34a;
+  border-radius: 50%;
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.75);
+  }
+}
+
+/* ── Clear chat button ── */
+.clearChatBtn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.clearChatBtn:hover {
+  border-color: #fca5a5;
+  color: #ef4444;
+  background: #fef2f2;
+}
+
+/* ── Message timestamps ── */
+.messageTimestamp {
+  font-size: 0.68rem;
+  color: #94a3b8;
+  margin-top: 4px;
+  padding: 0 2px;
+}
+
+/* ── Attachment tags inside sent messages ── */
+.messageAttachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.attachmentTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 10px;
+  font-size: 0.72rem;
+  color: inherit;
+}
+
+/* ── Attachment chips in chat mode (above input bar) ── */
+.chatAttachmentChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 16px 0;
+  background: #ffffff;
+}
+
+/* ── Loading container ── */
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100%;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+  color: #6366f1;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   RESPONSIVE: hide right panel on narrow screens
+   ───────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .rightPanel {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .modalContent {
+    width: 100%;
+    max-height: 92vh;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .modalOverlay {
+    align-items: flex-end;
+    padding: 0;
+  }
 }
