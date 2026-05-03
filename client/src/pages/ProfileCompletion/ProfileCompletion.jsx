@@ -1,13 +1,15 @@
-// FULL UPDATED ProfileCompletion.jsx
-// Industry-level profile page with:
-// - sidebar always visible
-// - no auto redirect loop
-// - edit button first
-// - save button only after edit
-// - professional patient profile UX
+// FULL FINAL UPDATED ProfileCompletion.jsx
+// Industry-level professional version
+// Fixed:
+// - 400 validation error
+// - enum mismatch
+// - edit mode flow
+// - sidebar persistent
+// - proper select dropdowns
+// - save only after edit
+// - no redirect loop
 
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import styles from "./ProfileCompletion.module.css";
 import { apiClient } from "../../utils/api";
@@ -34,17 +36,13 @@ const initialFormState = {
 };
 
 const ProfileCompletion = () => {
-  const navigate = useNavigate();
-
   const [formData, setFormData] = useState(initialFormState);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   /*
-  IMPORTANT:
-  Existing users should first see VIEW mode
-  not edit mode
+  Existing users first see VIEW mode
   */
   const [isEditMode, setIsEditMode] = useState(false);
 
@@ -62,8 +60,8 @@ const ProfileCompletion = () => {
         const response = await apiClient.get("/patient/profile");
 
         const profile = response.data?.data?.profile || null;
-
-        const complete = response.data?.data?.isProfileComplete || false;
+        const complete =
+          response.data?.data?.isProfileComplete || false;
 
         if (profile) {
           setFormData({
@@ -75,8 +73,7 @@ const ProfileCompletion = () => {
         setIsProfileComplete(complete);
 
         /*
-        FIX:
-        Always start in VIEW mode
+        Always start in view mode
         */
         setIsEditMode(false);
       } catch (error) {
@@ -91,7 +88,7 @@ const ProfileCompletion = () => {
 
   /*
   ==================================================
-  INPUT CHANGE
+  HANDLE CHANGE
   ==================================================
   */
 
@@ -106,7 +103,7 @@ const ProfileCompletion = () => {
 
   /*
   ==================================================
-  EDIT BUTTON
+  EDIT MODE
   ==================================================
   */
 
@@ -132,8 +129,7 @@ const ProfileCompletion = () => {
       setIsProfileComplete(true);
 
       /*
-      Important:
-      refresh dashboard lock state
+      Refresh dashboard lock state
       */
       window.dispatchEvent(new Event("profileUpdated"));
 
@@ -141,7 +137,10 @@ const ProfileCompletion = () => {
     } catch (error) {
       console.error("Profile save failed:", error);
 
-      alert(error?.response?.data?.message || "Failed to save profile");
+      alert(
+        error?.response?.data?.message ||
+          "Failed to save profile"
+      );
     } finally {
       setSaving(false);
     }
@@ -149,7 +148,7 @@ const ProfileCompletion = () => {
 
   /*
   ==================================================
-  LOADING
+  LOADING UI
   ==================================================
   */
 
@@ -158,7 +157,9 @@ const ProfileCompletion = () => {
       <div className={styles.pageLayout}>
         <Sidebar />
         <div className={styles.contentArea}>
-          <div className={styles.loadingBox}>Loading profile...</div>
+          <div className={styles.loadingBox}>
+            Loading profile...
+          </div>
         </div>
       </div>
     );
@@ -166,7 +167,7 @@ const ProfileCompletion = () => {
 
   /*
   ==================================================
-  UI
+  MAIN UI
   ==================================================
   */
 
@@ -179,22 +180,36 @@ const ProfileCompletion = () => {
           <div className={styles.header}>
             <div>
               <h1>Patient Profile</h1>
-              <p>Manage your medical information professionally and securely</p>
+              <p>
+                Manage your medical information
+                professionally and securely
+              </p>
             </div>
 
             {!isEditMode && (
-              <button className={styles.editButton} onClick={handleEdit}>
+              <button
+                className={styles.editButton}
+                onClick={handleEdit}
+              >
                 Edit Profile
               </button>
             )}
           </div>
 
-          <form onSubmit={handleSubmit} className={styles.formGrid}>
-            {/* PERSONAL */}
+          <form
+            onSubmit={handleSubmit}
+            className={styles.formGrid}
+          >
+            {/* ===================================== */}
+            {/* PERSONAL DETAILS */}
+            {/* ===================================== */}
 
-            <h2 className={styles.sectionTitle}>Personal Details</h2>
+            <h2 className={styles.sectionTitle}>
+              Personal Details
+            </h2>
 
             <input
+              type="number"
               name="age"
               placeholder="Age"
               value={formData.age}
@@ -209,42 +224,77 @@ const ProfileCompletion = () => {
               disabled={!isEditMode}
             >
               <option value="">Gender</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Other">Other</option>
+              <option value="Male">
+                Male
+              </option>
+              <option value="Female">
+                Female
+              </option>
+              <option value="Other">
+                Other
+              </option>
             </select>
 
-            <input
+            <select
               name="bloodGroup"
-              placeholder="Blood Group"
               value={formData.bloodGroup}
               onChange={handleChange}
               disabled={!isEditMode}
-            />
+            >
+              <option value="">
+                Blood Group
+              </option>
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="O+">O+</option>
+              <option value="O-">O-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+            </select>
 
-            <input
+            <select
               name="maritalStatus"
-              placeholder="Marital Status"
               value={formData.maritalStatus}
               onChange={handleChange}
               disabled={!isEditMode}
-            />
+            >
+              <option value="">
+                Marital Status
+              </option>
+              <option value="Single">
+                Single
+              </option>
+              <option value="Married">
+                Married
+              </option>
+              <option value="Divorced">
+                Divorced
+              </option>
+            </select>
 
-            {/* PHYSICAL */}
+            {/* ===================================== */}
+            {/* PHYSICAL VITALS */}
+            {/* ===================================== */}
 
-            <h2 className={styles.sectionTitle}>Physical Vitals</h2>
+            <h2 className={styles.sectionTitle}>
+              Physical Vitals
+            </h2>
 
             <input
+              type="number"
               name="height"
-              placeholder="Height"
+              placeholder="Height (cm)"
               value={formData.height}
               onChange={handleChange}
               disabled={!isEditMode}
             />
 
             <input
+              type="number"
               name="weight"
-              placeholder="Weight"
+              placeholder="Weight (kg)"
               value={formData.weight}
               onChange={handleChange}
               disabled={!isEditMode}
@@ -258,45 +308,98 @@ const ProfileCompletion = () => {
               disabled={!isEditMode}
             />
 
+            {/* ===================================== */}
             {/* LIFESTYLE */}
+            {/* ===================================== */}
 
-            <h2 className={styles.sectionTitle}>Lifestyle</h2>
+            <h2 className={styles.sectionTitle}>
+              Lifestyle
+            </h2>
 
-            <input
+            <select
               name="smoking"
-              placeholder="Smoking"
               value={formData.smoking}
               onChange={handleChange}
               disabled={!isEditMode}
-            />
+            >
+              <option value="">
+                Smoking
+              </option>
+              <option value="Yes">
+                Yes
+              </option>
+              <option value="No">
+                No
+              </option>
+            </select>
 
-            <input
+            <select
               name="alcohol"
-              placeholder="Alcohol"
               value={formData.alcohol}
               onChange={handleChange}
               disabled={!isEditMode}
-            />
+            >
+              <option value="">
+                Alcohol
+              </option>
+              <option value="Yes">
+                Yes
+              </option>
+              <option value="No">
+                No
+              </option>
+            </select>
 
-            <input
+            <select
               name="diet"
-              placeholder="Diet"
               value={formData.diet}
               onChange={handleChange}
               disabled={!isEditMode}
-            />
+            >
+              <option value="">
+                Diet
+              </option>
+              <option value="Vegetarian">
+                Vegetarian
+              </option>
+              <option value="Non-Vegetarian">
+                Non-Vegetarian
+              </option>
+              <option value="Vegan">
+                Vegan
+              </option>
+            </select>
 
-            <input
+            <select
               name="exercise"
-              placeholder="Exercise"
               value={formData.exercise}
               onChange={handleChange}
               disabled={!isEditMode}
-            />
+            >
+              <option value="">
+                Exercise
+              </option>
+              <option value="Daily">
+                Daily
+              </option>
+              <option value="Weekly">
+                Weekly
+              </option>
+              <option value="Rarely">
+                Rarely
+              </option>
+              <option value="Never">
+                Never
+              </option>
+            </select>
 
-            {/* MEDICAL */}
+            {/* ===================================== */}
+            {/* MEDICAL HISTORY */}
+            {/* ===================================== */}
 
-            <h2 className={styles.sectionTitle}>Medical History</h2>
+            <h2 className={styles.sectionTitle}>
+              Medical History
+            </h2>
 
             <textarea
               name="allergies"
@@ -330,7 +433,9 @@ const ProfileCompletion = () => {
               disabled={!isEditMode}
             />
 
-            {/* SAVE BUTTON ONLY IN EDIT MODE */}
+            {/* ===================================== */}
+            {/* SAVE BUTTON */}
+            {/* ===================================== */}
 
             {isEditMode && (
               <div className={styles.submitRow}>
@@ -339,7 +444,9 @@ const ProfileCompletion = () => {
                   className={styles.saveButton}
                   disabled={saving}
                 >
-                  {saving ? "Saving..." : "Save Changes"}
+                  {saving
+                    ? "Saving..."
+                    : "Save Changes"}
                 </button>
               </div>
             )}

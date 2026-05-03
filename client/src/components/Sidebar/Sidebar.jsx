@@ -162,7 +162,7 @@ const Sidebar = () => {
         className={styles.logoSection}
         onClick={() => navigate("/dashboard")}
       >
-        <img src="/logo.png" alt="E-Sanjeevani" className={styles.logo} />
+        <img src="./logo-svg.svg " alt="E-Sanjeevani" className={styles.logo} />
 
         <h2>E-Sanjeevani</h2>
       </div>

@@ -1,282 +1,243 @@
-/* FULL UPDATED Sidebar.module.css */
-/* Industry-level professional version */
-/* Keeps your existing design/colors exactly */
-/* Only improved layout for stable profile + routing */
+/* FULL FIXED Sidebar.module.css */
+/* Properly matched with Sidebar.jsx */
+/* Professional industry-level layout */
+/* Keeps your exact existing design/colors */
 
 .sidebar {
   width: 260px;
-  background-color: #fafafa;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  flex-shrink: 0;
-  z-index: 10;
-  position: fixed;
-  left: 0;
-  top: 0;
-  height: 100vh;
-  overflow-y: auto;
+  background: #fafafa;
   border-right: 1px solid #eaeaea;
-  font-family: var(--font-primary, system-ui, -apple-system, sans-serif);
-}
-
-/* =====================================
-TOP SECTION
-===================================== */
-
-.sidebarTop {
-  padding: 24px 16px;
-  flex: 1;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  z-index: 100;
+  font-family: var(--font-primary, system-ui, sans-serif);
   overflow-y: auto;
 }
 
-.brand {
+/*
+========================================
+LOGO SECTION
+========================================
+*/
+
+.logoSection {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 40px;
-  padding-left: 8px;
+  padding: 28px 20px;
   cursor: pointer;
+  border-bottom: 1px solid #f1f5f9;
 }
 
-.brandName {
-  font-size: 16px;
-  font-weight: 600;
-  color: #111827;
-  letter-spacing: -0.01em;
+.logo {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
 }
 
-/* =====================================
-NAVIGATION
-===================================== */
-
-.navMenu {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.navGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.navGroupLabel {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
-  background: none;
-  border: none;
-  color: #a1a1aa;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  cursor: pointer;
-  transition: color 0.2s ease;
+.logoSection h2 {
   margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
 }
 
-.navGroupLabel:hover {
-  color: #52525b;
+/*
+========================================
+MAIN SECTION
+========================================
+*/
+
+.section {
+  padding: 18px 14px;
 }
 
-.navItems {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  animation: slideDown 0.2s ease;
+.sectionTitle {
+  font-size: 11px;
+  font-weight: 700;
+  color: #9ca3af;
+  letter-spacing: 0.08em;
+  margin-bottom: 14px;
+  padding-left: 8px;
+  text-transform: uppercase;
 }
 
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+/*
+========================================
+MENU ITEMS
+========================================
+*/
 
-.navItem {
+.menuItem {
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 12px;
-  color: #52525b;
-  text-decoration: none;
-  font-size: 13.5px;
-  font-weight: 500;
-  border-radius: 8px;
-  transition: all 0.2s ease;
+  padding: 12px 14px;
   border: none;
   background: transparent;
-  width: 100%;
-  text-align: left;
+  border-radius: 10px;
   cursor: pointer;
+  transition: 0.2s ease;
+  color: #52525b;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
 }
 
-.navItem:hover {
-  background-color: #f4f4f5;
-  color: #18181b;
+.menuItem:hover {
+  background: #f4f4f5;
+  color: #111827;
 }
 
-.navItem.active {
-  background-color: #e4e4e7;
+.active {
+  background: #e4e4e7;
   color: #111827;
   font-weight: 600;
 }
 
-.navItem svg {
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 }
 
-/* =====================================
-BOTTOM SECTION
-===================================== */
+/*
+========================================
+PROFILE FOOTER
+========================================
+*/
 
-.sidebarBottom {
+.profileFooter {
   padding: 16px;
   border-top: 1px solid #eaeaea;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  flex-shrink: 0;
-  background-color: #fafafa;
+  background: #fafafa;
 }
 
-/* =====================================
-PROFILE CARD
-===================================== */
-
-.userProfile {
+.profileCard {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 10px;
-  background: transparent;
   border-radius: 10px;
-  transition: background 0.2s ease;
   cursor: pointer;
+  transition: 0.2s ease;
 }
 
-.userProfile:hover {
+.profileCard:hover {
   background: #f4f4f5;
 }
 
 .avatar {
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   background: #111827;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
+  color: white;
+  font-weight: 700;
   font-size: 14px;
-  color: #ffffff;
   flex-shrink: 0;
 }
 
-.userInfo {
+.profileInfo {
   display: flex;
   flex-direction: column;
-  flex: 1;
   min-width: 0;
-  gap: 2px;
 }
 
-.userName {
+.profileInfo h4 {
+  margin: 0;
   font-size: 13px;
   font-weight: 600;
   color: #111827;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.userRole {
+.profileInfo p {
+  margin: 2px 0 0;
   font-size: 11px;
-  font-weight: 400;
   color: #71717a;
 }
 
-/* =====================================
+/*
+========================================
 LOGOUT BUTTON
-===================================== */
+========================================
+*/
 
-.logoutBtn {
+.logoutButton {
+  margin-top: 14px;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  color: #52525b;
-  padding: 10px 16px;
+
+  padding: 10px 14px;
   border-radius: 8px;
-  font-weight: 500;
-  font-size: 13px;
+  border: 1px solid #e5e7eb;
+  background: white;
   cursor: pointer;
-  transition: all 0.2s ease;
-  width: 100%;
+
+  font-size: 13px;
+  font-weight: 500;
+  color: #52525b;
+
+  transition: 0.2s ease;
 }
 
-.logoutBtn:hover {
+.logoutButton:hover {
   background: #f4f4f5;
   color: #111827;
   border-color: #d1d5db;
 }
 
-.logoutBtn svg {
-  flex-shrink: 0;
-}
-
-/* =====================================
+/*
+========================================
 SCROLLBAR
-===================================== */
+========================================
+*/
 
 .sidebar::-webkit-scrollbar {
   width: 4px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: #d4d4d8;
+  border-radius: 999px;
 }
 
 .sidebar::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.sidebar::-webkit-scrollbar-thumb {
-  background: #e4e4e7;
-  border-radius: 4px;
-}
-
-/* =====================================
+/*
+========================================
 RESPONSIVE
-===================================== */
+========================================
+*/
 
 @media (max-width: 1024px) {
   .sidebar {
     width: 240px;
   }
-
-  .sidebarTop {
-    padding: 24px 16px;
-  }
 }
 
 @media (max-width: 768px) {
   .sidebar {
-    position: fixed;
-    left: -270px;
-    height: 100vh;
-    z-index: 1000;
-    transition: left 0.3s ease;
+    left: -260px;
+    transition: 0.3s ease;
   }
 
   .sidebar.open {
     left: 0;
-    border-right: 1px solid #e5e7eb;
   }
 }
