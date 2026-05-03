@@ -26,10 +26,27 @@ export default function ProfileCompletion() {
   // Fetch existing profile data
   useEffect(() => {
     const fetchProfile = async () => {
+      setLoading(true);
       try {
         const response = await authApi.me();
         if (response.data.user) {
           const userData = response.data.user;
+
+          // Check for profile completion status before setting data
+          const isComplete =
+            userData.phone &&
+            userData.age &&
+            userData.gender &&
+            userData.bloodType;
+
+          if (isComplete) {
+            // If profile is already complete, redirect to the dashboard immediately.
+            // This is the core fix to prevent existing users from being stuck here.
+            navigate("/dashboard");
+            return; // Stop further execution in this effect
+          }
+
+          // If profile is not complete, proceed to populate the form
           setFormData({
             name: userData.name || "",
             phone: userData.phone || "",
@@ -44,27 +61,20 @@ export default function ProfileCompletion() {
             zipCode: userData.zipCode || "",
           });
 
-          // Check if profile is complete
-          const isComplete =
-            userData.phone &&
-            userData.age &&
-            userData.gender &&
-            userData.bloodType;
           setIsProfileComplete(isComplete);
           setIsEditMode(!isComplete);
-
-          // Store completion status in localStorage
-          if (isComplete) {
-            localStorage.setItem("patientProfileCompleted", "true");
-          }
         }
       } catch (error) {
         console.error("Failed to fetch profile:", error);
+        // Optionally, redirect to login or show an error message if the user is not authenticated
+        navigate("/login");
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchProfile();
-  }, []);
+  }, [navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

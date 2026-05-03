@@ -1,6 +1,20 @@
 import DoctorAvailability from "../models/DoctorAvailability.js";
 import User from "../models/User.js";
 import DoctorProfile from "../models/DoctorProfile.js";
+import {
+  isSameDay,
+  isAfter,
+  isBefore,
+  parseISO,
+  startOfDay,
+  endOfDay,
+  getDay,
+  isWeekend,
+  // 'isWeekday' is removed as it does not exist in date-fns v3
+  getDate,
+} from "date-fns";
+
+// ... (The rest of the file up to the getDoctorAvailabilitySlots function is unchanged) ...
 
 const getDateOnly = (date) => {
   const normalized = new Date(date);
@@ -59,58 +73,18 @@ const getFallbackSlots = async (doctorId, date) => {
   return buildSlots(profile.startTime, profile.endTime);
 };
 
-/*
-==================================================
-CREATE DOCTOR AVAILABILITY
-Doctor sets available slots for a specific day
-==================================================
-*/
-
 export const createDoctorAvailability = async (req, res) => {
   try {
     const { availableDate, slots } = req.body;
 
-    /*
-    Example Body:
-
-    {
-      "availableDate": "2026-05-01",
-      "slots": [
-        {
-          "startTime": "10:00",
-          "endTime": "10:30"
-        },
-        {
-          "startTime": "10:30",
-          "endTime": "11:00"
-        }
-      ]
-    }
-    */
-
-    /*
-    ==========================================
-    VALIDATE ROLE
-    ==========================================
-    */
-
     const doctor = await User.findById(req.user.id);
 
-    // In createDoctorAvailability, replace the role check:
-
-    // ✅ FIX: case-insensitive role check for DB-inserted doctors
     if (!doctor || doctor.role.toLowerCase() !== "doctor") {
       return res.status(403).json({
         success: false,
         message: "Only doctors can create availability",
       });
     }
-
-    /*
-    ==========================================
-    BASIC VALIDATION
-    ==========================================
-    */
 
     if (
       !availableDate ||
@@ -124,12 +98,6 @@ export const createDoctorAvailability = async (req, res) => {
       });
     }
 
-    /*
-    ==========================================
-    CHECK EXISTING ENTRY
-    ==========================================
-    */
-
     const selectedDate = getDateOnly(availableDate);
     const nextDate = new Date(selectedDate);
     nextDate.setDate(nextDate.getDate() + 1);
@@ -141,12 +109,6 @@ export const createDoctorAvailability = async (req, res) => {
         $lt: nextDate,
       },
     });
-
-    /*
-    ==========================================
-    UPDATE EXISTING DATE
-    ==========================================
-    */
 
     if (availability) {
       availability.slots = slots.map((slot) => ({
@@ -165,12 +127,6 @@ export const createDoctorAvailability = async (req, res) => {
         availability,
       });
     }
-
-    /*
-    ==========================================
-    CREATE NEW ENTRY
-    ==========================================
-    */
 
     availability = new DoctorAvailability({
       doctor: req.user.id,
@@ -202,13 +158,6 @@ export const createDoctorAvailability = async (req, res) => {
   }
 };
 
-/*
-==================================================
-GET DOCTOR OWN AVAILABILITY
-Doctor dashboard
-==================================================
-*/
-
 export const getDoctorOwnAvailability = async (req, res) => {
   try {
     const availability = await DoctorAvailability.find({
@@ -233,70 +182,99 @@ export const getDoctorOwnAvailability = async (req, res) => {
   }
 };
 
-/*
-==================================================
-GET DOCTOR AVAILABILITY SLOTS
-Patient fetches available slots for a doctor on a specific date
-Falls back to doctor's working schedule if no explicit availability is set
-==================================================
-*/
-
 export const getDoctorAvailabilitySlots = async (req, res) => {
   try {
     const { doctorId } = req.params;
-    const { date } = req.query;
+    const { date } = req.query; // Expecting date in 'YYYY-MM-DD' format
 
     if (!doctorId || !date) {
       return res.status(400).json({
         success: false,
-        message: "doctorId and date are required",
+        message: "doctorId and date query parameter are required",
       });
     }
 
-    // Normalize the date properly (handle timezone issues)
-    // Date comes as ISO string like "2026-05-01"
-    const dateOnly = getDateOnly(new Date(date));
-    const nextDate = new Date(dateOnly);
-    nextDate.setDate(nextDate.getDate() + 1);
+    const requestedDate = startOfDay(parseISO(date));
 
-    // Find availability for the specific date
-    let availability = await DoctorAvailability.findOne({
+    const allRules = await DoctorAvailability.find({
       doctor: doctorId,
-      availableDate: {
-        $gte: dateOnly,
-        $lt: nextDate,
-      },
       isActive: true,
-    });
+      availableDate: { $lte: endOfDay(requestedDate) },
+    }).sort({ createdAt: -1 });
 
-    // If no explicit availability, check if date matches doctor's working days
-    if (!availability) {
-      const fallbackSlots = await getFallbackSlots(doctorId, dateOnly);
-      if (!fallbackSlots.length) {
-        return res.json({
-          success: true,
-          slots: [],
-        });
-      }
-      // Create availability from working schedule
-      availability = await DoctorAvailability.create({
-        doctor: doctorId,
-        availableDate: dateOnly,
-        slots: fallbackSlots,
-        isActive: true,
-      });
+    if (!allRules || allRules.length === 0) {
+      return res.json({ success: true, slots: [] });
     }
 
-    // Filter out booked slots and return only available ones
-    const availableSlots = availability.slots.filter((slot) => !slot.isBooked);
+    let applicableSlots = [];
+
+    for (const rule of allRules) {
+      let isDateMatch = false;
+      const ruleStartDate = startOfDay(rule.availableDate);
+
+      if (rule.scheduleType === "custom") {
+        if (isSameDay(requestedDate, ruleStartDate)) {
+          isDateMatch = true;
+        }
+      } else if (
+        rule.scheduleType === "weekly" ||
+        rule.scheduleType === "monthly"
+      ) {
+        const ruleEndDate = rule.endDate ? endOfDay(rule.endDate) : null;
+
+        const isWithinRange =
+          isAfter(requestedDate, ruleStartDate) ||
+          isSameDay(requestedDate, ruleStartDate);
+        const isBeforeEndDate = ruleEndDate
+          ? isBefore(requestedDate, ruleEndDate) ||
+            isSameDay(requestedDate, ruleEndDate)
+          : true;
+
+        if (isWithinRange && isBeforeEndDate) {
+          if (rule.scheduleType === "weekly") {
+            const requestedDayOfWeek = getDay(requestedDate);
+            if (rule.recurring.daysOfWeek.includes(requestedDayOfWeek)) {
+              isDateMatch = true;
+            }
+          } else if (rule.scheduleType === "monthly") {
+            const dayFilter = rule.recurring.dayOfMonthFilter;
+            const dayOfMonth = getDate(requestedDate);
+
+            if (dayFilter === "all-days") {
+              isDateMatch = true;
+            } else if (dayFilter === "all-weekdays" && !isWeekend(requestedDate)) { // <-- THE FIX IS HERE
+              isDateMatch = true;
+            } else if (dayFilter === "all-weekends" && isWeekend(requestedDate)) {
+              isDateMatch = true;
+            } else if (
+              dayFilter === "custom" &&
+              rule.recurring.customDays.includes(dayOfMonth)
+            ) {
+              isDateMatch = true;
+            }
+          }
+        }
+      }
+
+      if (isDateMatch) {
+        const unbookedSlots = rule.slots.filter((slot) => !slot.isBooked);
+
+        applicableSlots = unbookedSlots.map((slot) => ({
+          _id: slot._id,
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+        }));
+
+        break;
+      }
+    }
 
     res.json({
       success: true,
-      slots: availableSlots,
+      slots: applicableSlots,
     });
   } catch (error) {
     console.error("getDoctorAvailabilitySlots error:", error);
-
     res.status(500).json({
       success: false,
       message: "Failed to fetch doctor slots",
@@ -304,13 +282,6 @@ export const getDoctorAvailabilitySlots = async (req, res) => {
     });
   }
 };
-
-/*
-==================================================
-DELETE SINGLE DAY AVAILABILITY
-Optional professional feature
-==================================================
-*/
 
 export const deleteDoctorAvailability = async (req, res) => {
   try {
