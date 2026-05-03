@@ -73,7 +73,10 @@ const Sidebar = () => {
     if (user.role === "doctor") {
       navigate("/doctor-profile-edit");
     } else {
-      navigate("/profile");
+      /*
+    patient route must match App.jsx route
+    */
+      navigate("/profile-setup");
     }
   };
 

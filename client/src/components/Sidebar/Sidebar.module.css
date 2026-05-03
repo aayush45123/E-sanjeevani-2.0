@@ -1,10 +1,11 @@
-/* FULL FIXED Sidebar.module.css */
-/* Properly matched with Sidebar.jsx */
-/* Professional industry-level layout */
-/* Keeps your exact existing design/colors */
+/* FULL PROFESSIONAL UPDATED Sidebar.module.css */
+/* Better structure + spacing + proper visual balance */
+/* Same colors/design language preserved */
+/* Only improved layout + industry-level polish */
 
 .sidebar {
-  width: 260px;
+  width: 270px;
+  min-width: 270px;
   background: #fafafa;
   border-right: 1px solid #eaeaea;
   position: fixed;
@@ -13,10 +14,9 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   z-index: 100;
   font-family: var(--font-primary, system-ui, sans-serif);
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 /*
@@ -28,33 +28,42 @@ LOGO SECTION
 .logoSection {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 28px 20px;
+  gap: 14px;
+  padding: 26px 22px;
+  border-bottom: 1px solid #ececec;
   cursor: pointer;
-  border-bottom: 1px solid #f1f5f9;
+  flex-shrink: 0;
+  background: #fafafa;
 }
 
 .logo {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   object-fit: contain;
+  flex-shrink: 0;
 }
 
 .logoSection h2 {
   margin: 0;
   font-size: 16px;
   font-weight: 700;
-  color: #111827;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  line-height: 1;
 }
 
 /*
 ========================================
-MAIN SECTION
+MIDDLE CONTENT
 ========================================
 */
 
 .section {
-  padding: 18px 14px;
+  padding: 24px 16px 0;
+}
+
+.section:first-of-type {
+  padding-top: 28px;
 }
 
 .sectionTitle {
@@ -62,9 +71,9 @@ MAIN SECTION
   font-weight: 700;
   color: #9ca3af;
   letter-spacing: 0.08em;
-  margin-bottom: 14px;
-  padding-left: 8px;
   text-transform: uppercase;
+  margin: 0 0 14px;
+  padding-left: 8px;
 }
 
 /*
@@ -79,11 +88,16 @@ MENU ITEMS
   align-items: center;
   gap: 12px;
   padding: 12px 14px;
+  margin-bottom: 4px;
+
   border: none;
+  outline: none;
   background: transparent;
   border-radius: 10px;
+
   cursor: pointer;
-  transition: 0.2s ease;
+  transition: all 0.2s ease;
+
   color: #52525b;
   font-size: 14px;
   font-weight: 500;
@@ -96,7 +110,7 @@ MENU ITEMS
 }
 
 .active {
-  background: #e4e4e7;
+  background: #f1f5f9;
   color: #111827;
   font-weight: 600;
 }
@@ -106,26 +120,36 @@ MENU ITEMS
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  width: 18px;
 }
 
 /*
 ========================================
-PROFILE FOOTER
+PUSH FOOTER TO BOTTOM
 ========================================
 */
 
 .profileFooter {
-  padding: 16px;
-  border-top: 1px solid #eaeaea;
+  margin-top: auto;
+  padding: 18px 16px;
+  border-top: 1px solid #ececec;
   background: #fafafa;
+  flex-shrink: 0;
 }
+
+/*
+========================================
+PROFILE CARD
+========================================
+*/
 
 .profileCard {
   display: flex;
   align-items: center;
   gap: 12px;
+
   padding: 10px;
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
   transition: 0.2s ease;
 }
@@ -135,13 +159,15 @@ PROFILE FOOTER
 }
 
 .avatar {
-  width: 38px;
-  height: 38px;
-  background: #111827;
-  border-radius: 8px;
+  width: 42px;
+  height: 42px;
+  background: #0f172a;
+  border-radius: 10px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   color: white;
   font-weight: 700;
   font-size: 14px;
@@ -152,19 +178,22 @@ PROFILE FOOTER
   display: flex;
   flex-direction: column;
   min-width: 0;
+  gap: 2px;
 }
 
 .profileInfo h4 {
   margin: 0;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: #111827;
+  line-height: 1.2;
 }
 
 .profileInfo p {
-  margin: 2px 0 0;
-  font-size: 11px;
+  margin: 0;
+  font-size: 12px;
   color: #71717a;
+  line-height: 1.2;
 }
 
 /*
@@ -174,28 +203,30 @@ LOGOUT BUTTON
 */
 
 .logoutButton {
-  margin-top: 14px;
   width: 100%;
+  margin-top: 14px;
+
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
 
-  padding: 10px 14px;
-  border-radius: 8px;
+  padding: 11px 14px;
+
+  border-radius: 10px;
   border: 1px solid #e5e7eb;
-  background: white;
+  background: #ffffff;
+
   cursor: pointer;
+  transition: all 0.2s ease;
 
   font-size: 13px;
   font-weight: 500;
   color: #52525b;
-
-  transition: 0.2s ease;
 }
 
 .logoutButton:hover {
-  background: #f4f4f5;
+  background: #f8fafc;
   color: #111827;
   border-color: #d1d5db;
 }
@@ -207,7 +238,7 @@ SCROLLBAR
 */
 
 .sidebar::-webkit-scrollbar {
-  width: 4px;
+  width: 5px;
 }
 
 .sidebar::-webkit-scrollbar-thumb {
@@ -227,14 +258,16 @@ RESPONSIVE
 
 @media (max-width: 1024px) {
   .sidebar {
-    width: 240px;
+    width: 250px;
+    min-width: 250px;
   }
 }
 
 @media (max-width: 768px) {
   .sidebar {
-    left: -260px;
-    transition: 0.3s ease;
+    left: -270px;
+    transition: left 0.3s ease;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
   }
 
   .sidebar.open {
