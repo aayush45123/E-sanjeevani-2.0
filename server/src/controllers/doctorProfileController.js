@@ -94,20 +94,18 @@ const syncDoctorAvailability = async (doctorId, profileData) => {
       },
     });
 
-    const availabilityData = {
-      doctor: doctorId,
-      availableDate: dateOnly,
-      slots,
-      isActive: true,
-    };
-
     if (existingAvailability) {
       existingAvailability.availableDate = dateOnly;
       existingAvailability.slots = slots;
       existingAvailability.isActive = true;
       await existingAvailability.save();
     } else {
-      await DoctorAvailability.create(availabilityData);
+      await DoctorAvailability.create({
+        doctor: doctorId,
+        availableDate: dateOnly,
+        slots,
+        isActive: true,
+      });
     }
   }
 };
@@ -115,9 +113,14 @@ const syncDoctorAvailability = async (doctorId, profileData) => {
 /*
 ==================================================
 CREATE OR UPDATE DOCTOR PROFILE
+✅ FIX 1: case-insensitive role check
+✅ FIX 2: syncDoctorAvailability wrapped in try/catch (non-fatal)
+✅ FIX 3: User.profileCompleted set to true after profile save
+✅ FIX 4: uses findOneAndUpdate with upsert to avoid duplicate
+          key errors on medicalRegistrationNumber unique index
+✅ FIX 5: detailed validation error response so 500s are debuggable
 ==================================================
 */
-
 export const createOrUpdateDoctorProfile = async (req, res) => {
   try {
     const {
@@ -140,18 +143,56 @@ export const createOrUpdateDoctorProfile = async (req, res) => {
       shortBio,
     } = req.body;
 
+    // ─── detailed request log to catch what's actually arriving ───
+    console.log("createOrUpdateDoctorProfile body:", {
+      phone,
+      gender,
+      dateOfBirth,
+      specialization,
+      qualification,
+      medicalRegistrationNumber,
+      experience,
+      hospitalName,
+      consultationFee,
+      workingDays,
+      startTime,
+      endTime,
+      consultationModes,
+    });
+
     const user = await User.findById(req.user.id);
 
-    if (!user || user.role !== "doctor") {
+    // ✅ FIX 1: case-insensitive role check
+    if (!user || user.role.toLowerCase() !== "doctor") {
       return res.status(403).json({
         success: false,
         message: "Only doctors can create profile",
       });
     }
 
-    let profile = await DoctorProfile.findOne({
-      userId: req.user.id,
-    });
+    // ─── guard required fields before hitting Mongoose ────────────
+    const missingFields = [];
+    if (!phone) missingFields.push("phone");
+    if (!gender) missingFields.push("gender");
+    if (!dateOfBirth) missingFields.push("dateOfBirth");
+    if (!specialization) missingFields.push("specialization");
+    if (!qualification) missingFields.push("qualification");
+    if (!medicalRegistrationNumber)
+      missingFields.push("medicalRegistrationNumber");
+    if (experience === undefined || experience === "")
+      missingFields.push("experience");
+    if (!hospitalName) missingFields.push("hospitalName");
+    if (consultationFee === undefined || consultationFee === "")
+      missingFields.push("consultationFee");
+    if (!startTime) missingFields.push("startTime");
+    if (!endTime) missingFields.push("endTime");
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Missing required fields: ${missingFields.join(", ")}`,
+      });
+    }
 
     const profileData = {
       userId: req.user.id,
@@ -159,33 +200,56 @@ export const createOrUpdateDoctorProfile = async (req, res) => {
       gender,
       dateOfBirth,
       specialization,
-      superSpecialization,
+      superSpecialization: superSpecialization || "",
       qualification,
       medicalRegistrationNumber,
-      experience,
+      experience: Number(experience),
       hospitalName,
-      consultationFee,
-      languagesSpoken,
-      workingDays,
+      consultationFee: Number(consultationFee),
+      languagesSpoken: Array.isArray(languagesSpoken)
+        ? languagesSpoken
+        : typeof languagesSpoken === "string"
+          ? languagesSpoken
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean)
+          : [],
+      workingDays: Array.isArray(workingDays) ? workingDays : [],
       startTime,
       endTime,
-      consultationModes,
-      aboutDoctor,
-      shortBio,
+      consultationModes: Array.isArray(consultationModes)
+        ? consultationModes
+        : [],
+      aboutDoctor: aboutDoctor || "",
+      shortBio: shortBio || "",
       profileCompleted: true,
     };
 
-    if (profile) {
-      profile = await DoctorProfile.findOneAndUpdate(
-        { userId: req.user.id },
-        profileData,
-        { new: true },
-      );
-    } else {
-      profile = await DoctorProfile.create(profileData);
-    }
+    // ✅ FIX 4: single upsert — avoids both duplicate key errors and
+    //    the race condition between findOne + create
+    const profile = await DoctorProfile.findOneAndUpdate(
+      { userId: req.user.id },
+      { $set: profileData },
+      {
+        new: true, // return updated doc
+        upsert: true, // create if not found
+        runValidators: true,
+        setDefaultsOnInsert: true,
+      },
+    );
 
-    await syncDoctorAvailability(req.user.id, profileData);
+    // ✅ FIX 3: keep User doc in sync
+    await User.findByIdAndUpdate(req.user.id, { profileCompleted: true });
+
+    // ✅ FIX 2: non-fatal availability sync
+    try {
+      await syncDoctorAvailability(req.user.id, profileData);
+    } catch (syncErr) {
+      console.error(
+        "syncDoctorAvailability failed (non-fatal):",
+        syncErr.message,
+      );
+    }
 
     res.status(200).json({
       success: true,
@@ -194,6 +258,25 @@ export const createOrUpdateDoctorProfile = async (req, res) => {
     });
   } catch (error) {
     console.error("Doctor profile save error:", error);
+
+    // ✅ FIX 5: return validation errors clearly instead of generic 500
+    if (error.name === "ValidationError") {
+      const messages = Object.values(error.errors).map((e) => e.message);
+      return res.status(400).json({
+        success: false,
+        message: "Validation failed",
+        errors: messages,
+      });
+    }
+
+    // Duplicate key (e.g. medicalRegistrationNumber already used by another doctor)
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue || {})[0] || "field";
+      return res.status(409).json({
+        success: false,
+        message: `${field} already exists. Please use a different value.`,
+      });
+    }
 
     res.status(500).json({
       success: false,
@@ -208,7 +291,6 @@ export const createOrUpdateDoctorProfile = async (req, res) => {
 GET LOGGED-IN DOCTOR PROFILE
 ==================================================
 */
-
 export const getDoctorProfile = async (req, res) => {
   try {
     const profile = await DoctorProfile.findOne({
@@ -242,7 +324,6 @@ export const getDoctorProfile = async (req, res) => {
 CHECK PROFILE STATUS
 ==================================================
 */
-
 export const checkDoctorProfileStatus = async (req, res) => {
   try {
     const profile = await DoctorProfile.findOne({
