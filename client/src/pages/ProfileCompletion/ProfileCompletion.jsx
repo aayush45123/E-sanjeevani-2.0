@@ -1,439 +1,353 @@
-import React, { useState, useEffect } from "react";
+// FULL UPDATED ProfileCompletion.jsx
+// Industry-level profile page with:
+// - sidebar always visible
+// - no auto redirect loop
+// - edit button first
+// - save button only after edit
+// - professional patient profile UX
+
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiEdit2, FiCheck } from "react-icons/fi";
+import Sidebar from "../../components/Sidebar/Sidebar";
 import styles from "./ProfileCompletion.module.css";
-import { authApi } from "../../utils/api";
+import { apiClient } from "../../utils/api";
 
-export default function ProfileCompletion() {
+const initialFormState = {
+  age: "",
+  gender: "",
+  bloodGroup: "",
+  maritalStatus: "",
+
+  height: "",
+  weight: "",
+  bloodPressure: "",
+
+  smoking: "",
+  alcohol: "",
+  diet: "",
+  exercise: "",
+
+  allergies: "",
+  chronicConditions: "",
+  currentMedications: "",
+  pastSurgeries: "",
+};
+
+const ProfileCompletion = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [isProfileComplete, setIsProfileComplete] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    phone: "",
-    age: "",
-    gender: "",
-    bloodType: "",
-    allergies: "",
-    medicalHistory: "",
-    address: "",
-    city: "",
-    state: "",
-    zipCode: "",
-  });
 
-  // Fetch existing profile data
+  const [formData, setFormData] = useState(initialFormState);
+
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  /*
+  IMPORTANT:
+  Existing users should first see VIEW mode
+  not edit mode
+  */
+  const [isEditMode, setIsEditMode] = useState(false);
+
+  const [isProfileComplete, setIsProfileComplete] = useState(false);
+
+  /*
+  ==================================================
+  FETCH PROFILE
+  ==================================================
+  */
+
   useEffect(() => {
     const fetchProfile = async () => {
-      setLoading(true);
       try {
-        const response = await authApi.me();
-        if (response.data.user) {
-          const userData = response.data.user;
+        const response = await apiClient.get("/patient/profile");
 
-          // Check for profile completion status before setting data
-          const isComplete =
-            userData.phone &&
-            userData.age &&
-            userData.gender &&
-            userData.bloodType;
+        const profile = response.data?.data?.profile || null;
 
-          if (isComplete) {
-            // If profile is already complete, redirect to the dashboard immediately.
-            // This is the core fix to prevent existing users from being stuck here.
-            navigate("/dashboard");
-            return; // Stop further execution in this effect
-          }
+        const complete = response.data?.data?.isProfileComplete || false;
 
-          // If profile is not complete, proceed to populate the form
+        if (profile) {
           setFormData({
-            name: userData.name || "",
-            phone: userData.phone || "",
-            age: userData.age || "",
-            gender: userData.gender || "",
-            bloodType: userData.bloodType || "",
-            allergies: userData.allergies?.join(", ") || "",
-            medicalHistory: userData.medicalHistory?.join(", ") || "",
-            address: userData.address || "",
-            city: userData.city || "",
-            state: userData.state || "",
-            zipCode: userData.zipCode || "",
+            ...initialFormState,
+            ...profile,
           });
-
-          setIsProfileComplete(isComplete);
-          setIsEditMode(!isComplete);
         }
+
+        setIsProfileComplete(complete);
+
+        /*
+        FIX:
+        Always start in VIEW mode
+        */
+        setIsEditMode(false);
       } catch (error) {
-        console.error("Failed to fetch profile:", error);
-        // Optionally, redirect to login or show an error message if the user is not authenticated
-        navigate("/login");
+        console.error("Profile fetch failed:", error);
       } finally {
         setLoading(false);
       }
     };
 
     fetchProfile();
-  }, [navigate]);
+  }, []);
+
+  /*
+  ==================================================
+  INPUT CHANGE
+  ==================================================
+  */
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+  /*
+  ==================================================
+  EDIT BUTTON
+  ==================================================
+  */
 
-    try {
-      // Convert comma-separated strings to arrays
-      const submitData = {
-        ...formData,
-        allergies: formData.allergies
-          .split(",")
-          .map((item) => item.trim())
-          .filter((item) => item),
-        medicalHistory: formData.medicalHistory
-          .split(",")
-          .map((item) => item.trim())
-          .filter((item) => item),
-      };
-
-      const response = await authApi.completePatientProfile(submitData);
-
-      if (response.data.success) {
-        alert("Profile saved successfully!");
-        localStorage.setItem("patientProfileCompleted", "true");
-        window.dispatchEvent(new Event("profileUpdated"));
-        setIsProfileComplete(true);
-        setIsEditMode(false);
-
-        // Redirect after a short delay
-        setTimeout(() => {
-          navigate("/dashboard");
-        }, 100);
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      alert(error.response?.data?.message || "Failed to save profile");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEditClick = () => {
+  const handleEdit = () => {
     setIsEditMode(true);
   };
 
-  const handleCancelClick = () => {
-    setIsEditMode(false);
+  /*
+  ==================================================
+  SAVE PROFILE
+  ==================================================
+  */
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    setSaving(true);
+
+    try {
+      await apiClient.patch("/patient/profile", formData);
+
+      setIsEditMode(false);
+      setIsProfileComplete(true);
+
+      /*
+      Important:
+      refresh dashboard lock state
+      */
+      window.dispatchEvent(new Event("profileUpdated"));
+
+      alert("Profile saved successfully");
+    } catch (error) {
+      console.error("Profile save failed:", error);
+
+      alert(error?.response?.data?.message || "Failed to save profile");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  return (
-    <div className={styles.profileCompletionContainer}>
-      <div className={styles.formWrapper}>
-        <div className={styles.header}>
-          <div className={styles.headerTop}>
-            <h1 className={styles.title}>Patient Profile</h1>
-            {isProfileComplete && (
-              <div className={styles.completeBadge}>
-                <FiCheck size={16} />
-                <span>Complete</span>
-              </div>
-            )}
-          </div>
-          <p className={styles.subtitle}>
-            {isEditMode
-              ? "Update your health information"
-              : "Your healthcare information"}
-          </p>
+  /*
+  ==================================================
+  LOADING
+  ==================================================
+  */
+
+  if (loading) {
+    return (
+      <div className={styles.pageLayout}>
+        <Sidebar />
+        <div className={styles.contentArea}>
+          <div className={styles.loadingBox}>Loading profile...</div>
         </div>
+      </div>
+    );
+  }
 
-        {isProfileComplete && !isEditMode ? (
-          <div className={styles.viewMode}>
-            {/* View Mode */}
-            <div className={styles.section}>
-              <h2 className={styles.sectionTitle}>Personal Information</h2>
+  /*
+  ==================================================
+  UI
+  ==================================================
+  */
 
-              <div className={styles.viewGrid}>
-                <div className={styles.viewField}>
-                  <label>Full Name</label>
-                  <p>{formData.name}</p>
-                </div>
+  return (
+    <div className={styles.pageLayout}>
+      <Sidebar />
 
-                <div className={styles.viewField}>
-                  <label>Phone Number</label>
-                  <p>{formData.phone}</p>
-                </div>
-
-                <div className={styles.viewField}>
-                  <label>Age</label>
-                  <p>{formData.age}</p>
-                </div>
-
-                <div className={styles.viewField}>
-                  <label>Gender</label>
-                  <p className={styles.capitalize}>{formData.gender}</p>
-                </div>
-              </div>
+      <div className={styles.contentArea}>
+        <div className={styles.profileCard}>
+          <div className={styles.header}>
+            <div>
+              <h1>Patient Profile</h1>
+              <p>Manage your medical information professionally and securely</p>
             </div>
 
-            <div className={styles.section}>
-              <h2 className={styles.sectionTitle}>Medical Information</h2>
-
-              <div className={styles.viewGrid}>
-                <div className={styles.viewField}>
-                  <label>Blood Type</label>
-                  <p>{formData.bloodType}</p>
-                </div>
-
-                <div className={styles.viewField}>
-                  <label>Allergies</label>
-                  <p>{formData.allergies || "None reported"}</p>
-                </div>
-              </div>
-
-              <div className={styles.viewField}>
-                <label>Medical History</label>
-                <p>{formData.medicalHistory || "None reported"}</p>
-              </div>
-            </div>
-
-            <div className={styles.section}>
-              <h2 className={styles.sectionTitle}>Address</h2>
-
-              <div className={styles.viewGrid}>
-                <div className={styles.viewField}>
-                  <label>Street Address</label>
-                  <p>{formData.address || "Not provided"}</p>
-                </div>
-
-                <div className={styles.viewField}>
-                  <label>City</label>
-                  <p>{formData.city || "Not provided"}</p>
-                </div>
-
-                <div className={styles.viewField}>
-                  <label>State</label>
-                  <p>{formData.state || "Not provided"}</p>
-                </div>
-
-                <div className={styles.viewField}>
-                  <label>Zip Code</label>
-                  <p>{formData.zipCode || "Not provided"}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className={styles.buttonGroup}>
-              <button
-                type="button"
-                className={styles.editBtn}
-                onClick={handleEditClick}
-              >
-                <FiEdit2 size={16} />
+            {!isEditMode && (
+              <button className={styles.editButton} onClick={handleEdit}>
                 Edit Profile
               </button>
-            </div>
+            )}
           </div>
-        ) : (
-          <form onSubmit={handleSubmit} className={styles.form}>
-            {/* Personal Information */}
-            <div className={styles.section}>
-              <h2 className={styles.sectionTitle}>Personal Information</h2>
 
-              <div className={styles.formRow}>
-                <div className={styles.formGroup}>
-                  <label htmlFor="name">Full Name *</label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    placeholder="Enter your full name"
-                  />
-                </div>
+          <form onSubmit={handleSubmit} className={styles.formGrid}>
+            {/* PERSONAL */}
 
-                <div className={styles.formGroup}>
-                  <label htmlFor="phone">Phone Number</label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    placeholder="Enter your phone number"
-                  />
-                </div>
-              </div>
+            <h2 className={styles.sectionTitle}>Personal Details</h2>
 
-              <div className={styles.formRow}>
-                <div className={styles.formGroup}>
-                  <label htmlFor="age">Age</label>
-                  <input
-                    type="number"
-                    id="age"
-                    name="age"
-                    value={formData.age}
-                    onChange={handleChange}
-                    placeholder="Enter your age"
-                    min="0"
-                    max="120"
-                  />
-                </div>
+            <input
+              name="age"
+              placeholder="Age"
+              value={formData.age}
+              onChange={handleChange}
+              disabled={!isEditMode}
+            />
 
-                <div className={styles.formGroup}>
-                  <label htmlFor="gender">Gender</label>
-                  <select
-                    id="gender"
-                    name="gender"
-                    value={formData.gender}
-                    onChange={handleChange}
-                  >
-                    <option value="">Select gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-              </div>
-            </div>
+            <select
+              name="gender"
+              value={formData.gender}
+              onChange={handleChange}
+              disabled={!isEditMode}
+            >
+              <option value="">Gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
 
-            {/* Medical Information */}
-            <div className={styles.section}>
-              <h2 className={styles.sectionTitle}>Medical Information</h2>
+            <input
+              name="bloodGroup"
+              placeholder="Blood Group"
+              value={formData.bloodGroup}
+              onChange={handleChange}
+              disabled={!isEditMode}
+            />
 
-              <div className={styles.formRow}>
-                <div className={styles.formGroup}>
-                  <label htmlFor="bloodType">Blood Type</label>
-                  <select
-                    id="bloodType"
-                    name="bloodType"
-                    value={formData.bloodType}
-                    onChange={handleChange}
-                  >
-                    <option value="">Select blood type</option>
-                    <option value="O+">O+</option>
-                    <option value="O-">O-</option>
-                    <option value="A+">A+</option>
-                    <option value="A-">A-</option>
-                    <option value="B+">B+</option>
-                    <option value="B-">B-</option>
-                    <option value="AB+">AB+</option>
-                    <option value="AB-">AB-</option>
-                  </select>
-                </div>
-              </div>
+            <input
+              name="maritalStatus"
+              placeholder="Marital Status"
+              value={formData.maritalStatus}
+              onChange={handleChange}
+              disabled={!isEditMode}
+            />
 
-              <div className={styles.formGroup}>
-                <label htmlFor="allergies">Allergies (comma-separated)</label>
-                <textarea
-                  id="allergies"
-                  name="allergies"
-                  value={formData.allergies}
-                  onChange={handleChange}
-                  placeholder="e.g., Penicillin, Peanuts, Shellfish"
-                  rows="3"
-                />
-              </div>
+            {/* PHYSICAL */}
 
-              <div className={styles.formGroup}>
-                <label htmlFor="medicalHistory">
-                  Medical History (comma-separated)
-                </label>
-                <textarea
-                  id="medicalHistory"
-                  name="medicalHistory"
-                  value={formData.medicalHistory}
-                  onChange={handleChange}
-                  placeholder="e.g., Diabetes, Asthma, Hypertension"
-                  rows="3"
-                />
-              </div>
-            </div>
+            <h2 className={styles.sectionTitle}>Physical Vitals</h2>
 
-            {/* Address Information */}
-            <div className={styles.section}>
-              <h2 className={styles.sectionTitle}>Address</h2>
+            <input
+              name="height"
+              placeholder="Height"
+              value={formData.height}
+              onChange={handleChange}
+              disabled={!isEditMode}
+            />
 
-              <div className={styles.formGroup}>
-                <label htmlFor="address">Street Address</label>
-                <input
-                  type="text"
-                  id="address"
-                  name="address"
-                  value={formData.address}
-                  onChange={handleChange}
-                  placeholder="Enter your street address"
-                />
-              </div>
+            <input
+              name="weight"
+              placeholder="Weight"
+              value={formData.weight}
+              onChange={handleChange}
+              disabled={!isEditMode}
+            />
 
-              <div className={styles.formRow}>
-                <div className={styles.formGroup}>
-                  <label htmlFor="city">City</label>
-                  <input
-                    type="text"
-                    id="city"
-                    name="city"
-                    value={formData.city}
-                    onChange={handleChange}
-                    placeholder="Enter your city"
-                  />
-                </div>
+            <input
+              name="bloodPressure"
+              placeholder="Blood Pressure"
+              value={formData.bloodPressure}
+              onChange={handleChange}
+              disabled={!isEditMode}
+            />
 
-                <div className={styles.formGroup}>
-                  <label htmlFor="state">State</label>
-                  <input
-                    type="text"
-                    id="state"
-                    name="state"
-                    value={formData.state}
-                    onChange={handleChange}
-                    placeholder="Enter your state"
-                  />
-                </div>
+            {/* LIFESTYLE */}
 
-                <div className={styles.formGroup}>
-                  <label htmlFor="zipCode">Zip Code</label>
-                  <input
-                    type="text"
-                    id="zipCode"
-                    name="zipCode"
-                    value={formData.zipCode}
-                    onChange={handleChange}
-                    placeholder="Enter your zip code"
-                  />
-                </div>
-              </div>
-            </div>
+            <h2 className={styles.sectionTitle}>Lifestyle</h2>
 
-            {/* Submit Button */}
-            <div className={styles.buttonGroup}>
-              <button
-                type="submit"
-                className={styles.submitBtn}
-                disabled={loading || !formData.name}
-              >
-                {loading ? "Saving Profile..." : "Save Changes"}
-              </button>
-              {isProfileComplete && (
+            <input
+              name="smoking"
+              placeholder="Smoking"
+              value={formData.smoking}
+              onChange={handleChange}
+              disabled={!isEditMode}
+            />
+
+            <input
+              name="alcohol"
+              placeholder="Alcohol"
+              value={formData.alcohol}
+              onChange={handleChange}
+              disabled={!isEditMode}
+            />
+
+            <input
+              name="diet"
+              placeholder="Diet"
+              value={formData.diet}
+              onChange={handleChange}
+              disabled={!isEditMode}
+            />
+
+            <input
+              name="exercise"
+              placeholder="Exercise"
+              value={formData.exercise}
+              onChange={handleChange}
+              disabled={!isEditMode}
+            />
+
+            {/* MEDICAL */}
+
+            <h2 className={styles.sectionTitle}>Medical History</h2>
+
+            <textarea
+              name="allergies"
+              placeholder="Allergies"
+              value={formData.allergies}
+              onChange={handleChange}
+              disabled={!isEditMode}
+            />
+
+            <textarea
+              name="chronicConditions"
+              placeholder="Chronic Conditions"
+              value={formData.chronicConditions}
+              onChange={handleChange}
+              disabled={!isEditMode}
+            />
+
+            <textarea
+              name="currentMedications"
+              placeholder="Current Medications"
+              value={formData.currentMedications}
+              onChange={handleChange}
+              disabled={!isEditMode}
+            />
+
+            <textarea
+              name="pastSurgeries"
+              placeholder="Past Surgeries"
+              value={formData.pastSurgeries}
+              onChange={handleChange}
+              disabled={!isEditMode}
+            />
+
+            {/* SAVE BUTTON ONLY IN EDIT MODE */}
+
+            {isEditMode && (
+              <div className={styles.submitRow}>
                 <button
-                  type="button"
-                  className={styles.cancelBtn}
-                  onClick={handleCancelClick}
+                  type="submit"
+                  className={styles.saveButton}
+                  disabled={saving}
                 >
-                  Cancel
+                  {saving ? "Saving..." : "Save Changes"}
                 </button>
-              )}
-            </div>
+              </div>
+            )}
           </form>
-        )}
+        </div>
       </div>
     </div>
   );
-}
+};
+
+export default ProfileCompletion;

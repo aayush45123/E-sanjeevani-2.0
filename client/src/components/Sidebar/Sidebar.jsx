@@ -1,173 +1,233 @@
-import React, { useState } from "react";
+// FULL UPDATED Sidebar.jsx
+// Industry-level fixed profile navigation + stable sidebar behavior
+
+import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import {
-  FiHome,
-  FiActivity,
-  FiFolder,
-  FiCpu,
-  FiUsers,
-  FiSettings,
-  FiLogOut,
-  FiChevronDown,
-  FiAlertCircle,
-} from "react-icons/fi";
 import styles from "./Sidebar.module.css";
-import TriageHistory from "../TriageHistory/TriageHistory";
 
-const LogoIcon = () => (
-  <img
-    src="/logo-svg.svg"
-    alt="Logo"
-    style={{
-      width: "28px",
-      height: "28px",
-      flexShrink: 0,
-      objectFit: "contain",
-    }}
-  />
-);
+import {
+  LayoutDashboard,
+  Calendar,
+  FileText,
+  User,
+  LogOut,
+  Settings,
+  HelpCircle,
+  ClipboardList,
+  Users,
+  BarChart3,
+} from "lucide-react";
 
-export default function Sidebar({ user = {}, onLogout = () => {} }) {
+const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [expandedGroup, setExpandedGroup] = useState("overview");
 
-  const navGroups = [
-    {
-      id: "overview",
-      label: "Overview",
-      items: [
-        { icon: FiHome, label: "Dashboard", path: "/dashboard" },
-        { icon: FiActivity, label: "Consultations", path: "/consultations" },
-        { icon: FiFolder, label: "Clinical Records", path: "/records" },
-      ],
-    },
-    {
-      id: "applications",
-      label: "Applications",
-      items: [
-        { icon: FiCpu, label: "AI Triage Engine", path: "/triage" },
-        { icon: FiUsers, label: "Specialist Directory", path: "/doctors" },
-      ],
-    },
-    {
-      id: "support",
-      label: "Support",
-      items: [
-        { icon: FiAlertCircle, label: "Help Center", path: "/help" },
-        { icon: FiSettings, label: "Settings", path: "/settings" },
-      ],
-    },
-  ];
+  const [user, setUser] = useState({
+    name: "",
+    role: "",
+  });
 
-  const firstName =
-    user?.name?.split(" ")[0] || user?.email?.split("@")[0] || "User";
-  const avatarChar = firstName[0]?.toUpperCase() || "U";
+  /*
+  ==================================================
+  LOAD USER INFO
+  ==================================================
+  */
 
-  const handleNavigation = (path) => {
-    navigate(path);
-  };
+  useEffect(() => {
+    const name = localStorage.getItem("userName") || "User";
 
-  const handleLogout = async () => {
+    const role = localStorage.getItem("userRole") || "patient";
+
+    setUser({
+      name,
+      role,
+    });
+  }, []);
+
+  /*
+  ==================================================
+  LOGOUT
+  ==================================================
+  */
+
+  const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userRole");
+    localStorage.removeItem("userName");
+
     window.dispatchEvent(new Event("authChange"));
-    onLogout();
+
     navigate("/auth");
   };
 
+  /*
+  ==================================================
+  PROFILE CLICK
+  FIX:
+  Patient → /profile
+  Doctor → /doctor-profile-edit
+  ==================================================
+  */
+
   const handleProfileClick = () => {
-    navigate("/profile-setup");
+    if (user.role === "doctor") {
+      navigate("/doctor-profile-edit");
+    } else {
+      navigate("/profile");
+    }
   };
 
-  const isNavItemActive = (path) => location.pathname === path;
+  /*
+  ==================================================
+  MENU ITEMS
+  ==================================================
+  */
+
+  const patientMenu = [
+    {
+      label: "Dashboard",
+      icon: <LayoutDashboard size={18} />,
+      path: "/dashboard",
+    },
+    {
+      label: "Consultations",
+      icon: <Calendar size={18} />,
+      path: "/consultations",
+    },
+    {
+      label: "Clinical Records",
+      icon: <FileText size={18} />,
+      path: "/clinical-records",
+    },
+  ];
+
+  const doctorMenu = [
+    {
+      label: "Dashboard",
+      icon: <LayoutDashboard size={18} />,
+      path: "/dashboard",
+    },
+    {
+      label: "Schedule",
+      icon: <Calendar size={18} />,
+      path: "/doctor-schedule",
+    },
+    {
+      label: "My Patients",
+      icon: <Users size={18} />,
+      path: "/my-patients",
+    },
+    {
+      label: "Clinical Records",
+      icon: <ClipboardList size={18} />,
+      path: "/clinical-records",
+    },
+    {
+      label: "Analytics",
+      icon: <BarChart3 size={18} />,
+      path: "/analytics",
+    },
+  ];
+
+  const supportMenu = [
+    {
+      label: "Settings",
+      icon: <Settings size={18} />,
+      path: "/settings",
+    },
+    {
+      label: "Help Center",
+      icon: <HelpCircle size={18} />,
+      path: "/help-center",
+    },
+  ];
+
+  const activeMenu = user.role === "doctor" ? doctorMenu : patientMenu;
+
+  /*
+  ==================================================
+  ACTIVE PATH CHECK
+  ==================================================
+  */
+
+  const isActive = (path) => {
+    return location.pathname === path;
+  };
 
   return (
-    <aside className={styles.sidebar}>
-      {/* Top Section */}
-      <div className={styles.sidebarTop}>
-        {/* Brand - Clickable to Dashboard */}
-        <div
-          className={styles.brand}
-          onClick={() => handleNavigation("/dashboard")}
-          style={{ cursor: "pointer" }}
-        >
-          <LogoIcon />
-          <span className={styles.brandName}>E-Sanjeevani</span>
-        </div>
+    <div className={styles.sidebar}>
+      {/* LOGO */}
 
-        {/* Navigation Menu */}
-        <nav className={styles.navMenu}>
-          {navGroups.map((group) => (
-            <div key={group.id} className={styles.navGroup}>
-              <button
-                className={styles.navGroupLabel}
-                onClick={() =>
-                  setExpandedGroup(expandedGroup === group.id ? null : group.id)
-                }
-              >
-                <span>{group.label}</span>
-                <FiChevronDown
-                  size={16}
-                  style={{
-                    transform:
-                      expandedGroup === group.id
-                        ? "rotate(180deg)"
-                        : "rotate(0deg)",
-                    transition: "transform 0.3s ease",
-                  }}
-                />
-              </button>
+      <div
+        className={styles.logoSection}
+        onClick={() => navigate("/dashboard")}
+      >
+        <img src="/logo.png" alt="E-Sanjeevani" className={styles.logo} />
 
-              {expandedGroup === group.id && (
-                <div className={styles.navItems}>
-                  {group.items.map((item, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => handleNavigation(item.path)}
-                      className={`${styles.navItem} ${
-                        isNavItemActive(item.path) ? styles.active : ""
-                      }`}
-                    >
-                      <item.icon size={18} />
-                      <span>{item.label}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-
-          {/* Triage History - Outside of navGroups map to prevent 3x rendering */}
-        </nav>
+        <h2>E-Sanjeevani</h2>
       </div>
 
-      {/* Bottom Section - User Profile */}
-      <div className={styles.sidebarBottom}>
-        <div
-          className={styles.userProfile}
-          onClick={handleProfileClick}
-          style={{ cursor: "pointer" }}
-          title="Click to edit profile"
-        >
-          <div className={styles.avatar}>{avatarChar}</div>
-          <div className={styles.userInfo}>
-            <span className={styles.userName}>{user?.name || "Patient"}</span>
-            <span className={styles.userRole}>
-              {user?.role === "doctor" ? "Doctor" : "Patient"}
-            </span>
+      {/* OVERVIEW */}
+
+      <div className={styles.section}>
+        <p className={styles.sectionTitle}>OVERVIEW</p>
+
+        {activeMenu.map((item, index) => (
+          <button
+            key={index}
+            className={`${styles.menuItem} ${
+              isActive(item.path) ? styles.active : ""
+            }`}
+            onClick={() => navigate(item.path)}
+          >
+            <span className={styles.icon}>{item.icon}</span>
+
+            <span>{item.label}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* SUPPORT */}
+
+      <div className={styles.section}>
+        <p className={styles.sectionTitle}>SUPPORT</p>
+
+        {supportMenu.map((item, index) => (
+          <button
+            key={index}
+            className={`${styles.menuItem} ${
+              isActive(item.path) ? styles.active : ""
+            }`}
+            onClick={() => navigate(item.path)}
+          >
+            <span className={styles.icon}>{item.icon}</span>
+
+            <span>{item.label}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* PROFILE FOOTER */}
+
+      <div className={styles.profileFooter}>
+        <div className={styles.profileCard} onClick={handleProfileClick}>
+          <div className={styles.avatar}>
+            {user.name?.charAt(0)?.toUpperCase() || "U"}
+          </div>
+
+          <div className={styles.profileInfo}>
+            <h4>{user.name || "User"}</h4>
+            <p>{user.role === "doctor" ? "Doctor" : "Patient"}</p>
           </div>
         </div>
 
-        <button
-          className={styles.logoutBtn}
-          onClick={handleLogout}
-          title="Log out"
-        >
-          <FiLogOut size={18} />
-          <span>Logout</span>
+        <button className={styles.logoutButton} onClick={handleLogout}>
+          <LogOut size={16} />
+          Logout
         </button>
       </div>
-    </aside>
+    </div>
   );
-}
+};
+
+export default Sidebar;

@@ -1,5 +1,5 @@
 // FULL UPDATED App.jsx
-// Added Doctor Profile Setup Navigation + Redirect Logic
+// Industry-level fixed profile completion + sidebar-safe routing
 
 import React, { useEffect, useState } from "react";
 import "./App.css";
@@ -22,7 +22,7 @@ import DoctorSchedule from "./pages/DoctorDashboard/DoctorSchedule";
 import VideoCall from "./pages/VideoCall/VideoCall";
 import AiTriage from "./components/AiTriage/AiTriage";
 
-import { doctorProfileApi, authApi } from "./utils/api";
+import { doctorProfileApi, authApi, apiClient } from "./utils/api";
 
 const App = () => {
   const location = useLocation();
@@ -39,7 +39,7 @@ const App = () => {
 
   /*
   ==================================================
-  CHECK AUTH + ROLE + DOCTOR PROFILE STATUS
+  CHECK ACCESS
   ==================================================
   */
 
@@ -52,7 +52,7 @@ const App = () => {
       setUserRole(role);
 
       /*
-      Check doctor profile completion only for doctors
+      DOCTOR PROFILE CHECK
       */
 
       if (token && role === "doctor") {
@@ -68,24 +68,19 @@ const App = () => {
       }
 
       /*
-      Check patient profile completion only for patients
+      PATIENT PROFILE CHECK
       */
 
       if (token && role === "patient") {
         try {
-          const userRes = await authApi.me();
-          const userData = userRes.data.user || userRes.data;
-          // Check if user has basic profile info
+          const response = await apiClient.get("/patient/profile/status");
+
           setPatientProfileCompleted(
-            userData?.phone &&
-              userData?.age &&
-              userData?.gender &&
-              userData?.bloodType
-              ? true
-              : false,
+            response.data?.data?.isProfileComplete || false,
           );
         } catch (error) {
-          console.error("Patient profile check failed:", error);
+          console.error("Patient profile status check failed:", error);
+
           setPatientProfileCompleted(false);
         }
       }
@@ -98,7 +93,7 @@ const App = () => {
 
   /*
   ==================================================
-  AUTH CHANGE LISTENER
+  AUTH LISTENERS
   ==================================================
   */
 
@@ -109,89 +104,65 @@ const App = () => {
     };
 
     const handleProfileUpdated = async () => {
-      // Refresh patient profile completion status immediately
       try {
-        const userRes = await authApi.me();
-        const userData = userRes.data.user || userRes.data;
+        const response = await apiClient.get("/patient/profile/status");
+
         setPatientProfileCompleted(
-          userData?.phone &&
-            userData?.age &&
-            userData?.gender &&
-            userData?.bloodType
-            ? true
-            : false,
+          response.data?.data?.isProfileComplete || false,
         );
       } catch (error) {
-        console.error("Error refreshing profile status:", error);
+        console.error("Profile refresh failed:", error);
       }
     };
 
     window.addEventListener("authChange", handleAuthChange);
+
     window.addEventListener("profileUpdated", handleProfileUpdated);
 
     return () => {
       window.removeEventListener("authChange", handleAuthChange);
+
       window.removeEventListener("profileUpdated", handleProfileUpdated);
     };
   }, []);
 
   /*
   ==================================================
-  APP ROUTES CHECK - SHOW SIDEBAR, HIDE NAVBAR
+  ROUTE CHECK
   ==================================================
   */
 
   const isAppRoute =
     location.pathname.startsWith("/dashboard") ||
     location.pathname.startsWith("/doctor-dashboard") ||
-    location.pathname.startsWith("/profile-setup") ||
-    location.pathname.startsWith("/doctor-profile-setup") ||
-    location.pathname.startsWith("/doctor-profile-edit") ||
+    location.pathname.startsWith("/profile") ||
+    location.pathname.startsWith("/doctor-profile") ||
     location.pathname.startsWith("/consultations") ||
     location.pathname.startsWith("/consultation-booking") ||
     location.pathname.startsWith("/video-call") ||
     location.pathname.startsWith("/auth");
 
-  /*
-  Show navbar only on landing page
-  */
   const showNavbar = location.pathname === "/" || location.pathname === "";
 
-  /*
-  ==================================================
-  LOADING
-  ==================================================
-  */
-
-  if (isChecking) {
-    return null;
-  }
+  if (isChecking) return null;
 
   /*
   ==================================================
-  DASHBOARD LOGIC
+  DASHBOARD REDIRECT LOGIC
   ==================================================
   */
 
   const getDashboardComponent = () => {
-    /*
-    If doctor profile incomplete → force setup page
-    */
-
     if (userRole === "doctor" && !doctorProfileCompleted) {
       return <Navigate to="/doctor-profile-setup" replace />;
     }
 
-    /*
-    If patient profile incomplete → force setup page
-    */
-
     if (userRole === "patient" && !patientProfileCompleted) {
-      return <Navigate to="/profile-setup" replace />;
+      return <Navigate to="/profile" replace />;
     }
 
     if (userRole === "doctor") {
-      return <DoctorDashboard isProfileIncomplete={!doctorProfileCompleted} />;
+      return <DoctorDashboard />;
     }
 
     return <PatientDashboard />;
@@ -199,26 +170,18 @@ const App = () => {
 
   return (
     <>
-      {/* Navbar only on landing page */}
-
       {showNavbar && <Navbar />}
 
       <Routes>
-        {/* HOME */}
-
         <Route
           path="/"
           element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <Home />}
         />
 
-        {/* AUTH */}
-
         <Route
           path="/auth"
           element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <Auth />}
         />
-
-        {/* DASHBOARD */}
 
         <Route
           path="/dashboard"
@@ -231,114 +194,31 @@ const App = () => {
           }
         />
 
-        {/* PATIENT PROFILE */}
-
         <Route
-          path="/profile-setup"
+          path="/profile"
           element={
             isLoggedIn ? <ProfileCompletion /> : <Navigate to="/auth" replace />
           }
         />
 
-        {/* DOCTOR PROFILE SETUP */}
-
         <Route
           path="/doctor-profile-setup"
           element={
             isLoggedIn ? (
-              <DoctorProfileSetup
-                isProfileIncomplete={!doctorProfileCompleted}
-              />
+              <DoctorProfileSetup />
             ) : (
               <Navigate to="/auth" replace />
             )
           }
         />
-
-        {/* DOCTOR PROFILE EDIT */}
 
         <Route
           path="/doctor-profile-edit"
           element={
-            isLoggedIn ? (
-              <DoctorProfileEdit
-                isProfileIncomplete={!doctorProfileCompleted}
-              />
-            ) : (
-              <Navigate to="/auth" replace />
-            )
-          }
-        />
-
-        {/* CONSULTATIONS */}
-
-        <Route
-          path="/consultations"
-          element={
-            isLoggedIn ? <Consultations /> : <Navigate to="/auth" replace />
-          }
-        />
-
-        {/* CONSULTATION BOOKING */}
-
-        <Route
-          path="/consultation-booking"
-          element={
-            isLoggedIn ? (
-              <ConsultationBookingForm />
-            ) : (
-              <Navigate to="/auth" replace />
-            )
-          }
-        />
-
-        {/* VIDEO CALL */}
-        <Route
-          path="/video-call/:consultationId"
-          element={isLoggedIn ? <VideoCall /> : <Navigate to="/auth" replace />}
-        />
-
-        <Route path="/ai-triage" element={<AiTriage />} />
-
-        {/* DOCTOR DASHBOARD NESTED ROUTES */}
-        <Route
-          path="/doctor-dashboard/patients"
-          element={
-            isLoggedIn && userRole === "doctor" ? (
-              <MyPatients />
-            ) : (
-              <Navigate to="/auth" replace />
-            )
-          }
-        />
-
-        {/* DOCTOR DASHBOARD SCHEDULE ROUTE */}
-        <Route
-          path="/doctor-dashboard/schedule"
-          element={
-            isLoggedIn && userRole === "doctor" ? (
-              <DoctorSchedule isProfileIncomplete={!doctorProfileCompleted} />
-            ) : (
-              <Navigate to="/auth" replace />
-            )
-          }
-        />
-
-        {/* FALLBACK */}
-
-        <Route
-          path="*"
-          element={
-            isLoggedIn ? (
-              <Navigate to="/dashboard" replace />
-            ) : (
-              <Navigate to="/" replace />
-            )
+            isLoggedIn ? <DoctorProfileEdit /> : <Navigate to="/auth" replace />
           }
         />
       </Routes>
-
-      {/* Global Footer */}
 
       {!isAppRoute && <Footer />}
     </>

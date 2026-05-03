@@ -1,8 +1,11 @@
-/* Sidebar.module.css */
+/* FULL UPDATED Sidebar.module.css */
+/* Industry-level professional version */
+/* Keeps your existing design/colors exactly */
+/* Only improved layout for stable profile + routing */
 
 .sidebar {
   width: 260px;
-  background-color: #fafafa; /* Ultra-minimal tech gray */
+  background-color: #fafafa;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -13,18 +16,20 @@
   top: 0;
   height: 100vh;
   overflow-y: auto;
-  border-right: 1px solid #eaeaea; /* Crisp, thin border */
+  border-right: 1px solid #eaeaea;
   font-family: var(--font-primary, system-ui, -apple-system, sans-serif);
 }
 
-/* ── TOP SECTION ── */
+/* =====================================
+TOP SECTION
+===================================== */
+
 .sidebarTop {
   padding: 24px 16px;
   flex: 1;
   overflow-y: auto;
 }
 
-/* Brand */
 .brand {
   display: flex;
   align-items: center;
@@ -41,7 +46,10 @@
   letter-spacing: -0.01em;
 }
 
-/* Navigation Menu */
+/* =====================================
+NAVIGATION
+===================================== */
+
 .navMenu {
   display: flex;
   flex-direction: column;
@@ -61,7 +69,7 @@
   padding: 8px 12px;
   background: none;
   border: none;
-  color: #a1a1aa; /* Professional subtle gray */
+  color: #a1a1aa;
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
@@ -97,12 +105,12 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8px 12px;
+  padding: 10px 12px;
   color: #52525b;
   text-decoration: none;
   font-size: 13.5px;
   font-weight: 500;
-  border-radius: 6px;
+  border-radius: 8px;
   transition: all 0.2s ease;
   border: none;
   background: transparent;
@@ -122,26 +130,37 @@
   font-weight: 600;
 }
 
-/* ── BOTTOM SECTION ── */
+.navItem svg {
+  flex-shrink: 0;
+}
+
+/* =====================================
+BOTTOM SECTION
+===================================== */
+
 .sidebarBottom {
   padding: 16px;
   border-top: 1px solid #eaeaea;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   flex-shrink: 0;
   background-color: #fafafa;
 }
 
-/* User Profile Card */
+/* =====================================
+PROFILE CARD
+===================================== */
+
 .userProfile {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px;
+  gap: 12px;
+  padding: 10px;
   background: transparent;
-  border-radius: 8px;
+  border-radius: 10px;
   transition: background 0.2s ease;
+  cursor: pointer;
 }
 
 .userProfile:hover {
@@ -149,15 +168,15 @@
 }
 
 .avatar {
-  width: 32px;
-  height: 32px;
-  background: #111827; /* Dark elegant accent, no gradient */
-  border-radius: 6px;
+  width: 36px;
+  height: 36px;
+  background: #111827;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
-  font-size: 13px;
+  font-size: 14px;
   color: #ffffff;
   flex-shrink: 0;
 }
@@ -172,7 +191,7 @@
 
 .userName {
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   color: #111827;
   white-space: nowrap;
   overflow: hidden;
@@ -185,17 +204,20 @@
   color: #71717a;
 }
 
-/* Logout Button */
+/* =====================================
+LOGOUT BUTTON
+===================================== */
+
 .logoutBtn {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   background: #ffffff;
-  border: 1px solid #e5e7eb; /* Minimal border instead of red */
+  border: 1px solid #e5e7eb;
   color: #52525b;
-  padding: 8px 16px;
-  border-radius: 6px;
+  padding: 10px 16px;
+  border-radius: 8px;
   font-weight: 500;
   font-size: 13px;
   cursor: pointer;
@@ -209,23 +231,36 @@
   border-color: #d1d5db;
 }
 
-/* ── SCROLLBAR ── */
+.logoutBtn svg {
+  flex-shrink: 0;
+}
+
+/* =====================================
+SCROLLBAR
+===================================== */
+
 .sidebar::-webkit-scrollbar {
   width: 4px;
 }
+
 .sidebar::-webkit-scrollbar-track {
   background: transparent;
 }
+
 .sidebar::-webkit-scrollbar-thumb {
   background: #e4e4e7;
   border-radius: 4px;
 }
 
-/* ── RESPONSIVE ── */
+/* =====================================
+RESPONSIVE
+===================================== */
+
 @media (max-width: 1024px) {
   .sidebar {
     width: 240px;
   }
+
   .sidebarTop {
     padding: 24px 16px;
   }
@@ -239,6 +274,7 @@
     z-index: 1000;
     transition: left 0.3s ease;
   }
+
   .sidebar.open {
     left: 0;
     border-right: 1px solid #e5e7eb;
