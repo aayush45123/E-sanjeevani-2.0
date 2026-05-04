@@ -270,286 +270,148 @@ export default function DoctorSchedule({ isProfileIncomplete = false }) {
       <DoctorSidebar user={user} isProfileIncomplete={isProfileIncomplete} />
 
       <main className={styles.scheduleContent}>
-        {/* Header */}
-        <div className={styles.header}>
-          <h1>Schedule & Availability</h1>
-          <p>Manage your consultations and working hours</p>
-        </div>
 
-        {/* Analytics Grid */}
-        <div className={styles.analyticsGrid}>
-          <div className={styles.analyticsCard}>
-            <div className={styles.analyticsIconWrapper}>
-              <FiCalendar className={styles.analyticsIcon} />
-            </div>
-            <div className={styles.analyticsContent}>
-              <p className={styles.analyticsLabel}>Total Slots</p>
-              <h3 className={styles.analyticsValue}>{analytics.totalSlots}</h3>
-            </div>
+
+        <header className={styles.header}>
+          <h1>Schedule</h1>
+          <p>Manage your availability and upcoming consultations.</p>
+        </header>
+
+        {/* Ghost Stats */}
+        <div className={styles.ghostStatsContainer}>
+          <div className={styles.ghostStat}>
+            <span className={styles.ghostValue}>{analytics.totalSlots}</span>
+            <span className={styles.ghostLabel}>Total Slots</span>
           </div>
-
-          <div className={styles.analyticsCard}>
-            <div
-              className={styles.analyticsIconWrapper + " " + styles.bookedColor}
-            >
-              <FiCheckCircle className={styles.analyticsIcon} />
-            </div>
-            <div className={styles.analyticsContent}>
-              <p className={styles.analyticsLabel}>Booked Slots</p>
-              <h3 className={styles.analyticsValue}>{analytics.bookedSlots}</h3>
-            </div>
+          <div className={styles.ghostStat}>
+            <span className={styles.ghostValue}>{analytics.bookedSlots}</span>
+            <span className={styles.ghostLabel}>Booked</span>
           </div>
-
-          <div className={styles.analyticsCard}>
-            <div
-              className={styles.analyticsIconWrapper + " " + styles.freeColor}
-            >
-              <FiClock className={styles.analyticsIcon} />
-            </div>
-            <div className={styles.analyticsContent}>
-              <p className={styles.analyticsLabel}>Free Slots</p>
-              <h3 className={styles.analyticsValue}>{analytics.freeSlots}</h3>
-            </div>
+          <div className={styles.ghostStat}>
+            <span className={styles.ghostValue}>{analytics.completedConsultations}</span>
+            <span className={styles.ghostLabel}>Completed</span>
           </div>
-
-          <div className={styles.analyticsCard}>
-            <div
-              className={
-                styles.analyticsIconWrapper + " " + styles.workingColor
-              }
-            >
-              <FiTrendingUp className={styles.analyticsIcon} />
-            </div>
-            <div className={styles.analyticsContent}>
-              <p className={styles.analyticsLabel}>Working Hours</p>
-              <h3 className={styles.analyticsValue}>
-                {analytics.workingHours.toFixed(1)}h
-              </h3>
-            </div>
-          </div>
-
-          <div className={styles.analyticsCard}>
-            <div
-              className={
-                styles.analyticsIconWrapper + " " + styles.completedColor
-              }
-            >
-              <FiCheckCircle className={styles.analyticsIcon} />
-            </div>
-            <div className={styles.analyticsContent}>
-              <p className={styles.analyticsLabel}>Completed</p>
-              <h3 className={styles.analyticsValue}>
-                {analytics.completedConsultations}
-              </h3>
-            </div>
-          </div>
-
-          <div className={styles.analyticsCard}>
-            <div
-              className={
-                styles.analyticsIconWrapper + " " + styles.ongoingColor
-              }
-            >
-              <FiAlertCircle className={styles.analyticsIcon} />
-            </div>
-            <div className={styles.analyticsContent}>
-              <p className={styles.analyticsLabel}>Ongoing</p>
-              <h3 className={styles.analyticsValue}>
-                {analytics.ongoingConsultations}
-              </h3>
-            </div>
+          <div className={styles.ghostStat}>
+            <span className={styles.ghostValue}>{analytics.workingHours.toFixed(1)}h</span>
+            <span className={styles.ghostLabel}>Hours</span>
           </div>
         </div>
 
-        {/* Consultation Type Breakdown */}
-        <div className={styles.typeBreakdownContainer}>
-          <div className={styles.typeBreakdownCard}>
-            <FiVideo className={styles.typeIcon + " " + styles.videoType} />
-            <div>
-              <p className={styles.typeLabel}>Video Calls</p>
-              <h4 className={styles.typeValue}>
-                {analytics.videoConsultations}
-              </h4>
-            </div>
-          </div>
+        {/* Week Timeline Selector */}
+        <div className={styles.weekTimeline}>
+          <button
+            className={styles.navButton}
+            onClick={() => setCurrentDate(new Date(currentDate.getTime() - 7 * 24 * 60 * 60 * 1000))}
+          >
+            <FiChevronLeft size={24} />
+          </button>
 
-          <div className={styles.typeBreakdownCard}>
-            <FiPhone className={styles.typeIcon + " " + styles.callType} />
-            <div>
-              <p className={styles.typeLabel}>Audio Calls</p>
-              <h4 className={styles.typeValue}>
-                {analytics.callConsultations}
-              </h4>
-            </div>
-          </div>
-
-          <div className={styles.typeBreakdownCard}>
-            <FiUser className={styles.typeIcon + " " + styles.chatType} />
-            <div>
-              <p className={styles.typeLabel}>Chat Consultations</p>
-              <h4 className={styles.typeValue}>
-                {analytics.chatConsultations}
-              </h4>
-            </div>
-          </div>
-        </div>
-
-        {/* Week View */}
-        <div className={styles.weekViewContainer}>
-          <div className={styles.weekHeader}>
-            <button
-              className={styles.navButton}
-              onClick={() =>
-                setCurrentDate(
-                  new Date(currentDate.getTime() - 7 * 24 * 60 * 60 * 1000),
-                )
-              }
-            >
-              <FiChevronLeft />
-            </button>
-            <h2 className={styles.weekTitle}>
-              Week of{" "}
-              {weekDates[0]?.toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })}
-            </h2>
-            <button
-              className={styles.navButton}
-              onClick={() =>
-                setCurrentDate(
-                  new Date(currentDate.getTime() + 7 * 24 * 60 * 60 * 1000),
-                )
-              }
-            >
-              <FiChevronRight />
-            </button>
-          </div>
-
-          <div className={styles.weekGrid}>
+          <div className={styles.daysWrapper}>
             {weekDates.map((date, idx) => {
               const dayAvailability = getAvailabilityForDate(date);
               const dayCons = getConsultationsForDate(date);
-              const isSelected =
-                selectedDate?.toDateString() === date.toDateString();
+              const isSelected = selectedDate?.toDateString() === date.toDateString();
+
+              const hasSlots = dayAvailability?.slots?.length > 0;
+              const hasBookings = dayCons.length > 0;
 
               return (
                 <div
                   key={idx}
-                  className={`${styles.dayCard} ${isSelected ? styles.dayCardActive : ""}`}
+                  className={`${styles.dayItem} ${isSelected ? styles.dayItemActive : ""}`}
                   onClick={() => setSelectedDate(new Date(date))}
                 >
-                  <p className={styles.dayName}>
-                    {date.toLocaleDateString("en-US", { weekday: "short" })}
-                  </p>
-                  <p className={styles.dayDate}>{date.getDate()}</p>
-                  <div className={styles.dayStats}>
-                    <span className={styles.slotBadge}>
-                      {dayAvailability?.slots?.length || 0} slots
-                    </span>
-                    <span className={styles.consultationBadge}>
-                      {dayCons.length} bookings
-                    </span>
+                  <span className={styles.dayName}>{date.toLocaleDateString("en-US", { weekday: "short" })}</span>
+                  <span className={styles.dayNumber}>{date.getDate()}</span>
+                  <div className={styles.dotIndicators}>
+                    {hasSlots && <div className={`${styles.dot} ${styles.free}`}></div>}
+                    {hasBookings && <div className={`${styles.dot} ${styles.booked}`}></div>}
+                    {!hasSlots && !hasBookings && <div className={styles.dot}></div>}
                   </div>
                 </div>
               );
             })}
           </div>
+
+          <button
+            className={styles.navButton}
+            onClick={() => setCurrentDate(new Date(currentDate.getTime() + 7 * 24 * 60 * 60 * 1000))}
+          >
+            <FiChevronRight size={24} />
+          </button>
         </div>
 
-        {/* Day Detail View */}
+        {/* Agenda / Slots List */}
         {selectedDate && (
-          <div className={styles.dayDetailContainer}>
-            <div className={styles.dayDetailHeader}>
-              <h2 className={styles.dayDetailTitle}>
-                {selectedDate.toLocaleDateString("en-US", {
-                  weekday: "long",
-                  month: "long",
-                  day: "numeric",
-                  year: "numeric",
-                })}
+          <div className={styles.agendaContainer}>
+            <div className={styles.agendaHeader}>
+              <h2 className={styles.agendaDateTitle}>
+                {selectedDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
               </h2>
+              <p className={styles.agendaSubtitle}>
+                {selectedDateAvailability?.slots?.length || 0} slots available
+              </p>
             </div>
 
-            {/* Slots for the day */}
-            {selectedDateAvailability ? (
-              <div className={styles.slotsContainer}>
-                <h3 className={styles.slotsSectionTitle}>Available Slots</h3>
-                <div className={styles.slotsList}>
-                  {selectedDateAvailability.slots?.map((slot, idx) => {
-                    const consultation = selectedDateConsultations.find(
-                      (c) =>
-                        c.startTime === slot.startTime &&
-                        c.endTime === slot.endTime,
-                    );
+            {selectedDateAvailability?.slots?.length > 0 ? (
+              <div className={styles.timelineList}>
+                {selectedDateAvailability.slots.map((slot, idx) => {
+                  const consultation = selectedDateConsultations.find(
+                    (c) => c.startTime === slot.startTime && c.endTime === slot.endTime
+                  );
+                  const slotExpired = isSlotExpired(selectedDateAvailability.availableDate, slot.endTime);
 
-                    const slotExpired = isSlotExpired(
-                      selectedDateAvailability.availableDate,
-                      slot.endTime,
-                    );
+                  return (
+                    <div key={idx} className={styles.timelineRow}>
+                      
+                      {/* Left: Time */}
+                      <div className={styles.timeCol}>
+                        {formatTime(slot.startTime)} - {formatTime(slot.endTime)}
+                      </div>
 
-                    return (
-                      <div
-                        key={idx}
-                        className={`${styles.slotCard} ${
-                          slot.isBooked
-                            ? styles.slotBooked
-                            : slotExpired
-                              ? styles.slotExpired
-                              : styles.slotFree
-                        }`}
-                      >
-                        <div className={styles.slotTime}>
-                          <FiClock className={styles.slotTimeIcon} />
-                          <span>
-                            {formatTime(slot.startTime)} -{" "}
-                            {formatTime(slot.endTime)}
-                          </span>
-                        </div>
-
+                      {/* Middle: Info */}
+                      <div className={styles.infoCol}>
                         {slot.isBooked && consultation ? (
-                          <div className={styles.slotBookedInfo}>
-                            <div className={styles.slotPatientInfo}>
-                              <p className={styles.slotPatientName}>
-                                {consultation.patient?.name || "Patient"}
-                              </p>
-                              <p className={styles.slotConsultationType}>
-                                {getConsultationIcon(
-                                  consultation.consultationType,
-                                )}
-                                {consultation.consultationType
-                                  .charAt(0)
-                                  .toUpperCase() +
-                                  consultation.consultationType.slice(1)}
-                              </p>
-                            </div>
-                            <div
-                              className={`${styles.slotStatus} ${getStatusClass(consultation.status)}`}
-                            >
-                              {consultation.status}
-                            </div>
+                          <>
+                            <p className={styles.patientName}>{consultation.patient?.name || "Patient"}</p>
+                            <p className={styles.consultationType}>
+                              {getConsultationIcon(consultation.consultationType)}
+                              {consultation.consultationType.charAt(0).toUpperCase() + consultation.consultationType.slice(1)}
+                            </p>
+                          </>
+                        ) : slotExpired ? (
+                          <span className={styles.expiredText}>Expired</span>
+                        ) : (
+                          <span className={styles.freeText}>Available for booking</span>
+                        )}
+                      </div>
+
+                      {/* Right: Status */}
+                      <div className={styles.actionCol}>
+                        {slot.isBooked && consultation ? (
+                          <div className={`${styles.tinyStatusPill} ${consultation.status === 'completed' ? styles.pillCompleted : styles.pillBooked}`}>
+                            <div className={styles.pillDot}></div>
+                            {consultation.status.charAt(0).toUpperCase() + consultation.status.slice(1)}
                           </div>
                         ) : slotExpired ? (
-                          <div className={styles.slotExpiredInfo}>
-                            <FiX className={styles.expiredIcon} />
-                            <p>Expired</p>
+                          <div className={`${styles.tinyStatusPill} ${styles.pillExpired}`}>
+                            <div className={styles.pillDot}></div>
+                            Passed
                           </div>
                         ) : (
-                          <div className={styles.slotFreeInfo}>
-                            <FiCheckCircle className={styles.freeCheckIcon} />
-                            <p>Available</p>
+                          <div className={`${styles.tinyStatusPill} ${styles.pillAvailable}`}>
+                            <div className={styles.pillDot}></div>
+                            Free
                           </div>
                         )}
                       </div>
-                    );
-                  })}
-                </div>
+                    </div>
+                  );
+                })}
               </div>
             ) : (
-              <div className={styles.noSlotsMessage}>
-                <FiAlertCircle className={styles.noSlotsIcon} />
-                <p>No slots scheduled for this date</p>
+              <div className={styles.emptyState}>
+                No slots scheduled for this day.
               </div>
             )}
           </div>

@@ -1,609 +1,405 @@
+/* =========================================
+   DoctorSchedule.module.css
+   ULTRA-PREMIUM MINIMALIST DESIGN
+   Borderless, Typography-driven, Sleek
+========================================= */
+
 .scheduleContainer {
   display: flex;
   min-height: 100vh;
-  background-color: #f9fafb; /* Lighter, cleaner background */
-  font-family: var(--font-primary, "Inter", sans-serif);
+  width: calc(100% - 230px);
+  margin-left: 230px;
+  background: #ffffff;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #111827;
 }
 
 .scheduleContent {
   flex: 1;
-  padding: 48px 40px; /* Consistent padding */
+  background: #ffffff;
   overflow-y: auto;
-  margin-left: 250px;
+  padding: 48px 60px;
 }
 
-/* Header */
-.header {
-  margin-bottom: 32px;
-}
-
-.header h1 {
-  font-size: 28px; /* Standard SaaS title size */
-  font-weight: 600;
-  color: #111827;
-  margin-bottom: 8px;
-  letter-spacing: -0.02em;
-}
-
-.header p {
-  font-size: 14px; /* Standard subtitle size */
-  color: #6b7280;
-}
-
-/* Analytics Grid */
-.analyticsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 24px;
-  margin-bottom: 32px;
-}
-
-.analyticsCard {
-  background: #ffffff;
-  padding: 20px;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  display: flex;
-  flex-direction: column; /* Changed direction */
-  gap: 12px;
-  transition: all 0.2s ease;
-  border-left: none; /* Removed colored border */
-}
-
-.analyticsCard:hover {
-  transform: translateY(-2px);
-  border-color: #d1d5db;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-}
-
-.analyticsIconWrapper {
-  width: 44px; /* Slightly smaller */
-  height: 44px;
-  border-radius: 10px;
-  background: #f3f4f6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.analyticsIconWrapper.bookedColor {
-  background: #fffbeb;
-}
-
-.analyticsIconWrapper.freeColor {
-  background: #f0fdf4;
-}
-
-.analyticsIconWrapper.workingColor {
-  background: #eff6ff;
-}
-
-.analyticsIconWrapper.completedColor {
-  background: #f0fdf4;
-}
-
-.analyticsIconWrapper.ongoingColor {
-  background: #fff7ed;
-}
-
-.analyticsIcon {
-  width: 20px;
-  height: 20px;
-  color: #374151;
-}
-
-
-.analyticsIconWrapper.bookedColor .analyticsIcon {
-  color: #d97706;
-}
-
-.analyticsIconWrapper.freeColor .analyticsIcon {
-  color: #16a34a;
-}
-
-.analyticsIconWrapper.workingColor .analyticsIcon {
-  color: #2563eb;
-}
-
-.analyticsIconWrapper.completedColor .analyticsIcon {
-  color: #16a34a;
-}
-
-.analyticsIconWrapper.ongoingColor .analyticsIcon {
-  color: #ea580c;
-}
-
-.analyticsContent {
-  flex: 1;
-}
-
-.analyticsLabel {
-  font-size: 13px;
-  color: #6b7280;
-  font-weight: 500;
-  margin-bottom: 4px;
-}
-
-.analyticsValue {
-  font-size: 24px;
-  font-weight: 600;
-  color: #111827;
-}
-
-/* Type Breakdown */
-.typeBreakdownContainer {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 24px;
-  margin-bottom: 32px;
-}
-
-.typeBreakdownCard {
-  background: #ffffff;
-  padding: 20px;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  border-top: none; /* Removed top border */
-  transition: all 0.2s ease;
-}
-
-.typeBreakdownCard:hover {
-  transform: translateY(-2px);
-  border-color: #d1d5db;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-}
-
-.typeIcon {
-  width: 24px;
-  height: 24px;
-  flex-shrink: 0;
-}
-
-.videoType {
-  color: #7c3aed;
-}
-
-.callType {
-  color: #2563eb;
-}
-
-.chatType {
-  color: #16a34a;
-}
-
-.typeLabel {
-  font-size: 13px;
-  color: #6b7280;
-  font-weight: 500;
-  margin-bottom: 2px;
-}
-
-.typeValue {
-  font-size: 20px;
-  font-weight: 600;
-  color: #111827;
-}
-
-/* Week View */
-.weekViewContainer {
-  background: #ffffff;
-  padding: 24px;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  margin-bottom: 32px;
-}
-
-.weekHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 24px;
-  padding-bottom: 24px;
-  border-bottom: 1px solid #f3f4f6;
-}
-
-.weekTitle {
-  font-size: 18px;
-  font-weight: 600;
-  color: #111827;
-}
-
-.navButton {
-  background: #ffffff;
-  border: 1px solid #d1d5db;
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  color: #4b5563;
-}
-
-.navButton:hover {
-  background: #f9fafb;
-  border-color: #9ca3af;
-  transform: none;
-}
-
-.weekGrid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 12px;
-}
-
-.dayCard {
-  padding: 16px;
-  border: 1px solid transparent;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  background: #f9fafb;
-  text-align: center;
-}
-
-.dayCard:hover {
-  background: #f3f4f6;
-  border-color: transparent;
-}
-
-.dayCard.dayCardActive {
-  border-color: #3b82f6;
-  background: #eff6ff;
-  box-shadow: none;
-}
-
-.dayName {
-  font-size: 12px;
-  font-weight: 500;
-  color: #6b7280;
-  text-transform: uppercase;
-  margin-bottom: 8px;
-}
-.dayDate {
-  font-size: 22px;
-  font-weight: 600;
-  color: #111827;
-  margin-bottom: 12px;
-}
-
-.dayStats {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.slotBadge {
-  display: inline-block;
-  font-size: 11px;
-  background: #e0e7ff;
-  color: #3730a3;
-  padding: 3px 8px;
-  border-radius: 99px;
-  font-weight: 500;
-}
-
-.consultationBadge {
-  display: inline-block;
-  font-size: 11px;
-  background: #fef3c7;
-  color: #92400e;
-  padding: 3px 8px;
-  border-radius: 99px;
-  font-weight: 500;
-}
-
-/* Day Detail View */
-.dayDetailContainer {
-  background: #ffffff;
-  padding: 24px;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  margin-bottom: 32px;
-}
-
-.dayDetailHeader {
-  border-bottom: 1px solid #f3f4f6;
-  padding-bottom: 16px;
-  margin-bottom: 24px;
-}
-
-.dayDetailTitle {
-  font-size: 18px;
-  font-weight: 600;
-  color: #111827;
-  margin: 0;
-}
-
-/* Slots Container */
-.slotsContainer {
-  margin-top: 0;
-}
-.slotsSectionTitle {
-  font-size: 16px;
-  font-weight: 600;
-  color: #374151;
-  margin-bottom: 16px;
-}
-
-.slotsList {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 16px;
-}
-
-.slotCard {
-  padding: 16px;
-  border-radius: 10px;
-  border: 1px solid #e5e7eb;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  transition: all 0.2s ease;
-  background: #ffffff;
-}
-.slotCard.slotFree {
-  background: #ffffff;
-  border-color: #e5e7eb;
-}
-
-.slotCard.slotFree:hover {
-  border-color: #16a34a;
-  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.05);
-  transform: translateY(-1px);
-}
-
-.slotCard.slotBooked {
-  background: #fffbeb;
-  border-color: #fde68a;
-}
-
-.slotCard.slotBooked:hover {
-  border-color: #facc15;
-  box-shadow: 0 2px 8px rgba(250, 204, 21, 0.1);
-  transform: translateY(-1px);
-}
-
-.slotCard.slotExpired {
-  background: #f9fafb;
-  border-color: #f3f4f6;
-  opacity: 0.8;
-}
-
-
-.slotCard.slotExpired:hover {
-  border-color: #e5e7eb;
-  box-shadow: none;
-}
-
-.slotTime {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 500;
-  color: #374151;
-  flex: 1;
-  font-size: 14px;
-}
-
-.slotCard.slotExpired .slotTime {
-  color: #9ca3af;
-  text-decoration: none;
-}
-
-.slotTimeIcon {
-  width: 16px;
-  height: 16px;
-  color: #9ca3af;
-}
-
-/* Slot Booked Info */
-.slotBookedInfo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-  margin-left: 16px;
-}
-
-.slotPatientInfo {
-  flex: 1;
-}
-
-.slotPatientName {
-  font-size: 14px;
-  font-weight: 600;
-  color: #111827;
-  margin: 0 0 2px 0;
-}
-
-.slotConsultationType {
-  font-size: 12px;
-  color: #6b7280;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 0;
-  text-transform: capitalize;
-}
-
-.videoIcon {
-  color: #7c3aed;
-}
-
-.callIcon {
-  color: #2563eb;
-}
-
-.slotStatus {
-  padding: 4px 10px;
-  border-radius: 99px;
-  font-size: 11px;
-  font-weight: 500;
-  text-transform: uppercase;
-  white-space: nowrap;
-  flex-shrink: 0;
-  letter-spacing: 0.02em;
-}
-
-.statusScheduled {
-  background: #eff6ff;
-  color: #1e40af;
-}
-
-.statusOngoing {
-  background: #fff7ed;
-  color: #c2410c;
-}
-
-.statusCompleted {
-  background: #f0fdf4;
-  color: #15803d;
-}
-
-.statusCancelled {
-  background: #fef2f2;
-  color: #b91c1c;
-}
-
-.statusExpired {
-  background: #f3f4f6;
-  color: #6b7280;
-}
-
-/* Slot Free Info */
-.slotFreeInfo {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #16a34a;
-  font-size: 14px;
-  font-weight: 500;
-  flex: 1;
-  margin-left: 16px;
-  justify-content: flex-end;
-}
-
-.freeCheckIcon {
-  width: 16px;
-  height: 16px;
-}
-
-.slotExpiredInfo {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #9ca3af;
-  font-size: 14px;
-  font-weight: 500;
-  flex: 1;
-  margin-left: 16px;
-  justify-content: flex-end;
-}
-
-.expiredIcon {
-  width: 16px;
-  height: 16px;
-}
-
-/* No Slots Message */
-.noSlotsMessage {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 48px 24px;
-  text-align: center;
-  color: #6b7280;
-  background-color: #f9fafb;
-  border-radius: 12px;
-  border: 1px dashed #e5e7eb;
-}
-
-.noSlotsIcon {
-  width: 40px;
-  height: 40px;
-  margin-bottom: 16px;
-  color: #9ca3af;
-}
-
-.noSlotsMessage p {
-  font-size: 14px;
-  margin: 0;
-  font-weight: 500;
-}
+/* =========================================
+   LOADING
+========================================= */
 
-/* Loading Container */
 .loadingContainer {
-  flex: 1;
+  width: 100%;
+  height: 100vh;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
-  margin-left: 250px;
+  background: #ffffff;
 }
 
 .spinner {
-  width: 32px;
-  height: 32px;
-  color: #3b82f6;
-  animation: spin 1s linear infinite;
+  color: #111827;
+  animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  100% { transform: rotate(360deg); }
 }
 
+/* =========================================
+   HEADER
+========================================= */
+
+.header {
+  margin-bottom: 56px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 36px;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  color: #000000;
+}
+
+.header p {
+  margin: 8px 0 0;
+  font-size: 15px;
+  color: #6b7280;
+  letter-spacing: -0.01em;
+}
+
+/* =========================================
+   GHOST STATS
+========================================= */
+
+.ghostStatsContainer {
+  display: flex;
+  gap: 64px;
+  margin-bottom: 56px;
+  flex-wrap: wrap;
+}
+
+.ghostStat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ghostValue {
+  font-size: 40px;
+  font-weight: 400;
+  line-height: 1;
+  color: #000000;
+  letter-spacing: -0.04em;
+}
+
+.ghostLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #9ca3af;
+}
+
+/* =========================================
+   WEEK CALENDAR TIMELINE
+========================================= */
+
+.weekTimeline {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 64px;
+}
+
+.navButton {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+  transition: color 0.2s ease;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navButton:hover {
+  color: #000000;
+}
+
+.daysWrapper {
+  display: flex;
+  gap: 24px;
+  flex: 1;
+  justify-content: space-between;
+}
+
+.dayItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.dayItem:hover {
+  background: #f9fafb;
+}
+
+.dayName {
+  font-size: 13px;
+  font-weight: 500;
+  color: #9ca3af;
+}
+
+.dayNumber {
+  font-size: 20px;
+  font-weight: 400;
+  color: #111827;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.dayItemActive .dayNumber {
+  background: #000000;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.dayItemActive .dayName {
+  color: #000000;
+  font-weight: 600;
+}
+
+.dotIndicators {
+  display: flex;
+  gap: 4px;
+  height: 4px;
+  position: absolute;
+  bottom: -4px;
+}
+
+.dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #e5e7eb;
+}
+
+.dot.booked {
+  background: #3b82f6; /* Subtle blue for booked */
+}
+
+.dot.free {
+  background: #10b981; /* Subtle green for available */
+}
+
+/* =========================================
+   AGENDA / SLOTS LIST
+========================================= */
+
+.agendaContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.agendaHeader {
+  margin-bottom: 32px;
+}
+
+.agendaDateTitle {
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: #000000;
+  margin: 0 0 4px;
+}
+
+.agendaSubtitle {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* Timeline Rows */
+.timelineList {
+  display: flex;
+  flex-direction: column;
+}
+
+.timelineRow {
+  display: grid;
+  grid-template-columns: 140px 1fr 140px;
+  align-items: center;
+  padding: 24px 0;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background-color 0.2s ease;
+}
+
+.timelineRow:hover {
+  background-color: #fafafa;
+}
+
+.timelineRow:last-child {
+  border-bottom: none;
+}
+
+/* Left: Time */
+.timeCol {
+  font-size: 15px;
+  font-weight: 500;
+  color: #111827;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* Middle: Info */
+.infoCol {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.patientName {
+  font-size: 15px;
+  font-weight: 500;
+  color: #000000;
+  margin: 0;
+}
+
+.consultationType {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.typeIcon {
+  color: #9ca3af;
+}
+
+.freeText {
+  font-size: 15px;
+  font-weight: 400;
+  color: #6b7280;
+}
+
+.expiredText {
+  font-size: 15px;
+  font-weight: 400;
+  color: #9ca3af;
+  text-decoration: line-through;
+}
+
+/* Right: Status / Action */
+.actionCol {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.tinyStatusPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.pillDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+/* Booked / Ongoing */
+.pillBooked {
+  background: #f8fafc;
+  color: #334155;
+}
+.pillBooked .pillDot {
+  background: #3b82f6;
+}
+
+/* Completed */
+.pillCompleted {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+.pillCompleted .pillDot {
+  background: #16a34a;
+}
+
+/* Available */
+.pillAvailable {
+  background: #ffffff;
+  color: #6b7280;
+}
+.pillAvailable .pillDot {
+  background: #10b981;
+}
+
+/* Cancelled / Expired */
+.pillExpired {
+  background: transparent;
+  color: #9ca3af;
+}
+.pillExpired .pillDot {
+  background: #d1d5db;
+}
+
+/* Empty State */
+.emptyState {
+  padding: 80px 0;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 15px;
+}
 
 /* Responsive */
 @media (max-width: 1024px) {
-  .weekGrid {
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  .scheduleContent {
+    padding: 32px 40px;
   }
-
-  .slotsList {
-    grid-template-columns: 1fr;
+  .ghostStatsContainer {
+    gap: 32px;
   }
 }
 
 @media (max-width: 768px) {
   .scheduleContent {
+    padding: 24px;
     margin-left: 0;
-    padding: 24px 18px;
+    width: 100%;
   }
 
-  .analyticsGrid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-  }
-
-  .typeBreakdownContainer {
+  .timelineRow {
     grid-template-columns: 1fr;
-    gap: 16px;
+    gap: 12px;
+    padding: 20px 0;
   }
 
-  .weekGrid {
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  .actionCol {
+    justify-content: flex-start;
   }
 
-  .header h1 {
-    font-size: 24px;
+  .timeCol {
+    font-size: 13px;
+    color: #6b7280;
   }
 
-  .dayCard {
-    padding: 12px;
-  }
-
-  .dayDate {
-    font-size: 20px;
+  .daysWrapper {
+    overflow-x: auto;
   }
 }
