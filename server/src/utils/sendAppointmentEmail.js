@@ -1,39 +1,17 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
-// Create Gmail transporter
-const createTransporter = () => {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    throw new Error(
-      "EMAIL_USER and EMAIL_PASS are not configured in environment variables",
-    );
-  }
-
-  return nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
+const getResendClient = () => {
+  return new Resend(process.env.RESEND_API_KEY);
 };
 
 /**
  * Send appointment confirmation emails to both doctor and patient
  * @param {Object} data - Email data
- * @param {string} data.patientEmail - Patient's email
- * @param {string} data.doctorEmail - Doctor's email
- * @param {string} data.patientName - Patient's name
- * @param {string} data.doctorName - Doctor's name
- * @param {Date} data.consultationDate - Appointment date
- * @param {string} data.startTime - Appointment start time
- * @param {string} data.endTime - Appointment end time
- * @param {string} data.consultationType - Type: video/call/chat
  */
 export const sendAppointmentEmail = async (data) => {
   try {
-    const transporter = createTransporter();
     const {
       patientEmail,
       doctorEmail,
@@ -500,36 +478,20 @@ export const sendAppointmentEmail = async (data) => {
     // SEND EMAILS
     // ───────────────────────────────────────────────────────────────
 
-    // Send email to patient
-    console.log("📧 Sending patient email to:", patientEmail);
-    const patientResult = await transporter.sendMail({
-      from: `"E-Sanjeevani 2.0" <${process.env.EMAIL_USER}>`,
-      to: patientEmail,
+    const result = await getResendClient().emails.send({
+      from: "E-Sanjeevani <noreply@esanjeevani.com>",
+      to: [patientEmail, doctorEmail],
       subject: `Appointment Confirmed - Dr. ${doctorName} on ${formattedDate}`,
       html: patientEmailHtml,
     });
 
-    console.log("✅ Patient email sent:", patientResult);
-
-    // Send email to doctor
-    console.log("📧 Sending doctor email to:", doctorEmail);
-    const doctorResult = await transporter.sendMail({
-      from: `"E-Sanjeevani 2.0" <${process.env.EMAIL_USER}>`,
-      to: doctorEmail,
-      subject: `New Appointment - ${patientName} on ${formattedDate}`,
-      html: doctorEmailHtml,
-    });
-
-    console.log("✅ Doctor email sent:", doctorResult);
-
+    console.log("✅ Appointment email sent:", result);
     return {
       success: true,
-      patientEmail: patientResult,
-      doctorEmail: doctorResult,
+      result: result,
     };
   } catch (error) {
-    console.error("❌ Failed to send appointment emails:", error);
-    // Don't throw - emails are not critical for booking to succeed
+    console.error("❌ Failed to send appointment email:", error);
     return {
       success: false,
       error: error.message,
@@ -539,11 +501,9 @@ export const sendAppointmentEmail = async (data) => {
 
 /**
  * Send consultation time reminder emails to both doctor and patient
- * Called when consultation time is reached but neither has joined
  */
 export const sendConsultationReminderEmail = async (data) => {
   try {
-    const transporter = createTransporter();
     const {
       patientEmail,
       doctorEmail,
@@ -720,31 +680,20 @@ export const sendConsultationReminderEmail = async (data) => {
       doctor: doctorEmail,
     });
 
-    const [patientResult, doctorResult] = await Promise.all([
-      transporter.sendMail({
-        from: `"E-Sanjeevani 2.0" <${process.env.EMAIL_USER}>`,
-        to: patientEmail,
-        subject: `🚨 Time to Join! Your Consultation with Dr. ${doctorName} is Starting Now`,
-        html: patientReminderHtml,
-      }),
-      transporter.sendMail({
-        from: `"E-Sanjeevani 2.0" <${process.env.EMAIL_USER}>`,
-        to: doctorEmail,
-        subject: `🚨 Time to Join! Consultation with ${patientName} is Starting Now`,
-        html: doctorReminderHtml,
-      }),
-    ]);
+    const result = await getResendClient().emails.send({
+      from: "E-Sanjeevani <noreply@esanjeevani.com>",
+      to: [patientEmail, doctorEmail],
+      subject: `⏰ Time to Join! Consultation Starting Now`,
+      html: patientReminderHtml,
+    });
 
-    console.log("✅ Patient reminder sent:", patientResult);
-    console.log("✅ Doctor reminder sent:", doctorResult);
-
+    console.log("✅ Reminder email sent:", result);
     return {
       success: true,
-      patientEmail: patientResult,
-      doctorEmail: doctorResult,
+      result: result,
     };
   } catch (error) {
-    console.error("❌ Failed to send consultation reminders:", error);
+    console.error("❌ Failed to send reminder email:", error);
     return {
       success: false,
       error: error.message,
