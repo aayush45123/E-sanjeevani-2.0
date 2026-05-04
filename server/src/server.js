@@ -6,14 +6,17 @@ import { initializeConsultationReminders } from "./utils/consultationReminderJob
 
 const PORT = process.env.PORT || 5000;
 
+// Global io instance
+export let io = null;
+
 // Connect to database and start server
 connectDB()
   .then(() => {
     // Create HTTP server with Express app
     const server = http.createServer(app);
 
-    // Initialize Socket.io
-    initializeSocket(server);
+    // Initialize Socket.io and store the instance
+    io = initializeSocket(server);
 
     // Initialize consultation reminder job
     initializeConsultationReminders();

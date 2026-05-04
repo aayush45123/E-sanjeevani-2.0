@@ -16,6 +16,8 @@ export default function VideoCall() {
   const [connectionError, setConnectionError] = useState("");
   const [usersInRoom, setUsersInRoom] = useState(1);
   const [callStatus, setCallStatus] = useState("connecting");
+  const [patientJoined, setPatientJoined] = useState(false);
+  const [doctorJoined, setDoctorJoined] = useState(false);
 
   // Doctor AI Assistant State
   const [doctorAssistantData, setDoctorAssistantData] = useState(null);
@@ -45,7 +47,7 @@ export default function VideoCall() {
   const socketRef = useRef(null);
   const peerRef = useRef(null);
   const localStreamRef = useRef(null);
-  const dataChannelRef = useRef(null); // WebRTC data channel for chat
+  const dataChannelRef = useRef(null);
 
   // Mic/camera toggles
   const [isMuted, setIsMuted] = useState(false);
@@ -74,7 +76,6 @@ export default function VideoCall() {
       const data = await response.json();
 
       if (response.ok && data.data) {
-        // Convert fetched messages to component format
         const formattedMessages = data.data.map((msg) => ({
           id: msg._id,
           sender:
@@ -126,7 +127,6 @@ export default function VideoCall() {
       iceServers: [{ urls: ["stun:stun.l.google.com:19302"] }],
     });
 
-    // Send ICE candidates
     peer.onicecandidate = (event) => {
       if (event.candidate) {
         socketRef.current?.emit("ice-candidate", {
@@ -136,7 +136,6 @@ export default function VideoCall() {
       }
     };
 
-    // Remote stream
     peer.ontrack = (event) => {
       if (remoteVideo.current) {
         remoteVideo.current.srcObject = event.streams[0];
@@ -145,14 +144,12 @@ export default function VideoCall() {
       }
     };
 
-    // Receive data channel (from remote peer)
     peer.ondatachannel = (event) => {
       const channel = event.channel;
       setupDataChannel(channel);
       dataChannelRef.current = channel;
     };
 
-    // Add local tracks
     localStreamRef.current.getTracks().forEach((track) => {
       peer.addTrack(track, localStreamRef.current);
     });
@@ -192,8 +189,6 @@ export default function VideoCall() {
             timestamp: new Date(),
           };
           setMessages((prev) => [...prev, newMsg]);
-
-          // Save remote message to backend
           saveMessageToBackend(data.text, newMsg.senderName);
 
           if (!isChatOpen) {
@@ -233,8 +228,6 @@ export default function VideoCall() {
     };
 
     setMessages((prev) => [...prev, myMsg]);
-
-    // Save my message to backend
     saveMessageToBackend(chatInput.trim(), userName);
 
     if (dataChannelRef.current?.readyState === "open") {
@@ -250,12 +243,10 @@ export default function VideoCall() {
     }
   };
 
-  // Auto-scroll chat
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Clear unread when opening chat
   useEffect(() => {
     if (isChatOpen) setUnreadCount(0);
   }, [isChatOpen]);
@@ -281,11 +272,10 @@ export default function VideoCall() {
   };
 
   /*
-=============================================
-DOCTOR ASSISTANT DATA FETCH
-=============================================
-*/
-
+  =============================================
+  DOCTOR ASSISTANT DATA FETCH
+  =============================================
+  */
   useEffect(() => {
     const fetchDoctorAssistantData = async () => {
       if (userRole !== "doctor") return;
@@ -319,7 +309,6 @@ DOCTOR ASSISTANT DATA FETCH
   =============================================
   */
   useEffect(() => {
-    // Request notification permission
     NotificationService.requestPermission().catch((err) =>
       console.error("Notification permission error:", err),
     );
@@ -346,44 +335,49 @@ DOCTOR ASSISTANT DATA FETCH
         socketRef.current = socket;
 
         socket.on("connect", () => {
+          console.log("🔌 Socket connected, joining room...");
           socket.emit("join-room", {
             consultationId,
             userRole,
             userName,
           });
-
-          // Mark user as joined in database
-          fetch(`/api/consultations/${consultationId}/mark-joined`, {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          })
-            .then((res) => res.json())
-            .then((data) => {
-              if (data.success) {
-                console.log(
-                  "✅ User marked as joined in consultation:",
-                  data.consultation,
-                );
-              }
-            })
-            .catch((error) => console.error("Error marking user joined:", error));
         });
+
+        socket.on(
+          "room-join-confirmed",
+          async ({ consultationId: roomId, usersInRoom }) => {
+            console.log(
+              `📍 Successfully joined room ${roomId}. Users in room: ${usersInRoom}`,
+            );
+
+            fetch(`/api/consultations/${consultationId}/mark-joined`, {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            })
+              .then((res) => res.json())
+              .then((data) => {
+                if (data.success) {
+                  console.log("✅ User marked as joined:", data.consultation);
+                }
+              })
+              .catch((error) =>
+                console.error("Error marking user joined:", error),
+              );
+          },
+        );
 
         // First user — create offer + data channel
         socket.on("other-user", async ({ shouldInitiate, usersInRoom }) => {
           setUsersInRoom(usersInRoom || 2);
-
-          // Load chat history when other user joins
           loadChatHistory();
 
           if (!shouldInitiate) return;
 
           const peer = createPeerConnection();
 
-          // Initiator creates data channel
           const channel = peer.createDataChannel("chat");
           setupDataChannel(channel);
           dataChannelRef.current = channel;
@@ -433,14 +427,9 @@ DOCTOR ASSISTANT DATA FETCH
           setUsersInRoom(usersInRoom || 2);
         });
 
-        // LISTEN FOR OTHER USER JOINING
         socket.on("user-joined", async ({ userRole, userName }) => {
           console.log(`✅ ${userRole} ${userName} has joined!`);
-
-          // Show notification
           await NotificationService.userJoinedNotification(userName, userRole);
-
-          // Update UI
           const roleText = userRole === "doctor" ? "Dr." : "Patient";
           NotificationService.showToast(
             `${roleText} ${userName} has joined the consultation!`,
@@ -448,7 +437,45 @@ DOCTOR ASSISTANT DATA FETCH
           );
         });
 
-        socket.on("call-ended", () => leaveCall(false));
+        socket.on(
+          "user-status-updated",
+          ({
+            userRole,
+            userJoined,
+            message,
+            patientJoined: patJoined,
+            doctorJoined: docJoined,
+          }) => {
+            console.log(`📢 Status Update: ${message}`);
+            setPatientJoined(patJoined);
+            setDoctorJoined(docJoined);
+
+            const roleText = userRole === "doctor" ? "Doctor" : "Patient";
+            if (userJoined) {
+              NotificationService.showToast(`${message}`, "info");
+              console.log(`🔔 ${roleText} has joined the consultation`);
+            }
+            console.log(
+              `Patient joined: ${patJoined}, Doctor joined: ${docJoined}`,
+            );
+          },
+        );
+
+        /*
+        =============================================
+        FIX: call-ended now navigates AND does NOT
+        re-emit end-call (prevents infinite loop)
+        =============================================
+        */
+        socket.on("call-ended", ({ message, endedAt }) => {
+          console.log("🔴 Call ended by the other participant");
+          NotificationService.showToast(
+            message || "Consultation has ended",
+            "warning",
+          );
+          // shouldNavigate = true, shouldEmit = false (avoid loop)
+          leaveCall(true, false);
+        });
 
         try {
           await consultationApi.updateConsultationStatus(consultationId, {
@@ -476,11 +503,10 @@ DOCTOR ASSISTANT DATA FETCH
   }, [consultationId]);
 
   /*
-=============================================
-DOCTOR AI QUERY FUNCTION
-=============================================
-*/
-
+  =============================================
+  DOCTOR AI QUERY
+  =============================================
+  */
   const handleDoctorAiQuery = async () => {
     if (!doctorAiQuery.trim()) return;
 
@@ -565,8 +591,17 @@ Give a professional doctor-level response.
     }
   };
 
-  const leaveCall = async (shouldNavigate = true) => {
+  /*
+  =============================================
+  LEAVE CALL
+  - shouldNavigate: redirect to dashboard?
+  - shouldEmit: send end-call signal to peer?
+    (false when WE received the signal to avoid loop)
+  =============================================
+  */
+  const leaveCall = async (shouldNavigate = true, shouldEmit = true) => {
     clearInterval(timerRef.current);
+
     try {
       await consultationApi.updateConsultationStatus(consultationId, {
         status: "completed",
@@ -574,12 +609,27 @@ Give a professional doctor-level response.
     } catch (err) {
       console.log(err);
     }
+
     dataChannelRef.current?.close();
     localStreamRef.current?.getTracks().forEach((t) => t.stop());
     peerRef.current?.close();
-    socketRef.current?.emit("end-call");
-    socketRef.current?.disconnect();
-    if (shouldNavigate) navigate("/dashboard");
+
+    if (shouldEmit && socketRef.current) {
+      socketRef.current.emit("end-call");
+      console.log("🔴 End call signal sent to other participant");
+      // Small delay to ensure socket message is delivered before disconnect
+      setTimeout(() => {
+        socketRef.current?.disconnect();
+      }, 100);
+    } else {
+      socketRef.current?.disconnect();
+    }
+
+    if (shouldNavigate) {
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 200);
+    }
   };
 
   const sidebarWidth = userRole === "doctor" ? 230 : 260;
@@ -734,7 +784,6 @@ Give a professional doctor-level response.
 
           {/* ── VIDEO AREA ── */}
           <div className={styles.videoArea}>
-            {/* Collapsed chat toggle */}
             {!isChatOpen && (
               <button
                 className={styles.chatOpenBtn}
@@ -755,7 +804,8 @@ Give a professional doctor-level response.
                 )}
               </button>
             )}
-            {/* Main (patient) video */}
+
+            {/* Main (remote) video */}
             <div className={styles.mainVideoWrapper}>
               <video
                 ref={remoteVideo}
@@ -767,12 +817,47 @@ Give a professional doctor-level response.
                 <div className={styles.waitingOverlay}>
                   <div className={styles.waitingSpinner} />
                   <p>Waiting for participant to join…</p>
+                  <div
+                    style={{
+                      marginTop: "20px",
+                      fontSize: "14px",
+                      opacity: 0.8,
+                    }}
+                  >
+                    <p>
+                      Status:{" "}
+                      {userRole === "doctor" ? (
+                        <>
+                          Patient:{" "}
+                          <strong
+                            style={{
+                              color: patientJoined ? "#22c55e" : "#ef4444",
+                            }}
+                          >
+                            {patientJoined ? "✓ Joined" : "Waiting..."}
+                          </strong>
+                        </>
+                      ) : (
+                        <>
+                          Doctor:{" "}
+                          <strong
+                            style={{
+                              color: doctorJoined ? "#22c55e" : "#ef4444",
+                            }}
+                          >
+                            {doctorJoined ? "✓ Joined" : "Waiting..."}
+                          </strong>
+                        </>
+                      )}
+                    </p>
+                  </div>
                 </div>
               )}
               <div className={styles.mainVideoLabel}>
                 {userRole === "doctor" ? "Patient" : "Doctor"}
               </div>
             </div>
+
             {/* PiP (self) video */}
             <div className={styles.pipWrapper}>
               <video
@@ -807,49 +892,40 @@ Give a professional doctor-level response.
 
                 <div className={styles.patientSummaryCard}>
                   <h3>Patient Summary</h3>
-
                   <p>
                     <strong>Name:</strong>{" "}
                     {doctorAssistantData?.patientBasicInfo?.name || "-"}
                   </p>
-
                   <p>
                     <strong>Age:</strong>{" "}
                     {doctorAssistantData?.patientProfile?.age || "-"}
                   </p>
-
                   <p>
                     <strong>Gender:</strong>{" "}
                     {doctorAssistantData?.patientProfile?.gender || "-"}
                   </p>
-
                   <p>
                     <strong>Medical History:</strong>{" "}
                     {doctorAssistantData?.patientProfile?.medicalHistory || "-"}
                   </p>
-
                   <p>
                     <strong>Current Medications:</strong>{" "}
                     {doctorAssistantData?.patientProfile?.currentMedications ||
                       "-"}
                   </p>
-
                   <p>
                     <strong>Allergies:</strong>{" "}
                     {doctorAssistantData?.patientProfile?.allergies || "-"}
                   </p>
-
                   <p>
                     <strong>AI Predicted Disease:</strong>{" "}
                     {doctorAssistantData?.latestAITriage?.predictedDisease ||
                       "-"}
                   </p>
-
                   <p>
                     <strong>Urgency:</strong>{" "}
                     {doctorAssistantData?.latestAITriage?.urgency || "-"}
                   </p>
-
                   <p>
                     <strong>Recommended Specialist:</strong>{" "}
                     {doctorAssistantData?.latestAITriage?.doctorType || "-"}
@@ -858,20 +934,17 @@ Give a professional doctor-level response.
 
                 <div className={styles.doctorAiQueryBox}>
                   <h3>Ask AI Assistant</h3>
-
                   <textarea
                     value={doctorAiQuery}
                     onChange={(e) => setDoctorAiQuery(e.target.value)}
                     placeholder="Ask about diagnosis, medicines, tests, severity..."
                   />
-
                   <button
                     onClick={handleDoctorAiQuery}
                     disabled={doctorAiLoading}
                   >
                     {doctorAiLoading ? "Thinking..." : "Ask AI"}
                   </button>
-
                   {doctorAiReply && (
                     <div className={styles.aiReplyCard}>
                       <h3>AI Recommendation</h3>
@@ -881,6 +954,7 @@ Give a professional doctor-level response.
                 </div>
               </div>
             )}
+
             {/* Bottom Controls */}
             <div className={styles.controls}>
               <button
@@ -977,7 +1051,7 @@ Give a professional doctor-level response.
 
               <button
                 className={styles.endBtn}
-                onClick={() => leaveCall(true)}
+                onClick={() => leaveCall(true, true)}
                 title="End Call"
               >
                 <svg

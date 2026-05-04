@@ -94,6 +94,12 @@ const initializeSocket = (server) => {
         `[Room ${consultationId}] ${socket.id} joined (${userRole}) | Users: ${room.length}`,
       );
 
+      // SEND CONFIRMATION TO THIS USER THAT THEY'VE JOINED
+      socket.emit("room-join-confirmed", {
+        consultationId,
+        usersInRoom: room.length,
+      });
+
       // NOTIFY OTHER USER THAT SOMEONE JOINED
       socket.to(consultationId).emit("user-joined", {
         userRole: userRole,
@@ -211,9 +217,17 @@ const initializeSocket = (server) => {
       const consultationId = socketRoomMap[socket.id];
 
       if (consultationId) {
-        socket.to(consultationId).emit("call-ended");
-
         console.log(`[Room ${consultationId}] Call ended by ${socket.id}`);
+
+        // Send to everyone in the room (including the sender so they see confirmation)
+        io.to(consultationId).emit("call-ended", {
+          message: "Consultation ended by the other participant",
+          endedAt: new Date(),
+        });
+
+        console.log(
+          `🔴 [Room ${consultationId}] call-ended event broadcasted to all participants`,
+        );
       }
     });
 
@@ -233,7 +247,11 @@ const initializeSocket = (server) => {
           (id) => id !== socket.id,
         );
 
-        socket.to(consultationId).emit("call-ended");
+        // Notify other participants that the connection was lost
+        socket.to(consultationId).emit("call-ended", {
+          message: "The other participant has disconnected",
+          endedAt: new Date(),
+        });
 
         console.log(
           `[Room ${consultationId}] ${socket.id} left | Remaining: ${roomUsers[consultationId].length}`,
