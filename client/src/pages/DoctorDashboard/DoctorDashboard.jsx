@@ -23,7 +23,10 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
   const [consultations, setConsultations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAllPatients, setShowAllPatients] = useState(false);
-  const [weeklyData, setWeeklyData] = useState([60, 80, 45, 90, 70, 30]);
+  const [weeklyData, setWeeklyData] = useState([10, 10, 10, 10, 10, 10, 10]);
+  const [consultationCounts, setConsultationCounts] = useState([
+    0, 0, 0, 0, 0, 0, 0,
+  ]);
 
   const [stats, setStats] = useState({
     totalPatients: 0,
@@ -105,31 +108,80 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
   };
 
   const calculateWeeklyData = (data) => {
-    // Get current week (Monday to Saturday)
+    // Debug: Log consultations
+    console.log("Total consultations:", data.length);
+    console.log("Sample consultation:", data[0]);
+
+    // Get last 7 days (including today)
     const today = new Date();
-    const currentDay = today.getDay();
-    // Adjust to get Monday as start of week
-    const monday = new Date(today);
-    monday.setDate(today.getDate() - (currentDay === 0 ? 6 : currentDay - 1));
+    today.setHours(0, 0, 0, 0);
 
-    // Days to track (Mon-Sat)
-    const daysMap = [0, 1, 2, 3, 4, 5]; // 0=Mon, 1=Tue, etc.
-    const consultationCounts = [0, 0, 0, 0, 0, 0];
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setDate(today.getDate() - 6); // 7 days including today
 
-    data.forEach((consultation) => {
-      const consultationDate = new Date(consultation.consultationDate);
-      const dayDiff = Math.floor(
-        (consultationDate - monday) / (1000 * 60 * 60 * 24),
-      );
+    console.log("Date range - From:", sevenDaysAgo, "To:", today);
 
-      if (dayDiff >= 0 && dayDiff < 6) {
-        consultationCounts[dayDiff]++;
+    // Days to track (last 7 days)
+    const dayLabels = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - i);
+      dayLabels.push(date.toLocaleDateString("en-IN", { weekday: "short" }));
+    }
+
+    const consultationCounts = [0, 0, 0, 0, 0, 0, 0];
+
+    // Process each consultation
+    data.forEach((consultation, idx) => {
+      // Try multiple field names for date
+      const dateField =
+        consultation.consultationDate ||
+        consultation.createdAt ||
+        consultation.date ||
+        consultation.appointmentDate;
+
+      if (!dateField) {
+        console.log(`Consultation ${idx} has no date field:`, consultation);
+        return;
+      }
+
+      try {
+        const consultationDate = new Date(dateField);
+        consultationDate.setHours(0, 0, 0, 0);
+
+        const dayDiff = Math.floor(
+          (consultationDate - sevenDaysAgo) / (1000 * 60 * 60 * 24),
+        );
+
+        console.log(
+          `Consultation ${idx}: Date=${consultationDate.toDateString()}, DayDiff=${dayDiff}`,
+        );
+
+        if (dayDiff >= 0 && dayDiff < 7) {
+          consultationCounts[dayDiff]++;
+        }
+      } catch (err) {
+        console.error(`Error parsing date for consultation ${idx}:`, err);
       }
     });
 
-    // Calculate heights (0-100%)
+    console.log(
+      "Consultation counts by day:",
+      consultationCounts,
+      "Labels:",
+      dayLabels,
+    );
+
+    // Calculate heights (0-100%) with better scaling
     const maxCount = Math.max(...consultationCounts, 1);
-    const heights = consultationCounts.map((count) => (count / maxCount) * 100);
+    const heights = consultationCounts.map((count) => {
+      const percentage = (count / maxCount) * 100;
+      return Math.max(percentage, 10);
+    });
+
+    console.log("Heights:", heights);
+
+    setConsultationCounts(consultationCounts);
     setWeeklyData(heights);
   };
 
@@ -299,22 +351,42 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
                 </div>
 
                 <div className={styles.weeklyBars}>
-                  {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day, i) => {
-                    return (
-                      <div key={day} className={styles.barGroup}>
-                        <div className={styles.barTrack}>
-                          <div
-                            className={styles.bar}
-                            style={{
-                              height: `${weeklyData[i]}%`,
-                            }}
-                          />
-                        </div>
+                  {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
+                    (day, i) => {
+                      const hasConsultations = consultationCounts[i] > 0;
+                      return (
+                        <div
+                          key={day + i}
+                          className={styles.barGroup}
+                          style={{
+                            opacity: hasConsultations ? 1 : 0.3,
+                            pointerEvents: hasConsultations ? "auto" : "none",
+                          }}
+                        >
+                          {hasConsultations && (
+                            <span className={styles.countLabel}>
+                              {consultationCounts[i]}
+                            </span>
+                          )}
+                          <div className={styles.barTrack}>
+                            <div
+                              className={styles.bar}
+                              style={{
+                                height: `${hasConsultations ? weeklyData[i] : 0}%`,
+                              }}
+                              title={
+                                hasConsultations
+                                  ? `${consultationCounts[i]} consultations`
+                                  : "No consultations"
+                              }
+                            />
+                          </div>
 
-                        <span className={styles.barLabel}>{day}</span>
-                      </div>
-                    );
-                  })}
+                          <span className={styles.barLabel}>{day}</span>
+                        </div>
+                      );
+                    },
+                  )}
                 </div>
 
                 <p className={styles.weeklyNote}>
