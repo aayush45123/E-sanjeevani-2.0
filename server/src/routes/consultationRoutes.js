@@ -9,6 +9,7 @@ import {
   updateConsultationStatus,
   addDoctorNotes,
   getAvailableDoctors,
+  markUserJoined,
 } from "../controllers/consultationController.js";
 
 const router = express.Router();
@@ -81,5 +82,12 @@ Add doctor notes + prescription
 PATCH /api/consultations/:consultationId/notes
 */
 router.patch("/:consultationId/notes", addDoctorNotes);
+
+/*
+Mark user as joined in consultation
+
+POST /api/consultations/:consultationId/mark-joined
+*/
+router.post("/:consultationId/mark-joined", markUserJoined);
 
 export default router;

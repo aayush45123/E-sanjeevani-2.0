@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import io from "socket.io-client";
 import { consultationApi } from "../../utils/api";
+import NotificationService from "../../utils/notificationService";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
 import styles from "./VideoCall.module.css";
@@ -318,6 +319,13 @@ DOCTOR ASSISTANT DATA FETCH
   =============================================
   */
   useEffect(() => {
+    // Request notification permission
+    NotificationService.requestPermission().catch((err) =>
+      console.error("Notification permission error:", err),
+    );
+  }, []);
+
+  useEffect(() => {
     let mounted = true;
 
     const init = async () => {
@@ -338,7 +346,30 @@ DOCTOR ASSISTANT DATA FETCH
         socketRef.current = socket;
 
         socket.on("connect", () => {
-          socket.emit("join-room", consultationId);
+          socket.emit("join-room", {
+            consultationId,
+            userRole,
+            userName,
+          });
+
+          // Mark user as joined in database
+          fetch(`/api/consultations/${consultationId}/mark-joined`, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.success) {
+                console.log(
+                  "✅ User marked as joined in consultation:",
+                  data.consultation,
+                );
+              }
+            })
+            .catch((error) => console.error("Error marking user joined:", error));
         });
 
         // First user — create offer + data channel
@@ -400,6 +431,21 @@ DOCTOR ASSISTANT DATA FETCH
 
         socket.on("existing-user", ({ usersInRoom }) => {
           setUsersInRoom(usersInRoom || 2);
+        });
+
+        // LISTEN FOR OTHER USER JOINING
+        socket.on("user-joined", async ({ userRole, userName }) => {
+          console.log(`✅ ${userRole} ${userName} has joined!`);
+
+          // Show notification
+          await NotificationService.userJoinedNotification(userName, userRole);
+
+          // Update UI
+          const roleText = userRole === "doctor" ? "Dr." : "Patient";
+          NotificationService.showToast(
+            `${roleText} ${userName} has joined the consultation!`,
+            "success",
+          );
         });
 
         socket.on("call-ended", () => leaveCall(false));
@@ -950,6 +996,9 @@ Give a professional doctor-level response.
             </div>
           </div>
         </div>
+
+        {/* Toast Notifications Container */}
+        <div id="toast-container" className={styles.toastContainer}></div>
       </div>
     </div>
   );

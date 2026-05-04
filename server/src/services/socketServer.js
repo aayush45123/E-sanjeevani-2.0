@@ -62,7 +62,11 @@ const initializeSocket = (server) => {
     ==================================================
     */
 
-    socket.on("join-room", (consultationId) => {
+    socket.on("join-room", (data) => {
+      const consultationId = data.consultationId || data;
+      const userRole = data.userRole || "unknown";
+      const userName = data.userName || "User";
+
       if (!consultationId) return;
 
       /*
@@ -87,8 +91,16 @@ const initializeSocket = (server) => {
       const room = roomUsers[consultationId];
 
       console.log(
-        `[Room ${consultationId}] ${socket.id} joined | Users: ${room.length}`,
+        `[Room ${consultationId}] ${socket.id} joined (${userRole}) | Users: ${room.length}`,
       );
+
+      // NOTIFY OTHER USER THAT SOMEONE JOINED
+      socket.to(consultationId).emit("user-joined", {
+        userRole: userRole,
+        userName: userName,
+        usersInRoom: room.length,
+        joinedAt: new Date(),
+      });
 
       /*
       EXACTLY 2 USERS

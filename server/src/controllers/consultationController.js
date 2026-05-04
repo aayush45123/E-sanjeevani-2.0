@@ -540,3 +540,56 @@ export const addDoctorNotes = async (req, res) => {
     });
   }
 };
+
+// Mark user as joined in consultation
+export const markUserJoined = async (req, res) => {
+  try {
+    const { consultationId } = req.params;
+    const userId = req.user.id;
+
+    const consultation = await Consultation.findById(consultationId);
+    if (!consultation) {
+      return res.status(404).json({
+        success: false,
+        message: "Consultation not found",
+      });
+    }
+
+    // Check if user is patient or doctor
+    if (consultation.patient.toString() === userId) {
+      consultation.patientJoined = true;
+      await consultation.save();
+      
+      console.log(`✅ Patient marked as joined for consultation ${consultationId}`);
+    } else if (consultation.doctor.toString() === userId) {
+      consultation.doctorJoined = true;
+      await consultation.save();
+      
+      console.log(`✅ Doctor marked as joined for consultation ${consultationId}`);
+    } else {
+      return res.status(403).json({
+        success: false,
+        message: "User not authorized for this consultation",
+      });
+    }
+
+    // Update status to ongoing if it wasn't already
+    if (consultation.status === "scheduled") {
+      consultation.status = "ongoing";
+      await consultation.save();
+    }
+
+    res.json({
+      success: true,
+      message: "User marked as joined",
+      consultation,
+    });
+  } catch (error) {
+    console.error("markUserJoined error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to mark user as joined",
+      error: error.message,
+    });
+  }
+};
