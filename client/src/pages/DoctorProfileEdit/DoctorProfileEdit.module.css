@@ -1,1059 +1,720 @@
-/* src/pages/DoctorProfileEdit/DoctorProfileEdit.module.css */
-
-/* ─── Layout ──────────────────────────────────────────────────────────────── */
-
-.dashboardLayout {
-  display: flex;
-  min-height: 100vh;
-  background-color: #f0f4f8;
-  margin-left: 230px;
-}
-
-.mainContent {
-  flex: 1;
-  padding: 40px;
-  overflow-y: auto;
-  background: #f0f4f8;
-}
-
-.wrapper {
-  max-width: 1280px;
-  margin: 0 auto;
-}
-
-/* ─── Page Header ─────────────────────────────────────────────────────────── */
-
-.pageHeader {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 28px;
-}
-
-.title {
-  font-size: 30px;
-  font-weight: 700;
-  color: #0f172a;
-  margin: 0 0 6px;
-  letter-spacing: -0.02em;
-}
-
-.subtitle {
-  font-size: 15px;
-  color: #64748b;
-  margin: 0;
-  font-weight: 400;
-}
-
-/* ─── Loading ─────────────────────────────────────────────────────────────── */
-
-.loadingContainer {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  min-height: 400px;
-  gap: 14px;
-  color: #64748b;
-  font-size: 15px;
-}
-
-.loadingSpinner {
-  width: 36px;
-  height: 36px;
-  border: 3px solid #e2e8f0;
-  border-top-color: #2563eb;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.btnSpinner {
-  display: inline-block;
-  width: 14px;
-  height: 14px;
-  border: 2px solid rgba(255, 255, 255, 0.4);
-  border-top-color: #fff;
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-  margin-right: 8px;
-  vertical-align: middle;
-}
-
-/* ─── Toast ───────────────────────────────────────────────────────────────── */
-
-.toast {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 18px;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 500;
-  margin-bottom: 20px;
-  animation: slideDown 0.3s ease;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.toastSuccess {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  color: #15803d;
-}
-
-.toastError {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #dc2626;
-}
-
-/* ─── Tabs ────────────────────────────────────────────────────────────────── */
-
-.tabsContainer {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 28px;
-  background: #fff;
-  padding: 6px;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  width: fit-content;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-}
-
-.tab {
-  padding: 9px 22px;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  color: #64748b;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-}
-
-.tab:hover {
-  color: #1e40af;
-  background: #f0f4ff;
-}
-
-.activeTab {
-  background: #2563eb;
-  color: #fff !important;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
-}
-
-/* ─── Shared Form Shell ───────────────────────────────────────────────────── */
-
-.form {
-  background: #fff;
-  border-radius: 16px;
-  padding: 36px;
-  box-shadow:
-    0 1px 4px rgba(0, 0, 0, 0.06),
-    0 4px 16px rgba(0, 0, 0, 0.04);
-  border: 1px solid #e2e8f0;
-}
-
-.formSection {
-  margin-bottom: 36px;
-  padding-bottom: 32px;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.formSection:last-of-type {
-  border-bottom: none;
-  margin-bottom: 0;
-  padding-bottom: 0;
-}
-
-.sectionHeader h2 {
-  font-size: 16px;
-  font-weight: 650;
-  color: #1e293b;
-  margin: 0 0 22px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.formRow {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 18px;
-  margin-bottom: 18px;
-}
-
-.formGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-
-.formGroup label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #374151;
-  letter-spacing: 0.01em;
-}
-
-.required {
-  color: #ef4444;
-  margin-left: 2px;
-}
-
-.formGroup input,
-.formGroup select,
-.formGroup textarea {
-  padding: 10px 13px;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 9px;
-  font-size: 14px;
-  font-family: inherit;
-  background: #fafbfc;
-  color: #0f172a;
-  transition:
-    border-color 0.18s,
-    box-shadow 0.18s,
-    background 0.18s;
-}
-
-.formGroup input:hover,
-.formGroup select:hover,
-.formGroup textarea:hover {
-  border-color: #cbd5e1;
-  background: #fff;
-}
-
-.formGroup input:focus,
-.formGroup select:focus,
-.formGroup textarea:focus {
-  outline: none;
-  border-color: #2563eb;
-  background: #fff;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
-.formGroup textarea {
-  resize: vertical;
-  min-height: 90px;
-  line-height: 1.5;
-}
-
-/* ─── Checkboxes ──────────────────────────────────────────────────────────── */
-
-.checkboxGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.checkboxLabel {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  font-size: 13.5px;
-  color: #374151;
-  font-weight: 500;
-  user-select: none;
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1.5px solid #e2e8f0;
-  transition: all 0.15s;
-}
-
-.checkboxLabel:hover {
-  border-color: #93c5fd;
-  background: #eff6ff;
-}
-
-.checkboxLabel input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
-  accent-color: #2563eb;
-}
-
-/* ─── Form Actions ────────────────────────────────────────────────────────── */
-
-.formActions {
-  display: flex;
-  gap: 12px;
-  margin-top: 28px;
-}
-
-.submitBtn {
-  display: inline-flex;
-  align-items: center;
-  padding: 12px 30px;
-  background: #2563eb;
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  letter-spacing: 0.01em;
-}
-
-.submitBtn:hover:not(:disabled) {
-  background: #1d4ed8;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
-  transform: translateY(-1px);
-}
-
-.submitBtn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
 /* ═══════════════════════════════════════════════════════════════════════════
-   AVAILABILITY TAB
-═══════════════════════════════════════════════════════════════════════════ */
-
-.availabilityContainer {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 28px;
-  align-items: start;
-}
-
-/* ─── Availability Form Panel ─────────────────────────────────────────────── */
-
-.availabilityForm {
-  background: #fff;
-  border-radius: 16px;
-  padding: 32px;
-  box-shadow:
-    0 1px 4px rgba(0, 0, 0, 0.06),
-    0 4px 16px rgba(0, 0, 0, 0.04);
-  border: 1px solid #e2e8f0;
-}
-
-/* ─── Schedule Type Selector ──────────────────────────────────────────────── */
-
-.scheduleTypeSection {
-  margin-bottom: 28px;
-}
-
-.scheduleTypeLabel {
-  font-size: 12px;
-  font-weight: 700;
-  color: #94a3b8;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin: 0 0 10px;
-}
-
-.scheduleTypeBar {
-  display: flex;
-  gap: 6px;
-  background: #f8fafc;
-  padding: 5px;
-  border-radius: 12px;
-  border: 1.5px solid #e2e8f0;
-}
-
-.scheduleTypeBtn {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  padding: 10px 14px;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  font-size: 13.5px;
-  font-weight: 500;
-  color: #64748b;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-}
-
-.scheduleTypeBtn:hover {
-  color: #2563eb;
-  background: #eff6ff;
-}
-
-.scheduleTypeBtnActive {
-  background: #2563eb !important;
-  color: #fff !important;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.28);
-  font-weight: 600;
-}
-
-/* ─── Form Body ───────────────────────────────────────────────────────────── */
-
-.scheduleFormBody {
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-}
-
-.formSectionInner {
-  background: #f8fafc;
-  border: 1.5px solid #e8eef5;
-  border-radius: 12px;
-  padding: 20px;
-}
-
-.innerSectionTitle {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 700;
-  color: #374151;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 14px;
-}
-
-.helperText {
-  font-size: 12.5px;
-  color: #94a3b8;
-  margin: 0 0 14px;
-  line-height: 1.5;
-}
-
-/* ─── Day Chips ───────────────────────────────────────────────────────────── */
-
-.dayGrid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
-}
-
-.dayChip {
-  padding: 9px 4px;
-  border: 1.5px solid #e2e8f0;
-  background: #fff;
-  border-radius: 9px;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
-  color: #64748b;
-  transition: all 0.18s;
-  text-align: center;
-}
-
-.dayChip:hover {
-  border-color: #93c5fd;
-  color: #2563eb;
-  background: #eff6ff;
-}
-
-.dayChipActive {
-  background: #2563eb !important;
-  border-color: #2563eb !important;
-  color: #fff !important;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
-}
-
-/* ─── Duration Chips ──────────────────────────────────────────────────────── */
-
-.durationGrid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-}
-
-.durationChip {
-  padding: 10px 12px;
-  border: 1.5px solid #e2e8f0;
-  background: #fff;
-  border-radius: 9px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
-  color: #475569;
-  transition: all 0.18s;
-  text-align: center;
-}
-
-.durationChip:hover {
-  border-color: #93c5fd;
-  color: #2563eb;
-  background: #eff6ff;
-}
-
-.durationChipActive {
-  background: #eff6ff !important;
-  border-color: #2563eb !important;
-  color: #2563eb !important;
-  font-weight: 700;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
-/* ─── Preset Chips (Monthly Day Selection) ────────────────────────────────── */
-
-.presetGrid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-}
-
-.presetChip {
-  padding: 10px 12px;
-  border: 1.5px solid #e2e8f0;
-  background: #fff;
-  border-radius: 9px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
-  color: #475569;
-  transition: all 0.18s;
-  text-align: center;
-}
-
-.presetChip:hover {
-  border-color: #93c5fd;
-  color: #2563eb;
-  background: #eff6ff;
-}
-
-.presetChipActive {
-  background: #2563eb !important;
-  border-color: #2563eb !important;
-  color: #fff !important;
-  font-weight: 600;
-}
-
-/* ─── Slots Editor ────────────────────────────────────────────────────────── */
-
-.slotsContainer {
-  background: #f8fafc;
-  border: 1.5px solid #e8eef5;
-  border-radius: 12px;
-  padding: 20px;
-}
-
-.slotsHeader {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 700;
-  color: #374151;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 6px;
-}
-
-.slotBadge {
-  margin-left: auto;
-  background: #dbeafe;
-  color: #1d4ed8;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 2px 9px;
-  border-radius: 20px;
-  letter-spacing: 0.03em;
-  text-transform: none;
-}
-
-.slotInfo {
-  font-size: 12.5px;
-  color: #94a3b8;
-  margin: 0 0 14px;
-  font-weight: 400;
-}
-
-.slotList {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.slotRow {
-  display: grid;
-  grid-template-columns: 24px 1fr 20px 1fr 34px;
-  gap: 10px;
-  align-items: flex-end;
-  background: #fff;
-  padding: 14px;
-  border-radius: 10px;
-  border: 1.5px solid #e2e8f0;
-  transition: border-color 0.15s;
-}
-
-.slotRow:hover {
-  border-color: #bfdbfe;
-}
-
-.slotIndex {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  background: #dbeafe;
-  color: #1d4ed8;
-  border-radius: 50%;
-  font-size: 11px;
-  font-weight: 700;
-  align-self: flex-end;
-  margin-bottom: 2px;
-  flex-shrink: 0;
-}
-
-.slotArrow {
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  color: #94a3b8;
-  font-size: 16px;
-  padding-bottom: 10px;
-}
-
-.slotGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.slotGroup label {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: #64748b;
-  letter-spacing: 0.02em;
-}
-
-.slotGroup input {
-  padding: 9px 11px;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 13.5px;
-  font-family: inherit;
-  background: #fafbfc;
-  color: #0f172a;
-  transition: all 0.15s;
-}
-
-.slotGroup input:focus {
-  outline: none;
-  border-color: #2563eb;
-  background: #fff;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
-.removeSlotBtn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  background: #fee2e2;
-  color: #dc2626;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  align-self: flex-end;
-  transition: all 0.15s;
-  flex-shrink: 0;
-}
-
-.removeSlotBtn:hover {
-  background: #fca5a5;
-}
-
-.addSlotBtn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 12px;
-  padding: 9px 16px;
-  background: #eff6ff;
-  color: #2563eb;
-  border: 1.5px dashed #93c5fd;
-  border-radius: 9px;
-  font-size: 13.5px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.18s;
-  width: 100%;
-  justify-content: center;
-}
-
-.addSlotBtn:hover {
-  background: #dbeafe;
-  border-color: #2563eb;
-}
-
-/* ─── Preview Banner ──────────────────────────────────────────────────────── */
-
-.previewBanner {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 13px 18px;
-  background: #f0fdf4;
-  border: 1.5px solid #bbf7d0;
-  border-radius: 10px;
-  font-size: 13.5px;
-  color: #15803d;
-  animation: fadeIn 0.25s ease;
-}
-
-.previewBanner strong {
-  font-weight: 700;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   EXISTING AVAILABILITY PANEL
-═══════════════════════════════════════════════════════════════════════════ */
-
-.existingAvailability {
-  background: #fff;
-  border-radius: 16px;
-  padding: 28px;
-  box-shadow:
-    0 1px 4px rgba(0, 0, 0, 0.06),
-    0 4px 16px rgba(0, 0, 0, 0.04);
-  border: 1px solid #e2e8f0;
-}
-
-.existingHeader {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 22px;
-  padding-bottom: 18px;
-  border-bottom: 1px solid #f1f5f9;
-  color: #059669;
-}
-
-.existingHeader h2 {
-  font-size: 16px;
-  font-weight: 650;
-  color: #1e293b;
-  margin: 0;
-}
-
-/* Empty State */
-.emptyState {
-  text-align: center;
-  padding: 48px 20px;
-  color: #94a3b8;
-  background: #f8fafc;
-  border-radius: 12px;
-  border: 1.5px dashed #e2e8f0;
-}
-
-.emptyState svg {
-  margin-bottom: 12px;
-  opacity: 0.5;
-}
-
-.emptyState p {
-  font-size: 15px;
-  font-weight: 600;
-  color: #475569;
-  margin: 0 0 6px;
-}
-
-.emptyState span {
-  font-size: 13px;
-  color: #94a3b8;
-}
-
-/* Availability List */
-.availabilityList {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  max-height: 640px;
-  overflow-y: auto;
-  padding-right: 4px;
-}
-
-.availabilityList::-webkit-scrollbar {
-  width: 4px;
-}
-
-.availabilityList::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 4px;
-}
-
-.availabilityList::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
-}
-
-/* Availability Card */
-.availabilityCard {
-  background: #f8fafc;
-  border: 1.5px solid #e8eef5;
-  border-radius: 12px;
-  padding: 16px;
-  transition: all 0.2s ease;
-}
-
-.availabilityCard:hover {
-  border-color: #bfdbfe;
-  background: #fff;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
-}
-
-.cardHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 14px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.cardHeader h3 {
-  font-size: 14px;
-  font-weight: 650;
-  color: #1e293b;
-  margin: 0;
-}
-
-.cardMeta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.bookedCount {
-  font-size: 11px;
-  font-weight: 600;
-  color: #7c3aed;
-  background: #ede9fe;
-  padding: 3px 8px;
-  border-radius: 12px;
-}
-
-.activeBadge {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 10px;
-  background: #d1fae5;
-  color: #065f46;
-  border-radius: 12px;
-  font-size: 10.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.inactiveBadge {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 10px;
-  background: #fee2e2;
-  color: #7f1d1d;
-  border-radius: 12px;
-  font-size: 10.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-/* Slot Pills */
-.slotsDisplay {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.slotPill {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 9px 14px;
-  border-radius: 9px;
-  border: 1.5px solid transparent;
-  min-width: 110px;
-  text-align: center;
-  transition: all 0.15s;
-}
-
-.slotPillAvailable {
-  background: #f0fdf4;
-  border-color: #bbf7d0;
-}
-
-.slotPillAvailable:hover {
-  border-color: #4ade80;
-  background: #dcfce7;
-}
-
-.slotPillBooked {
-  background: #fff7ed;
-  border-color: #fed7aa;
-}
-
-.slotPillBooked:hover {
-  border-color: #fb923c;
-}
-
-.slotTime {
-  font-size: 12.5px;
-  font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 3px;
-  letter-spacing: 0.02em;
-}
-
-.slotStatus {
-  font-size: 10.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-}
-
-.slotPillAvailable .slotStatus {
-  color: #16a34a;
-}
-.slotPillBooked .slotStatus {
-  color: #ea580c;
-}
-
-.noSlots {
-  font-size: 13px;
-  color: #94a3b8;
-  padding: 8px;
-  margin: 0;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   RESPONSIVE
-═══════════════════════════════════════════════════════════════════════════ */
-
-@media (max-width: 1200px) {
-  .availabilityContainer {
-    grid-template-columns: 1fr;
-  }
-  .dayGrid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-@media (max-width: 1024px) {
-  .mainContent {
-    padding: 28px;
-  }
-  .checkboxGrid {
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  }
-}
-
-@media (max-width: 768px) {
-  .mainContent {
-    padding: 20px;
-  }
-  .form,
-  .availabilityForm,
-  .existingAvailability {
-    padding: 20px;
-  }
-  .formRow {
-    grid-template-columns: 1fr;
-  }
-  .tabsContainer {
-    flex-wrap: wrap;
-  }
-  .title {
-    font-size: 22px;
-  }
-  .availabilityContainer {
-    gap: 20px;
-  }
-  .slotRow {
-    grid-template-columns: 24px 1fr 20px 1fr 34px;
-  }
-  .scheduleTypeBtn span {
-    display: none;
-  }
-  .scheduleTypeBar {
-    gap: 4px;
-  }
-  .dayGrid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-@media (max-width: 560px) {
-  .mainContent {
-    padding: 14px;
-  }
-  .form,
-  .availabilityForm,
-  .existingAvailability {
-    padding: 16px;
-  }
-  .title {
-    font-size: 20px;
-  }
-  .slotRow {
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-  .slotIndex {
-    display: none;
-  }
-  .slotArrow {
-    display: none;
-  }
-  .removeSlotBtn {
-    grid-column: 1 / -1;
-    width: 100%;
-    justify-content: center;
-    border-radius: 8px;
-    height: 36px;
-  }
-  .durationGrid,
-  .presetGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .dayGrid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-  .slotsDisplay {
-    flex-direction: column;
-  }
-  .slotPill {
-    min-width: unset;
-    flex-direction: row;
-    justify-content: space-between;
-  }
-}
-/*testting*/
-/*testting*/
+   DoctorProfileEdit.module.css — PREMIUM SAAS EDITION
+   Aesthetic: Ultra-clean, modern tech stack (Linear/Vercel inspired).
+   Emphasis on micro-interactions, subtle depths, and focus states.
+   Font Stack: Inter (for absolute clarity) & system sans-serif.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+   /* ── Design Tokens ──────────────────────────────────────────────────────── */
+   :root {
+     --bg-app:     #fafafa;
+     --bg-card:    #ffffff;
+     --bg-subtle:  #f4f5f7;
+     --bg-hover:   #f9fafb;
+     --bg-input:   #ffffff;
+     
+     --border-light: rgba(0, 0, 0, 0.06);
+     --border-med:   rgba(0, 0, 0, 0.12);
+     
+     --text-primary: #111827;
+     --text-secondary: #4b5563;
+     --text-tertiary: #9ca3af;
+     
+     --brand-main:   #0f172a; /* Deep tech slate */
+     --brand-hover:  #1e293b;
+     --accent-main:  #0ea5e9; /* Crisp SaaS Blue/Teal */
+     --accent-light: #e0f2fe;
+     
+     --status-green-bg: #dcfce7;
+     --status-green-text: #16a34a;
+     --status-amber-bg: #fef3c7;
+     --status-amber-text: #d97706;
+     
+     --shadow-card: 0 1px 3px rgba(0,0,0,0.02), 0 4px 12px rgba(0,0,0,0.03);
+     --shadow-float: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.03);
+     --shadow-ring: 0 0 0 3px rgba(14, 165, 233, 0.15);
+     
+     --radius-sm: 6px;
+     --radius-md: 8px;
+     --radius-lg: 12px;
+     --radius-xl: 16px;
+     --radius-pill: 99px;
+   
+     --transition-snappy: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+     --transition-smooth: 250ms cubic-bezier(0.16, 1, 0.3, 1);
+   }
+   
+   *, *::before, *::after { box-sizing: border-box; }
+   
+   /* ── Global Layout ──────────────────────────────────────────────────────── */
+   .dashboardLayout {
+     display: flex;
+     min-height: 100vh;
+     background: var(--bg-app);
+     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+     color: var(--text-primary);
+     margin-left: 230px; /* Assuming sidebar is fixed 230px */
+   }
+   
+   .mainContent {
+     flex: 1;
+     padding: 48px 56px;
+     overflow-y: auto;
+   }
+   
+   .wrapper {
+     max-width: 1100px;
+     margin: 0 auto;
+     display: flex;
+     flex-direction: column;
+     gap: 32px;
+   }
+   
+   /* ── Header ─────────────────────────────────────────────────────────────── */
+   .pageHeader {
+     display: flex;
+     justify-content: space-between;
+     align-items: flex-end;
+   }
+   
+   .title {
+     font-size: 2rem;
+     font-weight: 700;
+     letter-spacing: -0.02em;
+     margin: 0 0 8px 0;
+     color: var(--brand-main);
+   }
+   
+   .subtitle {
+     font-size: 0.95rem;
+     color: var(--text-secondary);
+     margin: 0;
+   }
+   
+   /* ── Master Segmented Tabs ─────────────────────────────────────────────── */
+   .masterTabsWrapper {
+     display: flex;
+   }
+   
+   .masterTabs {
+     display: inline-flex;
+     background: var(--bg-subtle);
+     padding: 4px;
+     border-radius: var(--radius-lg);
+     border: 1px solid var(--border-light);
+   }
+   
+   .tabBtn {
+     padding: 8px 20px;
+     font-family: inherit;
+     font-size: 0.875rem;
+     font-weight: 500;
+     color: var(--text-secondary);
+     background: transparent;
+     border: none;
+     border-radius: var(--radius-md);
+     cursor: pointer;
+     transition: all var(--transition-snappy);
+   }
+   
+   .tabBtn:hover:not(.activeTabBtn) {
+     color: var(--text-primary);
+   }
+   
+   .activeTabBtn {
+     background: var(--bg-card);
+     color: var(--brand-main);
+     font-weight: 600;
+     box-shadow: var(--shadow-float);
+   }
+   
+   /* ── Forms & Cards General ──────────────────────────────────────────────── */
+   .saasCard {
+     background: var(--bg-card);
+     border-radius: var(--radius-xl);
+     border: 1px solid var(--border-light);
+     box-shadow: var(--shadow-card);
+     overflow: hidden;
+   }
+   
+   /* ── Profile Form Specifics ────────────────────────────────────────────── */
+   .formSection {
+     padding: 32px 40px;
+     border-bottom: 1px solid var(--border-light);
+   }
+   .formSection:last-child { border-bottom: none; }
+   
+   .sectionHeading {
+     font-size: 1.125rem;
+     font-weight: 600;
+     color: var(--brand-main);
+     margin: 0 0 24px 0;
+     letter-spacing: -0.01em;
+   }
+   
+   .formGridRow {
+     display: grid;
+     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+     gap: 20px 24px;
+     margin-bottom: 20px;
+   }
+   .formGridRow:last-child { margin-bottom: 0; }
+   
+   /* ── Premium Inputs ─────────────────────────────────────────────────────── */
+   .inputBox {
+     display: flex;
+     flex-direction: column;
+     gap: 6px;
+   }
+   
+   .inputBox label, .blockLabel {
+     font-size: 0.75rem;
+     font-weight: 600;
+     color: var(--text-secondary);
+     margin-left: 2px;
+   }
+   
+   .asterisk { color: var(--accent-main); }
+   
+   .inputBox input, 
+   .inputBox textarea, 
+   .inputBox select,
+   .standaloneInput {
+     font-family: inherit;
+     font-size: 0.9rem;
+     padding: 10px 14px;
+     border-radius: var(--radius-md);
+     border: 1px solid var(--border-med);
+     background: var(--bg-input);
+     color: var(--text-primary);
+     transition: all var(--transition-snappy);
+     outline: none;
+     width: 100%;
+     box-shadow: 0 1px 2px rgba(0,0,0,0.01) inset;
+   }
+   
+   .inputBox input::placeholder, 
+   .inputBox textarea::placeholder {
+     color: var(--text-tertiary);
+   }
+   
+   .inputBox input:focus, 
+   .inputBox textarea:focus, 
+   .inputBox select:focus,
+   .standaloneInput:focus {
+     border-color: var(--accent-main);
+     box-shadow: var(--shadow-ring);
+     background: var(--bg-card);
+   }
+   
+   /* Custom Select Arrow */
+   .selectWrapper { position: relative; }
+   .selectWrapper::after {
+     content: '';
+     position: absolute;
+     right: 14px; top: 50%;
+     transform: translateY(-50%);
+     width: 10px; height: 6px;
+     background-color: var(--text-tertiary);
+     clip-path: polygon(100% 0%, 0 0%, 50% 100%);
+     pointer-events: none;
+   }
+   .inputBox select { appearance: none; padding-right: 32px; }
+   
+   .inputBox textarea { resize: vertical; min-height: 80px; }
+   
+   /* ── Pills & Checkboxes ─────────────────────────────────────────────────── */
+   /* Hides actual checkbox entirely, styles label */
+   .checkboxPillGroup {
+     display: flex;
+     flex-wrap: wrap;
+     gap: 8px;
+   }
+   
+   .checkboxPill {
+     position: relative;
+     cursor: pointer;
+   }
+   
+   .checkboxPill input {
+     position: absolute;
+     opacity: 0;
+     width: 0; height: 0;
+   }
+   
+   .checkboxPill span {
+     display: inline-block;
+     padding: 6px 14px;
+     font-size: 0.8125rem;
+     font-weight: 500;
+     color: var(--text-secondary);
+     background: var(--bg-card);
+     border: 1px solid var(--border-med);
+     border-radius: var(--radius-pill);
+     transition: all var(--transition-snappy);
+     user-select: none;
+   }
+   
+   .checkboxPill input:checked + span {
+     background: var(--brand-main);
+     border-color: var(--brand-main);
+     color: #fff;
+   }
+   
+   /* ── Actions / Footer ───────────────────────────────────────────────────── */
+   .formFooter {
+     padding: 24px 40px;
+     background: var(--bg-subtle);
+     border-top: 1px solid var(--border-light);
+     display: flex;
+     justify-content: flex-end;
+   }
+   
+   .primaryBtn {
+     display: inline-flex;
+     align-items: center;
+     justify-content: center;
+     gap: 8px;
+     padding: 10px 24px;
+     background: var(--brand-main);
+     color: #fff;
+     font-weight: 500;
+     font-size: 0.9rem;
+     border: none;
+     border-radius: var(--radius-md);
+     cursor: pointer;
+     transition: all var(--transition-snappy);
+     box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+   }
+   
+   .primaryBtn:hover:not(:disabled) {
+     background: var(--brand-hover);
+     transform: translateY(-1px);
+     box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+   }
+   
+   .primaryBtn:active:not(:disabled) { transform: translateY(0); }
+   .primaryBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+   
+   /* ── Availability Layout ────────────────────────────────────────────────── */
+   .splitLayout {
+     display: grid;
+     grid-template-columns: 1fr 360px;
+     gap: 24px;
+     align-items: flex-start;
+   }
+   
+   .cardHeaderArea {
+     padding: 28px 32px;
+     border-bottom: 1px solid var(--border-light);
+   }
+   
+   .cardTitle {
+     font-size: 1.125rem;
+     font-weight: 600;
+     margin: 0 0 4px;
+   }
+   .cardSub {
+     font-size: 0.875rem;
+     color: var(--text-secondary);
+     margin: 0;
+   }
+   
+   .builderBody {
+     padding: 32px;
+     display: flex;
+     flex-direction: column;
+     gap: 28px;
+   }
+   
+   .configBlock {
+     display: flex;
+     flex-direction: column;
+     gap: 12px;
+   }
+   
+   /* Builder Segmented Controls */
+   .segmentedControl {
+     display: flex;
+     background: var(--bg-subtle);
+     border-radius: var(--radius-lg);
+     padding: 4px;
+     border: 1px solid var(--border-light);
+   }
+   .segmentBtn {
+     flex: 1;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     gap: 8px;
+     padding: 8px 12px;
+     font-size: 0.8125rem;
+     font-weight: 500;
+     color: var(--text-secondary);
+     background: transparent;
+     border: none;
+     border-radius: var(--radius-md);
+     cursor: pointer;
+     transition: var(--transition-snappy);
+   }
+   .segmentBtnActive {
+     background: var(--bg-card);
+     color: var(--brand-main);
+     box-shadow: var(--shadow-float);
+     font-weight: 600;
+   }
+   
+   /* Day Checkbox Grid inside Builder */
+   .dayGrid {
+     display: grid;
+     grid-template-columns: repeat(7, 1fr);
+     gap: 8px;
+   }
+   .dayPill {
+     padding: 8px 4px;
+     font-size: 0.75rem;
+     font-weight: 600;
+     text-transform: uppercase;
+     background: var(--bg-card);
+     border: 1px solid var(--border-med);
+     border-radius: var(--radius-sm);
+     color: var(--text-secondary);
+     cursor: pointer;
+     transition: var(--transition-snappy);
+   }
+   .dayPillActive {
+     background: var(--brand-main);
+     color: #fff;
+     border-color: var(--brand-main);
+   }
+   
+   /* Preset Grid (Week duration / Month options) */
+   .presetGrid {
+     display: grid;
+     grid-template-columns: repeat(2, 1fr);
+     gap: 8px;
+   }
+   .presetBtn {
+     padding: 8px 12px;
+     font-size: 0.8125rem;
+     background: var(--bg-card);
+     border: 1px solid var(--border-med);
+     border-radius: var(--radius-md);
+     color: var(--text-secondary);
+     cursor: pointer;
+     font-weight: 500;
+     transition: var(--transition-snappy);
+   }
+   .presetBtnActive {
+     background: var(--bg-hover);
+     border-color: var(--brand-main);
+     color: var(--brand-main);
+     font-weight: 600;
+   }
+   
+   /* ── Premium Slot Editor Widget ─────────────────────────────────────────── */
+   .slotsWidget {
+     border: 1px solid var(--border-med);
+     border-radius: var(--radius-lg);
+     overflow: hidden;
+     background: var(--bg-card);
+   }
+   
+   .slotsWidgetHeader {
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     padding: 12px 16px;
+     background: var(--bg-subtle);
+     border-bottom: 1px solid var(--border-light);
+   }
+   
+   .slotsWidgetTitle {
+     display: flex;
+     align-items: center;
+     gap: 6px;
+     font-size: 0.75rem;
+     font-weight: 600;
+     text-transform: uppercase;
+     letter-spacing: 0.04em;
+     color: var(--text-secondary);
+   }
+   
+   .slotBadge {
+     font-size: 0.7rem;
+     background: var(--accent-light);
+     color: var(--accent-main);
+     padding: 2px 8px;
+     border-radius: var(--radius-pill);
+     font-weight: 600;
+   }
+   
+   .slotList {
+     display: flex;
+     flex-direction: column;
+   }
+   
+   .slotRow {
+     display: grid;
+     grid-template-columns: 30px 1fr 20px 1fr 30px;
+     align-items: center;
+     gap: 12px;
+     padding: 12px 16px;
+     border-bottom: 1px solid var(--border-light);
+     background: var(--bg-card);
+   }
+   .slotRow:last-child { border-bottom: none; }
+   
+   .slotIndex {
+     font-size: 0.75rem;
+     color: var(--text-tertiary);
+     font-weight: 600;
+   }
+   
+   .timeInputWrapper {
+     display: flex;
+     flex-direction: column;
+   }
+   .timeInputWrapper label {
+     font-size: 0.65rem;
+     text-transform: uppercase;
+     color: var(--text-tertiary);
+     margin-bottom: 2px;
+   }
+   .timeInputWrapper input {
+     border: none;
+     background: transparent;
+     font-family: 'Inter', monospace;
+     font-size: 0.95rem;
+     font-weight: 500;
+     color: var(--text-primary);
+     padding: 0;
+     outline: none;
+   }
+   
+   .slotDivider {
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     height: 100%;
+   }
+   .slotDividerLine {
+     width: 12px;
+     height: 2px;
+     background: var(--border-med);
+     border-radius: 2px;
+   }
+   
+   .removeSlotBtn {
+     background: transparent;
+     border: none;
+     color: var(--text-tertiary);
+     cursor: pointer;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     padding: 4px;
+     border-radius: var(--radius-sm);
+     transition: var(--transition-snappy);
+   }
+   .removeSlotBtn:hover {
+     background: #fee2e2;
+     color: #dc2626;
+   }
+   .removeSlotPlaceholder { width: 30px; }
+   
+   .addSlotBtn {
+     width: 100%;
+     padding: 12px;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     gap: 8px;
+     background: var(--bg-subtle);
+     border: none;
+     border-top: 1px solid var(--border-light);
+     color: var(--accent-main);
+     font-size: 0.8125rem;
+     font-weight: 500;
+     cursor: pointer;
+     transition: var(--transition-snappy);
+   }
+   .addSlotBtn:hover { background: var(--accent-light); }
+   
+   /* ── Preview Banner ─────────────────────────────────────────────────────── */
+   .summaryBanner {
+     display: flex;
+     align-items: flex-start;
+     gap: 12px;
+     padding: 16px;
+     background: var(--accent-light);
+     border-radius: var(--radius-md);
+     color: #0369a1; /* Slightly darker teal/blue for text */
+   }
+   .bannerText { font-size: 0.85rem; line-height: 1.5; }
+   
+   /* ── Right Panel Sidebar ────────────────────────────────────────────────── */
+   .overviewSidebar {
+     background: var(--bg-card);
+     border-radius: var(--radius-xl);
+     border: 1px solid var(--border-light);
+     box-shadow: var(--shadow-card);
+     position: sticky;
+     top: 24px;
+     max-height: calc(100vh - 48px);
+     display: flex;
+     flex-direction: column;
+   }
+   
+   .sidebarHeader {
+     padding: 20px 24px;
+     border-bottom: 1px solid var(--border-light);
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+   }
+   .sidebarTitle { font-size: 1rem; font-weight: 600; margin: 0; }
+   .pulseDot {
+     width: 8px; height: 8px;
+     background: var(--status-green-text);
+     border-radius: 50%;
+     box-shadow: 0 0 0 3px var(--status-green-bg);
+   }
+   
+   .timelineList {
+     padding: 16px;
+     overflow-y: auto;
+     display: flex;
+     flex-direction: column;
+     gap: 12px;
+   }
+   
+   .timelineCard {
+     border: 1px solid var(--border-light);
+     border-radius: var(--radius-md);
+     padding: 12px 16px;
+     background: var(--bg-subtle);
+   }
+   
+   .tCardHeader {
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     margin-bottom: 12px;
+   }
+   .tCardHeader h3 {
+     font-size: 0.85rem;
+     font-weight: 600;
+     margin: 0;
+   }
+   
+   .tCardBadges { display: flex; gap: 6px; }
+   .badgeWarning {
+     font-size: 0.65rem; font-weight: 600;
+     background: var(--status-amber-bg);
+     color: var(--status-amber-text);
+     padding: 2px 6px; border-radius: 4px;
+   }
+   .badgeSuccess {
+     font-size: 0.65rem; font-weight: 600;
+     background: var(--status-green-bg);
+     color: var(--status-green-text);
+     padding: 2px 6px; border-radius: 4px;
+   }
+   .badgeMuted {
+     font-size: 0.65rem; font-weight: 600;
+     background: #e5e7eb; color: var(--text-secondary);
+     padding: 2px 6px; border-radius: 4px;
+   }
+   
+   .tCardBody {
+     display: flex;
+     flex-wrap: wrap;
+     gap: 6px;
+   }
+   
+   .microSlot {
+     font-size: 0.7rem;
+     font-weight: 500;
+     padding: 4px 8px;
+     border-radius: 4px;
+     border: 1px solid;
+   }
+   .microSlotFree {
+     background: var(--bg-card);
+     border-color: var(--border-med);
+     color: var(--text-secondary);
+   }
+   .microSlotBooked {
+     background: var(--status-amber-bg);
+     border-color: #fcd34d;
+     color: var(--status-amber-text);
+   }
+   
+   .emptyBoard {
+     padding: 48px 24px;
+     text-align: center;
+     color: var(--text-tertiary);
+   }
+   .emptyBoard p { color: var(--text-secondary); font-weight: 600; margin: 12px 0 4px; }
+   .emptyBoard span { font-size: 0.8rem; }
+   
+   /* ── Toasts ─────────────────────────────────────────────────────────────── */
+   .toast {
+     display: flex;
+     align-items: center;
+     gap: 10px;
+     padding: 12px 16px;
+     border-radius: var(--radius-md);
+     font-size: 0.85rem;
+     font-weight: 500;
+     margin-bottom: 24px;
+     animation: slideIn var(--transition-smooth);
+   }
+   .toastSuccess { background: var(--status-green-bg); color: var(--status-green-text); }
+   .toastError   { background: #fee2e2; color: #dc2626; }
+   
+   @keyframes slideIn {
+     from { opacity: 0; transform: translateY(-10px); }
+     to   { opacity: 1; transform: translateY(0); }
+   }
+   
+   /* ── Loader ─────────────────────────────────────────────────────────────── */
+   .btnSpinner {
+     display: inline-block;
+     width: 14px; height: 14px;
+     border: 2px solid rgba(255,255,255,0.3);
+     border-top-color: #fff;
+     border-radius: 50%;
+     animation: spin 0.8s linear infinite;
+   }
+   .loadingContainer {
+     display: flex; flex-direction: column; align-items: center;
+     justify-content: center; height: 60vh; color: var(--text-secondary);
+   }
+   .loadingSpinner {
+     width: 32px; height: 32px;
+     border: 3px solid var(--border-med);
+     border-top-color: var(--accent-main);
+     border-radius: 50%;
+     animation: spin 0.8s linear infinite;
+     margin-bottom: 16px;
+   }
+   @keyframes spin { to { transform: rotate(360deg); } }
+   
+   /* ── Responsive ─────────────────────────────────────────────────────────── */
+   @media (max-width: 1024px) {
+     .splitLayout { grid-template-columns: 1fr; }
+     .overviewSidebar { position: static; max-height: none; }
+   }
+   @media (max-width: 768px) {
+     .mainContent { padding: 24px; }
+     .formGridRow { grid-template-columns: 1fr; }
+     .dayGrid { grid-template-columns: repeat(4, 1fr); }
+     .formSection { padding: 24px; }
+     .formFooter { padding: 20px 24px; }
+   }
+
+   
