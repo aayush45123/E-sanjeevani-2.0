@@ -1,6 +1,23 @@
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+
+// Create Gmail transporter
+const createTransporter = () => {
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    throw new Error(
+      "EMAIL_USER and EMAIL_PASS are not configured in environment variables",
+    );
+  }
+
+  return nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+};
 
 /**
  * Send appointment confirmation emails to both doctor and patient
@@ -16,13 +33,7 @@ const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
  */
 export const sendAppointmentEmail = async (data) => {
   try {
-    // Initialize Resend here (lazy-load) to ensure env vars are loaded
-    if (!process.env.RESEND_API_KEY) {
-      throw new Error(
-        "RESEND_API_KEY is not configured in environment variables",
-      );
-    }
-    const resend = new Resend(process.env.RESEND_API_KEY);
+    const transporter = createTransporter();
     const {
       patientEmail,
       doctorEmail,
@@ -491,39 +502,24 @@ export const sendAppointmentEmail = async (data) => {
 
     // Send email to patient
     console.log("📧 Sending patient email to:", patientEmail);
-    const patientEmailPromise = resend.emails
-      .send({
-        from: "E-Sanjeevani 2.0 <onboarding@resend.dev>",
-        to: patientEmail,
-        subject: `Appointment Confirmed - Dr. ${doctorName} on ${formattedDate}`,
-        html: patientEmailHtml,
-      })
-      .catch((err) => {
-        console.error("❌ Patient email error:", err);
-        throw err;
-      });
+    const patientResult = await transporter.sendMail({
+      from: `"E-Sanjeevani 2.0" <${process.env.EMAIL_USER}>`,
+      to: patientEmail,
+      subject: `Appointment Confirmed - Dr. ${doctorName} on ${formattedDate}`,
+      html: patientEmailHtml,
+    });
+
+    console.log("✅ Patient email sent:", patientResult);
 
     // Send email to doctor
     console.log("📧 Sending doctor email to:", doctorEmail);
-    const doctorEmailPromise = resend.emails
-      .send({
-        from: "E-Sanjeevani 2.0 <onboarding@resend.dev>",
-        to: doctorEmail,
-        subject: `New Appointment - ${patientName} on ${formattedDate}`,
-        html: doctorEmailHtml,
-      })
-      .catch((err) => {
-        console.error("❌ Doctor email error:", err);
-        throw err;
-      });
+    const doctorResult = await transporter.sendMail({
+      from: `"E-Sanjeevani 2.0" <${process.env.EMAIL_USER}>`,
+      to: doctorEmail,
+      subject: `New Appointment - ${patientName} on ${formattedDate}`,
+      html: doctorEmailHtml,
+    });
 
-    // Wait for both emails to send
-    const [patientResult, doctorResult] = await Promise.all([
-      patientEmailPromise,
-      doctorEmailPromise,
-    ]);
-
-    console.log("✅ Patient email sent:", patientResult);
     console.log("✅ Doctor email sent:", doctorResult);
 
     return {
@@ -547,12 +543,7 @@ export const sendAppointmentEmail = async (data) => {
  */
 export const sendConsultationReminderEmail = async (data) => {
   try {
-    if (!process.env.RESEND_API_KEY) {
-      throw new Error(
-        "RESEND_API_KEY is not configured in environment variables",
-      );
-    }
-    const resend = new Resend(process.env.RESEND_API_KEY);
+    const transporter = createTransporter();
     const {
       patientEmail,
       doctorEmail,
@@ -617,7 +608,8 @@ export const sendConsultationReminderEmail = async (data) => {
             <div class="appointment-details">
               <h3 style="color: #0ea5e9; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; font-weight: 600;">📋 Consultation Details</h3>
               <div class="detail-row">
-                <span class="detail-label">Doctor</span>\n                <span class="detail-value">Dr. ${doctorName}</span>
+                <span class="detail-label">Doctor</span>
+                <span class="detail-value">Dr. ${doctorName}</span>
               </div>
               <div class="detail-row">
                 <span class="detail-label">Date</span>
@@ -729,28 +721,18 @@ export const sendConsultationReminderEmail = async (data) => {
     });
 
     const [patientResult, doctorResult] = await Promise.all([
-      resend.emails
-        .send({
-          from: "E-Sanjeevani 2.0 <onboarding@resend.dev>",
-          to: patientEmail,
-          subject: `🚨 Time to Join! Your Consultation with Dr. ${doctorName} is Starting Now`,
-          html: patientReminderHtml,
-        })
-        .catch((err) => {
-          console.error("❌ Patient reminder error:", err);
-          throw err;
-        }),
-      resend.emails
-        .send({
-          from: "E-Sanjeevani 2.0 <onboarding@resend.dev>",
-          to: doctorEmail,
-          subject: `🚨 Time to Join! Consultation with ${patientName} is Starting Now`,
-          html: doctorReminderHtml,
-        })
-        .catch((err) => {
-          console.error("❌ Doctor reminder error:", err);
-          throw err;
-        }),
+      transporter.sendMail({
+        from: `"E-Sanjeevani 2.0" <${process.env.EMAIL_USER}>`,
+        to: patientEmail,
+        subject: `🚨 Time to Join! Your Consultation with Dr. ${doctorName} is Starting Now`,
+        html: patientReminderHtml,
+      }),
+      transporter.sendMail({
+        from: `"E-Sanjeevani 2.0" <${process.env.EMAIL_USER}>`,
+        to: doctorEmail,
+        subject: `🚨 Time to Join! Consultation with ${patientName} is Starting Now`,
+        html: doctorReminderHtml,
+      }),
     ]);
 
     console.log("✅ Patient reminder sent:", patientResult);
