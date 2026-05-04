@@ -3,6 +3,7 @@ import Consultation from "../models/Consultation.js";
 import DoctorAvailability from "../models/DoctorAvailability.js";
 import DoctorProfile from "../models/DoctorProfile.js";
 import User from "../models/User.js";
+import { sendAppointmentEmail } from "../utils/sendAppointmentEmail.js";
 
 const SLOT_DURATION_MINUTES = 30;
 
@@ -303,6 +304,49 @@ export const createConsultation = async (req, res) => {
       "doctor",
       "name specialization qualification experience",
     );
+
+    // ✅ Send appointment confirmation emails
+    const patient = await User.findById(req.user.id);
+    console.log("📧 EMAIL DEBUG:");
+    console.log("  Patient ID:", req.user.id);
+    console.log("  Patient found:", !!patient);
+    console.log("  Patient email:", patient?.email);
+    console.log("  Doctor found:", !!doctor);
+    console.log("  Doctor email:", doctor?.email);
+
+    if (patient && doctor && doctor.email && patient.email) {
+      try {
+        console.log("🚀 Sending emails to:", {
+          patient: patient.email,
+          doctor: doctor.email,
+        });
+        const emailResult = await sendAppointmentEmail({
+          patientEmail: patient.email,
+          doctorEmail: doctor.email,
+          patientName: patient.name,
+          doctorName: doctor.name,
+          consultationDate,
+          startTime,
+          endTime,
+          consultationType,
+        });
+        console.log("✅ Email result:", emailResult);
+      } catch (emailError) {
+        console.error(
+          "❌ Email sending failed (non-critical):",
+          emailError.message,
+        );
+        console.error("Stack:", emailError.stack);
+        // Don't fail the booking if email fails
+      }
+    } else {
+      console.warn("⚠️ Skipped email sending - missing data:", {
+        hasPatient: !!patient,
+        hasDoctor: !!doctor,
+        hasPatientEmail: !!patient?.email,
+        hasDoctorEmail: !!doctor?.email,
+      });
+    }
 
     res.status(201).json({
       success: true,
