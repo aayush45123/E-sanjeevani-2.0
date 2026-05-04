@@ -76,8 +76,19 @@ export default function DoctorSidebar({
     }
   };
 
-  const initials = user?.name
-    ? user.name
+  const getCachedName = () => {
+    try {
+      const userObj = JSON.parse(localStorage.getItem("user"));
+      return userObj?.name || "Doctor";
+    } catch (e) {
+      return "Doctor";
+    }
+  };
+
+  const displayName = user?.name || getCachedName();
+
+  const initials = displayName !== "Doctor"
+    ? displayName
         .split(" ")
         .map((n) => n[0])
         .join("")
@@ -175,7 +186,7 @@ export default function DoctorSidebar({
         >
           <div className={styles.userAvatar}>{initials}</div>
           <div className={styles.userInfo}>
-            <p className={styles.userName}>{user?.name || "Doctor"}</p>
+            <p className={styles.userName}>{displayName}</p>
             <p className={styles.userRole}>Doctor</p>
           </div>
         </div>

@@ -21,6 +21,7 @@ import ConsultationBookingForm from "./pages/ConsultationBookingForm/Consultatio
 import DoctorProfileSetup from "./pages/DoctorProfileSetup/DoctorProfileSetup";
 import DoctorProfileEdit from "./pages/DoctorProfileEdit/DoctorProfileEdit";
 import DoctorSchedule from "./pages/DoctorDashboard/DoctorSchedule";
+import DoctorAnalytics from "./pages/DoctorDashboard/DoctorAnalytics";
 import VideoCall from "./pages/VideoCall/VideoCall";
 import AiTriage from "./components/AiTriage/AiTriage";
 
@@ -335,6 +336,19 @@ const App = () => {
           element={
             isLoggedIn && userRole === "doctor" ? (
               <DoctorSchedule isProfileIncomplete={!doctorProfileCompleted} />
+            ) : (
+              <Navigate to="/auth" replace />
+            )
+          }
+        />
+
+        {/* DOCTOR ANALYTICS */}
+
+        <Route
+          path="/doctor-dashboard/analytics"
+          element={
+            isLoggedIn && userRole === "doctor" ? (
+              <DoctorAnalytics isProfileIncomplete={!doctorProfileCompleted} />
             ) : (
               <Navigate to="/auth" replace />
             )

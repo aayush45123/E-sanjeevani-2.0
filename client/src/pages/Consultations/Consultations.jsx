@@ -9,6 +9,7 @@ import {
   FiFileText,
   FiCheckCircle,
   FiCalendar,
+  FiArrowRight
 } from "react-icons/fi";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import styles from "./Consultations.module.css";
@@ -124,7 +125,7 @@ export default function Consultations() {
           <div className={styles.pageHeader}>
             <h1 className={styles.pageTitle}>Consultations</h1>
             <p className={styles.pageSubtitle}>
-              Manage your consultations and connect with doctors
+              Manage your consultations and connect with doctors.
             </p>
           </div>
 
@@ -156,12 +157,12 @@ export default function Consultations() {
             <div className={styles.historySection}>
               {loading ? (
                 <div className={styles.loadingState}>
-                  Loading consultations...
+                  <div className={styles.spinner}></div>
                 </div>
               ) : consultations.length === 0 ? (
                 <div className={styles.emptyState}>
-                  <FiFileText size={32} />
-                  <p>No consultations found yet</p>
+                  <FiFileText size={24} />
+                  <p>No consultations found</p>
                 </div>
               ) : (
                 <div className={styles.consultationList}>
@@ -183,71 +184,79 @@ export default function Consultations() {
                         key={consultation._id}
                         className={styles.consultationCard}
                       >
-                        <div className={styles.cardTop}>
-                          <div className={styles.doctorInfo}>
+                        <div className={styles.cardHeader}>
+                          <div className={styles.doctorProfile}>
                             <div className={styles.avatar}>
                               {consultation.doctor?.name?.charAt(0) || "D"}
                             </div>
-
-                            <div>
+                            <div className={styles.doctorInfoText}>
                               <h3 className={styles.doctorName}>
-                                Dr. {consultation.doctor?.name || "Doctor"}
+                                Dr. {consultation.doctor?.name || "Unknown"}
                               </h3>
-
                               <p className={styles.specialization}>
-                                {consultation.doctor?.specialization ||
-                                  "Specialist"}
+                                {consultation.doctor?.specialization || "Specialist"}
                               </p>
                             </div>
                           </div>
-
                           <span
                             className={`${styles.statusBadge} ${getStatusClass(
-                              consultation.status,
+                              consultation.status
                             )}`}
                           >
                             {consultation.status}
                           </span>
                         </div>
 
-                        <div className={styles.cardBody}>
-                          <p>
-                            <strong>Symptoms:</strong> {consultation.symptoms}
-                          </p>
-
-                          <p>
-                            <strong>Current Problem:</strong>{" "}
-                            {consultation.currentProblem}
-                          </p>
-
-                          <div className={styles.metaRow}>
-                            <span>
-                              <FiCalendar />{" "}
-                              {new Date(
-                                consultation.consultationDate,
-                              ).toLocaleDateString()}
+                        <div className={styles.cardDetails}>
+                          <div className={styles.detailRow}>
+                            <span className={styles.detailLabel}>Symptoms</span>
+                            <span className={styles.detailValue}>
+                              {consultation.symptoms || "Not provided"}
                             </span>
-
-                            <span>
-                              <FiClock /> {consultation.startTime} -{" "}
-                              {consultation.endTime}
-                            </span>
-
-                            <span>
-                              {consultation.consultationType?.toUpperCase()}
-                            </span>
-
-                            {consultation.status !== "completed" && (
-                              <button
-                                className={styles.bookBtn}
-                                onClick={() =>
-                                  navigate(`/video-call/${consultation._id}`)
-                                }
-                              >
-                                Join Consultation
-                              </button>
-                            )}
                           </div>
+                          <div className={styles.detailRow}>
+                            <span className={styles.detailLabel}>Current Problem</span>
+                            <span className={styles.detailValue}>
+                              {consultation.currentProblem || "Not provided"}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className={styles.cardFooter}>
+                          <div className={styles.metaInfo}>
+                            <div className={styles.metaItem}>
+                              <FiCalendar />
+                              <span>
+                                {new Date(
+                                  consultation.consultationDate
+                                ).toLocaleDateString(undefined, {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  year: 'numeric'
+                                })}
+                              </span>
+                            </div>
+                            <div className={styles.metaItem}>
+                              <FiClock />
+                              <span>
+                                {consultation.startTime} - {consultation.endTime}
+                              </span>
+                            </div>
+                            <div className={styles.metaItemBadge}>
+                              {consultation.consultationType?.toUpperCase()}
+                            </div>
+                          </div>
+
+                          {consultation.status !== "completed" && (
+                            <button
+                              className={styles.joinBtn}
+                              onClick={() =>
+                                navigate(`/video-call/${consultation._id}`)
+                              }
+                            >
+                              Join Call <FiArrowRight />
+                            </button>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -275,7 +284,6 @@ export default function Consultations() {
 
                 <div className={styles.selectBox}>
                   <FiFilter />
-
                   <select
                     value={specialization}
                     onChange={(e) => setSpecialization(e.target.value)}
@@ -293,7 +301,9 @@ export default function Consultations() {
               {/* DOCTOR GRID */}
 
               {loading ? (
-                <div className={styles.loadingState}>Loading doctors...</div>
+                <div className={styles.loadingState}>
+                  <div className={styles.spinner}></div>
+                </div>
               ) : (
                 <div className={styles.doctorsGrid}>
                   {doctors.map((doctor) => (
@@ -304,11 +314,9 @@ export default function Consultations() {
 
                       <h3>Dr. {doctor.name}</h3>
 
-                      <p>{doctor.specialization || "Specialist"}</p>
-
-                      <p>{doctor.qualification || "Qualified"}</p>
-
-                      <p>{doctor.experience || 0} years experience</p>
+                      <p className={styles.docSpec}>{doctor.specialization || "Specialist"}</p>
+                      <p className={styles.docQual}>{doctor.qualification || "Qualified"}</p>
+                      <p className={styles.docExp}>{doctor.experience || 0} years exp.</p>
 
                       <div className={styles.actionRow}>
                         <button className={styles.iconBtn}>
@@ -323,7 +331,7 @@ export default function Consultations() {
                           className={styles.bookBtn}
                           onClick={() => handleBookConsultation(doctor)}
                         >
-                          Consult Now
+                          Book Appt
                         </button>
                       </div>
                     </div>

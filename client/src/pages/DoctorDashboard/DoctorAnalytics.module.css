@@ -1,0 +1,432 @@
+/* =========================================
+   DoctorAnalytics.module.css
+   Premium SaaS Analytics Dashboard
+========================================= */
+
+.analyticsLayout {
+  display: flex;
+  min-height: 100vh;
+  width: calc(100% - 230px);
+  margin-left: 230px;
+  background: #fafafa;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: #111827;
+}
+
+.mainContent {
+  flex: 1;
+  background: #ffffff;
+  overflow-y: auto;
+}
+
+/* =========================================
+   LOADING
+========================================= */
+
+.loadingContainer {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+}
+
+.spinner {
+  color: #111827;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================================
+   HEADER
+========================================= */
+
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 32px 40px 20px;
+  border-bottom: 1px solid #eaeaea;
+  background: #ffffff;
+}
+
+.headerLeft {
+  display: flex;
+  flex-direction: column;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 600;
+  color: #111827;
+  letter-spacing: -0.02em;
+}
+
+.pageSubtitle {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* =========================================
+   CONTENT GRID
+========================================= */
+
+.contentGrid {
+  padding: 32px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* =========================================
+   STATS ROW
+========================================= */
+
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+
+.statCard {
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 12px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  position: relative;
+  overflow: hidden;
+}
+
+.statHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.statIconWrapper {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f4f4f5;
+  color: #6b7280;
+}
+
+.statLabel {
+  margin: 0;
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.statValue {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1;
+}
+
+.statTrend {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.trendUp {
+  color: #059669;
+}
+
+.trendDown {
+  color: #dc2626;
+}
+
+.trendNeutral {
+  color: #6b7280;
+}
+
+/* =========================================
+   MAIN CHARTS GRID
+========================================= */
+
+.chartsGrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 22px;
+  align-items: start;
+}
+
+/* =========================================
+   COMMON CARDS
+========================================= */
+
+.chartCard {
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+}
+
+.cardHeader {
+  padding: 20px 24px;
+  border-bottom: 1px solid #f4f4f5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cardSubtitle {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 400;
+}
+
+/* =========================================
+   MAIN CHART (Monthly Trend)
+========================================= */
+
+.chartBody {
+  padding: 32px 24px 24px;
+  height: 300px;
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.monthBarGroup {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  height: 100%;
+}
+
+.monthBarTrack {
+  width: 100%;
+  max-width: 40px;
+  flex: 1;
+  background: #f8fafc;
+  border-radius: 6px;
+  display: flex;
+  align-items: flex-end;
+  position: relative;
+  border: 1px solid #f1f5f9;
+}
+
+.monthBarFill {
+  width: 100%;
+  background: #111827;
+  border-radius: 5px;
+  min-height: 4px;
+  transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.monthBarFill:hover {
+  background: #374151;
+}
+
+.monthLabel {
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.monthValue {
+  position: absolute;
+  top: -24px;
+  width: 100%;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #111827;
+  opacity: 0;
+  transform: translateY(5px);
+  transition: all 0.2s ease;
+}
+
+.monthBarTrack:hover .monthValue {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* =========================================
+   MODALITY CHART (Video vs Audio)
+========================================= */
+
+.modalityBody {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.modalityItem {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.modalityHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modalityType {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+}
+
+.modalityType.video {
+  color: #2563eb;
+}
+
+.modalityType.audio {
+  color: #7c3aed;
+}
+
+.modalityCount {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.modalityTrack {
+  width: 100%;
+  height: 8px;
+  background: #f3f4f6;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.modalityFill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.6s ease;
+}
+
+.modalityFill.video {
+  background: #2563eb;
+}
+
+.modalityFill.audio {
+  background: #7c3aed;
+}
+
+/* =========================================
+   PERFORMANCE SUMMARY
+========================================= */
+
+.performanceGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 24px;
+}
+
+.perfMetric {
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: 1px solid #f1f5f9;
+}
+
+.perfLabel {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.perfValue {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* =========================================
+   EMPTY STATE
+========================================= */
+
+.emptyState {
+  padding: 60px 20px;
+  text-align: center;
+  color: #6b7280;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.emptyIcon {
+  color: #cbd5e1;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 1200px) {
+  .chartsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .statsRow {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .contentGrid {
+    padding: 20px;
+  }
+
+  .pageHeader {
+    padding: 24px 20px 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .statsRow {
+    grid-template-columns: 1fr;
+  }
+}

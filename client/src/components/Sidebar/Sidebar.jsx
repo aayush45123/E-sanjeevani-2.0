@@ -23,8 +23,8 @@ const Sidebar = () => {
   const location = useLocation();
 
   const [user, setUser] = useState({
-    name: "",
-    role: "",
+    name: "User",
+    role: localStorage.getItem("userRole") || "patient",
   });
 
   /*
@@ -34,14 +34,27 @@ const Sidebar = () => {
   */
 
   useEffect(() => {
-    const name = localStorage.getItem("userName") || "User";
+    const updateUserData = () => {
+      let name = "User";
+      try {
+        const userObj = JSON.parse(localStorage.getItem("user"));
+        if (userObj && userObj.name) name = userObj.name;
+      } catch (e) {}
 
-    const role = localStorage.getItem("userRole") || "patient";
+      const role = localStorage.getItem("userRole") || "patient";
+      setUser({ name, role });
+    };
 
-    setUser({
-      name,
-      role,
-    });
+    updateUserData();
+    window.addEventListener("storage", updateUserData);
+    window.addEventListener("profileUpdated", updateUserData);
+    window.addEventListener("authChange", updateUserData);
+
+    return () => {
+      window.removeEventListener("storage", updateUserData);
+      window.removeEventListener("profileUpdated", updateUserData);
+      window.removeEventListener("authChange", updateUserData);
+    };
   }, []);
 
   /*

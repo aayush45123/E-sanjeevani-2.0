@@ -1,34 +1,29 @@
 /* FULL UPDATED ProfileCompletion.module.css */
-/* Industry-level professional layout */
-/* Keeps your existing design/colors */
-/* Adds sidebar-safe layout + edit mode UX + professional structure */
+/* Clean, Minimalist SaaS layout (e.g., Vercel, Linear) */
+/* Focuses on typography, subtle borders, and precise spacing */
 
 .pageLayout {
   min-height: 100vh;
   display: flex;
-  background: #f8fafc;
-  font-family: var(--font-primary, system-ui, -apple-system, sans-serif);
+  background: #fafafa;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 .contentArea {
   margin-left: 260px;
   width: calc(100% - 260px);
   min-height: 100vh;
-  padding: 40px 32px;
-  background: #f8fafc;
+  padding: 48px 40px;
   display: flex;
   justify-content: center;
   align-items: flex-start;
 }
 
-.profileCard {
+.pageContainer {
   width: 100%;
-  max-width: 1100px;
-  background: #ffffff;
-  border-radius: 14px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.04);
-  padding: 36px;
+  max-width: 768px; /* Narrower for better reading line-length */
+  display: flex;
+  flex-direction: column;
 }
 
 /* =====================================
@@ -39,25 +34,24 @@ HEADER
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 20px;
-  margin-bottom: 36px;
+  margin-bottom: 48px;
   padding-bottom: 24px;
-  border-bottom: 1px solid #eceff3;
+  border-bottom: 1px solid #eaeaea;
 }
 
 .header h1 {
-  margin: 0;
-  font-size: 30px;
-  font-weight: 700;
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  font-weight: 600;
   color: #111827;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 
 .header p {
-  margin: 8px 0 0;
+  margin: 0;
   font-size: 14px;
   color: #6b7280;
-  line-height: 1.7;
+  line-height: 1.5;
 }
 
 /* =====================================
@@ -65,108 +59,179 @@ BUTTONS
 ===================================== */
 
 .editButton {
-  border: none;
-  background: #2563eb;
-  color: #ffffff;
-  padding: 12px 22px;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 600;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  color: #111827;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
-  transition: 0.2s ease;
-  white-space: nowrap;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .editButton:hover {
-  background: #1d4ed8;
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.cancelButton {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  color: #374151;
+  font-weight: 500;
+  font-size: 13px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cancelButton:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
 }
 
 .saveButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: none;
-  background: #2563eb;
+  background: #111827;
   color: #ffffff;
-  padding: 14px 30px;
-  border-radius: 10px;
-  font-size: 15px;
-  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
-  transition: 0.2s ease;
+  transition: all 0.15s ease;
+  min-width: 110px;
 }
 
-.saveButton:hover {
-  background: #1d4ed8;
+.saveButton:hover:not(:disabled) {
+  background: #374151;
 }
 
 .saveButton:disabled {
-  background: #cbd5e1;
+  background: #e5e7eb;
+  color: #9ca3af;
   cursor: not-allowed;
 }
 
 /* =====================================
-FORM GRID
+FORM STRUCTURE
 ===================================== */
 
-.formGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(280px, 1fr));
-  gap: 18px;
+.formContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-bottom: 40px;
 }
 
 .sectionTitle {
-  grid-column: 1 / -1;
-  margin: 10px 0 4px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #edf1f5;
-  font-size: 18px;
-  font-weight: 700;
-  color: #111827;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.divider {
+  height: 1px;
+  background: #eaeaea;
+  margin: 0 0 40px 0;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px 24px;
 }
 
 /* =====================================
-INPUTS
+INPUT GROUPS
 ===================================== */
 
-.formGrid input,
-.formGrid select,
-.formGrid textarea {
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.inputGroup.fullWidth {
+  grid-column: 1 / -1;
+}
+
+.inputGroup label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.inputGroup input,
+.inputGroup select,
+.inputGroup textarea {
   width: 100%;
-  border: 1px solid #dbe2ea;
-  background: #fcfdff;
-  border-radius: 10px;
-  padding: 14px 14px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  border-radius: 6px;
+  padding: 10px 12px;
   font-size: 14px;
   color: #111827;
   font-family: inherit;
-  transition: 0.2s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
   outline: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
-.formGrid input:focus,
-.formGrid select:focus,
-.formGrid textarea:focus {
-  border-color: #2563eb;
-  background: #ffffff;
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.08);
+.inputGroup input:focus,
+.inputGroup select:focus,
+.inputGroup textarea:focus {
+  border-color: #000000;
+  box-shadow: 0 0 0 1px #000000;
 }
 
-.formGrid input::placeholder,
-.formGrid textarea::placeholder {
+.inputGroup input::placeholder,
+.inputGroup textarea::placeholder {
   color: #9ca3af;
 }
 
-.formGrid textarea {
+.inputGroup textarea {
   resize: vertical;
-  min-height: 110px;
-  grid-column: span 2;
+  min-height: 80px;
+  line-height: 1.5;
 }
 
-.formGrid input:disabled,
-.formGrid select:disabled,
-.formGrid textarea:disabled {
-  background: #f8fafc;
-  color: #475569;
-  cursor: default;
+/* DISABLED STATE STYLING */
+.inputGroup input:disabled,
+.inputGroup select:disabled,
+.inputGroup textarea:disabled {
+  background: #f9fafb;
+  color: #6b7280;
   border-color: #e5e7eb;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.inputGroup select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M8 9l4-4 4 4m0 6l-4 4-4-4'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 14px;
+  padding-right: 32px;
+}
+
+.inputGroup select:disabled {
+  background-image: none;
 }
 
 /* =====================================
@@ -174,57 +239,54 @@ SAVE BUTTON ROW
 ===================================== */
 
 .submitRow {
-  grid-column: 1 / -1;
   display: flex;
   justify-content: flex-end;
-  padding-top: 20px;
-  margin-top: 10px;
-  border-top: 1px solid #edf1f5;
+  align-items: center;
+  gap: 12px;
+  margin-top: -16px; /* offset the margin-bottom from previous section */
 }
 
 /* =====================================
-LOADING
+LOADING & SPINNERS
 ===================================== */
 
 .loadingBox {
   width: 100%;
-  max-width: 1100px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
-  padding: 60px;
-  text-align: center;
-  font-size: 16px;
-  color: #475569;
-  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.04);
+  display: flex;
+  justify-content: center;
+  padding: 100px 0;
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #e5e7eb;
+  border-radius: 50%;
+  border-top-color: #111827;
+  animation: spin 0.8s linear infinite;
+}
+
+.buttonSpinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 50%;
+  border-top-color: #ffffff;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 /* =====================================
 RESPONSIVE
 ===================================== */
 
-@media (max-width: 1200px) {
-  .contentArea {
-    padding: 28px 24px;
-  }
-
-  .profileCard {
-    padding: 28px;
-  }
-}
-
 @media (max-width: 1024px) {
   .contentArea {
     margin-left: 240px;
     width: calc(100% - 240px);
-  }
-
-  .formGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .formGrid textarea {
-    grid-column: span 1;
   }
 }
 
@@ -232,51 +294,32 @@ RESPONSIVE
   .contentArea {
     margin-left: 0;
     width: 100%;
-    padding: 20px 16px;
-  }
-
-  .profileCard {
-    padding: 22px;
-    border-radius: 12px;
+    padding: 24px 20px;
   }
 
   .header {
     flex-direction: column;
-    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 32px;
   }
 
-  .header h1 {
-    font-size: 24px;
-  }
-
-  .editButton,
-  .saveButton {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .submitRow {
-    justify-content: stretch;
+  .formGrid {
+    grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 480px) {
-  .profileCard {
-    padding: 18px;
-  }
-
   .header h1 {
-    font-size: 22px;
+    font-size: 20px;
+  }
+  
+  .submitRow {
+    flex-direction: column-reverse;
   }
 
-  .sectionTitle {
-    font-size: 16px;
-  }
-
-  .formGrid input,
-  .formGrid select,
-  .formGrid textarea {
-    padding: 12px;
-    font-size: 13px;
+  .cancelButton,
+  .saveButton {
+    width: 100%;
   }
 }
+

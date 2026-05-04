@@ -31,6 +31,7 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
   const [stats, setStats] = useState({
     totalPatients: 0,
     todayConsultations: 0,
+    completedToday: 0,
     completedSessions: 0,
     avgRating: 4.8,
   });
@@ -88,8 +89,13 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
 
     const today = new Date().toDateString();
 
-    const todayConsultations = data.filter(
+    const todayList = data.filter(
       (item) => new Date(item.consultationDate).toDateString() === today,
+    );
+    const todayConsultations = todayList.length;
+    
+    const completedToday = todayList.filter(
+      (item) => item.status === "completed"
     ).length;
 
     const completedSessions = data.filter(
@@ -102,6 +108,7 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
     setStats({
       totalPatients: uniquePatients.size,
       todayConsultations,
+      completedToday,
       completedSessions,
       avgRating: 4.8,
     });
@@ -222,6 +229,18 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
     setShowAllPatients(!showAllPatients);
   };
 
+  const getAvatarColor = (name) => {
+    const colors = ["#dbeafe", "#fce7f3", "#fef3c7", "#d1fae5", "#e0e7ff", "#ffedd5"];
+    const textColors = ["#1e40af", "#be185d", "#b45309", "#047857", "#4338ca", "#c2410c"];
+    let hash = 0;
+    const safeName = name || "Patient";
+    for (let i = 0; i < safeName.length; i++) {
+      hash = safeName.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const index = Math.abs(hash) % colors.length;
+    return { bg: colors[index], text: textColors[index] };
+  };
+
   /*
   ==================================================
   LOADING
@@ -236,6 +255,10 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
     );
   }
 
+  const progressPercent = stats.todayConsultations > 0 
+    ? (stats.completedToday / stats.todayConsultations) * 100 
+    : 0;
+
   return (
     <div className={styles.dashboardLayout}>
       <DoctorSidebar
@@ -248,12 +271,25 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
         {/* HEADER */}
 
         <header className={styles.pageHeader}>
-          <div>
+          <div className={styles.headerLeft}>
             <h1 className={styles.pageTitle}>
               Good morning, Dr. {firstName} 👋
             </h1>
 
             <p className={styles.pageSubtitle}>{todayFormatted}</p>
+          </div>
+
+          <div className={styles.headerRight}>
+            <div className={styles.progressTextRow}>
+              <span className={styles.progressLabel}>Today's Progress</span>
+              <span className={styles.progressCount}>{stats.completedToday} / {stats.todayConsultations}</span>
+            </div>
+            <div className={styles.progressBarTrack}>
+              <div 
+                className={styles.progressBarFill} 
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
           </div>
         </header>
 
@@ -331,7 +367,7 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
                       );
                     })
                     .map((appt) => (
-                      <AppointmentRow key={appt._id} appt={appt} />
+                      <AppointmentRow key={appt._id} appt={appt} avatarColor={getAvatarColor(appt.patient?.name)} />
                     ))
                 )}
               </div>
@@ -414,33 +450,39 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
                 </div>
 
                 <div className={styles.patientList}>
-                  {recentPatients.map((p) => (
-                    <div key={p._id} className={styles.patientRow}>
-                      <div className={styles.patientAvatar}>
-                        {p.patient?.name?.charAt(0) || "P"}
-                      </div>
-
-                      <div className={styles.patientInfo}>
-                        <p className={styles.patientName}>
-                          {p.patient?.name || "Patient"}
-                        </p>
-
-                        <p className={styles.patientMeta}>{p.currentProblem}</p>
-                      </div>
-
-                      <div className={styles.patientRight}>
-                        <span
-                          className={`${styles.statusPill} ${
-                            p.status === "completed"
-                              ? styles.statusStable
-                              : styles.statusReview
-                          }`}
+                  {recentPatients.map((p) => {
+                    const color = getAvatarColor(p.patient?.name);
+                    return (
+                      <div key={p._id} className={styles.patientRow}>
+                        <div 
+                          className={styles.patientAvatar}
+                          style={{ backgroundColor: color.bg, color: color.text }}
                         >
-                          {p.status}
-                        </span>
+                          {p.patient?.name?.charAt(0) || "P"}
+                        </div>
+
+                        <div className={styles.patientInfo}>
+                          <p className={styles.patientName}>
+                            {p.patient?.name || "Patient"}
+                          </p>
+
+                          <p className={styles.patientMeta}>{p.currentProblem}</p>
+                        </div>
+
+                        <div className={styles.patientRight}>
+                          <span
+                            className={`${styles.statusPill} ${
+                              p.status === "completed"
+                                ? styles.statusStable
+                                : styles.statusReview
+                            }`}
+                          >
+                            {p.status}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </section>
             </div>
@@ -481,7 +523,7 @@ APPOINTMENT ROW
 ==================================================
 */
 
-function AppointmentRow({ appt }) {
+function AppointmentRow({ appt, avatarColor }) {
   const handleJoinConsultation = () => {
     if (!appt?._id) {
       console.error("Consultation ID missing");
@@ -518,7 +560,10 @@ function AppointmentRow({ appt }) {
 
       {/* AVATAR */}
 
-      <div className={styles.apptAvatar}>
+      <div 
+        className={styles.apptAvatar}
+        style={{ backgroundColor: avatarColor?.bg, color: avatarColor?.text }}
+      >
         {appt.patient?.name?.charAt(0) || "P"}
       </div>
 
@@ -553,10 +598,14 @@ function AppointmentRow({ appt }) {
 
         {/* JOIN BUTTON - ONLY FOR NON-COMPLETED SESSIONS */}
 
-        {appt.status !== "completed" && (
+        {appt.status !== "completed" ? (
           <button className={styles.joinBtn} onClick={handleJoinConsultation}>
             Join
           </button>
+        ) : (
+          <span className={styles.completedBadge}>
+            <FiCheckCircle size={12} /> Completed
+          </span>
         )}
       </div>
     </div>

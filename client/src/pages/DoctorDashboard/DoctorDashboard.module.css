@@ -7,10 +7,10 @@
 .dashboardLayout {
   display: flex;
   min-height: 100vh;
-  width: calc(100vw - 230px);
+  width: calc(100% - 230px);
   margin-left: 230px;
   background: #fafafa;
-  font-family: var(--font-primary, system-ui, -apple-system, sans-serif);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   color: #111827;
 }
 
@@ -51,10 +51,15 @@
 .pageHeader {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-end;
   padding: 32px 40px 20px;
   border-bottom: 1px solid #eaeaea;
   background: #ffffff;
+}
+
+.headerLeft {
+  display: flex;
+  flex-direction: column;
 }
 
 .pageTitle {
@@ -69,6 +74,45 @@
   margin: 6px 0 0;
   font-size: 14px;
   color: #6b7280;
+}
+
+.headerRight {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 220px;
+}
+
+.progressTextRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+.progressLabel {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.progressCount {
+  color: #111827;
+  font-weight: 600;
+}
+
+.progressBarTrack {
+  width: 100%;
+  height: 6px;
+  background-color: #f3f4f6;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progressBarFill {
+  height: 100%;
+  background-color: #111827;
+  border-radius: 4px;
+  transition: width 0.5s ease;
 }
 
 /* =========================================
@@ -95,16 +139,17 @@
 .statCard {
   background: #ffffff;
   border: 1px solid #eaeaea;
-  border-radius: 14px;
+  border-radius: 12px;
   padding: 22px;
   display: flex;
   gap: 16px;
   transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
 .statCard:hover {
   border-color: #d1d5db;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
 }
 
 .statIconWrapper {
@@ -164,7 +209,8 @@
 .recentCard {
   background: #ffffff;
   border: 1px solid #eaeaea;
-  border-radius: 14px;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
   overflow: hidden;
 }
 
@@ -229,25 +275,26 @@
 .appointmentRow {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
   padding: 16px 20px;
   border-bottom: 1px solid #f8fafc;
+  transition: background-color 0.15s ease;
+}
+
+.appointmentRow:hover {
+  background-color: #fcfcfd;
 }
 
 .appointmentRow:last-child {
   border-bottom: none;
 }
 
-.appointmentNext {
-  background: #fafafa;
-}
-
 .apptTime {
-  min-width: 90px;
+  min-width: 85px;
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: 13px;
   color: #6b7280;
   font-weight: 500;
 }
@@ -255,13 +302,11 @@
 .apptAvatar {
   width: 40px;
   height: 40px;
-  border-radius: 10px;
-  background: #111827;
-  color: #ffffff;
+  border-radius: 50%; /* Circle avatar instead of harsh square */
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   flex-shrink: 0;
 }
@@ -272,7 +317,7 @@
 }
 
 .apptName {
-  margin: 0 0 4px;
+  margin: 0 0 2px;
   font-size: 14px;
   font-weight: 600;
   color: #111827;
@@ -280,7 +325,7 @@
 
 .apptReason {
   margin: 0;
-  font-size: 12px;
+  font-size: 13px;
   color: #6b7280;
   white-space: nowrap;
   overflow: hidden;
@@ -290,43 +335,58 @@
 .apptActions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .typePill {
-  padding: 5px 10px;
-  border-radius: 20px;
+  padding: 4px 8px;
+  border-radius: 6px;
   font-size: 11px;
   font-weight: 600;
   display: flex;
   align-items: center;
   gap: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid transparent;
 }
 
 .typeVideo {
-  background: #eff6ff;
-  color: #2563eb;
+  background: #ffffff;
+  color: #111827;
+  border-color: #e5e7eb;
 }
 
 .typeCall {
-  background: #f5f3ff;
-  color: #7c3aed;
+  background: #ffffff;
+  color: #4f46e5;
+  border-color: #e0e7ff;
 }
 
 .joinBtn {
-  height: 34px;
+  height: 32px;
   padding: 0 16px;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   background: #111827;
   color: #ffffff;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
+  transition: background 0.15s ease;
 }
 
 .joinBtn:hover {
-  background: #000000;
+  background: #374151;
+}
+
+.completedBadge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #059669;
 }
 
 /* =========================================
@@ -346,11 +406,9 @@
 .weeklyBars {
   display: flex;
   align-items: flex-end;
-  gap: 8px;
-  height: 140px;
-  padding: 20px;
-  justify-content: space-around;
-  overflow-x: auto;
+  gap: 12px;
+  padding: 24px 24px 20px;
+  justify-content: space-between;
 }
 
 .barGroup {
@@ -358,16 +416,16 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  min-width: 45px;
+  gap: 8px;
   transition: opacity 0.2s ease;
 }
 
 .barTrack {
   width: 100%;
+  max-width: 28px;
   height: 100px;
-  background: #f4f4f5;
-  border-radius: 8px;
+  background: #f3f4f6; /* Lighter background for track */
+  border-radius: 4px;
   display: flex;
   align-items: flex-end;
   overflow: hidden;
@@ -375,21 +433,22 @@
 
 .bar {
   width: 100%;
-  background: linear-gradient(to top, #2563eb, #1e40af);
-  border-radius: 8px;
+  background: #111827; /* Sleek dark color instead of blue gradient */
+  border-radius: 4px;
   min-height: 4px;
-  transition: height 0.3s ease;
+  transition: height 0.4s ease;
 }
 
 .barLabel {
   font-size: 11px;
+  font-weight: 500;
   color: #6b7280;
 }
 
 .countLabel {
-  font-size: 13px;
-  font-weight: 700;
-  color: #2563eb;
+  font-size: 12px;
+  font-weight: 600;
+  color: #111827;
   min-height: 18px;
   line-height: 1;
 }
@@ -397,8 +456,8 @@
 .weeklyNote {
   margin: 0;
   padding: 0 20px 20px;
-  font-size: 13px;
-  color: #6b7280;
+  font-size: 12px;
+  color: #9ca3af;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -417,7 +476,7 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 16px 20px;
+  padding: 14px 20px;
   border-bottom: 1px solid #f8fafc;
 }
 
@@ -426,15 +485,13 @@
 }
 
 .patientAvatar {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  background: #f4f4f5;
-  color: #111827;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%; /* Circular avatars */
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
 }
 
@@ -443,9 +500,9 @@
 }
 
 .patientName {
-  margin: 0 0 4px;
+  margin: 0 0 2px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   color: #111827;
 }
 
@@ -461,20 +518,23 @@
 }
 
 .statusPill {
-  padding: 5px 10px;
-  border-radius: 20px;
+  padding: 4px 8px;
+  border-radius: 6px;
   font-size: 11px;
   font-weight: 600;
+  border: 1px solid transparent;
 }
 
 .statusStable {
   background: #f0fdf4;
   color: #16a34a;
+  border-color: #bbf7d0;
 }
 
 .statusReview {
-  background: #fff7ed;
-  color: #ea580c;
+  background: #fffbeb;
+  color: #d97706;
+  border-color: #fde68a;
 }
 
 /* =========================================
@@ -507,6 +567,16 @@
 }
 
 @media (max-width: 768px) {
+  .pageHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .headerRight {
+    width: 100%;
+  }
+
   .pageHeader,
   .contentGrid {
     padding: 20px;
