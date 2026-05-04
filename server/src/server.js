@@ -2,6 +2,7 @@ import app from "./app.js";
 import http from "http";
 import connectDB from "./config/db.js";
 import initializeSocket from "./services/socketServer.js";
+import { initializeConsultationReminders } from "./utils/consultationReminderJob.js";
 
 const PORT = process.env.PORT || 5000;
 
@@ -13,6 +14,9 @@ connectDB()
 
     // Initialize Socket.io
     initializeSocket(server);
+
+    // Initialize consultation reminder job
+    initializeConsultationReminders();
 
     // Start listening
     server.listen(PORT, () => {

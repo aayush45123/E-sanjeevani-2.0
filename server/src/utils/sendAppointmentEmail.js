@@ -540,3 +540,232 @@ export const sendAppointmentEmail = async (data) => {
     };
   }
 };
+
+/**
+ * Send consultation time reminder emails to both doctor and patient
+ * Called when consultation time is reached but neither has joined
+ */
+export const sendConsultationReminderEmail = async (data) => {
+  try {
+    if (!process.env.RESEND_API_KEY) {
+      throw new Error(
+        "RESEND_API_KEY is not configured in environment variables",
+      );
+    }
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const {
+      patientEmail,
+      doctorEmail,
+      patientName,
+      doctorName,
+      consultationDate,
+      startTime,
+      endTime,
+      consultationType,
+    } = data;
+
+    const dateObj = new Date(consultationDate);
+    const formattedDate = dateObj.toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+
+    const patientReminderHtml = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Join Your Consultation - E-Sanjeevani 2.0</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: 'Segoe UI', Tahoma, Geneva, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; }
+          .container { max-width: 600px; margin: 20px auto; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+          .header { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; padding: 30px; text-align: center; }
+          .header h1 { font-size: 28px; margin-bottom: 8px; font-weight: 700; }
+          .content { padding: 30px; }
+          .alert-box { background: #fef2f2; border-left: 4px solid #ef4444; padding: 20px; margin: 20px 0; border-radius: 4px; }
+          .alert-icon { font-size: 48px; text-align: center; margin-bottom: 15px; }
+          .time-now { color: #dc2626; font-weight: 700; font-size: 18px; text-align: center; }
+          .appointment-details { background: #f8fafb; border-left: 4px solid #0ea5e9; padding: 20px; margin: 25px 0; border-radius: 4px; }
+          .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e2e8f0; }
+          .detail-row:last-child { border-bottom: none; }
+          .detail-label { color: #64748b; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+          .detail-value { color: #1e293b; font-weight: 500; font-size: 14px; }
+          .cta-section { margin: 30px 0; text-align: center; }
+          .cta-button { display: inline-block; background: #ef4444; color: white; text-decoration: none; padding: 14px 36px; border-radius: 6px; font-weight: 600; font-size: 14px; transition: background 0.3s ease; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
+          .cta-button:hover { background: #dc2626; text-decoration: none; }
+          .footer { background: #f1f5f9; padding: 20px 30px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0; }
+          .footer a { color: #ef4444; text-decoration: none; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>⏰ Time to Join!</h1>
+            <p>Your consultation is starting now</p>
+          </div>
+          <div class="content">
+            <p style="font-size: 16px; color: #1e293b; margin-bottom: 20px; font-weight: 600;">Hi ${patientName},</p>
+            <div class="alert-box">
+              <div class="alert-icon">⏰</div>
+              <div class="time-now">Your consultation with Dr. ${doctorName} is STARTING NOW!</div>
+              <p style="margin-top: 15px; text-align: center; color: #64748b; font-size: 14px;">It's time to join the meeting. Click the button below to enter the consultation room.</p>
+            </div>
+            <div class="appointment-details">
+              <h3 style="color: #0ea5e9; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; font-weight: 600;">📋 Consultation Details</h3>
+              <div class="detail-row">
+                <span class="detail-label">Doctor</span>\n                <span class="detail-value">Dr. ${doctorName}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Date</span>
+                <span class="detail-value">${formattedDate}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Time</span>
+                <span class="detail-value">${startTime}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Type</span>
+                <span class="detail-value" style="text-transform: uppercase;">${consultationType}</span>
+              </div>
+            </div>
+            <div class="cta-section">
+              <p style="margin-bottom: 15px; color: #64748b; font-size: 13px;">👉 Join now to start your consultation:</p>
+              <a href="${FRONTEND_URL}/consultations" class="cta-button">JOIN CONSULTATION</a>
+            </div>
+            <p style="color: #64748b; font-size: 13px; margin-top: 20px; text-align: center;"><strong>⚠️ Important:</strong> This consultation will be cancelled if neither party joins within 15 minutes.</p>
+          </div>
+          <div class="footer">
+            <p><strong>E-Sanjeevani 2.0</strong> • Your Healthcare, Your Way<br>📧 <a href="mailto:support@esanjeevani.com">support@esanjeevani.com</a></p>
+            <p style="margin-top: 10px; opacity: 0.8;">© 2024 E-Sanjeevani 2.0</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const doctorReminderHtml = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Join Consultation - E-Sanjeevani 2.0</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: 'Segoe UI', Tahoma, Geneva, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; }
+          .container { max-width: 600px; margin: 20px auto; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+          .header { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; padding: 30px; text-align: center; }
+          .header h1 { font-size: 28px; margin-bottom: 8px; font-weight: 700; }
+          .content { padding: 30px; }
+          .alert-box { background: #fef2f2; border-left: 4px solid #ef4444; padding: 20px; margin: 20px 0; border-radius: 4px; }
+          .alert-icon { font-size: 48px; text-align: center; margin-bottom: 15px; }
+          .time-now { color: #dc2626; font-weight: 700; font-size: 18px; text-align: center; }
+          .appointment-details { background: #f8fafb; border-left: 4px solid #0ea5e9; padding: 20px; margin: 25px 0; border-radius: 4px; }
+          .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e2e8f0; }
+          .detail-row:last-child { border-bottom: none; }
+          .detail-label { color: #64748b; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+          .detail-value { color: #1e293b; font-weight: 500; font-size: 14px; }
+          .cta-section { margin: 30px 0; text-align: center; }
+          .cta-button { display: inline-block; background: #ef4444; color: white; text-decoration: none; padding: 14px 36px; border-radius: 6px; font-weight: 600; font-size: 14px; transition: background 0.3s ease; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
+          .cta-button:hover { background: #dc2626; text-decoration: none; }
+          .footer { background: #f1f5f9; padding: 20px 30px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0; }
+          .footer a { color: #ef4444; text-decoration: none; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>⏰ Time to Join!</h1>
+            <p>Your consultation is starting now</p>
+          </div>
+          <div class="content">
+            <p style="font-size: 16px; color: #1e293b; margin-bottom: 20px; font-weight: 600;">Hi Dr. ${doctorName},</p>
+            <div class="alert-box">
+              <div class="alert-icon">⏰</div>
+              <div class="time-now">Your consultation with ${patientName} is STARTING NOW!</div>
+              <p style="margin-top: 15px; text-align: center; color: #64748b; font-size: 14px;">It's time to join the meeting. Click the button below to enter the consultation room.</p>
+            </div>
+            <div class="appointment-details">
+              <h3 style="color: #0ea5e9; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; font-weight: 600;">📋 Consultation Details</h3>
+              <div class="detail-row">
+                <span class="detail-label">Patient</span>
+                <span class="detail-value">${patientName}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Date</span>
+                <span class="detail-value">${formattedDate}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Time</span>
+                <span class="detail-value">${startTime}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Type</span>
+                <span class="detail-value" style="text-transform: uppercase;">${consultationType}</span>
+              </div>
+            </div>
+            <div class="cta-section">
+              <p style="margin-bottom: 15px; color: #64748b; font-size: 13px;">👉 Join now to start the consultation:</p>
+              <a href="${FRONTEND_URL}/dashboard" class="cta-button">JOIN CONSULTATION</a>
+            </div>
+            <p style="color: #64748b; font-size: 13px; margin-top: 20px; text-align: center;"><strong>⚠️ Important:</strong> This consultation will be cancelled if neither party joins within 15 minutes.</p>
+          </div>
+          <div class="footer">
+            <p><strong>E-Sanjeevani 2.0</strong> • Your Healthcare, Your Way<br>📧 <a href="mailto:support@esanjeevani.com">support@esanjeevani.com</a></p>
+            <p style="margin-top: 10px; opacity: 0.8;">© 2024 E-Sanjeevani 2.0</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    console.log("📧 Sending consultation reminders to:", {
+      patient: patientEmail,
+      doctor: doctorEmail,
+    });
+
+    const [patientResult, doctorResult] = await Promise.all([
+      resend.emails
+        .send({
+          from: "E-Sanjeevani 2.0 <onboarding@resend.dev>",
+          to: patientEmail,
+          subject: `🚨 Time to Join! Your Consultation with Dr. ${doctorName} is Starting Now`,
+          html: patientReminderHtml,
+        })
+        .catch((err) => {
+          console.error("❌ Patient reminder error:", err);
+          throw err;
+        }),
+      resend.emails
+        .send({
+          from: "E-Sanjeevani 2.0 <onboarding@resend.dev>",
+          to: doctorEmail,
+          subject: `🚨 Time to Join! Consultation with ${patientName} is Starting Now`,
+          html: doctorReminderHtml,
+        })
+        .catch((err) => {
+          console.error("❌ Doctor reminder error:", err);
+          throw err;
+        }),
+    ]);
+
+    console.log("✅ Patient reminder sent:", patientResult);
+    console.log("✅ Doctor reminder sent:", doctorResult);
+
+    return {
+      success: true,
+      patientEmail: patientResult,
+      doctorEmail: doctorResult,
+    };
+  } catch (error) {
+    console.error("❌ Failed to send consultation reminders:", error);
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+};

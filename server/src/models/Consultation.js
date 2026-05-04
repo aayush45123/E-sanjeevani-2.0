@@ -107,6 +107,26 @@ const consultationSchema = new mongoose.Schema(
       enum: ["pending", "paid", "failed"],
       default: "pending",
     },
+
+    reminderSent: {
+      type: Boolean,
+      default: false,
+    },
+
+    reminderSentAt: {
+      type: Date,
+      default: null,
+    },
+
+    patientJoined: {
+      type: Boolean,
+      default: false,
+    },
+
+    doctorJoined: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
