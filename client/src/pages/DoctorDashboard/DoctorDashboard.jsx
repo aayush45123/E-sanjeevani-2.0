@@ -11,6 +11,7 @@ import {
   FiChevronRight,
   FiTrendingUp,
   FiAlertCircle,
+  FiZap,
 } from "react-icons/fi";
 import io from "socket.io-client";
 import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
@@ -23,11 +24,22 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [consultations, setConsultations] = useState([]);
+  const [todaySchedule, setTodaySchedule] = useState([]);
+  const [urgencyMap, setUrgencyMap] = useState({}); // Map consultation ID to urgency data
   const [loading, setLoading] = useState(true);
   const [showAllPatients, setShowAllPatients] = useState(false);
   const [weeklyData, setWeeklyData] = useState([10, 10, 10, 10, 10, 10, 10]);
   const [consultationCounts, setConsultationCounts] = useState([
     0, 0, 0, 0, 0, 0, 0,
+  ]);
+  const [dayLabels, setDayLabels] = useState([
+    "Sun",
+    "Mon",
+    "Tue",
+    "Wed",
+    "Thu",
+    "Fri",
+    "Sat",
   ]);
 
   const [stats, setStats] = useState({
@@ -37,6 +49,8 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
     completedSessions: 0,
     avgRating: 4.8,
   });
+
+  const token = localStorage.getItem("token");
 
   /*
   ==================================================
@@ -128,6 +142,19 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
       (item) => item.status === "completed",
     ).length;
 
+    // Sort today's consultations and set to state
+    const sortedTodayList = [...todayList].sort((a, b) => {
+      // Scheduled first, then others
+      if (a.status === "scheduled" && b.status !== "scheduled") return -1;
+      if (a.status !== "scheduled" && b.status === "scheduled") return 1;
+      // Within same status, sort by time
+      return new Date(b.consultationDate) - new Date(a.consultationDate);
+    });
+    setTodaySchedule(sortedTodayList);
+
+    // Fetch urgency levels for today's consultations
+    fetchUrgencyForConsultations(sortedTodayList);
+
     // Calculate weekly overview data (Mon-Sat)
     calculateWeeklyData(data);
 
@@ -138,6 +165,62 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
       completedSessions,
       avgRating: 4.8,
     });
+  };
+
+  /*
+  ==================================================
+  FETCH URGENCY LEVELS FOR CONSULTATIONS USING AI
+  ==================================================
+  */
+  const fetchUrgencyForConsultations = async (consultationList) => {
+    try {
+      const newUrgencyMap = {};
+
+      for (const consultation of consultationList) {
+        try {
+          // Combine symptoms and current problem for AI analysis
+          const symptomsText =
+            `${consultation.symptoms || ""} ${consultation.currentProblem || ""}`.trim();
+
+          if (!symptomsText) continue;
+
+          const response = await fetch(
+            "http://localhost:5000/api/ai-triage/predict",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                userId: consultation.patient?._id,
+                message: symptomsText,
+              }),
+            },
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            newUrgencyMap[consultation._id] = {
+              urgency: data.data?.urgency || "medium",
+              predictedDisease: data.data?.predictedDisease,
+              doctorType: data.data?.doctorType,
+            };
+          }
+        } catch (err) {
+          console.error(
+            `Error fetching urgency for consultation ${consultation._id}:`,
+            err,
+          );
+          // Fallback to medium urgency if API fails
+          newUrgencyMap[consultation._id] = { urgency: "medium" };
+        }
+      }
+
+      setUrgencyMap(newUrgencyMap);
+    } catch (err) {
+      console.error("Error fetching urgencies:", err);
+    }
   };
 
   const calculateWeeklyData = (data) => {
@@ -154,7 +237,7 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
 
     console.log("Date range - From:", sevenDaysAgo, "To:", today);
 
-    // Days to track (last 7 days)
+    // Days to track (last 7 days) - in order from 6 days ago to today
     const dayLabels = [];
     for (let i = 6; i >= 0; i--) {
       const date = new Date(today);
@@ -214,6 +297,7 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
 
     console.log("Heights:", heights);
 
+    setDayLabels(dayLabels);
     setConsultationCounts(consultationCounts);
     setWeeklyData(heights);
   };
@@ -388,34 +472,22 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
                 </div>
 
                 <span className={styles.badge}>
-                  {consultations.length} appointments
+                  {todaySchedule.length} appointments
                 </span>
               </div>
 
               <div className={styles.appointmentList}>
-                {consultations.length === 0 ? (
-                  <div className={styles.emptyState}>No appointments found</div>
+                {todaySchedule.length === 0 ? (
+                  <div className={styles.emptyState}>No appointments today</div>
                 ) : (
-                  [...consultations]
-                    .sort((a, b) => {
-                      // Scheduled first, then others
-                      if (a.status === "scheduled" && b.status !== "scheduled")
-                        return -1;
-                      if (a.status !== "scheduled" && b.status === "scheduled")
-                        return 1;
-                      // Within same status, sort by date (newer first)
-                      return (
-                        new Date(b.consultationDate) -
-                        new Date(a.consultationDate)
-                      );
-                    })
-                    .map((appt) => (
-                      <AppointmentRow
-                        key={appt._id}
-                        appt={appt}
-                        avatarColor={getAvatarColor(appt.patient?.name)}
-                      />
-                    ))
+                  todaySchedule.map((appt) => (
+                    <AppointmentRow
+                      key={appt._id}
+                      appt={appt}
+                      avatarColor={getAvatarColor(appt.patient?.name)}
+                      urgency={urgencyMap[appt._id]}
+                    />
+                  ))
                 )}
               </div>
             </section>
@@ -434,42 +506,40 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
                 </div>
 
                 <div className={styles.weeklyBars}>
-                  {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
-                    (day, i) => {
-                      const hasConsultations = consultationCounts[i] > 0;
-                      return (
-                        <div
-                          key={day + i}
-                          className={styles.barGroup}
-                          style={{
-                            opacity: hasConsultations ? 1 : 0.3,
-                            pointerEvents: hasConsultations ? "auto" : "none",
-                          }}
-                        >
-                          {hasConsultations && (
-                            <span className={styles.countLabel}>
-                              {consultationCounts[i]}
-                            </span>
-                          )}
-                          <div className={styles.barTrack}>
-                            <div
-                              className={styles.bar}
-                              style={{
-                                height: `${hasConsultations ? weeklyData[i] : 0}%`,
-                              }}
-                              title={
-                                hasConsultations
-                                  ? `${consultationCounts[i]} consultations`
-                                  : "No consultations"
-                              }
-                            />
-                          </div>
-
-                          <span className={styles.barLabel}>{day}</span>
+                  {dayLabels.map((day, i) => {
+                    const hasConsultations = consultationCounts[i] > 0;
+                    return (
+                      <div
+                        key={day + i}
+                        className={styles.barGroup}
+                        style={{
+                          opacity: hasConsultations ? 1 : 0.3,
+                          pointerEvents: hasConsultations ? "auto" : "none",
+                        }}
+                      >
+                        {hasConsultations && (
+                          <span className={styles.countLabel}>
+                            {consultationCounts[i]}
+                          </span>
+                        )}
+                        <div className={styles.barTrack}>
+                          <div
+                            className={styles.bar}
+                            style={{
+                              height: `${hasConsultations ? weeklyData[i] : 0}%`,
+                            }}
+                            title={
+                              hasConsultations
+                                ? `${consultationCounts[i]} consultations`
+                                : "No consultations"
+                            }
+                          />
                         </div>
-                      );
-                    },
-                  )}
+
+                        <span className={styles.barLabel}>{day}</span>
+                      </div>
+                    );
+                  })}
                 </div>
 
                 <p className={styles.weeklyNote}>
@@ -575,7 +645,7 @@ APPOINTMENT ROW
 ==================================================
 */
 
-function AppointmentRow({ appt, avatarColor }) {
+function AppointmentRow({ appt, avatarColor, urgency }) {
   const handleJoinConsultation = () => {
     if (!appt?._id) {
       console.error("Consultation ID missing");
@@ -600,6 +670,46 @@ function AppointmentRow({ appt, avatarColor }) {
 
     window.location.href = `/video-call/${appt._id}`;
   };
+
+  // Get urgency color and icon based on level
+  const getUrgencyStyles = () => {
+    const level = urgency?.urgency?.toLowerCase() || "medium";
+
+    const urgencyConfig = {
+      critical: {
+        bg: "#fee2e2",
+        border: "#fecaca",
+        text: "#991b1b",
+        icon: "🔴",
+        label: "Critical",
+      },
+      high: {
+        bg: "#fed7aa",
+        border: "#fdba74",
+        text: "#92400e",
+        icon: "🟠",
+        label: "High",
+      },
+      medium: {
+        bg: "#fef3c7",
+        border: "#fcd34d",
+        text: "#92400e",
+        icon: "🟡",
+        label: "Medium",
+      },
+      low: {
+        bg: "#dcfce7",
+        border: "#86efac",
+        text: "#166534",
+        icon: "🟢",
+        label: "Low",
+      },
+    };
+
+    return urgencyConfig[level] || urgencyConfig.medium;
+  };
+
+  const urgencyStyle = getUrgencyStyles();
 
   return (
     <div className={styles.appointmentRow}>
@@ -627,6 +737,34 @@ function AppointmentRow({ appt, avatarColor }) {
         <p className={styles.apptReason}>
           {appt.currentProblem || "Consultation"}
         </p>
+
+        {/* URGENCY BADGE */}
+        {urgency && (
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "5px",
+              marginTop: "6px",
+              padding: "4px 8px",
+              backgroundColor: urgencyStyle.bg,
+              border: `1.5px solid ${urgencyStyle.border}`,
+              borderRadius: "4px",
+              fontSize: "11px",
+              fontWeight: "600",
+              color: urgencyStyle.text,
+            }}
+            title={`Urgency: ${urgencyStyle.label} | Disease: ${urgency.predictedDisease || "N/A"} | Specialist: ${urgency.doctorType || "General"}`}
+          >
+            <span>{urgencyStyle.icon}</span>
+            <span>{urgencyStyle.label}</span>
+            {urgency.predictedDisease && (
+              <span style={{ opacity: 0.7, fontSize: "10px" }}>
+                • {urgency.predictedDisease}
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ACTIONS */}
