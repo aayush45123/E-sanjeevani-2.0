@@ -131,4 +131,9 @@ export const doctorAvailabilityApi = {
   deleteAvailability: (id) => apiClient.delete(`/doctor-availability/${id}`),
 };
 
+// Analytics API
+export const analyticsApi = {
+  getDoctorAnalytics: () => apiClient.get("/analytics/doctor"),
+};
+
 export default apiClient;

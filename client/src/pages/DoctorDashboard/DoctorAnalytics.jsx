@@ -1,384 +1,473 @@
 import React, { useEffect, useState } from "react";
 import {
   FiLoader,
-  FiUsers,
-  FiFileText,
+  FiCalendar,
   FiCheckCircle,
   FiClock,
-  FiBarChart2,
-  FiVideo,
-  FiPhone,
   FiTrendingUp,
-  FiTrendingDown,
-  FiMinus,
 } from "react-icons/fi";
 import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
+import { authApi, analyticsApi } from "../../utils/api";
 import styles from "./DoctorAnalytics.module.css";
-import { authApi, consultationApi } from "../../utils/api";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
 
 export default function DoctorAnalytics({ isProfileIncomplete = false }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Analytics State
-  const [stats, setStats] = useState({
-    totalConsultations: 0,
-    uniquePatients: 0,
-    completedSessions: 0,
-    totalHours: 0,
-    videoCount: 0,
-    audioCount: 0,
+  const [analyticsData, setAnalyticsData] = useState({
+    stats: { total: 0, completed: 0, cancelled: 0, ongoing: 0 },
+    trend: [],
+    modalities: [],
+    peakHours: [],
+    demographics: { gender: [], age: [] },
+    retention: { new: 0, returning: 0 }
   });
 
-  const [monthlyTrend, setMonthlyTrend] = useState([]);
-
-  /*
-  ==================================================
-  FETCH DATA
-  ==================================================
-  */
+  const MODALITY_COLORS = ["#3b82f6", "#10b981", "#8b5cf6"]; // Blue, Green, Purple
+  const GENDER_COLORS = ["#2563eb", "#ec4899", "#8b5cf6"];
 
   useEffect(() => {
-    async function init() {
+    const fetchAnalytics = async () => {
       try {
+        setLoading(true);
+
+        // Fetch user
         const userRes = await authApi.me();
-        const doctorData = userRes.data.user || userRes.data;
-        setUser(doctorData);
+        const userData = userRes.data.user || userRes.data;
+        setUser(userData);
 
-        const consultationRes = await consultationApi.getDoctorConsultations();
-        const allConsultations = consultationRes.data.consultations || [];
-
-        calculateAnalytics(allConsultations);
+        // Fetch advanced analytics from new backend endpoint
+        const analyticsRes = await analyticsApi.getDoctorAnalytics();
+        setAnalyticsData(analyticsRes.data.data);
       } catch (err) {
-        console.error("Failed to load analytics:", err);
+        console.error("Error fetching analytics:", err);
+        setError("Failed to load analytics data.");
       } finally {
         setLoading(false);
       }
-    }
+    };
 
-    init();
+    fetchAnalytics();
   }, []);
 
-  /*
-  ==================================================
-  CALCULATIONS
-  ==================================================
-  */
-
-  const calculateAnalytics = (data) => {
-    // 1. Basic Counts
-    const totalConsultations = data.length;
-    
-    const uniquePatients = new Set(
-      data.filter((item) => item.patient?._id).map((item) => item.patient._id),
-    ).size;
-
-    const completedSessions = data.filter((item) => item.status === "completed").length;
-    
-    // Assuming 30 mins per session
-    const totalHours = (completedSessions * 30) / 60;
-
-    // 2. Modality Breakdown
-    const videoCount = data.filter((item) => item.consultationType === "video").length;
-    const audioCount = data.filter((item) => item.consultationType === "call").length;
-
-    // 3. Monthly Trend (Last 6 Months)
-    const trend = [];
-    const today = new Date();
-    
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
-      trend.push({
-        label: d.toLocaleDateString("en-US", { month: "short" }),
-        month: d.getMonth(),
-        year: d.getFullYear(),
-        count: 0,
-      });
+  // Custom Tooltip for Area/Bar Charts
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className={styles.customTooltip}>
+          <p className={styles.tooltipLabel}>{label}</p>
+          <div className={styles.tooltipData}>
+            {payload.map((entry, index) => (
+              <div key={index} className={styles.tooltipItem}>
+                <div
+                  className={styles.tooltipDot}
+                  style={{ backgroundColor: entry.color }}
+                />
+                <span>
+                  {entry.name === "total" || entry.name === "consultations"
+                    ? "Consultations"
+                    : entry.name === "completed"
+                      ? "Completed"
+                      : entry.name}
+                  : {entry.value}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
     }
-
-    data.forEach((c) => {
-      const dateField = c.consultationDate || c.createdAt || c.date;
-      if (!dateField) return;
-
-      const d = new Date(dateField);
-      if (isNaN(d)) return;
-
-      const bucket = trend.find((t) => t.month === d.getMonth() && t.year === d.getFullYear());
-      if (bucket) {
-        bucket.count++;
-      }
-    });
-
-    setStats({
-      totalConsultations,
-      uniquePatients,
-      completedSessions,
-      totalHours,
-      videoCount,
-      audioCount,
-    });
-
-    setMonthlyTrend(trend);
+    return null;
   };
-
-  /*
-  ==================================================
-  LOGOUT
-  ==================================================
-  */
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userRole");
-    localStorage.removeItem("user");
-    localStorage.removeItem("userId");
-    window.location.href = "/auth";
-  };
-
-  /*
-  ==================================================
-  HELPERS
-  ==================================================
-  */
-
-  const firstName = user?.name?.split(" ")[0] || "Doctor";
-  
-  // Calculate completion rate
-  const completionRate = stats.totalConsultations > 0 
-    ? Math.round((stats.completedSessions / stats.totalConsultations) * 100) 
-    : 0;
-
-  // Modality percentages
-  const totalModality = stats.videoCount + stats.audioCount || 1; // prevent divide by zero
-  const videoPercent = Math.round((stats.videoCount / totalModality) * 100);
-  const audioPercent = Math.round((stats.audioCount / totalModality) * 100);
-
-  // Get max height for trend chart to calculate percentages
-  const maxTrend = Math.max(...monthlyTrend.map(t => t.count), 1);
-
-  /*
-  ==================================================
-  LOADING STATE
-  ==================================================
-  */
 
   if (loading) {
     return (
-      <div className={styles.loadingContainer}>
-        <FiLoader className={styles.spinner} size={24} />
+      <div className={styles.analyticsLayout}>
+        <DoctorSidebar user={user} isProfileIncomplete={isProfileIncomplete} />
+        <div className={styles.loadingContainer}>
+          <FiLoader className={styles.spinner} size={32} />
+        </div>
       </div>
     );
   }
 
+  if (error) {
+    return (
+      <div className={styles.analyticsLayout}>
+        <DoctorSidebar user={user} isProfileIncomplete={isProfileIncomplete} />
+        <div className={styles.mainContent}>
+          <div className={styles.emptyState}>
+            <p>{error}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const { stats, trend, modalities, peakHours, demographics, retention } = analyticsData;
+
+  // Calculate completion rate safely
+  const completionRate =
+    stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
+
   return (
     <div className={styles.analyticsLayout}>
-      <DoctorSidebar
-        user={user}
-        onLogout={handleLogout}
-        isProfileIncomplete={isProfileIncomplete}
-      />
+      <DoctorSidebar user={user} isProfileIncomplete={isProfileIncomplete} />
 
       <main className={styles.mainContent}>
-        {/* HEADER */}
-        <header className={styles.pageHeader}>
+        {/* Header */}
+        <div className={styles.pageHeader}>
           <div className={styles.headerLeft}>
             <h1 className={styles.pageTitle}>Analytics Overview</h1>
-            <p className={styles.pageSubtitle}>
-              Performance and consultation metrics for Dr. {firstName}
-            </p>
+            <p className={styles.pageSubtitle}>Advanced insights and performance metrics.</p>
           </div>
-        </header>
+        </div>
 
-        <div className={styles.contentGrid}>
-          {/* STATS ROW */}
-          <section className={styles.statsRow}>
-            <StatCard
-              icon={FiFileText}
-              label="Total Consultations"
-              value={stats.totalConsultations}
-              trend="all-time"
-            />
-            <StatCard
-              icon={FiUsers}
-              label="Unique Patients"
-              value={stats.uniquePatients}
-              trend="all-time"
-            />
-            <StatCard
-              icon={FiCheckCircle}
-              label="Completion Rate"
-              value={`${completionRate}%`}
-              trend={completionRate > 50 ? "up" : completionRate > 0 ? "down" : "neutral"}
-            />
-            <StatCard
-              icon={FiClock}
-              label="Consultation Hours"
-              value={`${stats.totalHours}h`}
-              trend="completed only"
-            />
-          </section>
+        {/* Top Stats Grid */}
+        <div className={styles.statsRow}>
+          <div className={styles.statCard}>
+            <div className={styles.statHeader}>
+              <h3 className={styles.statTitle}>Total Consultations</h3>
+              <FiCalendar className={styles.statIcon} size={20} />
+            </div>
+            <p className={styles.statValue}>{stats.total}</p>
+          </div>
 
-          {/* CHARTS GRID */}
-          <div className={styles.chartsGrid}>
-            
-            {/* MONTHLY TREND CHART */}
-            <section className={styles.chartCard}>
-              <div className={styles.cardHeader}>
-                <div>
-                  <h2 className={styles.cardTitle}>
-                    <FiBarChart2 className={styles.cardIcon} />
-                    Consultation Volume
-                  </h2>
-                  <p className={styles.cardSubtitle}>Last 6 months activity</p>
-                </div>
+          <div className={styles.statCard}>
+            <div className={styles.statHeader}>
+              <h3 className={styles.statTitle}>Completed</h3>
+              <FiCheckCircle className={styles.statIcon} size={20} />
+            </div>
+            <p className={styles.statValue}>{stats.completed}</p>
+          </div>
+
+          <div className={styles.statCard}>
+            <div className={styles.statHeader}>
+              <h3 className={styles.statTitle}>Completion Rate</h3>
+              <FiTrendingUp className={styles.statIcon} size={20} />
+            </div>
+            <p className={styles.statValue}>{completionRate}%</p>
+          </div>
+
+          <div className={styles.statCard}>
+            <div className={styles.statHeader}>
+              <h3 className={styles.statTitle}>Ongoing / Active</h3>
+              <FiClock className={styles.statIcon} size={20} />
+            </div>
+            <p className={styles.statValue}>{stats.ongoing}</p>
+          </div>
+          
+          <div className={styles.statCard}>
+            <div className={styles.statHeader}>
+              <h3 className={styles.statTitle}>New Patients</h3>
+              <FiClock className={styles.statIcon} size={20} />
+            </div>
+            <p className={styles.statValue}>{retention?.new || 0}</p>
+          </div>
+
+          <div className={styles.statCard}>
+            <div className={styles.statHeader}>
+              <h3 className={styles.statTitle}>Returning Patients</h3>
+              <FiCheckCircle className={styles.statIcon} size={20} />
+            </div>
+            <p className={styles.statValue}>{retention?.returning || 0}</p>
+          </div>
+        </div>
+
+        {/* Main Charts Area */}
+        <div className={styles.chartsGrid}>
+          {/* Trend Chart (Area) */}
+          <div className={styles.chartCard}>
+            <div className={styles.cardHeader}>
+              <div className={styles.cardTitle}>Consultation Volume (30 Days)</div>
+              <div className={styles.cardSubtitle}>
+                Total vs Completed consultations over time.
               </div>
+            </div>
+            <div className={styles.chartBody}>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={trend}
+                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#e2e8f0" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#e2e8f0" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient
+                      id="colorCompleted"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop offset="5%" stopColor="#111827" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#111827" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis
+                    dataKey="displayDate"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: "#9ca3af", fontSize: 12 }}
+                    dy={10}
+                    minTickGap={20}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: "#9ca3af", fontSize: 12 }}
+                    allowDecimals={false}
+                  />
+                  <CartesianGrid
+                    vertical={false}
+                    stroke="#f3f4f6"
+                    strokeDasharray="3 3"
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Area
+                    type="monotone"
+                    dataKey="total"
+                    stroke="#cbd5e1"
+                    strokeWidth={2}
+                    fillOpacity={1}
+                    fill="url(#colorTotal)"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="completed"
+                    stroke="#111827"
+                    strokeWidth={2}
+                    fillOpacity={1}
+                    fill="url(#colorCompleted)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
 
-              <div className={styles.chartBody}>
-                {monthlyTrend.length > 0 ? (
-                  monthlyTrend.map((month, idx) => {
-                    const heightPercent = Math.max((month.count / maxTrend) * 100, 5); // min 5% for visibility
-                    return (
-                      <div key={idx} className={styles.monthBarGroup}>
-                        <div className={styles.monthBarTrack}>
-                          <div 
-                            className={styles.monthBarFill} 
-                            style={{ height: `${month.count === 0 ? 0 : heightPercent}%` }}
-                          />
-                          <span className={styles.monthValue}>{month.count}</span>
-                        </div>
-                        <span className={styles.monthLabel}>{month.label}</span>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className={styles.emptyState}>
-                    <FiBarChart2 size={32} className={styles.emptyIcon} />
-                    <p>No consultation data available</p>
-                  </div>
-                )}
-              </div>
-            </section>
-
-            {/* MODALITY & SUMMARY */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
-              
-              <section className={styles.chartCard}>
-                <div className={styles.cardHeader}>
-                  <h2 className={styles.cardTitle}>Consultation Type</h2>
+          {/* Modality Pie Chart */}
+          <div className={styles.chartCard}>
+            <div className={styles.cardHeader}>
+              <div className={styles.cardTitle}>Consultation Modality</div>
+              <div className={styles.cardSubtitle}>Video vs Audio vs Chat</div>
+            </div>
+            <div className={styles.chartBody}>
+              {modalities.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={modalities}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {modalities.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={MODALITY_COLORS[index % MODALITY_COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<CustomTooltip />} />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div
+                  style={{
+                    display: "flex",
+                    height: "100%",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#9ca3af",
+                  }}
+                >
+                  No data available
                 </div>
+              )}
+            </div>
+          </div>
+        </div>
 
-                <div className={styles.modalityBody}>
-                  {/* Video */}
-                  <div className={styles.modalityItem}>
-                    <div className={styles.modalityHeader}>
-                      <span className={`${styles.modalityType} ${styles.video}`}>
-                        <FiVideo /> Video Calls
-                      </span>
-                      <span className={styles.modalityCount}>{videoPercent}%</span>
-                    </div>
-                    <div className={styles.modalityTrack}>
-                      <div 
-                        className={`${styles.modalityFill} ${styles.video}`} 
-                        style={{ width: `${videoPercent}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Audio */}
-                  <div className={styles.modalityItem}>
-                    <div className={styles.modalityHeader}>
-                      <span className={`${styles.modalityType} ${styles.audio}`}>
-                        <FiPhone /> Audio Calls
-                      </span>
-                      <span className={styles.modalityCount}>{audioPercent}%</span>
-                    </div>
-                    <div className={styles.modalityTrack}>
-                      <div 
-                        className={`${styles.modalityFill} ${styles.audio}`} 
-                        style={{ width: `${audioPercent}%` }}
-                      />
-                    </div>
-                  </div>
+        {/* Bottom Row */}
+        <div className={styles.chartsGrid} style={{ gridTemplateColumns: "1fr 1fr 1fr", marginTop: "22px" }}>
+          {/* Peak Hours Chart */}
+          <div className={styles.chartCard}>
+            <div className={styles.cardHeader}>
+              <div className={styles.cardTitle}>Peak Consultation Hours</div>
+              <div className={styles.cardSubtitle}>Busiest times of day.</div>
+            </div>
+            <div className={styles.chartBody}>
+              {peakHours && peakHours.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={peakHours}
+                    margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                  >
+                    <CartesianGrid
+                      vertical={false}
+                      stroke="#f3f4f6"
+                      strokeDasharray="3 3"
+                    />
+                    <XAxis
+                      dataKey="hour"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: "#9ca3af", fontSize: 12 }}
+                      dy={10}
+                    />
+                    <YAxis
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: "#9ca3af", fontSize: 12 }}
+                      allowDecimals={false}
+                    />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar
+                      dataKey="consultations"
+                      fill="#111827"
+                      radius={[4, 4, 0, 0]}
+                      barSize={40}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div
+                  style={{
+                    display: "flex",
+                    height: "100%",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#9ca3af",
+                  }}
+                >
+                  No data available
                 </div>
-              </section>
+              )}
+            </div>
+          </div>
 
-              <section className={styles.chartCard}>
-                <div className={styles.cardHeader}>
-                  <h2 className={styles.cardTitle}>Performance Summary</h2>
+          {/* Age Distribution Chart */}
+          <div className={styles.chartCard}>
+            <div className={styles.cardHeader}>
+              <div className={styles.cardTitle}>Age Distribution</div>
+              <div className={styles.cardSubtitle}>Patient age brackets</div>
+            </div>
+            <div className={styles.chartBody}>
+              {demographics && demographics.age && demographics.age.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={demographics.age}
+                    margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                  >
+                    <CartesianGrid
+                      vertical={false}
+                      stroke="#f3f4f6"
+                      strokeDasharray="3 3"
+                    />
+                    <XAxis
+                      dataKey="name"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: "#9ca3af", fontSize: 12 }}
+                      dy={10}
+                    />
+                    <YAxis
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: "#9ca3af", fontSize: 12 }}
+                      allowDecimals={false}
+                    />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar
+                      dataKey="value"
+                      fill="#3b82f6"
+                      radius={[4, 4, 0, 0]}
+                      barSize={30}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div
+                  style={{
+                    display: "flex",
+                    height: "100%",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#9ca3af",
+                  }}
+                >
+                  No data available
                 </div>
-                <div className={styles.performanceGrid}>
-                   <div className={styles.perfMetric}>
-                     <span className={styles.perfLabel}>Total Bookings</span>
-                     <span className={styles.perfValue}>{stats.totalConsultations}</span>
-                   </div>
-                   <div className={styles.perfMetric}>
-                     <span className={styles.perfLabel}>Successful</span>
-                     <span className={styles.perfValue} style={{ color: '#059669' }}>
-                       {stats.completedSessions}
-                     </span>
-                   </div>
-                   <div className={styles.perfMetric}>
-                     <span className={styles.perfLabel}>Cancelled/No-show</span>
-                     <span className={styles.perfValue} style={{ color: '#dc2626' }}>
-                       {stats.totalConsultations - stats.completedSessions}
-                     </span>
-                   </div>
-                   <div className={styles.perfMetric}>
-                     <span className={styles.perfLabel}>Patient Retention</span>
-                     <span className={styles.perfValue}>
-                       {stats.totalConsultations > 0 && stats.uniquePatients > 0 
-                         ? ((stats.totalConsultations / stats.uniquePatients)).toFixed(1) 
-                         : 0}x
-                     </span>
-                   </div>
-                </div>
-              </section>
+              )}
+            </div>
+          </div>
 
+          {/* Gender Demographics Chart */}
+          <div className={styles.chartCard}>
+            <div className={styles.cardHeader}>
+              <div className={styles.cardTitle}>Gender Demographics</div>
+              <div className={styles.cardSubtitle}>Patient gender breakdown</div>
+            </div>
+            <div className={styles.chartBody}>
+              {demographics && demographics.gender && demographics.gender.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={demographics.gender}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={70}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {demographics.gender.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={GENDER_COLORS[index % GENDER_COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<CustomTooltip />} />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div
+                  style={{
+                    display: "flex",
+                    height: "100%",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#9ca3af",
+                  }}
+                >
+                  No data available
+                </div>
+              )}
             </div>
           </div>
         </div>
       </main>
-    </div>
-  );
-}
-
-/*
-==================================================
-STAT CARD COMPONENT
-==================================================
-*/
-
-function StatCard({ icon: Icon, label, value, trend }) {
-  const getTrendIcon = () => {
-    if (trend === "up") return <FiTrendingUp className={styles.trendUp} />;
-    if (trend === "down") return <FiTrendingDown className={styles.trendDown} />;
-    return <FiMinus className={styles.trendNeutral} />;
-  };
-
-  const isLiteral = ["all-time", "completed only"].includes(trend);
-
-  return (
-    <div className={styles.statCard}>
-      <div className={styles.statHeader}>
-        <div className={styles.statIconWrapper}>
-          <Icon size={16} />
-        </div>
-        {!isLiteral && (
-          <div className={styles.statTrend}>
-            {getTrendIcon()}
-          </div>
-        )}
-      </div>
-
-      <div>
-        <p className={styles.statValue}>{value}</p>
-        <p className={styles.statLabel}>{label}</p>
-        {isLiteral && (
-          <p style={{ fontSize: '11px', color: '#9ca3af', marginTop: '6px', marginBottom: 0 }}>
-            {trend}
-          </p>
-        )}
-      </div>
     </div>
   );
 }

@@ -92,7 +92,7 @@
 
 .statsRow {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 18px;
 }
 
@@ -430,3 +430,43 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* =========================================
+   TOOLTIP
+========================================= */
+
+.customTooltip {
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.tooltipLabel {
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 8px 0;
+  font-size: 14px;
+}
+
+.tooltipData {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tooltipItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #4b5563;
+}
+
+.tooltipDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
