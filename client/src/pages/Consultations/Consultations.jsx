@@ -9,7 +9,7 @@ import {
   FiFileText,
   FiCheckCircle,
   FiCalendar,
-  FiArrowRight
+  FiArrowRight,
 } from "react-icons/fi";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import styles from "./Consultations.module.css";
@@ -17,7 +17,7 @@ import { useNavigate } from "react-router-dom";
 import { consultationApi } from "../../utils/api";
 
 export default function Consultations() {
-  const [activeTab, setActiveTab] = useState("history");
+  const [activeTab, setActiveTab] = useState("upcoming");
   const [consultations, setConsultations] = useState([]);
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -32,7 +32,7 @@ export default function Consultations() {
   */
 
   useEffect(() => {
-    if (activeTab === "history") {
+    if (activeTab === "history" || activeTab === "upcoming") {
       fetchConsultations();
     }
   }, [activeTab]);
@@ -114,6 +114,43 @@ export default function Consultations() {
     }
   };
 
+  /*
+  ==================================================
+  SEPARATE CONSULTATIONS INTO UPCOMING & HISTORY
+  ==================================================
+  */
+
+  const separateConsultations = () => {
+    const now = new Date();
+
+    const upcoming = consultations
+      .filter((consultation) => {
+        const consultationDate = new Date(consultation.consultationDate);
+        // Upcoming: scheduled status OR future date
+        return consultation.status === "scheduled" || consultationDate > now;
+      })
+      .sort((a, b) => {
+        return new Date(a.consultationDate) - new Date(b.consultationDate);
+      });
+
+    const history = consultations
+      .filter((consultation) => {
+        const consultationDate = new Date(consultation.consultationDate);
+        // History: completed status OR past date
+        return (
+          consultation.status === "completed" ||
+          (consultationDate <= now && consultation.status !== "scheduled")
+        );
+      })
+      .sort((a, b) => {
+        return new Date(b.consultationDate) - new Date(a.consultationDate);
+      });
+
+    return { upcoming, history };
+  };
+
+  const { upcoming, history } = separateConsultations();
+
   return (
     <div className={styles.dashboardLayout}>
       <Sidebar />
@@ -134,6 +171,15 @@ export default function Consultations() {
           <div className={styles.tabsContainer}>
             <button
               className={`${styles.tabButton} ${
+                activeTab === "upcoming" ? styles.activeTab : ""
+              }`}
+              onClick={() => setActiveTab("upcoming")}
+            >
+              Upcoming Consultations
+            </button>
+
+            <button
+              className={`${styles.tabButton} ${
                 activeTab === "history" ? styles.activeTab : ""
               }`}
               onClick={() => setActiveTab("history")}
@@ -151,6 +197,117 @@ export default function Consultations() {
             </button>
           </div>
 
+          {/* ================= UPCOMING CONSULTATIONS TAB ================= */}
+
+          {activeTab === "upcoming" && (
+            <div className={styles.historySection}>
+              {loading ? (
+                <div className={styles.loadingState}>
+                  <div className={styles.spinner}></div>
+                </div>
+              ) : upcoming.length === 0 ? (
+                <div className={styles.emptyState}>
+                  <FiFileText size={24} />
+                  <p>No upcoming consultations</p>
+                  <p
+                    style={{
+                      fontSize: "0.9rem",
+                      color: "#666",
+                      marginTop: "8px",
+                    }}
+                  >
+                    Book a consultation with an available doctor
+                  </p>
+                </div>
+              ) : (
+                <div className={styles.consultationList}>
+                  {upcoming.map((consultation) => (
+                    <div
+                      key={consultation._id}
+                      className={styles.consultationCard}
+                    >
+                      <div className={styles.cardHeader}>
+                        <div className={styles.doctorProfile}>
+                          <div className={styles.avatar}>
+                            {consultation.doctor?.name?.charAt(0) || "D"}
+                          </div>
+                          <div className={styles.doctorInfoText}>
+                            <h3 className={styles.doctorName}>
+                              Dr. {consultation.doctor?.name || "Unknown"}
+                            </h3>
+                            <p className={styles.specialization}>
+                              {consultation.doctor?.specialization ||
+                                "Specialist"}
+                            </p>
+                          </div>
+                        </div>
+                        <span
+                          className={`${styles.statusBadge} ${getStatusClass(
+                            consultation.status,
+                          )}`}
+                        >
+                          {consultation.status}
+                        </span>
+                      </div>
+
+                      <div className={styles.cardDetails}>
+                        <div className={styles.detailRow}>
+                          <span className={styles.detailLabel}>Symptoms</span>
+                          <span className={styles.detailValue}>
+                            {consultation.symptoms || "Not provided"}
+                          </span>
+                        </div>
+                        <div className={styles.detailRow}>
+                          <span className={styles.detailLabel}>
+                            Current Problem
+                          </span>
+                          <span className={styles.detailValue}>
+                            {consultation.currentProblem || "Not provided"}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className={styles.cardFooter}>
+                        <div className={styles.metaInfo}>
+                          <div className={styles.metaItem}>
+                            <FiCalendar />
+                            <span>
+                              {new Date(
+                                consultation.consultationDate,
+                              ).toLocaleDateString(undefined, {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })}
+                            </span>
+                          </div>
+                          <div className={styles.metaItem}>
+                            <FiClock />
+                            <span>
+                              {consultation.startTime} - {consultation.endTime}
+                            </span>
+                          </div>
+                          <div className={styles.metaItemBadge}>
+                            {consultation.consultationType?.toUpperCase()}
+                          </div>
+                        </div>
+
+                        <button
+                          className={styles.joinBtn}
+                          onClick={() =>
+                            navigate(`/video-call/${consultation._id}`)
+                          }
+                        >
+                          Join Call <FiArrowRight />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* ================= HISTORY TAB ================= */}
 
           {activeTab === "history" && (
@@ -159,107 +316,106 @@ export default function Consultations() {
                 <div className={styles.loadingState}>
                   <div className={styles.spinner}></div>
                 </div>
-              ) : consultations.length === 0 ? (
+              ) : history.length === 0 ? (
                 <div className={styles.emptyState}>
                   <FiFileText size={24} />
-                  <p>No consultations found</p>
+                  <p>No consultation history</p>
+                  <p
+                    style={{
+                      fontSize: "0.9rem",
+                      color: "#666",
+                      marginTop: "8px",
+                    }}
+                  >
+                    Your completed consultations will appear here
+                  </p>
                 </div>
               ) : (
                 <div className={styles.consultationList}>
-                  {[...consultations]
-                    .sort((a, b) => {
-                      // Scheduled first, then others
-                      if (a.status === "scheduled" && b.status !== "scheduled")
-                        return -1;
-                      if (a.status !== "scheduled" && b.status === "scheduled")
-                        return 1;
-                      // Within same status, sort by date (newer first)
-                      return (
-                        new Date(b.consultationDate) -
-                        new Date(a.consultationDate)
-                      );
-                    })
-                    .map((consultation) => (
-                      <div
-                        key={consultation._id}
-                        className={styles.consultationCard}
-                      >
-                        <div className={styles.cardHeader}>
-                          <div className={styles.doctorProfile}>
-                            <div className={styles.avatar}>
-                              {consultation.doctor?.name?.charAt(0) || "D"}
-                            </div>
-                            <div className={styles.doctorInfoText}>
-                              <h3 className={styles.doctorName}>
-                                Dr. {consultation.doctor?.name || "Unknown"}
-                              </h3>
-                              <p className={styles.specialization}>
-                                {consultation.doctor?.specialization || "Specialist"}
-                              </p>
-                            </div>
+                  {history.map((consultation) => (
+                    <div
+                      key={consultation._id}
+                      className={styles.consultationCard}
+                    >
+                      <div className={styles.cardHeader}>
+                        <div className={styles.doctorProfile}>
+                          <div className={styles.avatar}>
+                            {consultation.doctor?.name?.charAt(0) || "D"}
                           </div>
-                          <span
-                            className={`${styles.statusBadge} ${getStatusClass(
-                              consultation.status
-                            )}`}
-                          >
-                            {consultation.status}
+                          <div className={styles.doctorInfoText}>
+                            <h3 className={styles.doctorName}>
+                              Dr. {consultation.doctor?.name || "Unknown"}
+                            </h3>
+                            <p className={styles.specialization}>
+                              {consultation.doctor?.specialization ||
+                                "Specialist"}
+                            </p>
+                          </div>
+                        </div>
+                        <span
+                          className={`${styles.statusBadge} ${getStatusClass(
+                            consultation.status,
+                          )}`}
+                        >
+                          {consultation.status}
+                        </span>
+                      </div>
+
+                      <div className={styles.cardDetails}>
+                        <div className={styles.detailRow}>
+                          <span className={styles.detailLabel}>Symptoms</span>
+                          <span className={styles.detailValue}>
+                            {consultation.symptoms || "Not provided"}
                           </span>
                         </div>
-
-                        <div className={styles.cardDetails}>
-                          <div className={styles.detailRow}>
-                            <span className={styles.detailLabel}>Symptoms</span>
-                            <span className={styles.detailValue}>
-                              {consultation.symptoms || "Not provided"}
-                            </span>
-                          </div>
-                          <div className={styles.detailRow}>
-                            <span className={styles.detailLabel}>Current Problem</span>
-                            <span className={styles.detailValue}>
-                              {consultation.currentProblem || "Not provided"}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className={styles.cardFooter}>
-                          <div className={styles.metaInfo}>
-                            <div className={styles.metaItem}>
-                              <FiCalendar />
-                              <span>
-                                {new Date(
-                                  consultation.consultationDate
-                                ).toLocaleDateString(undefined, {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  year: 'numeric'
-                                })}
-                              </span>
-                            </div>
-                            <div className={styles.metaItem}>
-                              <FiClock />
-                              <span>
-                                {consultation.startTime} - {consultation.endTime}
-                              </span>
-                            </div>
-                            <div className={styles.metaItemBadge}>
-                              {consultation.consultationType?.toUpperCase()}
-                            </div>
-                          </div>
-
-                          {consultation.status !== "completed" && (
-                            <button
-                              className={styles.joinBtn}
-                              onClick={() =>
-                                navigate(`/video-call/${consultation._id}`)
-                              }
-                            >
-                              Join Call <FiArrowRight />
-                            </button>
-                          )}
+                        <div className={styles.detailRow}>
+                          <span className={styles.detailLabel}>
+                            Current Problem
+                          </span>
+                          <span className={styles.detailValue}>
+                            {consultation.currentProblem || "Not provided"}
+                          </span>
                         </div>
                       </div>
-                    ))}
+
+                      <div className={styles.cardFooter}>
+                        <div className={styles.metaInfo}>
+                          <div className={styles.metaItem}>
+                            <FiCalendar />
+                            <span>
+                              {new Date(
+                                consultation.consultationDate,
+                              ).toLocaleDateString(undefined, {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })}
+                            </span>
+                          </div>
+                          <div className={styles.metaItem}>
+                            <FiClock />
+                            <span>
+                              {consultation.startTime} - {consultation.endTime}
+                            </span>
+                          </div>
+                          <div className={styles.metaItemBadge}>
+                            {consultation.consultationType?.toUpperCase()}
+                          </div>
+                        </div>
+
+                        {consultation.status !== "completed" && (
+                          <button
+                            className={styles.joinBtn}
+                            onClick={() =>
+                              navigate(`/video-call/${consultation._id}`)
+                            }
+                          >
+                            Join Call <FiArrowRight />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -314,9 +470,15 @@ export default function Consultations() {
 
                       <h3>Dr. {doctor.name}</h3>
 
-                      <p className={styles.docSpec}>{doctor.specialization || "Specialist"}</p>
-                      <p className={styles.docQual}>{doctor.qualification || "Qualified"}</p>
-                      <p className={styles.docExp}>{doctor.experience || 0} years exp.</p>
+                      <p className={styles.docSpec}>
+                        {doctor.specialization || "Specialist"}
+                      </p>
+                      <p className={styles.docQual}>
+                        {doctor.qualification || "Qualified"}
+                      </p>
+                      <p className={styles.docExp}>
+                        {doctor.experience || 0} years exp.
+                      </p>
 
                       <div className={styles.actionRow}>
                         <button className={styles.iconBtn}>

@@ -31,10 +31,33 @@ const userSchema = new mongoose.Schema(
     bloodType: String,
     allergies: [String],
     medicalHistory: [String],
+
+    // Structured Patient Address
+    patientAddress: {
+      apartment: String,
+      street: String,
+      district: String,
+      city: String,
+      pinCode: String,
+      state: String,
+      coordinates: {
+        type: {
+          type: String,
+          enum: ["Point"],
+          default: "Point",
+        },
+        coordinates: {
+          type: [Number], // [longitude, latitude]
+        },
+      },
+    },
+
+    // Legacy address fields (backward compatibility)
     address: String,
     city: String,
     state: String,
     zipCode: String,
+
     profileCompleted: {
       type: Boolean,
       default: false,
@@ -66,5 +89,8 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Create geospatial index for location queries
+userSchema.index({ "patientAddress.coordinates": "2dsphere" });
 
 export default mongoose.model("User", userSchema);

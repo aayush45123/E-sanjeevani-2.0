@@ -129,6 +129,31 @@ const doctorProfileSchema = new mongoose.Schema(
       default: "",
     },
 
+    // Clinic Information
+    hasClinic: {
+      type: Boolean,
+      default: false,
+    },
+
+    clinicAddress: {
+      apartment: String,
+      street: String,
+      district: String,
+      city: String,
+      pinCode: String,
+      state: String,
+      coordinates: {
+        type: {
+          type: String,
+          enum: ["Point"],
+          default: "Point",
+        },
+        coordinates: {
+          type: [Number], // [longitude, latitude]
+        },
+      },
+    },
+
     profileCompleted: {
       type: Boolean,
       default: false,
@@ -144,5 +169,8 @@ const doctorProfileSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+// Create geospatial index for location queries
+doctorProfileSchema.index({ "clinicAddress.coordinates": "2dsphere" });
 
 export default mongoose.model("DoctorProfile", doctorProfileSchema);
