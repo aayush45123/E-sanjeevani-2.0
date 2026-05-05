@@ -12,9 +12,11 @@ import {
   FiTrash2,
 } from "react-icons/fi";
 import ReactMarkdown from "react-markdown";
+import io from "socket.io-client";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import TriageHistory from "../../components/TriageHistory/TriageHistory";
 import TriageDetailView from "../../components/TriageDetailView/TriageDetailView";
+import NotificationService from "../../utils/notificationService";
 import styles from "./PatientDashBoard.module.css";
 import { authApi } from "../../utils/api";
 
@@ -265,6 +267,30 @@ export default function PatientDashboard() {
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
+  // ── Socket listener for consultation notifications ───────────────────────
+  useEffect(() => {
+    const SOCKET_URL = "http://localhost:5000";
+    const socket = io(SOCKET_URL, { transports: ["websocket"] });
+
+    socket.on(
+      "participant-waiting",
+      ({ waitingUserRole, waitingUserName, message }) => {
+        console.log(`⏳ ${message}`);
+        const roleText = waitingUserRole === "doctor" ? "Dr." : "Patient";
+        NotificationService.showToast(
+          `⏳ ${roleText} ${waitingUserName} is waiting for you to join the consultation!`,
+          "warning",
+        );
+        // Play alert sound
+        NotificationService.playSound("alert");
+      },
+    );
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
   // ── Send message ─────────────────────────────────────────────────────────
   const handleSendMessage = async (e) => {
     if (e) e.preventDefault();
@@ -321,8 +347,7 @@ export default function PatientDashboard() {
           ?.replace(/\n{3,}/g, "\n\n")
           ?.trim();
       } else if (selectedModel.id === "custom-triage-ai") {
-
-      /*
+        /*
       MODEL 2:
       E-Sanjeevani AI Triage
       Your trained ML model

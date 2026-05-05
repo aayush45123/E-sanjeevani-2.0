@@ -4,6 +4,7 @@ import DoctorAvailability from "../models/DoctorAvailability.js";
 import DoctorProfile from "../models/DoctorProfile.js";
 import User from "../models/User.js";
 import { sendAppointmentEmail } from "../utils/sendAppointmentEmail.js";
+import { sendMeetingWaitingEmail } from "../utils/sendMeetingWaitingEmail.js";
 import { io } from "../server.js";
 
 const SLOT_DURATION_MINUTES = 30;
@@ -548,7 +549,10 @@ export const markUserJoined = async (req, res) => {
     const { consultationId } = req.params;
     const userId = req.user.id;
 
-    const consultation = await Consultation.findById(consultationId);
+    const consultation = await Consultation.findById(consultationId)
+      .populate("patient", "name email")
+      .populate("doctor", "name email");
+
     if (!consultation) {
       return res.status(404).json({
         success: false,
@@ -558,17 +562,33 @@ export const markUserJoined = async (req, res) => {
 
     // Check if user is patient or doctor
     let userRole = null;
-    if (consultation.patient.toString() === userId) {
+    let otherUserRole = null;
+    let otherUserHasJoined = false;
+    let otherUserEmail = null;
+    let otherUserName = null;
+    let currentUserName = null;
+
+    if (consultation.patient._id.toString() === userId) {
       consultation.patientJoined = true;
       userRole = "patient";
+      otherUserRole = "doctor";
+      otherUserHasJoined = consultation.doctorJoined;
+      otherUserEmail = consultation.doctor.email;
+      otherUserName = consultation.doctor.name;
+      currentUserName = consultation.patient.name;
       await consultation.save();
 
       console.log(
         `✅ Patient marked as joined for consultation ${consultationId}`,
       );
-    } else if (consultation.doctor.toString() === userId) {
+    } else if (consultation.doctor._id.toString() === userId) {
       consultation.doctorJoined = true;
       userRole = "doctor";
+      otherUserRole = "patient";
+      otherUserHasJoined = consultation.patientJoined;
+      otherUserEmail = consultation.patient.email;
+      otherUserName = consultation.patient.name;
+      currentUserName = consultation.doctor.name;
       await consultation.save();
 
       console.log(
@@ -587,6 +607,19 @@ export const markUserJoined = async (req, res) => {
       await consultation.save();
     }
 
+    // 📧 SEND EMAIL TO OTHER PARTICIPANT IF THEY HAVEN'T JOINED YET
+    if (!otherUserHasJoined && otherUserEmail) {
+      await sendMeetingWaitingEmail({
+        recipientEmail: otherUserEmail,
+        recipientName: otherUserName,
+        waitingUserRole: userRole,
+        waitingUserName: currentUserName,
+        consultationId: consultationId,
+        consultationDate: consultation.consultationDate,
+        startTime: consultation.startTime,
+      });
+    }
+
     // 🔔 Notify the other user in real-time via Socket.io
     if (io) {
       io.to(consultationId).emit("user-status-updated", {
@@ -597,6 +630,22 @@ export const markUserJoined = async (req, res) => {
         doctorJoined: consultation.doctorJoined,
         message: `${userRole.charAt(0).toUpperCase() + userRole.slice(1)} has joined the consultation`,
       });
+
+      // 🔔 If other user hasn't joined, send them a "waiting" notification
+      if (!otherUserHasJoined) {
+        io.to(consultationId).emit("participant-waiting", {
+          consultationId,
+          waitingUserRole: userRole,
+          waitingUserName: currentUserName,
+          message: `${currentUserName} (${userRole === "doctor" ? "Dr." : "Patient"}) has joined and is waiting for you to join`,
+          timestamp: new Date(),
+        });
+
+        console.log(
+          `⏳ Participant waiting notification sent for ${consultationId}`,
+        );
+      }
+
       console.log(
         `🔔 Socket notification sent to consultation room ${consultationId}`,
       );

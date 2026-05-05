@@ -12,7 +12,9 @@ import {
   FiTrendingUp,
   FiAlertCircle,
 } from "react-icons/fi";
+import io from "socket.io-client";
 import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
+import NotificationService from "../../utils/notificationService";
 import { useNavigate } from "react-router-dom";
 import styles from "./DoctorDashboard.module.css";
 import { authApi, consultationApi } from "../../utils/api";
@@ -76,6 +78,30 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
     init();
   }, []);
 
+  // ── Socket listener for consultation notifications ───────────────────────
+  useEffect(() => {
+    const SOCKET_URL = "http://localhost:5000";
+    const socket = io(SOCKET_URL, { transports: ["websocket"] });
+
+    socket.on(
+      "participant-waiting",
+      ({ waitingUserRole, waitingUserName, message }) => {
+        console.log(`⏳ ${message}`);
+        const roleText = waitingUserRole === "doctor" ? "Dr." : "Patient";
+        NotificationService.showToast(
+          `⏳ ${roleText} ${waitingUserName} is waiting for you to join the consultation!`,
+          "warning",
+        );
+        // Play alert sound
+        NotificationService.playSound("alert");
+      },
+    );
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
   /*
   ==================================================
   CALCULATE DASHBOARD STATS
@@ -93,9 +119,9 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
       (item) => new Date(item.consultationDate).toDateString() === today,
     );
     const todayConsultations = todayList.length;
-    
+
     const completedToday = todayList.filter(
-      (item) => item.status === "completed"
+      (item) => item.status === "completed",
     ).length;
 
     const completedSessions = data.filter(
@@ -230,8 +256,22 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
   };
 
   const getAvatarColor = (name) => {
-    const colors = ["#dbeafe", "#fce7f3", "#fef3c7", "#d1fae5", "#e0e7ff", "#ffedd5"];
-    const textColors = ["#1e40af", "#be185d", "#b45309", "#047857", "#4338ca", "#c2410c"];
+    const colors = [
+      "#dbeafe",
+      "#fce7f3",
+      "#fef3c7",
+      "#d1fae5",
+      "#e0e7ff",
+      "#ffedd5",
+    ];
+    const textColors = [
+      "#1e40af",
+      "#be185d",
+      "#b45309",
+      "#047857",
+      "#4338ca",
+      "#c2410c",
+    ];
     let hash = 0;
     const safeName = name || "Patient";
     for (let i = 0; i < safeName.length; i++) {
@@ -255,9 +295,10 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
     );
   }
 
-  const progressPercent = stats.todayConsultations > 0 
-    ? (stats.completedToday / stats.todayConsultations) * 100 
-    : 0;
+  const progressPercent =
+    stats.todayConsultations > 0
+      ? (stats.completedToday / stats.todayConsultations) * 100
+      : 0;
 
   return (
     <div className={styles.dashboardLayout}>
@@ -282,11 +323,13 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
           <div className={styles.headerRight}>
             <div className={styles.progressTextRow}>
               <span className={styles.progressLabel}>Today's Progress</span>
-              <span className={styles.progressCount}>{stats.completedToday} / {stats.todayConsultations}</span>
+              <span className={styles.progressCount}>
+                {stats.completedToday} / {stats.todayConsultations}
+              </span>
             </div>
             <div className={styles.progressBarTrack}>
-              <div 
-                className={styles.progressBarFill} 
+              <div
+                className={styles.progressBarFill}
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
@@ -367,7 +410,11 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
                       );
                     })
                     .map((appt) => (
-                      <AppointmentRow key={appt._id} appt={appt} avatarColor={getAvatarColor(appt.patient?.name)} />
+                      <AppointmentRow
+                        key={appt._id}
+                        appt={appt}
+                        avatarColor={getAvatarColor(appt.patient?.name)}
+                      />
                     ))
                 )}
               </div>
@@ -454,9 +501,12 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
                     const color = getAvatarColor(p.patient?.name);
                     return (
                       <div key={p._id} className={styles.patientRow}>
-                        <div 
+                        <div
                           className={styles.patientAvatar}
-                          style={{ backgroundColor: color.bg, color: color.text }}
+                          style={{
+                            backgroundColor: color.bg,
+                            color: color.text,
+                          }}
                         >
                           {p.patient?.name?.charAt(0) || "P"}
                         </div>
@@ -466,7 +516,9 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
                             {p.patient?.name || "Patient"}
                           </p>
 
-                          <p className={styles.patientMeta}>{p.currentProblem}</p>
+                          <p className={styles.patientMeta}>
+                            {p.currentProblem}
+                          </p>
                         </div>
 
                         <div className={styles.patientRight}>
@@ -560,7 +612,7 @@ function AppointmentRow({ appt, avatarColor }) {
 
       {/* AVATAR */}
 
-      <div 
+      <div
         className={styles.apptAvatar}
         style={{ backgroundColor: avatarColor?.bg, color: avatarColor?.text }}
       >

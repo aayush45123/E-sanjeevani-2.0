@@ -461,6 +461,21 @@ export default function VideoCall() {
           },
         );
 
+        // 🔔 PARTICIPANT WAITING - Other user has joined but this user hasn't
+        socket.on(
+          "participant-waiting",
+          ({ waitingUserRole, waitingUserName, message, timestamp }) => {
+            console.log(`⏳ ${message}`);
+            const roleText = waitingUserRole === "doctor" ? "Dr." : "Patient";
+            NotificationService.showToast(
+              `⏳ ${roleText} ${waitingUserName} is waiting for you to join the consultation!`,
+              "warning",
+            );
+            // Also play a sound alert to get attention
+            NotificationService.playSound("alert");
+          },
+        );
+
         /*
         =============================================
         FIX: call-ended now navigates AND does NOT
