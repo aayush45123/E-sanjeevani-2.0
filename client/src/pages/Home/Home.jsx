@@ -9,6 +9,7 @@ const Home = () => {
       <Hero></Hero>
       <DualPath></DualPath>
       <ClinicalIntelligence></ClinicalIntelligence>
+      {/* k */}
     </div>
   );
 };
