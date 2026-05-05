@@ -12,6 +12,7 @@ const DualPath = () => {
   return (
     <section className={styles.section}>
       <div className={styles.lightGrid}></div>
+      <div className={styles.ambientGlow}></div>
 
       <div className={styles.container}>
         

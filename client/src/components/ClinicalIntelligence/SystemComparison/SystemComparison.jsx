@@ -22,6 +22,7 @@ const CheckIcon = () => (
 const SystemComparison = () => {
   return (
     <section className={styles.sectionComparison}>
+      <div className={styles.ambientGlowComparison}></div>
       <div className={styles.container}>
         <div className={styles.comparisonHeader}>
           <h3 className={styles.sectionSubtitle}>The System Upgrade</h3>

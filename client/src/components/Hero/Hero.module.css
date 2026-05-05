@@ -19,7 +19,7 @@
   align-items: center;
   text-align: center;
   padding: 160px var(--space-4) 0;
-  max-width: 1000px;
+  max-width: 1280px; /* Increased from 1000px to allow a much larger mockup */
   margin: 0 auto;
   position: relative;
   z-index: 2;
@@ -32,7 +32,7 @@
   gap: 10px;
   background-color: #ffffff;
   border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
   border-radius: 40px;
   padding: 6px 16px 6px 6px;
   font-family: var(--font-primary);
@@ -56,10 +56,12 @@
 .title {
   font-family: var(--font-primary);
   font-size: clamp(40px, 6vw, 68px);
-  font-weight: 800; /* Extra bold looks great in light mode */
+  font-weight: 800;
+  /* Extra bold looks great in light mode */
   line-height: 1.15;
-  color: #0f172a; /* Near black */
-  letter-spacing: -0.03em; 
+  color: #0f172a;
+  /* Near black */
+  letter-spacing: -0.03em;
   margin: 0 0 var(--space-6) 0;
 }
 
@@ -67,7 +69,8 @@
 .description {
   font-family: var(--font-primary);
   font-size: 18px;
-  color: #475569; /* Slate grey */
+  color: #475569;
+  /* Slate grey */
   max-width: 650px;
   margin: 0 0 var(--space-8) 0;
   line-height: 1.6;
@@ -87,7 +90,7 @@
   background-color: #16a34a;
   color: #ffffff;
   border: none;
-  border-radius: 8px; 
+  border-radius: 8px;
   padding: 16px 32px;
   font-family: var(--font-primary);
   font-size: 16px;
@@ -117,7 +120,7 @@
   align-items: center;
   gap: 8px;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
 }
 
 .btnSecondary:hover {
@@ -130,135 +133,93 @@
 .dashboardAnchor {
   position: relative;
   width: 100%;
-  max-width: 1050px;
-  perspective: 1000px;
+  max-width: 1280px; /* Increased to allow it to be much larger and more prominent */
+  margin-top: 40px; /* Space for the glow to bleed out */
 }
 
+/* Vibrant multi-colored gradient glow behind the mockup */
 .dashboardGlow {
   position: absolute;
-  top: 40%;
+  top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 80%;
-  height: 60%;
-  background: radial-gradient(circle, rgba(22, 163, 74, 0.12) 0%, transparent 70%);
-  filter: blur(60px);
+  width: 120%;
+  height: 120%;
+  background: radial-gradient(circle at 50% 50%, rgba(244, 114, 182, 0.3) 0%, rgba(251, 146, 60, 0.2) 30%, rgba(22, 163, 74, 0.05) 60%, transparent 80%);
+  filter: blur(80px);
   z-index: 0;
   pointer-events: none;
 }
 
-.dashboardMockup {
+/* Glassmorphic outer container providing the premium aesthetic */
+.dashboardContainer {
   position: relative;
   z-index: 1;
-  background: rgba(255, 255, 255, 0.95); /* White glass */
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-top: 1px solid rgba(22, 163, 74, 0.3); /* Soft green rim light */
-  border-radius: 16px 16px 0 0; 
-  height: 500px;
-  /* Premium light shadow stack */
-  box-shadow: 0 40px 80px -12px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0,0,0,0.02);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  transform: rotateX(2deg) translateY(20px); 
-}
-
-.mockupHeader {
-  height: 60px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  display: flex;
-  align-items: center;
-  padding: 0 24px;
-  gap: 40px;
-  background: #ffffff;
-}
-
-.mockupDots {
-  display: flex;
-  gap: 8px;
-}
-
-.mockupDots span {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.1);
-}
-
-.mockupTabs {
-  display: flex;
-  gap: 16px;
-}
-
-.mockupTab {
-  width: 80px;
-  height: 8px;
-  border-radius: 4px;
-  background: rgba(0, 0, 0, 0.04);
-}
-
-.tabActive {
-  background: rgba(22, 163, 74, 0.2);
-}
-
-.mockupBody {
-  display: flex;
-  flex: 1;
+  width: 100%;
+  max-width: inherit;
+  
+  /* Glassmorphism Effect */
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  
+  /* Padding creates the "frame" effect around the actual app screenshot */
   padding: 24px;
-  gap: 24px;
-  background: #f8fafc; /* Slightly off-white body to let cards pop */
+  
+  /* Large rounded corners for the outer frame */
+  border-radius: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  
+  /* Deep, soft shadow to elevate the entire glass frame */
+  box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+  transform: none;
 }
 
-.mockupSidebar {
-  width: 200px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.sidebarItem {
-  height: 36px;
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.04);
-  border-radius: 8px;
-}
-
-.mockupMain {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.mockupCardTop {
-  height: 180px;
-  background: linear-gradient(135deg, rgba(22, 163, 74, 0.03) 0%, #ffffff 100%);
-  border: 1px solid rgba(0, 0, 0, 0.06);
+.dashboardImage {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: auto;
+  display: block;
+  object-position: top;
+  
+  /* Inner image styling */
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-}
-
-.mockupCardsBottom {
-  display: flex;
-  gap: 24px;
-  flex: 1;
-}
-
-.mockupCardSmall {
-  flex: 1;
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  /* Give the inner app image its own subtle shadow to float inside the glass */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
 }
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
-  .title { font-size: 36px; }
-  .ctaWrapper { flex-direction: column; width: 100%; }
-  .btnPrimary, .btnSecondary { width: 100%; justify-content: center; }
-  .dashboardMockup { transform: none; height: 300px; }
-  .mockupSidebar { display: none; }
+  .title {
+    font-size: 36px;
+    margin-bottom: var(--space-4);
+  }
+
+  .ctaWrapper {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .btnPrimary,
+  .btnSecondary {
+    width: 100%;
+    justify-content: center;
+    padding: 14px 24px;
+  }
+
+  .dashboardAnchor {
+    margin-top: 20px;
+  }
+
+  .dashboardContainer {
+    padding: 12px; /* Less padding on mobile */
+    border-radius: 20px;
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
+  }
+
+  .dashboardImage {
+    border-radius: 8px;
+  }
 }

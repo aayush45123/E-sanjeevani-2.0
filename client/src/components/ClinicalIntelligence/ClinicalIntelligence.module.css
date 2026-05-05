@@ -20,10 +20,23 @@
 }
 
 .sectionComparison {
-  padding: 100px var(--space-4);
-  background-color: #fcfcfc; /* A barely-there off-white to ground the cards */
-  border-top: 1px solid rgba(0,0,0,0.03);
-  border-bottom: 1px solid rgba(0,0,0,0.03);
+  padding: 120px var(--space-4);
+  background-color: #fafafa;
+  position: relative;
+  overflow: hidden;
+}
+
+.ambientGlowComparison {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 50% 50%, rgba(22, 163, 74, 0.08) 0%, transparent 70%);
+  filter: blur(60px);
+  z-index: 0;
+  pointer-events: none;
 }
 
 .sectionFlow {
@@ -48,14 +61,14 @@
   gap: 8px;
   font-size: 11px;
   font-weight: 700;
-  color: #475569; 
+  color: #64748b; 
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.15em; /* Increased letter spacing */
   padding: 6px 16px;
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 40px;
   background: #ffffff;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
 .tagDot {
@@ -97,21 +110,23 @@
 }
 
 .modelCard {
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.6) 100%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
   border-radius: 20px;
   padding: 40px 32px;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 1);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .modelCard:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 32px -8px rgba(0,0,0,0.08);
-  border-color: rgba(0, 0, 0, 0.1);
+  transform: translateY(-6px);
+  box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 1);
+  border-color: rgba(22, 163, 74, 0.2);
 }
 
 .modelIconWrapper {
@@ -230,11 +245,17 @@
 
 /* V2 Card (Premium Highlighted Look) */
 .v2Card {
-  background: #ffffff; 
-  /* A beautiful, diffuse, colored shadow for that SaaS glow */
-  box-shadow: 0 24px 50px -12px rgba(22, 163, 74, 0.15), 0 0 0 1px rgba(22, 163, 74, 0.15); 
-  border: 1px solid rgba(22, 163, 74, 0.1);
-  overflow: hidden; 
+  background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.8) 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 24px 50px -12px rgba(22, 163, 74, 0.15), inset 0 0 0 1px rgba(22, 163, 74, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 20px;
+  padding: 48px 40px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
 }
 
 /* Soft inner glow */
