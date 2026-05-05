@@ -1,211 +1,96 @@
+# FULL UPDATED app.py
+# Enterprise-level AI Triage Prediction API
+# Uses:
+# - disease_model.pkl
+# - disease_label_encoder.pkl
+# - symptom_columns.pkl
+# - disease_map.pkl
+#
+# Features:
+# - professional prediction engine
+# - top disease prediction
+# - confidence score
+# - top 5 likely diseases
+# - clean doctor-friendly response
+# - frontend-ready JSON response
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import joblib
-import numpy as np
-import re
+import pandas as pd
 
-print("Loading Enterprise AI Triage Engine...")
+print("==========================================")
+print("Loading Enterprise AI Triage Model...")
+print("==========================================")
+
+# =====================================================
+# LOAD TRAINED FILES
+# =====================================================
+
+model = joblib.load("models/disease_model.pkl")
+label_encoder = joblib.load("models/disease_label_encoder.pkl")
+symptom_columns = joblib.load("models/symptom_columns.pkl")
+
+# Optional map (if exists)
+try:
+    disease_map = joblib.load("models/disease_map.pkl")
+except:
+    disease_map = {}
+
+print("✓ disease_model.pkl loaded")
+print("✓ disease_label_encoder.pkl loaded")
+print("✓ symptom_columns.pkl loaded")
+print("✓ disease_map.pkl loaded")
+
+print("\nModel Loaded Successfully")
+
+# =====================================================
+# FLASK APP
+# =====================================================
 
 app = Flask(__name__)
 CORS(app)
 
 # =====================================================
-# LOAD TRAINED MODEL FILES
+# HEALTH ROUTE
 # =====================================================
 
-model = joblib.load("disease_model.pkl")
-label_encoder = joblib.load("disease_label_encoder.pkl")
-symptom_columns = joblib.load("symptom_columns.pkl")
-
-print("AI Triage Model Loaded Successfully")
-
-
-# =====================================================
-# NORMALIZE INPUT TEXT
-# =====================================================
-
-def normalize_text(text):
-    text = text.lower()
-    text = re.sub(r"[^a-zA-Z0-9\s]", " ", text)
-    text = re.sub(r"\s+", " ", text).strip()
-    return text
+@app.route("/", methods=["GET"])
+def home():
+    return jsonify({
+        "success": True,
+        "message": "Enterprise AI Triage API Running Successfully"
+    })
 
 
 # =====================================================
-# EMERGENCY RED FLAG DETECTION
+# HELPER:
+# Convert text symptoms → binary vector
+# Example:
+# fever, cough, chest pain
 # =====================================================
 
-def detect_emergency_flags(user_input):
-    emergency_map = {
-        "chest pain": "Possible cardiac emergency",
-        "breathing difficulty": "Respiratory emergency",
-        "shortness of breath": "Respiratory emergency",
-        "severe bleeding": "Immediate trauma emergency",
-        "blood vomiting": "Internal bleeding risk",
-        "unconscious": "Critical neurological emergency",
-        "fainting": "Possible circulation issue",
-        "stroke": "Neurological emergency",
-        "seizure": "Emergency neurological condition",
-        "heart pain": "Cardiac emergency",
-        "loss of consciousness": "Critical emergency"
-    }
+def prepare_input(symptoms_text):
+    """
+    Convert free text symptoms into binary symptom vector
+    """
 
-    found = []
+    # Lowercase + normalize
+    user_input = symptoms_text.lower()
 
-    normalized = normalize_text(user_input)
-
-    for keyword, reason in emergency_map.items():
-        if keyword in normalized:
-            found.append({
-                "symptom": keyword,
-                "reason": reason
-            })
-
-    return found
-
-
-# =====================================================
-# SMART SYMPTOM EXTRACTION
-# =====================================================
-
-def extract_symptoms(user_input):
-    normalized = normalize_text(user_input)
-
-    detected = []
+    # Feature vector
+    input_data = {}
 
     for symptom in symptom_columns:
-        readable_symptom = symptom.replace("_", " ").lower()
+        # Basic text matching
+        if symptom.lower() in user_input:
+            input_data[symptom] = 1
+        else:
+            input_data[symptom] = 0
 
-        if readable_symptom in normalized:
-            detected.append(symptom)
+    df_input = pd.DataFrame([input_data])
 
-    return list(set(detected))
-
-
-# =====================================================
-# CREATE MODEL INPUT VECTOR
-# =====================================================
-
-def create_input_vector(detected_symptoms):
-    vector = [0] * len(symptom_columns)
-
-    for symptom in detected_symptoms:
-        if symptom in symptom_columns:
-            index = symptom_columns.index(symptom)
-            vector[index] = 1
-
-    return [vector]
-
-
-# =====================================================
-# DOCTOR SPECIALIST MAPPING
-# =====================================================
-
-def get_specialist(disease):
-    mapping = {
-        "Heart attack": "Cardiologist",
-        "Hypertension": "Cardiologist",
-        "Pneumonia": "Pulmonologist",
-        "Asthma": "Pulmonologist",
-        "Tuberculosis": "Pulmonologist",
-        "Diabetes": "Endocrinologist",
-        "Hypothyroidism": "Endocrinologist",
-        "Migraine": "Neurologist",
-        "Paralysis (brain hemorrhage)": "Neurologist",
-        "Psoriasis": "Dermatologist",
-        "Fungal infection": "Dermatologist",
-        "Arthritis": "Orthopedic",
-        "Cervical spondylosis": "Orthopedic",
-        "Dengue": "General Physician",
-        "Malaria": "General Physician",
-        "Typhoid": "General Physician",
-        "Gastroenteritis": "General Physician",
-        "Jaundice": "Gastroenterologist"
-    }
-
-    return mapping.get(disease, "General Physician")
-
-
-# =====================================================
-# URGENCY LEVEL ENGINE
-# =====================================================
-
-def calculate_urgency(top_disease, emergency_flags):
-    if len(emergency_flags) > 0:
-        return "Emergency"
-
-    high_risk = [
-        "Heart attack",
-        "Pneumonia",
-        "Dengue",
-        "Malaria",
-        "Typhoid",
-        "Tuberculosis",
-        "Jaundice",
-        "Hypertension"
-    ]
-
-    medium_risk = [
-        "Asthma",
-        "Diabetes",
-        "Migraine",
-        "Arthritis",
-        "Hypothyroidism"
-    ]
-
-    if top_disease in high_risk:
-        return "High"
-
-    if top_disease in medium_risk:
-        return "Medium"
-
-    return "Low"
-
-
-# =====================================================
-# RECOMMENDATION ENGINE
-# =====================================================
-
-def generate_recommendation(urgency):
-    if urgency == "Emergency":
-        return (
-            "Immediate medical attention is required. "
-            "Please consult emergency services or visit the nearest hospital immediately."
-        )
-
-    if urgency == "High":
-        return (
-            "Urgent doctor consultation is strongly recommended "
-            "within the next few hours."
-        )
-
-    if urgency == "Medium":
-        return (
-            "Doctor consultation is recommended within 24 hours "
-            "for proper diagnosis and treatment."
-        )
-
-    return (
-        "Symptoms appear manageable currently. "
-        "Monitor your condition and consult a doctor if symptoms worsen."
-    )
-
-
-# =====================================================
-# CONFIDENCE LEVEL CLASSIFIER
-# =====================================================
-
-def confidence_band(score):
-    if score >= 85:
-        return "Very High"
-
-    if score >= 70:
-        return "High"
-
-    if score >= 50:
-        return "Moderate"
-
-    return "Low"
+    return df_input
 
 
 # =====================================================
@@ -215,104 +100,158 @@ def confidence_band(score):
 @app.route("/predict", methods=["POST"])
 def predict():
     try:
-        data = request.json
-        message = data.get("message", "").strip()
+        data = request.get_json()
 
-        if not message:
+        if not data:
             return jsonify({
                 "success": False,
-                "message": "Symptoms input is required"
+                "message": "No request body found"
             }), 400
 
-        # -----------------------------------
-        # Emergency detection
-        # -----------------------------------
+        # Accept both "message" and "symptoms" for flexibility
+        symptoms = data.get("message") or data.get("symptoms", "")
+        symptoms = symptoms.strip()
 
-        emergency_flags = detect_emergency_flags(message)
-
-        # -----------------------------------
-        # Symptom extraction
-        # -----------------------------------
-
-        detected_symptoms = extract_symptoms(message)
-
-        if len(detected_symptoms) == 0:
+        if not symptoms:
             return jsonify({
                 "success": False,
-                "message": "No recognizable medical symptoms detected"
+                "message": "Please provide symptoms or message"
             }), 400
 
-        # -----------------------------------
-        # Vector creation
-        # -----------------------------------
+        print("\n==========================================")
+        print("Incoming Symptoms:")
+        print(symptoms)
+        print("==========================================")
 
-        input_vector = create_input_vector(detected_symptoms)
+        # =================================================
+        # PREPARE INPUT
+        # =================================================
 
-        # -----------------------------------
-        # Prediction probabilities
-        # -----------------------------------
+        input_df = prepare_input(symptoms)
 
-        probabilities = model.predict_proba(input_vector)[0]
+        # =================================================
+        # PREDICT TOP RESULT
+        # =================================================
 
-        top_indices = np.argsort(probabilities)[-3:][::-1]
+        prediction = model.predict(input_df)[0]
+        disease = label_encoder.inverse_transform([prediction])[0]
+
+        # =================================================
+        # PREDICT PROBABILITIES
+        # =================================================
+
+        probabilities = model.predict_proba(input_df)[0]
+
+        confidence = round(
+            max(probabilities) * 100,
+            2
+        )
+
+        # =================================================
+        # URGENCY SCORING (0-100)
+        # =================================================
+
+        urgency_score = min(100, int(confidence * 1.2))  # Scale confidence to urgency
+
+        if urgency_score >= 75:
+            urgency = "critical"
+        elif urgency_score >= 60:
+            urgency = "high"
+        elif urgency_score >= 40:
+            urgency = "medium"
+        else:
+            urgency = "low"
+
+        # =================================================
+        # DOCTOR TYPE MAPPING
+        # =================================================
+
+        doctor_type_map = {
+            "fever": "General Physician",
+            "cough": "Pulmonologist",
+            "chest pain": "Cardiologist",
+            "headache": "Neurologist",
+            "stomach": "Gastroenterologist",
+            "skin": "Dermatologist",
+            "joint": "Orthopedic",
+            "eye": "Ophthalmologist",
+            "ear": "ENT",
+            "depression": "Psychiatrist",
+            "anxiety": "Psychiatrist",
+            "infection": "General Physician",
+            "allergy": "Allergist",
+            "asthma": "Pulmonologist",
+        }
+
+        doctor_type = "General Physician"  # Default
+        disease_lower = disease.lower()
+        symptoms_lower = symptoms.lower()
+
+        for key, value in doctor_type_map.items():
+            if key in disease_lower or key in symptoms_lower:
+                doctor_type = value
+                break
+
+        # =================================================
+        # TOP 5 PREDICTIONS
+        # =================================================
+
+        top_indices = probabilities.argsort()[-5:][::-1]
 
         top_predictions = []
 
         for idx in top_indices:
-            disease = label_encoder.inverse_transform([idx])[0]
-            confidence = round(float(probabilities[idx]) * 100, 2)
+            disease_name = label_encoder.inverse_transform([idx])[0]
 
             top_predictions.append({
-                "disease": disease,
-                "confidence": confidence,
-                "confidenceLevel": confidence_band(confidence)
+                "disease": disease_name,
+                "confidence": round(
+                    probabilities[idx] * 100,
+                    2
+                )
             })
 
-        top_disease = top_predictions[0]["disease"]
+        # =================================================
+        # PROFESSIONAL SUMMARY
+        # =================================================
 
-        # -----------------------------------
-        # Business logic
-        # -----------------------------------
-
-        urgency = calculate_urgency(
-            top_disease,
-            emergency_flags
+        summary = (
+            f"Based on the symptoms provided, "
+            f"the most likely condition is "
+            f"{disease}. "
+            f"Urgency Level: {urgency.upper()} | "
+            f"Recommended Specialist: {doctor_type} | "
+            f"Confidence: {confidence}%. "
+            f"Please consult a qualified doctor "
+            f"for proper medical diagnosis."
         )
 
-        specialist = get_specialist(top_disease)
+        print("Prediction:", disease)
+        print("Confidence:", confidence)
+        print("Urgency:", urgency)
+        print("Doctor Type:", doctor_type)
 
-        recommendation = generate_recommendation(urgency)
-
-        # -----------------------------------
-        # Final response
-        # -----------------------------------
+        # =================================================
+        # RESPONSE (Match frontend expectations)
+        # =================================================
 
         return jsonify({
             "success": True,
-
-            "inputMessage": message,
-
-            "detectedSymptoms": detected_symptoms,
-
-            "emergencyFlags": emergency_flags,
-
-            "topPredictions": top_predictions,
-
-            "predictedDisease": top_disease,
-
-            "urgency": urgency,
-
-            "doctorType": specialist,
-
-            "recommendation": recommendation,
-
-            "medicalDisclaimer":
-                "This is an AI-assisted preliminary triage assessment and "
-                "must not replace professional medical diagnosis."
+            "data": {
+                "predictedDisease": disease,
+                "confidence": confidence,
+                "urgency": urgency,
+                "urgencyScore": urgency_score,
+                "doctorType": doctor_type,
+                "topPredictions": top_predictions,
+                "summary": summary
+            }
         })
 
     except Exception as e:
         print("Prediction Error:", str(e))
+        import traceback
+        traceback.print_exc()
 
         return jsonify({
             "success": False,
@@ -322,19 +261,15 @@ def predict():
 
 
 # =====================================================
-# HEALTH CHECK ROUTE
-# =====================================================
-
-@app.route("/", methods=["GET"])
-def home():
-    return "Enterprise AI Triage System Running Successfully"
-
-
-# =====================================================
-# RUN SERVER
+# START SERVER
 # =====================================================
 
 if __name__ == "__main__":
+    print("\n==========================================")
+    print("Starting Flask Server...")
+    print("http://127.0.0.1:8000")
+    print("==========================================\n")
+
     app.run(
         host="0.0.0.0",
         port=8000,

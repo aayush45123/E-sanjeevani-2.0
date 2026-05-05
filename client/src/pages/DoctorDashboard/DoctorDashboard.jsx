@@ -176,13 +176,29 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
     try {
       const newUrgencyMap = {};
 
+      console.log(
+        "🔄 Fetching urgency for",
+        consultationList.length,
+        "consultations",
+      );
+
       for (const consultation of consultationList) {
         try {
           // Combine symptoms and current problem for AI analysis
           const symptomsText =
             `${consultation.symptoms || ""} ${consultation.currentProblem || ""}`.trim();
 
-          if (!symptomsText) continue;
+          if (!symptomsText) {
+            console.warn(
+              `⚠️ No symptoms text for consultation ${consultation._id}`,
+            );
+            newUrgencyMap[consultation._id] = { urgency: "medium" };
+            continue;
+          }
+
+          console.log(
+            `📤 Sending request for ${consultation.patient?.name}: "${symptomsText.substring(0, 50)}..."`,
+          );
 
           const response = await fetch(
             "http://localhost:5000/api/ai-triage/predict",
@@ -201,15 +217,24 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
 
           if (response.ok) {
             const data = await response.json();
+            console.log(
+              `✅ Received urgency for ${consultation.patient?.name}:`,
+              data.data?.urgency,
+            );
             newUrgencyMap[consultation._id] = {
               urgency: data.data?.urgency || "medium",
               predictedDisease: data.data?.predictedDisease,
               doctorType: data.data?.doctorType,
             };
+          } else {
+            console.error(
+              `❌ API returned ${response.status} for consultation ${consultation._id}`,
+            );
+            newUrgencyMap[consultation._id] = { urgency: "medium" };
           }
         } catch (err) {
           console.error(
-            `Error fetching urgency for consultation ${consultation._id}:`,
+            `❌ Error fetching urgency for consultation ${consultation._id}:`,
             err,
           );
           // Fallback to medium urgency if API fails
@@ -217,9 +242,10 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
         }
       }
 
+      console.log("📊 Final urgency map:", newUrgencyMap);
       setUrgencyMap(newUrgencyMap);
     } catch (err) {
-      console.error("Error fetching urgencies:", err);
+      console.error("❌ Error fetching urgencies:", err);
     }
   };
 
