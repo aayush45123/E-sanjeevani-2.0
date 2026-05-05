@@ -23,6 +23,9 @@ export default function Consultations() {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [specialization, setSpecialization] = useState("");
+  const [showNearMe, setShowNearMe] = useState(false);
+  const [userLocation, setUserLocation] = useState(null);
+  const [locationLoading, setLocationLoading] = useState(false);
   const navigate = useNavigate();
 
   /*
@@ -45,9 +48,13 @@ export default function Consultations() {
 
   useEffect(() => {
     if (activeTab === "doctors") {
-      fetchDoctors();
+      if (showNearMe && userLocation) {
+        fetchDoctorsNearMe();
+      } else {
+        fetchDoctors();
+      }
     }
-  }, [activeTab, specialization, searchQuery]);
+  }, [activeTab, specialization, searchQuery, showNearMe, userLocation]);
 
   const fetchConsultations = async () => {
     try {
@@ -77,6 +84,54 @@ export default function Consultations() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchDoctorsNearMe = async () => {
+    try {
+      setLoading(true);
+
+      const response = await consultationApi.getDoctorsNearMe({
+        latitude: userLocation.latitude,
+        longitude: userLocation.longitude,
+        radiusKm: 50,
+        specialization: specialization || undefined,
+      });
+
+      setDoctors(response.data.data.doctors || []);
+    } catch (error) {
+      console.error("Failed to fetch nearby doctors:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGetUserLocation = () => {
+    setLocationLoading(true);
+
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      setLocationLoading(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setUserLocation({ latitude, longitude });
+        setShowNearMe(true);
+        setLocationLoading(false);
+      },
+      (error) => {
+        let message = "Unable to get your location";
+        if (error.code === error.PERMISSION_DENIED) {
+          message = "Location permission denied. Please enable it in settings.";
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          message = "Location unavailable. Please try again.";
+        }
+        alert(message);
+        setLocationLoading(false);
+      },
+    );
   };
 
   /*
@@ -452,7 +507,25 @@ export default function Consultations() {
                     <option value="General Medicine">General Medicine</option>
                   </select>
                 </div>
+
+                {/* Doctors Near Me Button */}
+                <button
+                  className={`${styles.nearMeButton} ${showNearMe ? styles.active : ""}`}
+                  onClick={handleGetUserLocation}
+                  disabled={locationLoading}
+                  title="Find doctors near your location"
+                >
+                  📍{" "}
+                  {locationLoading ? "Getting Location..." : "Doctors Near Me"}
+                </button>
               </div>
+
+              {/* Location Info */}
+              {showNearMe && userLocation && (
+                <div className={styles.locationInfo}>
+                  ✅ Showing doctors within 50km of your location
+                </div>
+              )}
 
               {/* DOCTOR GRID */}
 
@@ -460,10 +533,39 @@ export default function Consultations() {
                 <div className={styles.loadingState}>
                   <div className={styles.spinner}></div>
                 </div>
+              ) : doctors.length === 0 ? (
+                <div className={styles.emptyState}>
+                  <FiFileText size={24} />
+                  <p>No doctors found</p>
+                  {showNearMe && (
+                    <div
+                      style={{
+                        marginTop: "12px",
+                        fontSize: "13px",
+                        color: "#6b7280",
+                      }}
+                    >
+                      <p style={{ margin: "8px 0" }}>
+                        No doctors with clinic addresses in your area yet.
+                      </p>
+                      <p style={{ margin: "0" }}>
+                        💡 Encourage doctors to add their clinic location in
+                        their profile settings.
+                      </p>
+                    </div>
+                  )}
+                </div>
               ) : (
                 <div className={styles.doctorsGrid}>
                   {doctors.map((doctor) => (
                     <div key={doctor._id} className={styles.doctorCard}>
+                      {/* Distance Badge */}
+                      {showNearMe && doctor.distanceInKm && (
+                        <div className={styles.distanceBadge}>
+                          📍 {doctor.distanceInKm.toFixed(1)} km away
+                        </div>
+                      )}
+
                       <div className={styles.doctorAvatar}>
                         {doctor.name?.charAt(0) || "D"}
                       </div>

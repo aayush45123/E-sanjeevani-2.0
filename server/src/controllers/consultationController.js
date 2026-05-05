@@ -205,6 +205,223 @@ export const getAvailableDoctors = async (req, res) => {
 
 /*
 ==================================================
+GET DOCTORS NEAR ME (LOCATION-BASED FILTERING)
+==================================================
+Filter doctors by proximity to patient's location
+- Requires patient to have address with coordinates
+- Returns doctors with clinic location within radius
+- Default radius: 50km
+*/
+export const getDoctorsNearMe = async (req, res) => {
+  try {
+    const {
+      latitude,
+      longitude,
+      radiusKm = 50,
+      specialization,
+      limit = 10,
+      page = 1,
+    } = req.query;
+
+    // Validate required location parameters
+    if (!latitude || !longitude) {
+      return res.status(400).json({
+        success: false,
+        message: "Latitude and longitude are required",
+      });
+    }
+
+    const lat = parseFloat(latitude);
+    const lng = parseFloat(longitude);
+    const radius = parseInt(radiusKm, 10) * 1000; // Convert km to meters
+
+    // Validate coordinates
+    if (
+      isNaN(lat) ||
+      isNaN(lng) ||
+      lat < -90 ||
+      lat > 90 ||
+      lng < -180 ||
+      lng > 180
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid latitude or longitude",
+      });
+    }
+
+    const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
+
+    // Query doctors with clinic location near patient
+    const matchStage = {
+      $match: {
+        role: { $regex: "^doctor$", $options: "i" },
+      },
+    };
+
+    const pipeline = [
+      matchStage,
+      {
+        $lookup: {
+          from: "doctorprofiles",
+          localField: "_id",
+          foreignField: "userId",
+          as: "profile",
+        },
+      },
+      {
+        $addFields: {
+          profileData: { $arrayElemAt: ["$profile", 0] },
+        },
+      },
+      // Filter: only doctors with clinic and location data
+      {
+        $match: {
+          "profileData.hasClinic": true,
+          "profileData.clinicAddress.coordinates.coordinates": {
+            $exists: true,
+          },
+        },
+      },
+      // Geospatial query: find docs within radius
+      {
+        $geoNear: {
+          near: {
+            type: "Point",
+            coordinates: [lng, lat],
+          },
+          distanceField: "distanceFromPatient",
+          maxDistance: radius,
+          spherical: true,
+        },
+      },
+      // Optional: filter by specialization
+      ...(specialization
+        ? [
+            {
+              $match: {
+                "profileData.specialization": {
+                  $regex: specialization,
+                  $options: "i",
+                },
+              },
+            },
+          ]
+        : []),
+      // Add computed fields
+      {
+        $addFields: {
+          specialization: {
+            $ifNull: ["$profileData.specialization", "$specialization"],
+          },
+          qualification: {
+            $ifNull: ["$profileData.qualification", "$qualification"],
+          },
+          experience: { $ifNull: ["$profileData.experience", "$experience"] },
+          hospitalName: "$profileData.hospitalName",
+          consultationFee: "$profileData.consultationFee",
+          consultationModes: "$profileData.consultationModes",
+          aboutDoctor: "$profileData.aboutDoctor",
+          shortBio: "$profileData.shortBio",
+          hasClinic: "$profileData.hasClinic",
+          clinicAddress: "$profileData.clinicAddress",
+          profileCompleted: {
+            $ifNull: ["$profileData.profileCompleted", false],
+          },
+          distanceInKm: { $divide: ["$distanceFromPatient", 1000] },
+        },
+      },
+      {
+        $project: {
+          password: 0,
+          profile: 0,
+          profileData: 0,
+          distanceFromPatient: 0,
+        },
+      },
+      { $skip: skip },
+      { $limit: parseInt(limit, 10) },
+    ];
+
+    const doctors = await User.aggregate(pipeline);
+
+    // Get total count for pagination
+    const countPipeline = [
+      matchStage,
+      {
+        $lookup: {
+          from: "doctorprofiles",
+          localField: "_id",
+          foreignField: "userId",
+          as: "profile",
+        },
+      },
+      {
+        $addFields: {
+          profileData: { $arrayElemAt: ["$profile", 0] },
+        },
+      },
+      {
+        $match: {
+          "profileData.hasClinic": true,
+          "profileData.clinicAddress.coordinates.coordinates": {
+            $exists: true,
+          },
+        },
+      },
+      {
+        $geoNear: {
+          near: {
+            type: "Point",
+            coordinates: [lng, lat],
+          },
+          distanceField: "distanceFromPatient",
+          maxDistance: radius,
+          spherical: true,
+        },
+      },
+      ...(specialization
+        ? [
+            {
+              $match: {
+                "profileData.specialization": {
+                  $regex: specialization,
+                  $options: "i",
+                },
+              },
+            },
+          ]
+        : []),
+      { $count: "total" },
+    ];
+
+    const countResult = await User.aggregate(countPipeline);
+    const total = countResult.length > 0 ? countResult[0].total : 0;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        doctors,
+        pagination: {
+          total,
+          page: parseInt(page, 10),
+          limit: parseInt(limit, 10),
+          pages: Math.ceil(total / parseInt(limit, 10)),
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Get doctors near me error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch nearby doctors",
+      error: error.message,
+    });
+  }
+};
+
+/*
+==================================================
 CREATE CONSULTATION
 ==================================================
 */

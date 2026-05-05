@@ -9,6 +9,7 @@ import {
   updateConsultationStatus,
   addDoctorNotes,
   getAvailableDoctors,
+  getDoctorsNearMe,
   markUserJoined,
 } from "../controllers/consultationController.js";
 
@@ -28,6 +29,8 @@ PATIENT ROUTES
 ==================================================
 */
 router.get("/doctors/available", getAvailableDoctors); // ✅ moved above /:consultationId
+
+router.get("/doctors/nearby", getDoctorsNearMe); // ✅ Location-based doctor search
 
 /*
 Book consultation

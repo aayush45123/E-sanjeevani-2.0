@@ -141,6 +141,10 @@ export const createOrUpdateDoctorProfile = async (req, res) => {
       consultationModes,
       aboutDoctor,
       shortBio,
+      hasClinic,
+      clinicAddress,
+      clinicLatitude,
+      clinicLongitude,
     } = req.body;
 
     // ─── detailed request log to catch what's actually arriving ───
@@ -158,6 +162,7 @@ export const createOrUpdateDoctorProfile = async (req, res) => {
       startTime,
       endTime,
       consultationModes,
+      hasClinic,
     });
 
     const user = await User.findById(req.user.id);
@@ -222,8 +227,29 @@ export const createOrUpdateDoctorProfile = async (req, res) => {
         : [],
       aboutDoctor: aboutDoctor || "",
       shortBio: shortBio || "",
+      hasClinic: hasClinic === true || hasClinic === "true",
       profileCompleted: true,
     };
+
+    // ─── Handle clinic address if doctor has a clinic ───
+    if (profileData.hasClinic && clinicAddress) {
+      profileData.clinicAddress = {
+        apartment: clinicAddress.apartment || "",
+        street: clinicAddress.street || "",
+        district: clinicAddress.district || "",
+        city: clinicAddress.city || "",
+        pinCode: clinicAddress.pinCode || "",
+        state: clinicAddress.state || "",
+      };
+
+      // Add coordinates if provided (from geolocation)
+      if (clinicLatitude && clinicLongitude) {
+        profileData.clinicAddress.coordinates = {
+          type: "Point",
+          coordinates: [Number(clinicLongitude), Number(clinicLatitude)], // GeoJSON format: [longitude, latitude]
+        };
+      }
+    }
 
     // ✅ FIX 4: single upsert — avoids both duplicate key errors and
     //    the race condition between findOne + create
@@ -330,10 +356,24 @@ export const checkDoctorProfileStatus = async (req, res) => {
       userId: req.user.id,
     });
 
+    // Calculate profile completeness
+    const hasClinicAddress =
+      profile?.hasClinic &&
+      profile?.clinicAddress?.coordinates?.coordinates?.length === 2;
+
+    const missingItems = [];
+    if (!profile?.profileCompleted) missingItems.push("basic_info");
+    if (!hasClinicAddress && profile?.profileCompleted)
+      missingItems.push("clinic_address");
+
     res.status(200).json({
       success: true,
       profileCompleted: !!profile?.profileCompleted,
+      clinicAddressComplete: hasClinicAddress,
+      hasClinic: !!profile?.hasClinic,
+      missingItems,
       profile,
+      completenessPercentage: calculateCompletion(profile),
     });
   } catch (error) {
     console.error("Check profile status error:", error);
@@ -344,4 +384,19 @@ export const checkDoctorProfileStatus = async (req, res) => {
       error: error.message,
     });
   }
+};
+
+// Helper to calculate profile completeness
+const calculateCompletion = (profile) => {
+  let completed = 0;
+  let total = 3; // basic_info, clinic_address, availability
+
+  if (profile?.profileCompleted) completed++;
+  if (
+    profile?.hasClinic &&
+    profile?.clinicAddress?.coordinates?.coordinates?.length === 2
+  )
+    completed++;
+
+  return Math.round((completed / total) * 100);
 };

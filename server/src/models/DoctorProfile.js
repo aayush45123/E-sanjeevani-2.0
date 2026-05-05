@@ -167,7 +167,7 @@ const doctorProfileSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // Create geospatial index for location queries

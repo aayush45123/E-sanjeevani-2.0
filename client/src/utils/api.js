@@ -57,6 +57,11 @@ export const consultationApi = {
   getAvailableDoctors: (params) =>
     apiClient.get("/consultations/doctors/available", { params }),
 
+  getDoctorsNearMe: (params) =>
+    apiClient.get("/consultations/doctors/nearby", { params }),
+
+  checkDoctorProfileStatus: () => apiClient.get("/doctor-profile/status"),
+
   getDoctorAvailableSlots: (params) =>
     apiClient.get("/consultations/doctor-slots", { params }),
 

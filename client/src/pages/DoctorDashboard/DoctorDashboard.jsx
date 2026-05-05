@@ -41,6 +41,10 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
     "Fri",
     "Sat",
   ]);
+  const [profileStatus, setProfileStatus] = useState({
+    clinicAddressComplete: false,
+    missingItems: [],
+  });
 
   const [stats, setStats] = useState({
     totalPatients: 0,
@@ -73,6 +77,9 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
         setConsultations(allConsultations);
 
         calculateStats(allConsultations);
+
+        // Check profile status
+        await refreshProfileStatus();
       } catch (err) {
         console.error(err);
 
@@ -91,6 +98,22 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
 
     init();
   }, []);
+
+  // ─── Refetch profile status (called after doctor saves clinic address) ────
+  const refreshProfileStatus = async () => {
+    try {
+      const statusRes = await consultationApi.checkDoctorProfileStatus?.();
+      if (statusRes?.data) {
+        setProfileStatus({
+          clinicAddressComplete: statusRes.data.clinicAddressComplete || false,
+          hasClinic: statusRes.data.hasClinic || false,
+          missingItems: statusRes.data.missingItems || [],
+        });
+      }
+    } catch (err) {
+      console.log("Profile status check not available (backward compatible)");
+    }
+  };
 
   // ── Socket listener for consultation notifications ───────────────────────
   useEffect(() => {
@@ -114,6 +137,16 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
     return () => {
       socket.disconnect();
     };
+  }, []);
+
+  // ── Refetch profile status when window regains focus ───────────────────────
+  useEffect(() => {
+    const handleFocus = () => {
+      refreshProfileStatus();
+    };
+
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
   }, []);
 
   /*
@@ -445,6 +478,65 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
             </div>
           </div>
         </header>
+
+        {/* Profile Incompleteness Banner - Only show if doctor HAS clinic but address incomplete */}
+        {profileStatus.hasClinic && !profileStatus.clinicAddressComplete && (
+          <div
+            style={{
+              background: "linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%)",
+              border: "1px solid #fbbf24",
+              padding: "16px 24px",
+              margin: "24px 0",
+              borderRadius: "8px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.08)",
+            }}
+          >
+            <div>
+              <p
+                style={{
+                  margin: "0 0 4px 0",
+                  fontWeight: "600",
+                  color: "#78350f",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                <FiAlertCircle size={16} /> Complete Your Profile
+              </p>
+              <p
+                style={{
+                  margin: "0",
+                  fontSize: "13px",
+                  color: "#92400e",
+                  lineHeight: "1.4",
+                }}
+              >
+                Add your clinic address to appear in location-based searches and
+                make it easier for patients to find you.
+              </p>
+            </div>
+            <button
+              onClick={() => navigate("/profile-setup")}
+              style={{
+                whiteSpace: "nowrap",
+                padding: "8px 16px",
+                background: "white",
+                border: "1px solid #fbbf24",
+                borderRadius: "6px",
+                cursor: "pointer",
+                fontWeight: "600",
+                color: "#78350f",
+                marginLeft: "16px",
+              }}
+            >
+              Add Address
+            </button>
+          </div>
+        )}
 
         <div className={styles.contentGrid}>
           {/* STATS */}

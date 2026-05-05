@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiEdit2, FiCheck } from "react-icons/fi";
 import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
+import AddressInput from "../../components/AddressInput/AddressInput";
 import styles from "./DoctorProfileSetup.module.css";
 import { doctorProfileApi, doctorAvailabilityApi } from "../../utils/api";
 
@@ -38,6 +39,16 @@ export default function DoctorProfileSetup({ isProfileIncomplete = true }) {
     consultationModes: [],
     aboutDoctor: "",
     shortBio: "",
+    hasClinic: false,
+    clinicAddress: {
+      apartment: "",
+      street: "",
+      district: "",
+      city: "",
+      pinCode: "",
+      state: "",
+    },
+    clinicCoordinates: {},
   });
 
   const workingDayOptions = [
@@ -80,6 +91,16 @@ export default function DoctorProfileSetup({ isProfileIncomplete = true }) {
             consultationModes: doc.consultationModes || [],
             aboutDoctor: doc.aboutDoctor || "",
             shortBio: doc.shortBio || "",
+            hasClinic: doc.hasClinic || false,
+            clinicAddress: doc.clinicAddress || {
+              apartment: "",
+              street: "",
+              district: "",
+              city: "",
+              pinCode: "",
+              state: "",
+            },
+            clinicCoordinates: doc.clinicCoordinates || {},
           });
 
           const isComplete =
@@ -126,12 +147,27 @@ export default function DoctorProfileSetup({ isProfileIncomplete = true }) {
     });
   };
 
+  const handleHasClinicToggle = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      hasClinic: e.target.checked,
+    }));
+  };
+
+  const handleClinicAddressChange = (address, coordinates) => {
+    setFormData((prev) => ({
+      ...prev,
+      clinicAddress: address,
+      clinicCoordinates: coordinates,
+    }));
+  };
+
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      await doctorProfileApi.createProfile({
+      const submitData = {
         ...formData,
         languagesSpoken: formData.languagesSpoken
           .split(",")
@@ -139,7 +175,15 @@ export default function DoctorProfileSetup({ isProfileIncomplete = true }) {
           .filter(Boolean),
         experience: Number(formData.experience),
         consultationFee: Number(formData.consultationFee),
-      });
+      };
+
+      // Add clinic coordinates if clinic is enabled
+      if (formData.hasClinic) {
+        submitData.clinicLatitude = formData.clinicCoordinates.latitude;
+        submitData.clinicLongitude = formData.clinicCoordinates.longitude;
+      }
+
+      await doctorProfileApi.createProfile(submitData);
 
       alert("Doctor profile saved successfully!");
 
@@ -198,6 +242,62 @@ export default function DoctorProfileSetup({ isProfileIncomplete = true }) {
 
   return (
     <div className={styles.dashboardLayout}>
+      {/* ═══════════════════════════════════════════════════════════
+          BANNER: Prompt old doctors to add clinic address
+          ═══════════════════════════════════════════════════════════ */}
+      {isProfileComplete && !isEditMode && (
+        <div
+          style={{
+            background: "linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%)",
+            border: "1px solid #fbbf24",
+            padding: "16px 24px",
+            margin: "0 0 24px 0",
+            borderRadius: "8px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.08)",
+          }}
+        >
+          <div>
+            <p
+              style={{
+                margin: "0 0 4px 0",
+                fontWeight: "600",
+                color: "#78350f",
+              }}
+            >
+              📍 Enhance Your Profile
+            </p>
+            <p
+              style={{
+                margin: "0",
+                fontSize: "14px",
+                color: "#92400e",
+              }}
+            >
+              Add your clinic address to appear in location-based searches and
+              help patients find you nearby.
+            </p>
+          </div>
+          <button
+            onClick={handleEditClick}
+            style={{
+              whiteSpace: "nowrap",
+              padding: "8px 16px",
+              background: "white",
+              border: "1px solid #fbbf24",
+              borderRadius: "6px",
+              cursor: "pointer",
+              fontWeight: "600",
+              color: "#78350f",
+              marginLeft: "16px",
+            }}
+          >
+            Add Address
+          </button>
+        </div>
+      )}
       <DoctorSidebar isProfileIncomplete={true} />
 
       <main className={styles.mainContent}>
@@ -236,6 +336,8 @@ export default function DoctorProfileSetup({ isProfileIncomplete = true }) {
                   formData={formData}
                   handleChange={handleChange}
                   handleCheckboxChange={handleCheckboxChange}
+                  handleHasClinicToggle={handleHasClinicToggle}
+                  handleClinicAddressChange={handleClinicAddressChange}
                   handleSubmit={handleProfileSubmit}
                   loading={loading}
                   isProfileComplete={isProfileComplete}
@@ -286,6 +388,8 @@ function EditForm({
   formData,
   handleChange,
   handleCheckboxChange,
+  handleHasClinicToggle,
+  handleClinicAddressChange,
   handleSubmit,
   loading,
   isProfileComplete,
@@ -453,6 +557,60 @@ function EditForm({
           ))}
         </div>
       </div>
+
+      {/* ===================================== */}
+      {/* CLINIC INFORMATION */}
+      {/* ===================================== */}
+      <div className={styles.sectionDivider}></div>
+
+      <div style={{ marginBottom: "24px" }}>
+        <h3
+          style={{
+            fontSize: "16px",
+            fontWeight: "600",
+            color: "#1f2937",
+            marginBottom: "12px",
+          }}
+        >
+          Clinic Location (Optional but Recommended)
+        </h3>
+        <p
+          style={{
+            fontSize: "14px",
+            color: "#6b7280",
+            marginBottom: "16px",
+            lineHeight: "1.5",
+          }}
+        >
+          📍 Help patients find you! When you enable clinic location, your
+          profile will appear in location-based searches. Patients can filter
+          doctors by proximity to find nearby medical professionals.
+        </p>
+      </div>
+
+      <div className={styles.clinicSection}>
+        <label className={styles.clinicCheckboxLabel}>
+          <input
+            type="checkbox"
+            checked={formData.hasClinic}
+            onChange={handleHasClinicToggle}
+          />
+          <span>I have a clinic with a physical address</span>
+        </label>
+      </div>
+
+      {formData.hasClinic && (
+        <div style={{ marginTop: "24px" }}>
+          <AddressInput
+            label="Clinic Address"
+            address={formData.clinicAddress}
+            coordinates={formData.clinicCoordinates}
+            onChange={handleClinicAddressChange}
+            showGeolocation={true}
+            required={false}
+          />
+        </div>
+      )}
 
       <div className={styles.buttonGroup}>
         {isProfileComplete && (

@@ -1,10 +1,14 @@
 // FULL FINAL UPDATED ProfileCompletion.jsx
 // Minimalist, polished SaaS design (e.g. Vercel, Linear style)
+// FOR PATIENTS ONLY - Medical history, vitals, lifestyle, address
+// Doctors should use DoctorProfileSetup instead
 
 import React, { useEffect, useState } from "react";
 import Sidebar from "../../components/Sidebar/Sidebar";
+import AddressInput from "../../components/AddressInput/AddressInput";
 import styles from "./ProfileCompletion.module.css";
-import { apiClient } from "../../utils/api";
+import { apiClient, authApi } from "../../utils/api";
+import { useNavigate } from "react-router-dom";
 
 const initialFormState = {
   age: "",
@@ -25,6 +29,16 @@ const initialFormState = {
   chronicConditions: "",
   currentMedications: "",
   pastSurgeries: "",
+
+  patientAddress: {
+    apartment: "",
+    street: "",
+    district: "",
+    city: "",
+    pinCode: "",
+    state: "",
+  },
+  patientCoordinates: {},
 };
 
 const ProfileCompletion = () => {
@@ -45,6 +59,9 @@ const ProfileCompletion = () => {
           setFormData({
             ...initialFormState,
             ...profile,
+            patientAddress:
+              profile.patientAddress || initialFormState.patientAddress,
+            patientCoordinates: profile.patientCoordinates || {},
           });
         }
         setIsProfileComplete(complete);
@@ -66,6 +83,14 @@ const ProfileCompletion = () => {
     }));
   };
 
+  const handleAddressChange = (address, coordinates) => {
+    setFormData((prev) => ({
+      ...prev,
+      patientAddress: address,
+      patientCoordinates: coordinates,
+    }));
+  };
+
   const handleEdit = () => {
     setIsEditMode(true);
   };
@@ -74,7 +99,13 @@ const ProfileCompletion = () => {
     e.preventDefault();
     setSaving(true);
     try {
-      await apiClient.patch("/patient/profile", formData);
+      // Prepare data with location
+      const submitData = {
+        ...formData,
+        patientLatitude: formData.patientCoordinates.latitude,
+        patientLongitude: formData.patientCoordinates.longitude,
+      };
+      await apiClient.patch("/patient/profile", submitData);
       setIsEditMode(false);
       setIsProfileComplete(true);
       window.dispatchEvent(new Event("profileUpdated"));
@@ -145,7 +176,9 @@ const ProfileCompletion = () => {
                     onChange={handleChange}
                     disabled={!isEditMode}
                   >
-                    <option value="" disabled>Select</option>
+                    <option value="" disabled>
+                      Select
+                    </option>
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
                     <option value="Other">Other</option>
@@ -160,7 +193,9 @@ const ProfileCompletion = () => {
                     onChange={handleChange}
                     disabled={!isEditMode}
                   >
-                    <option value="" disabled>Select</option>
+                    <option value="" disabled>
+                      Select
+                    </option>
                     <option value="A+">A+</option>
                     <option value="A-">A-</option>
                     <option value="B+">B+</option>
@@ -180,7 +215,9 @@ const ProfileCompletion = () => {
                     onChange={handleChange}
                     disabled={!isEditMode}
                   >
-                    <option value="" disabled>Select</option>
+                    <option value="" disabled>
+                      Select
+                    </option>
                     <option value="Single">Single</option>
                     <option value="Married">Married</option>
                     <option value="Divorced">Divorced</option>
@@ -250,7 +287,9 @@ const ProfileCompletion = () => {
                     onChange={handleChange}
                     disabled={!isEditMode}
                   >
-                    <option value="" disabled>Select</option>
+                    <option value="" disabled>
+                      Select
+                    </option>
                     <option value="Yes">Yes</option>
                     <option value="No">No</option>
                   </select>
@@ -264,7 +303,9 @@ const ProfileCompletion = () => {
                     onChange={handleChange}
                     disabled={!isEditMode}
                   >
-                    <option value="" disabled>Select</option>
+                    <option value="" disabled>
+                      Select
+                    </option>
                     <option value="Yes">Yes</option>
                     <option value="No">No</option>
                   </select>
@@ -278,7 +319,9 @@ const ProfileCompletion = () => {
                     onChange={handleChange}
                     disabled={!isEditMode}
                   >
-                    <option value="" disabled>Select</option>
+                    <option value="" disabled>
+                      Select
+                    </option>
                     <option value="Vegetarian">Vegetarian</option>
                     <option value="Non-Vegetarian">Non-Vegetarian</option>
                     <option value="Vegan">Vegan</option>
@@ -293,7 +336,9 @@ const ProfileCompletion = () => {
                     onChange={handleChange}
                     disabled={!isEditMode}
                   >
-                    <option value="" disabled>Select</option>
+                    <option value="" disabled>
+                      Select
+                    </option>
                     <option value="Daily">Daily</option>
                     <option value="Weekly">Weekly</option>
                     <option value="Rarely">Rarely</option>
@@ -357,6 +402,25 @@ const ProfileCompletion = () => {
               </div>
             </div>
 
+            <div className={styles.divider}></div>
+
+            {/* ===================================== */}
+            {/* ADDRESS INFORMATION */}
+            {/* ===================================== */}
+            {isEditMode && (
+              <>
+                <AddressInput
+                  label="Patient Address"
+                  address={formData.patientAddress}
+                  coordinates={formData.patientCoordinates}
+                  onChange={handleAddressChange}
+                  showGeolocation={true}
+                  required={false}
+                />
+                <div className={styles.divider}></div>
+              </>
+            )}
+
             {/* ===================================== */}
             {/* ACTIONS */}
             {/* ===================================== */}
@@ -394,4 +458,3 @@ const ProfileCompletion = () => {
 };
 
 export default ProfileCompletion;
-

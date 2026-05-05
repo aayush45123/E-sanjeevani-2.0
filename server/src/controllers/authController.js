@@ -181,32 +181,59 @@ export const updatePatientProfile = async (req, res) => {
       bloodType,
       allergies,
       medicalHistory,
+      // Structured address fields
+      patientAddress,
+      patientLatitude,
+      patientLongitude,
+      // Legacy address fields
       address,
       city,
       state,
       zipCode,
     } = req.body;
 
+    const updateData = {
+      name,
+      email,
+      phone,
+      age,
+      gender,
+      bloodType,
+      allergies: Array.isArray(allergies)
+        ? allergies
+        : allergies?.split(",").map((a) => a.trim()),
+      medicalHistory: Array.isArray(medicalHistory)
+        ? medicalHistory
+        : medicalHistory?.split(",").map((m) => m.trim()),
+      address,
+      city,
+      state,
+      zipCode,
+    };
+
+    // ─── Handle structured patient address ───
+    if (patientAddress) {
+      updateData.patientAddress = {
+        apartment: patientAddress.apartment || "",
+        street: patientAddress.street || "",
+        district: patientAddress.district || "",
+        city: patientAddress.city || "",
+        pinCode: patientAddress.pinCode || "",
+        state: patientAddress.state || "",
+      };
+
+      // Add coordinates if provided (from geolocation)
+      if (patientLatitude && patientLongitude) {
+        updateData.patientAddress.coordinates = {
+          type: "Point",
+          coordinates: [Number(patientLongitude), Number(patientLatitude)], // GeoJSON format: [longitude, latitude]
+        };
+      }
+    }
+
     const user = await User.findByIdAndUpdate(
       req.user.userId, // ✅ decoded JWT has .userId
-      {
-        name,
-        email,
-        phone,
-        age,
-        gender,
-        bloodType,
-        allergies: Array.isArray(allergies)
-          ? allergies
-          : allergies?.split(",").map((a) => a.trim()),
-        medicalHistory: Array.isArray(medicalHistory)
-          ? medicalHistory
-          : medicalHistory?.split(",").map((m) => m.trim()),
-        address,
-        city,
-        state,
-        zipCode,
-      },
+      updateData,
       { new: true, runValidators: true },
     ).select("-password");
 
