@@ -50,30 +50,12 @@ const buildSlots = (startTime, endTime) => {
   const [startHour, startMinute] = startTime.split(":").map(Number);
   const [endHour, endMinute] = endTime.split(":").map(Number);
 
-  const current = new Date(
-    2000,
-    0,
-    1,
-    startHour,
-    startMinute,
-    0,
-    0
-  );
+  const current = new Date(2000, 0, 1, startHour, startMinute, 0, 0);
 
-  const end = new Date(
-    2000,
-    0,
-    1,
-    endHour,
-    endMinute,
-    0,
-    0
-  );
+  const end = new Date(2000, 0, 1, endHour, endMinute, 0, 0);
 
   while (current < end) {
-    const next = new Date(
-      current.getTime() + SLOT_DURATION_MINUTES * 60000
-    );
+    const next = new Date(current.getTime() + SLOT_DURATION_MINUTES * 60000);
 
     if (next > end) {
       break;
@@ -81,7 +63,7 @@ const buildSlots = (startTime, endTime) => {
 
     const formatTime = (date) =>
       `${String(date.getHours()).padStart(2, "0")}:${String(
-        date.getMinutes()
+        date.getMinutes(),
       ).padStart(2, "0")}`;
 
     slots.push({
@@ -125,10 +107,7 @@ const getFallbackSlots = async (doctorId, date) => {
     return [];
   }
 
-  return buildSlots(
-    profile.startTime,
-    profile.endTime
-  );
+  return buildSlots(profile.startTime, profile.endTime);
 };
 
 /*
@@ -227,10 +206,7 @@ export const createDoctorAvailability = async (req, res) => {
       availability,
     });
   } catch (error) {
-    console.error(
-      "createDoctorAvailability error:",
-      error
-    );
+    console.error("createDoctorAvailability error:", error);
 
     return res.status(500).json({
       success: false,
@@ -261,10 +237,7 @@ export const getDoctorOwnAvailability = async (req, res) => {
       availability,
     });
   } catch (error) {
-    console.error(
-      "getDoctorOwnAvailability error:",
-      error
-    );
+    console.error("getDoctorOwnAvailability error:", error);
 
     return res.status(500).json({
       success: false,
@@ -306,8 +279,7 @@ export const getDoctorAvailabilitySlots = async (req, res) => {
     if (!doctorId || !date) {
       return res.status(400).json({
         success: false,
-        message:
-          "doctorId and date query parameter are required",
+        message: "doctorId and date query parameter are required",
       });
     }
 
@@ -345,22 +317,29 @@ export const getDoctorAvailabilitySlots = async (req, res) => {
     FALLBACK:
     If no manual availability exists,
     auto-generate from doctor profile working schedule
+    AND SAVE IT TO DATABASE for consistency
     ========================================================
     */
 
     if (!availability) {
-      const fallbackSlots = await getFallbackSlots(
-        doctorId,
-        selectedDate
-      );
+      const fallbackSlots = await getFallbackSlots(doctorId, selectedDate);
 
-      return res.status(200).json({
-        success: true,
-        slots: fallbackSlots.map((slot) => ({
-          startTime: slot.startTime,
-          endTime: slot.endTime,
-        })),
-        source: "doctor-profile-fallback",
+      // If no fallback slots available, return empty
+      if (!fallbackSlots || fallbackSlots.length === 0) {
+        return res.status(200).json({
+          success: true,
+          slots: [],
+          source: "doctor-profile-fallback",
+        });
+      }
+
+      // Create and save the availability record for this date
+      // This ensures bookings are tracked consistently in the database
+      availability = await DoctorAvailability.create({
+        doctor: doctorId,
+        availableDate: selectedDate,
+        slots: fallbackSlots,
+        isActive: true,
       });
     }
 
@@ -381,13 +360,12 @@ export const getDoctorAvailabilitySlots = async (req, res) => {
     return res.status(200).json({
       success: true,
       slots: availableSlots,
-      source: "manual-availability",
+      source: availability.isNew
+        ? "doctor-profile-fallback"
+        : "manual-availability",
     });
   } catch (error) {
-    console.error(
-      "getDoctorAvailabilitySlots error:",
-      error
-    );
+    console.error("getDoctorAvailabilitySlots error:", error);
 
     return res.status(500).json({
       success: false,
@@ -407,10 +385,7 @@ export const deleteDoctorAvailability = async (req, res) => {
   try {
     const { availabilityId } = req.params;
 
-    const availability =
-      await DoctorAvailability.findById(
-        availabilityId
-      );
+    const availability = await DoctorAvailability.findById(availabilityId);
 
     if (!availability) {
       return res.status(404).json({
@@ -419,9 +394,7 @@ export const deleteDoctorAvailability = async (req, res) => {
       });
     }
 
-    if (
-      availability.doctor.toString() !== req.user.id
-    ) {
+    if (availability.doctor.toString() !== req.user.id) {
       return res.status(403).json({
         success: false,
         message: "Unauthorized access",
@@ -437,10 +410,7 @@ export const deleteDoctorAvailability = async (req, res) => {
       message: "Availability removed successfully",
     });
   } catch (error) {
-    console.error(
-      "deleteDoctorAvailability error:",
-      error
-    );
+    console.error("deleteDoctorAvailability error:", error);
 
     return res.status(500).json({
       success: false,
