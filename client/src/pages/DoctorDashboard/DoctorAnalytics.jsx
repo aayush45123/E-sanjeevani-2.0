@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   FiLoader,
   FiCalendar,
@@ -25,6 +26,7 @@ import {
 } from "recharts";
 
 export default function DoctorAnalytics({ isProfileIncomplete = false }) {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -35,11 +37,25 @@ export default function DoctorAnalytics({ isProfileIncomplete = false }) {
     modalities: [],
     peakHours: [],
     demographics: { gender: [], age: [] },
-    retention: { new: 0, returning: 0 }
+    retention: { new: 0, returning: 0 },
   });
 
   const MODALITY_COLORS = ["#3b82f6", "#10b981", "#8b5cf6"]; // Blue, Green, Purple
   const GENDER_COLORS = ["#2563eb", "#ec4899", "#8b5cf6"];
+
+  /*
+  ==================================================
+  LOGOUT
+  ==================================================
+  */
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("user");
+    localStorage.removeItem("userId");
+    navigate("/auth");
+  };
 
   useEffect(() => {
     const fetchAnalytics = async () => {
@@ -98,7 +114,11 @@ export default function DoctorAnalytics({ isProfileIncomplete = false }) {
   if (loading) {
     return (
       <div className={styles.analyticsLayout}>
-        <DoctorSidebar user={user} isProfileIncomplete={isProfileIncomplete} />
+        <DoctorSidebar
+          user={user}
+          isProfileIncomplete={isProfileIncomplete}
+          onLogout={handleLogout}
+        />
         <div className={styles.loadingContainer}>
           <FiLoader className={styles.spinner} size={32} />
         </div>
@@ -109,7 +129,11 @@ export default function DoctorAnalytics({ isProfileIncomplete = false }) {
   if (error) {
     return (
       <div className={styles.analyticsLayout}>
-        <DoctorSidebar user={user} isProfileIncomplete={isProfileIncomplete} />
+        <DoctorSidebar
+          user={user}
+          isProfileIncomplete={isProfileIncomplete}
+          onLogout={handleLogout}
+        />
         <div className={styles.mainContent}>
           <div className={styles.emptyState}>
             <p>{error}</p>
@@ -119,7 +143,8 @@ export default function DoctorAnalytics({ isProfileIncomplete = false }) {
     );
   }
 
-  const { stats, trend, modalities, peakHours, demographics, retention } = analyticsData;
+  const { stats, trend, modalities, peakHours, demographics, retention } =
+    analyticsData;
 
   // Calculate completion rate safely
   const completionRate =
@@ -127,14 +152,20 @@ export default function DoctorAnalytics({ isProfileIncomplete = false }) {
 
   return (
     <div className={styles.analyticsLayout}>
-      <DoctorSidebar user={user} isProfileIncomplete={isProfileIncomplete} />
+      <DoctorSidebar
+        user={user}
+        isProfileIncomplete={isProfileIncomplete}
+        onLogout={handleLogout}
+      />
 
       <main className={styles.mainContent}>
         {/* Header */}
         <div className={styles.pageHeader}>
           <div className={styles.headerLeft}>
             <h1 className={styles.pageTitle}>Analytics Overview</h1>
-            <p className={styles.pageSubtitle}>Advanced insights and performance metrics.</p>
+            <p className={styles.pageSubtitle}>
+              Advanced insights and performance metrics.
+            </p>
           </div>
         </div>
 
@@ -171,7 +202,7 @@ export default function DoctorAnalytics({ isProfileIncomplete = false }) {
             </div>
             <p className={styles.statValue}>{stats.ongoing}</p>
           </div>
-          
+
           <div className={styles.statCard}>
             <div className={styles.statHeader}>
               <h3 className={styles.statTitle}>New Patients</h3>
@@ -194,7 +225,9 @@ export default function DoctorAnalytics({ isProfileIncomplete = false }) {
           {/* Trend Chart (Area) */}
           <div className={styles.chartCard}>
             <div className={styles.cardHeader}>
-              <div className={styles.cardTitle}>Consultation Volume (30 Days)</div>
+              <div className={styles.cardTitle}>
+                Consultation Volume (30 Days)
+              </div>
               <div className={styles.cardSubtitle}>
                 Total vs Completed consultations over time.
               </div>
@@ -309,7 +342,10 @@ export default function DoctorAnalytics({ isProfileIncomplete = false }) {
         </div>
 
         {/* Bottom Row */}
-        <div className={styles.chartsGrid} style={{ gridTemplateColumns: "1fr 1fr 1fr", marginTop: "22px" }}>
+        <div
+          className={styles.chartsGrid}
+          style={{ gridTemplateColumns: "1fr 1fr 1fr", marginTop: "22px" }}
+        >
           {/* Peak Hours Chart */}
           <div className={styles.chartCard}>
             <div className={styles.cardHeader}>
@@ -373,7 +409,9 @@ export default function DoctorAnalytics({ isProfileIncomplete = false }) {
               <div className={styles.cardSubtitle}>Patient age brackets</div>
             </div>
             <div className={styles.chartBody}>
-              {demographics && demographics.age && demographics.age.length > 0 ? (
+              {demographics &&
+              demographics.age &&
+              demographics.age.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={demographics.age}
@@ -426,10 +464,14 @@ export default function DoctorAnalytics({ isProfileIncomplete = false }) {
           <div className={styles.chartCard}>
             <div className={styles.cardHeader}>
               <div className={styles.cardTitle}>Gender Demographics</div>
-              <div className={styles.cardSubtitle}>Patient gender breakdown</div>
+              <div className={styles.cardSubtitle}>
+                Patient gender breakdown
+              </div>
             </div>
             <div className={styles.chartBody}>
-              {demographics && demographics.gender && demographics.gender.length > 0 ? (
+              {demographics &&
+              demographics.gender &&
+              demographics.gender.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie

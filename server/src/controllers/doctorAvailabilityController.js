@@ -333,14 +333,27 @@ export const getDoctorAvailabilitySlots = async (req, res) => {
         });
       }
 
-      // Create and save the availability record for this date
-      // This ensures bookings are tracked consistently in the database
-      availability = await DoctorAvailability.create({
-        doctor: doctorId,
-        availableDate: selectedDate,
-        slots: fallbackSlots,
-        isActive: true,
-      });
+      // Use findOneAndUpdate with upsert to avoid duplicates
+      // This ensures only one record exists per doctor per date
+      availability = await DoctorAvailability.findOneAndUpdate(
+        {
+          doctor: doctorId,
+          availableDate: {
+            $gte: selectedDate,
+            $lt: nextDate,
+          },
+        },
+        {
+          doctor: doctorId,
+          availableDate: selectedDate,
+          slots: fallbackSlots,
+          isActive: true,
+        },
+        {
+          upsert: true,
+          new: true,
+        },
+      );
     }
 
     /*

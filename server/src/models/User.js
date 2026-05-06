@@ -34,22 +34,24 @@ const userSchema = new mongoose.Schema(
 
     // Structured Patient Address
     patientAddress: {
-      apartment: String,
-      street: String,
-      district: String,
-      city: String,
-      pinCode: String,
-      state: String,
-      coordinates: {
-        type: {
-          type: String,
-          enum: ["Point"],
-          default: "Point",
-        },
+      type: {
+        apartment: String,
+        street: String,
+        district: String,
+        city: String,
+        pinCode: String,
+        state: String,
         coordinates: {
-          type: [Number], // [longitude, latitude]
+          type: {
+            type: String,
+            enum: ["Point"],
+          },
+          coordinates: {
+            type: [Number], // [longitude, latitude]
+          },
         },
       },
+      default: null,
     },
 
     // Legacy address fields (backward compatibility)
@@ -91,6 +93,10 @@ const userSchema = new mongoose.Schema(
 );
 
 // Create geospatial index for location queries
-userSchema.index({ "patientAddress.coordinates": "2dsphere" });
+// sparse: true ensures index only applies to documents with valid coordinates
+userSchema.index(
+  { "patientAddress.coordinates": "2dsphere" },
+  { sparse: true },
+);
 
 export default mongoose.model("User", userSchema);

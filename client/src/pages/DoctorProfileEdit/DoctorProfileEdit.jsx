@@ -1,6 +1,7 @@
 // src/pages/DoctorProfileEdit/DoctorProfileEdit.jsx
 
 import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   FiClock,
   FiCalendar,
@@ -90,7 +91,7 @@ const getDatesByDayNames = (startDate, endDate, dayNames) => {
 const getDatesInMonth = (yearMonth, dayFilter, customDayNames = []) => {
   const [year, month] = yearMonth.split("-").map(Number);
   const start = new Date(year, month - 1, 1);
-  const end = new Date(year, month, 0); 
+  const end = new Date(year, month, 0);
   let dayNames = WORKING_DAYS;
   if (dayFilter === "weekdays")
     dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
@@ -135,12 +136,12 @@ function SlotEditor({ slots, onChange, onAdd, onRemove }) {
           {slots.length} slot{slots.length !== 1 ? "s" : ""}
         </span>
       </div>
-      
+
       <div className={styles.slotList}>
         {slots.map((slot, i) => (
           <div key={i} className={styles.slotRow}>
             <div className={styles.slotIndex}>{i + 1}</div>
-            
+
             <div className={styles.timeInputWrapper}>
               <label>Start</label>
               <input
@@ -150,11 +151,11 @@ function SlotEditor({ slots, onChange, onAdd, onRemove }) {
                 required
               />
             </div>
-            
+
             <div className={styles.slotDivider}>
               <div className={styles.slotDividerLine}></div>
             </div>
-            
+
             <div className={styles.timeInputWrapper}>
               <label>End</label>
               <input
@@ -212,6 +213,7 @@ function DayCheckboxGrid({ selected, onChange, days = WORKING_DAYS }) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
+  const navigate = useNavigate();
   const [fetchLoading, setFetchLoading] = useState(true);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
@@ -219,13 +221,26 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
   const [errorMsg, setErrorMsg] = useState("");
 
   const [profileData, setProfileData] = useState({
-    phone: "", gender: "", dateOfBirth: "", specialization: "", superSpecialization: "",
-    qualification: "", medicalRegistrationNumber: "", experience: "", hospitalName: "",
-    consultationFee: "", languagesSpoken: "", workingDays: [], startTime: "", endTime: "",
-    consultationModes: [], aboutDoctor: "", shortBio: "",
+    phone: "",
+    gender: "",
+    dateOfBirth: "",
+    specialization: "",
+    superSpecialization: "",
+    qualification: "",
+    medicalRegistrationNumber: "",
+    experience: "",
+    hospitalName: "",
+    consultationFee: "",
+    languagesSpoken: "",
+    workingDays: [],
+    startTime: "",
+    endTime: "",
+    consultationModes: [],
+    aboutDoctor: "",
+    shortBio: "",
   });
 
-  const [scheduleType, setScheduleType] = useState("custom"); 
+  const [scheduleType, setScheduleType] = useState("custom");
   const [slots, setSlots] = useState([emptySlot()]);
   const [existingAvailability, setExistingAvailability] = useState([]);
   const [customDate, setCustomDate] = useState("");
@@ -237,6 +252,20 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
   });
   const [monthDayFilter, setMonthDayFilter] = useState("weekdays");
   const [monthCustomDays, setMonthCustomDays] = useState([]);
+
+  /*
+  ==================================================
+  LOGOUT
+  ==================================================
+  */
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("user");
+    localStorage.removeItem("userId");
+    navigate("/auth");
+  };
 
   useEffect(() => {
     (async () => {
@@ -269,6 +298,11 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
     } catch (err) {
       console.error("Failed to fetch availability:", err);
       setExistingAvailability([]);
+      // Display error to user instead of silently failing
+      const errorMessage =
+        err?.response?.data?.message ||
+        "Failed to load availability. Please complete your profile first.";
+      showError(errorMessage);
     }
   }, []);
 
@@ -277,11 +311,13 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
   }, [activeTab, fetchAvailability]);
 
   const showSuccess = (msg) => {
-    setSuccessMsg(msg); setErrorMsg("");
+    setSuccessMsg(msg);
+    setErrorMsg("");
     setTimeout(() => setSuccessMsg(""), 4000);
   };
   const showError = (msg) => {
-    setErrorMsg(msg); setSuccessMsg("");
+    setErrorMsg(msg);
+    setSuccessMsg("");
     setTimeout(() => setErrorMsg(""), 5000);
   };
 
@@ -302,7 +338,10 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
     try {
       await doctorProfileApi.updateProfile({
         ...profileData,
-        languagesSpoken: profileData.languagesSpoken.split(",").map((s) => s.trim()).filter(Boolean),
+        languagesSpoken: profileData.languagesSpoken
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
         experience: Number(profileData.experience),
         consultationFee: Number(profileData.consultationFee),
       });
@@ -314,10 +353,31 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
     }
   };
 
+  // Validate before switching to availability tab
+  const handleTabSwitch = (tab) => {
+    if (tab === "availability") {
+      // Check if profile has required fields
+      if (
+        !profileData.specialization ||
+        !profileData.qualification ||
+        !profileData.hospitalName
+      ) {
+        showError(
+          "⚠️ Please complete your profile details first before setting availability.",
+        );
+        return;
+      }
+    }
+    setActiveTab(tab);
+  };
+
   const handleSlotChange = (idx, field, val) =>
-    setSlots((prev) => prev.map((s, i) => (i === idx ? { ...s, [field]: val } : s)));
+    setSlots((prev) =>
+      prev.map((s, i) => (i === idx ? { ...s, [field]: val } : s)),
+    );
   const addSlot = () => setSlots((prev) => [...prev, emptySlot()]);
-  const removeSlot = (idx) => setSlots((prev) => prev.filter((_, i) => i !== idx));
+  const removeSlot = (idx) =>
+    setSlots((prev) => prev.filter((_, i) => i !== idx));
 
   const validateSlots = () => {
     if (!slots.every((s) => s.startTime && s.endTime)) {
@@ -335,17 +395,28 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
 
   const buildDates = () => {
     if (scheduleType === "custom") {
-      if (!customDate) { showError("Please select a date."); return null; }
+      if (!customDate) {
+        showError("Please select a date.");
+        return null;
+      }
       return [customDate];
     }
     if (scheduleType === "weekly") {
-      if (weeklyDays.length === 0) { showError("Please select at least one weekday."); return null; }
-      const start = new Date(); start.setHours(0, 0, 0, 0);
-      const end = new Date(start); end.setDate(end.getDate() + weekDuration * 7 - 1);
+      if (weeklyDays.length === 0) {
+        showError("Please select at least one weekday.");
+        return null;
+      }
+      const start = new Date();
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(start);
+      end.setDate(end.getDate() + weekDuration * 7 - 1);
       return getDatesByDayNames(start, end, weeklyDays);
     }
     if (scheduleType === "monthly") {
-      if (monthDayFilter === "custom" && monthCustomDays.length === 0) { showError("Please select at least one day."); return null; }
+      if (monthDayFilter === "custom" && monthCustomDays.length === 0) {
+        showError("Please select at least one day.");
+        return null;
+      }
       return getDatesInMonth(selectedMonth, monthDayFilter, monthCustomDays);
     }
     return null;
@@ -369,8 +440,12 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
           }),
         ),
       );
-      showSuccess(`Availability set for ${dates.length} day${dates.length > 1 ? "s" : ""}!`);
-      setSlots([emptySlot()]); setCustomDate(""); setWeeklyDays([]);
+      showSuccess(
+        `Availability set for ${dates.length} day${dates.length > 1 ? "s" : ""}!`,
+      );
+      setSlots([emptySlot()]);
+      setCustomDate("");
+      setWeeklyDays([]);
       await fetchAvailability();
     } catch (err) {
       showError(err?.response?.data?.message || "Failed to set availability");
@@ -380,31 +455,41 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
   };
 
   const toggleWeeklyDay = (day) =>
-    setWeeklyDays((prev) => prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]);
+    setWeeklyDays((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day],
+    );
   const toggleMonthCustomDay = (day) =>
-    setMonthCustomDays((prev) => prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]);
+    setMonthCustomDays((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day],
+    );
 
   const previewCount = (() => {
     try {
       if (scheduleType === "custom") return customDate ? 1 : 0;
       if (scheduleType === "weekly") {
         if (weeklyDays.length === 0) return 0;
-        const start = new Date(); start.setHours(0, 0, 0, 0);
-        const end = new Date(start); end.setDate(end.getDate() + weekDuration * 7 - 1);
+        const start = new Date();
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(start);
+        end.setDate(end.getDate() + weekDuration * 7 - 1);
         return getDatesByDayNames(start, end, weeklyDays).length;
       }
       if (scheduleType === "monthly") {
-        if (monthDayFilter === "custom" && monthCustomDays.length === 0) return 0;
-        return getDatesInMonth(selectedMonth, monthDayFilter, monthCustomDays).length;
+        if (monthDayFilter === "custom" && monthCustomDays.length === 0)
+          return 0;
+        return getDatesInMonth(selectedMonth, monthDayFilter, monthCustomDays)
+          .length;
       }
-    } catch { return 0; }
+    } catch {
+      return 0;
+    }
     return 0;
   })();
 
   if (fetchLoading) {
     return (
       <div className={styles.dashboardLayout}>
-        <DoctorSidebar />
+        <DoctorSidebar onLogout={handleLogout} />
         <main className={styles.mainContent}>
           <div className={styles.loadingContainer}>
             <div className={styles.loadingSpinner} />
@@ -417,7 +502,10 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
 
   return (
     <div className={styles.dashboardLayout}>
-      <DoctorSidebar isProfileIncomplete={isProfileIncomplete} />
+      <DoctorSidebar
+        isProfileIncomplete={isProfileIncomplete}
+        onLogout={handleLogout}
+      />
 
       <main className={styles.mainContent}>
         <div className={styles.wrapper}>
@@ -452,9 +540,11 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
                 <button
                   key={tab}
                   className={`${styles.tabBtn} ${activeTab === tab ? styles.activeTabBtn : ""}`}
-                  onClick={() => setActiveTab(tab)}
+                  onClick={() => handleTabSwitch(tab)}
                 >
-                  {tab === "profile" ? "Profile Details" : "Availability Engine"}
+                  {tab === "profile"
+                    ? "Profile Details"
+                    : "Availability Engine"}
                 </button>
               ))}
             </div>
@@ -467,13 +557,29 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
                 <h2 className={styles.sectionHeading}>Personal Information</h2>
                 <div className={styles.formGridRow}>
                   <div className={styles.inputBox}>
-                    <label>Phone Number <span className={styles.asterisk}>*</span></label>
-                    <input type="tel" name="phone" value={profileData.phone} onChange={handleProfileChange} required placeholder="+91" />
+                    <label>
+                      Phone Number <span className={styles.asterisk}>*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={profileData.phone}
+                      onChange={handleProfileChange}
+                      required
+                      placeholder="+91"
+                    />
                   </div>
                   <div className={styles.inputBox}>
-                    <label>Gender <span className={styles.asterisk}>*</span></label>
+                    <label>
+                      Gender <span className={styles.asterisk}>*</span>
+                    </label>
                     <div className={styles.selectWrapper}>
-                      <select name="gender" value={profileData.gender} onChange={handleProfileChange} required>
+                      <select
+                        name="gender"
+                        value={profileData.gender}
+                        onChange={handleProfileChange}
+                        required
+                      >
                         <option value="">Select Gender</option>
                         <option value="male">Male</option>
                         <option value="female">Female</option>
@@ -482,75 +588,187 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
                     </div>
                   </div>
                   <div className={styles.inputBox}>
-                    <label>Date of Birth <span className={styles.asterisk}>*</span></label>
-                    <input type="date" name="dateOfBirth" value={profileData.dateOfBirth ? profileData.dateOfBirth.split("T")[0] : ""} onChange={handleProfileChange} required />
+                    <label>
+                      Date of Birth <span className={styles.asterisk}>*</span>
+                    </label>
+                    <input
+                      type="date"
+                      name="dateOfBirth"
+                      value={
+                        profileData.dateOfBirth
+                          ? profileData.dateOfBirth.split("T")[0]
+                          : ""
+                      }
+                      onChange={handleProfileChange}
+                      required
+                    />
                   </div>
                 </div>
               </div>
 
               <div className={styles.formSection}>
-                <h2 className={styles.sectionHeading}>Professional Credentials</h2>
+                <h2 className={styles.sectionHeading}>
+                  Professional Credentials
+                </h2>
                 <div className={styles.formGridRow}>
                   <div className={styles.inputBox}>
-                    <label>Specialization <span className={styles.asterisk}>*</span></label>
-                    <input type="text" name="specialization" value={profileData.specialization} onChange={handleProfileChange} placeholder="e.g., Cardiology" required />
+                    <label>
+                      Specialization <span className={styles.asterisk}>*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="specialization"
+                      value={profileData.specialization}
+                      onChange={handleProfileChange}
+                      placeholder="e.g., Cardiology"
+                      required
+                    />
                   </div>
                   <div className={styles.inputBox}>
                     <label>Super Specialization</label>
-                    <input type="text" name="superSpecialization" value={profileData.superSpecialization} onChange={handleProfileChange} placeholder="e.g., Pediatric Cardiology" />
+                    <input
+                      type="text"
+                      name="superSpecialization"
+                      value={profileData.superSpecialization}
+                      onChange={handleProfileChange}
+                      placeholder="e.g., Pediatric Cardiology"
+                    />
                   </div>
                   <div className={styles.inputBox}>
-                    <label>Qualification <span className={styles.asterisk}>*</span></label>
-                    <input type="text" name="qualification" value={profileData.qualification} onChange={handleProfileChange} placeholder="e.g., MBBS, MD" required />
+                    <label>
+                      Qualification <span className={styles.asterisk}>*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="qualification"
+                      value={profileData.qualification}
+                      onChange={handleProfileChange}
+                      placeholder="e.g., MBBS, MD"
+                      required
+                    />
                   </div>
                 </div>
                 <div className={styles.formGridRow}>
                   <div className={styles.inputBox}>
-                    <label>Medical Reg. No. <span className={styles.asterisk}>*</span></label>
-                    <input type="text" name="medicalRegistrationNumber" value={profileData.medicalRegistrationNumber} onChange={handleProfileChange} required placeholder="State Medical Council Reg" />
+                    <label>
+                      Medical Reg. No.{" "}
+                      <span className={styles.asterisk}>*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="medicalRegistrationNumber"
+                      value={profileData.medicalRegistrationNumber}
+                      onChange={handleProfileChange}
+                      required
+                      placeholder="State Medical Council Reg"
+                    />
                   </div>
                   <div className={styles.inputBox}>
-                    <label>Experience (Years) <span className={styles.asterisk}>*</span></label>
-                    <input type="number" name="experience" value={profileData.experience} onChange={handleProfileChange} min="0" required />
+                    <label>
+                      Experience (Years){" "}
+                      <span className={styles.asterisk}>*</span>
+                    </label>
+                    <input
+                      type="number"
+                      name="experience"
+                      value={profileData.experience}
+                      onChange={handleProfileChange}
+                      min="0"
+                      required
+                    />
                   </div>
                   <div className={styles.inputBox}>
-                    <label>Hospital Name <span className={styles.asterisk}>*</span></label>
-                    <input type="text" name="hospitalName" value={profileData.hospitalName} onChange={handleProfileChange} required />
+                    <label>
+                      Hospital Name <span className={styles.asterisk}>*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="hospitalName"
+                      value={profileData.hospitalName}
+                      onChange={handleProfileChange}
+                      required
+                    />
                   </div>
                 </div>
                 <div className={styles.formGridRow}>
                   <div className={styles.inputBox}>
-                    <label>Consultation Fee (₹) <span className={styles.asterisk}>*</span></label>
-                    <input type="number" name="consultationFee" value={profileData.consultationFee} onChange={handleProfileChange} min="0" required placeholder="0.00" />
+                    <label>
+                      Consultation Fee (₹){" "}
+                      <span className={styles.asterisk}>*</span>
+                    </label>
+                    <input
+                      type="number"
+                      name="consultationFee"
+                      value={profileData.consultationFee}
+                      onChange={handleProfileChange}
+                      min="0"
+                      required
+                      placeholder="0.00"
+                    />
                   </div>
                   <div className={styles.inputBox}>
                     <label>Languages Spoken</label>
-                    <input type="text" name="languagesSpoken" value={profileData.languagesSpoken} onChange={handleProfileChange} placeholder="English, Hindi, Marathi" />
+                    <input
+                      type="text"
+                      name="languagesSpoken"
+                      value={profileData.languagesSpoken}
+                      onChange={handleProfileChange}
+                      placeholder="English, Hindi, Marathi"
+                    />
                   </div>
                 </div>
               </div>
 
               <div className={styles.formSection}>
-                <h2 className={styles.sectionHeading}>Standard Operating Hours</h2>
+                <h2 className={styles.sectionHeading}>
+                  Standard Operating Hours
+                </h2>
                 <div className={styles.inputBox}>
-                  <label>Working Days <span className={styles.asterisk}>*</span></label>
+                  <label>
+                    Working Days <span className={styles.asterisk}>*</span>
+                  </label>
                   <div className={styles.checkboxPillGroup}>
                     {WORKING_DAYS.map((day) => (
                       <label key={day} className={styles.checkboxPill}>
-                        <input type="checkbox" checked={profileData.workingDays.includes(day)} onChange={() => handleProfileCheckbox("workingDays", day)} />
+                        <input
+                          type="checkbox"
+                          checked={profileData.workingDays.includes(day)}
+                          onChange={() =>
+                            handleProfileCheckbox("workingDays", day)
+                          }
+                        />
                         <span>{day}</span>
                       </label>
                     ))}
                   </div>
                 </div>
-                <div className={styles.formGridRow} style={{ marginTop: "24px", maxWidth: "500px" }}>
+                <div
+                  className={styles.formGridRow}
+                  style={{ marginTop: "24px", maxWidth: "500px" }}
+                >
                   <div className={styles.inputBox}>
-                    <label>Start Time <span className={styles.asterisk}>*</span></label>
-                    <input type="time" name="startTime" value={profileData.startTime} onChange={handleProfileChange} required />
+                    <label>
+                      Start Time <span className={styles.asterisk}>*</span>
+                    </label>
+                    <input
+                      type="time"
+                      name="startTime"
+                      value={profileData.startTime}
+                      onChange={handleProfileChange}
+                      required
+                    />
                   </div>
                   <div className={styles.inputBox}>
-                    <label>End Time <span className={styles.asterisk}>*</span></label>
-                    <input type="time" name="endTime" value={profileData.endTime} onChange={handleProfileChange} required />
+                    <label>
+                      End Time <span className={styles.asterisk}>*</span>
+                    </label>
+                    <input
+                      type="time"
+                      name="endTime"
+                      value={profileData.endTime}
+                      onChange={handleProfileChange}
+                      required
+                    />
                   </div>
                 </div>
               </div>
@@ -558,33 +776,69 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
               <div className={styles.formSection}>
                 <h2 className={styles.sectionHeading}>Practice Details</h2>
                 <div className={styles.inputBox}>
-                  <label>Consultation Modes <span className={styles.asterisk}>*</span></label>
+                  <label>
+                    Consultation Modes{" "}
+                    <span className={styles.asterisk}>*</span>
+                  </label>
                   <div className={styles.checkboxPillGroup}>
                     {MODE_OPTIONS.map((mode) => (
                       <label key={mode} className={styles.checkboxPill}>
-                        <input type="checkbox" checked={profileData.consultationModes.includes(mode)} onChange={() => handleProfileCheckbox("consultationModes", mode)} />
-                        <span>{mode.charAt(0).toUpperCase() + mode.slice(1)}</span>
+                        <input
+                          type="checkbox"
+                          checked={profileData.consultationModes.includes(mode)}
+                          onChange={() =>
+                            handleProfileCheckbox("consultationModes", mode)
+                          }
+                        />
+                        <span>
+                          {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                        </span>
                       </label>
                     ))}
                   </div>
                 </div>
-                <div className={styles.formGridRow} style={{ marginTop: "24px" }}>
+                <div
+                  className={styles.formGridRow}
+                  style={{ marginTop: "24px" }}
+                >
                   <div className={styles.inputBox}>
                     <label>Short Bio</label>
-                    <textarea name="shortBio" value={profileData.shortBio} onChange={handleProfileChange} placeholder="Write a brief 1-2 sentence hook for patients..." rows="2" />
+                    <textarea
+                      name="shortBio"
+                      value={profileData.shortBio}
+                      onChange={handleProfileChange}
+                      placeholder="Write a brief 1-2 sentence hook for patients..."
+                      rows="2"
+                    />
                   </div>
                 </div>
                 <div className={styles.formGridRow}>
                   <div className={styles.inputBox}>
                     <label>About You</label>
-                    <textarea name="aboutDoctor" value={profileData.aboutDoctor} onChange={handleProfileChange} placeholder="Detail your background, approach to care, and specific treatments..." rows="4" />
+                    <textarea
+                      name="aboutDoctor"
+                      value={profileData.aboutDoctor}
+                      onChange={handleProfileChange}
+                      placeholder="Detail your background, approach to care, and specific treatments..."
+                      rows="4"
+                    />
                   </div>
                 </div>
               </div>
 
               <div className={styles.formFooter}>
-                <button type="submit" className={styles.primaryBtn} disabled={loading}>
-                  {loading ? <><span className={styles.btnSpinner} /> Saving...</> : "Save Changes"}
+                <button
+                  type="submit"
+                  className={styles.primaryBtn}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
+                      <span className={styles.btnSpinner} /> Saving...
+                    </>
+                  ) : (
+                    "Save Changes"
+                  )}
                 </button>
               </div>
             </form>
@@ -593,38 +847,69 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
           {/* ── AVAILABILITY TAB ─────────────────────────────────────────── */}
           {activeTab === "availability" && (
             <div className={styles.splitLayout}>
-              
               {/* LEFT — Builder */}
-              <form className={styles.saasCard} onSubmit={handleAvailabilitySubmit}>
+              <form
+                className={styles.saasCard}
+                onSubmit={handleAvailabilitySubmit}
+              >
                 <div className={styles.cardHeaderArea}>
                   <h2 className={styles.cardTitle}>Schedule Builder</h2>
-                  <p className={styles.cardSub}>Generate booking slots for your patients.</p>
+                  <p className={styles.cardSub}>
+                    Generate booking slots for your patients.
+                  </p>
                 </div>
 
                 <div className={styles.builderBody}>
                   <div className={styles.configBlock}>
-                    <label className={styles.blockLabel}>Distribution Pattern</label>
-                    <ScheduleTypeSelector value={scheduleType} onChange={(t) => { setScheduleType(t); setSlots([emptySlot()]); }} />
+                    <label className={styles.blockLabel}>
+                      Distribution Pattern
+                    </label>
+                    <ScheduleTypeSelector
+                      value={scheduleType}
+                      onChange={(t) => {
+                        setScheduleType(t);
+                        setSlots([emptySlot()]);
+                      }}
+                    />
                   </div>
 
                   {scheduleType === "custom" && (
                     <div className={styles.configBlock}>
                       <label className={styles.blockLabel}>Target Date</label>
-                      <input type="date" className={styles.standaloneInput} value={customDate} onChange={(e) => setCustomDate(e.target.value)} min={toYYYYMMDD(new Date())} required />
+                      <input
+                        type="date"
+                        className={styles.standaloneInput}
+                        value={customDate}
+                        onChange={(e) => setCustomDate(e.target.value)}
+                        min={toYYYYMMDD(new Date())}
+                        required
+                      />
                     </div>
                   )}
 
                   {scheduleType === "weekly" && (
                     <>
                       <div className={styles.configBlock}>
-                        <label className={styles.blockLabel}>Recurring Days</label>
-                        <DayCheckboxGrid selected={weeklyDays} onChange={toggleWeeklyDay} />
+                        <label className={styles.blockLabel}>
+                          Recurring Days
+                        </label>
+                        <DayCheckboxGrid
+                          selected={weeklyDays}
+                          onChange={toggleWeeklyDay}
+                        />
                       </div>
                       <div className={styles.configBlock}>
-                        <label className={styles.blockLabel}>Rollout Duration</label>
+                        <label className={styles.blockLabel}>
+                          Rollout Duration
+                        </label>
                         <div className={styles.presetGrid}>
                           {WEEK_DURATIONS.map(({ value, label }) => (
-                            <button key={value} type="button" className={`${styles.presetBtn} ${weekDuration === value ? styles.presetBtnActive : ""}`} onClick={() => setWeekDuration(value)}>
+                            <button
+                              key={value}
+                              type="button"
+                              className={`${styles.presetBtn} ${weekDuration === value ? styles.presetBtnActive : ""}`}
+                              onClick={() => setWeekDuration(value)}
+                            >
                               {label}
                             </button>
                           ))}
@@ -636,21 +921,40 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
                   {scheduleType === "monthly" && (
                     <>
                       <div className={styles.configBlock}>
-                        <label className={styles.blockLabel}>Target Month</label>
-                        <input type="month" className={styles.standaloneInput} value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} min={`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`} />
+                        <label className={styles.blockLabel}>
+                          Target Month
+                        </label>
+                        <input
+                          type="month"
+                          className={styles.standaloneInput}
+                          value={selectedMonth}
+                          onChange={(e) => setSelectedMonth(e.target.value)}
+                          min={`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`}
+                        />
                       </div>
                       <div className={styles.configBlock}>
                         <label className={styles.blockLabel}>Day Filters</label>
                         <div className={styles.presetGrid}>
                           {MONTH_DAY_PRESETS.map(({ key, label }) => (
-                            <button key={key} type="button" className={`${styles.presetBtn} ${monthDayFilter === key ? styles.presetBtnActive : ""}`} onClick={() => { setMonthDayFilter(key); setMonthCustomDays([]); }}>
+                            <button
+                              key={key}
+                              type="button"
+                              className={`${styles.presetBtn} ${monthDayFilter === key ? styles.presetBtnActive : ""}`}
+                              onClick={() => {
+                                setMonthDayFilter(key);
+                                setMonthCustomDays([]);
+                              }}
+                            >
                               {label}
                             </button>
                           ))}
                         </div>
                         {monthDayFilter === "custom" && (
                           <div style={{ marginTop: "12px" }}>
-                            <DayCheckboxGrid selected={monthCustomDays} onChange={toggleMonthCustomDay} />
+                            <DayCheckboxGrid
+                              selected={monthCustomDays}
+                              onChange={toggleMonthCustomDay}
+                            />
                           </div>
                         )}
                       </div>
@@ -659,23 +963,49 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
 
                   {/* Enhanced Slot Editor */}
                   <div className={styles.configBlock}>
-                    <SlotEditor slots={slots} onChange={handleSlotChange} onAdd={addSlot} onRemove={removeSlot} />
+                    <SlotEditor
+                      slots={slots}
+                      onChange={handleSlotChange}
+                      onAdd={addSlot}
+                      onRemove={removeSlot}
+                    />
                   </div>
 
                   {previewCount > 0 && (
                     <div className={styles.summaryBanner}>
-                      <div className={styles.bannerIcon}><FiCheckCircle size={16} /></div>
+                      <div className={styles.bannerIcon}>
+                        <FiCheckCircle size={16} />
+                      </div>
                       <div className={styles.bannerText}>
-                        Generating slots for <strong>{previewCount} day{previewCount !== 1 ? "s" : ""}</strong>.
-                        {scheduleType === "weekly" && weeklyDays.length > 0 && ` Rolling out over ${weekDuration} weeks.`}
+                        Generating slots for{" "}
+                        <strong>
+                          {previewCount} day{previewCount !== 1 ? "s" : ""}
+                        </strong>
+                        .
+                        {scheduleType === "weekly" &&
+                          weeklyDays.length > 0 &&
+                          ` Rolling out over ${weekDuration} weeks.`}
                       </div>
                     </div>
                   )}
                 </div>
 
                 <div className={styles.formFooter}>
-                  <button type="submit" className={styles.primaryBtn} disabled={loading || previewCount === 0} style={{ width: '100%' }}>
-                    {loading ? <><span className={styles.btnSpinner} /> Compiling...</> : previewCount > 0 ? `Publish ${previewCount} Day${previewCount !== 1 ? "s" : ""}` : "Publish Schedule"}
+                  <button
+                    type="submit"
+                    className={styles.primaryBtn}
+                    disabled={loading || previewCount === 0}
+                    style={{ width: "100%" }}
+                  >
+                    {loading ? (
+                      <>
+                        <span className={styles.btnSpinner} /> Compiling...
+                      </>
+                    ) : previewCount > 0 ? (
+                      `Publish ${previewCount} Day${previewCount !== 1 ? "s" : ""}`
+                    ) : (
+                      "Publish Schedule"
+                    )}
                   </button>
                 </div>
               </form>
@@ -696,29 +1026,49 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
                 ) : (
                   <div className={styles.timelineList}>
                     {existingAvailability.map((avail) => {
-                      const booked = avail.slots?.filter((s) => s.isBooked).length || 0;
+                      const booked =
+                        avail.slots?.filter((s) => s.isBooked).length || 0;
                       const total = avail.slots?.length || 0;
                       return (
-                        <div key={avail._id || Math.random()} className={styles.timelineCard}>
+                        <div
+                          key={avail._id || Math.random()}
+                          className={styles.timelineCard}
+                        >
                           <div className={styles.tCardHeader}>
                             <h3>{formatDate(avail.availableDate)}</h3>
                             <div className={styles.tCardBadges}>
-                              {booked > 0 && <span className={styles.badgeWarning}>{booked}/{total} Booked</span>}
-                              <span className={avail.isActive ? styles.badgeSuccess : styles.badgeMuted}>
+                              {booked > 0 && (
+                                <span className={styles.badgeWarning}>
+                                  {booked}/{total} Booked
+                                </span>
+                              )}
+                              <span
+                                className={
+                                  avail.isActive
+                                    ? styles.badgeSuccess
+                                    : styles.badgeMuted
+                                }
+                              >
                                 {avail.isActive ? "Live" : "Draft"}
                               </span>
                             </div>
                           </div>
 
                           <div className={styles.tCardBody}>
-                            {Array.isArray(avail.slots) && avail.slots.length > 0 ? (
+                            {Array.isArray(avail.slots) &&
+                            avail.slots.length > 0 ? (
                               avail.slots.map((slot, i) => (
-                                <div key={i} className={`${styles.microSlot} ${slot.isBooked ? styles.microSlotBooked : styles.microSlotFree}`}>
+                                <div
+                                  key={i}
+                                  className={`${styles.microSlot} ${slot.isBooked ? styles.microSlotBooked : styles.microSlotFree}`}
+                                >
                                   {slot.startTime} - {slot.endTime}
                                 </div>
                               ))
                             ) : (
-                              <span className={styles.noSlotsText}>Empty Configuration</span>
+                              <span className={styles.noSlotsText}>
+                                Empty Configuration
+                              </span>
                             )}
                           </div>
                         </div>

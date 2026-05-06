@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   FiSearch,
   FiFilter,
@@ -15,12 +16,27 @@ import styles from "./MyPatients.module.css";
 import { consultationApi } from "../../utils/api";
 
 export default function MyPatients() {
+  const navigate = useNavigate();
   const [patients, setPatients] = useState([]);
   const [filteredPatients, setFilteredPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("consultations");
   const [expandedPatient, setExpandedPatient] = useState(null);
+
+  /*
+  ==================================================
+  LOGOUT
+  ==================================================
+  */
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("user");
+    localStorage.removeItem("userId");
+    navigate("/auth");
+  };
 
   // Fetch consultations and process patient data
   useEffect(() => {
@@ -132,10 +148,10 @@ export default function MyPatients() {
   if (loading) {
     return (
       <div className={styles.dashboardLayout}>
-        <DoctorSidebar />
+        <DoctorSidebar onLogout={handleLogout} />
         <main className={styles.mainContent}>
           <div className={styles.loadingContainer}>
-            <FiLoader className={styles.spinner} size={32} />
+            <FiLoader className={styles.spinner} />
             <p>Loading patients...</p>
           </div>
         </main>
@@ -145,7 +161,7 @@ export default function MyPatients() {
 
   return (
     <div className={styles.dashboardLayout}>
-      <DoctorSidebar />
+      <DoctorSidebar onLogout={handleLogout} />
 
       <main className={styles.mainContent}>
         <div className={styles.wrapper}>

@@ -136,22 +136,24 @@ const doctorProfileSchema = new mongoose.Schema(
     },
 
     clinicAddress: {
-      apartment: String,
-      street: String,
-      district: String,
-      city: String,
-      pinCode: String,
-      state: String,
-      coordinates: {
-        type: {
-          type: String,
-          enum: ["Point"],
-          default: "Point",
-        },
+      type: {
+        apartment: String,
+        street: String,
+        district: String,
+        city: String,
+        pinCode: String,
+        state: String,
         coordinates: {
-          type: [Number], // [longitude, latitude]
+          type: {
+            type: String,
+            enum: ["Point"],
+          },
+          coordinates: {
+            type: [Number], // [longitude, latitude]
+          },
         },
       },
+      default: null,
     },
 
     profileCompleted: {
@@ -171,6 +173,31 @@ const doctorProfileSchema = new mongoose.Schema(
 );
 
 // Create geospatial index for location queries
-doctorProfileSchema.index({ "clinicAddress.coordinates": "2dsphere" });
+// sparse: true ensures index only applies to documents with valid coordinates
+doctorProfileSchema.index(
+  { "clinicAddress.coordinates": "2dsphere" },
+  { sparse: true },
+);
+
+// Pre-save middleware to clean up incomplete coordinates
+doctorProfileSchema.pre("save", function (next) {
+  try {
+    // If clinicAddress exists but coordinates are incomplete, remove them
+    if (this.clinicAddress && this.clinicAddress.coordinates) {
+      const coords = this.clinicAddress.coordinates;
+      // Remove coordinates if type is missing or coordinates array is empty
+      if (
+        !coords.type ||
+        !Array.isArray(coords.coordinates) ||
+        coords.coordinates.length === 0
+      ) {
+        delete this.clinicAddress.coordinates;
+      }
+    }
+  } catch (err) {
+    console.error("Pre-save hook error:", err);
+  }
+  return next();
+});
 
 export default mongoose.model("DoctorProfile", doctorProfileSchema);

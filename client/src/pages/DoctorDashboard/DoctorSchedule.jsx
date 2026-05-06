@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   FiLoader,
   FiCalendar,
@@ -22,6 +23,7 @@ import {
 import styles from "./DoctorSchedule.module.css";
 
 export default function DoctorSchedule({ isProfileIncomplete = false }) {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [availability, setAvailability] = useState([]);
   const [consultations, setConsultations] = useState([]);
@@ -245,10 +247,28 @@ export default function DoctorSchedule({ isProfileIncomplete = false }) {
     }
   };
 
+  /*
+  ==================================================
+  LOGOUT
+  ==================================================
+  */
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("user");
+    localStorage.removeItem("userId");
+    navigate("/auth");
+  };
+
   if (loading) {
     return (
       <div className={styles.scheduleContainer}>
-        <DoctorSidebar user={user} isProfileIncomplete={isProfileIncomplete} />
+        <DoctorSidebar
+          user={user}
+          isProfileIncomplete={isProfileIncomplete}
+          onLogout={handleLogout}
+        />
         <div className={styles.loadingContainer}>
           <FiLoader className={styles.spinner} />
           <p>Loading schedule...</p>
@@ -267,11 +287,13 @@ export default function DoctorSchedule({ isProfileIncomplete = false }) {
 
   return (
     <div className={styles.scheduleContainer}>
-      <DoctorSidebar user={user} isProfileIncomplete={isProfileIncomplete} />
+      <DoctorSidebar
+        user={user}
+        isProfileIncomplete={isProfileIncomplete}
+        onLogout={handleLogout}
+      />
 
       <main className={styles.scheduleContent}>
-
-
         <header className={styles.header}>
           <h1>Schedule</h1>
           <p>Manage your availability and upcoming consultations.</p>
@@ -288,11 +310,15 @@ export default function DoctorSchedule({ isProfileIncomplete = false }) {
             <span className={styles.ghostLabel}>Booked</span>
           </div>
           <div className={styles.ghostStat}>
-            <span className={styles.ghostValue}>{analytics.completedConsultations}</span>
+            <span className={styles.ghostValue}>
+              {analytics.completedConsultations}
+            </span>
             <span className={styles.ghostLabel}>Completed</span>
           </div>
           <div className={styles.ghostStat}>
-            <span className={styles.ghostValue}>{analytics.workingHours.toFixed(1)}h</span>
+            <span className={styles.ghostValue}>
+              {analytics.workingHours.toFixed(1)}h
+            </span>
             <span className={styles.ghostLabel}>Hours</span>
           </div>
         </div>
@@ -301,7 +327,11 @@ export default function DoctorSchedule({ isProfileIncomplete = false }) {
         <div className={styles.weekTimeline}>
           <button
             className={styles.navButton}
-            onClick={() => setCurrentDate(new Date(currentDate.getTime() - 7 * 24 * 60 * 60 * 1000))}
+            onClick={() =>
+              setCurrentDate(
+                new Date(currentDate.getTime() - 7 * 24 * 60 * 60 * 1000),
+              )
+            }
           >
             <FiChevronLeft size={24} />
           </button>
@@ -310,7 +340,8 @@ export default function DoctorSchedule({ isProfileIncomplete = false }) {
             {weekDates.map((date, idx) => {
               const dayAvailability = getAvailabilityForDate(date);
               const dayCons = getConsultationsForDate(date);
-              const isSelected = selectedDate?.toDateString() === date.toDateString();
+              const isSelected =
+                selectedDate?.toDateString() === date.toDateString();
 
               const hasSlots = dayAvailability?.slots?.length > 0;
               const hasBookings = dayCons.length > 0;
@@ -321,12 +352,20 @@ export default function DoctorSchedule({ isProfileIncomplete = false }) {
                   className={`${styles.dayItem} ${isSelected ? styles.dayItemActive : ""}`}
                   onClick={() => setSelectedDate(new Date(date))}
                 >
-                  <span className={styles.dayName}>{date.toLocaleDateString("en-US", { weekday: "short" })}</span>
+                  <span className={styles.dayName}>
+                    {date.toLocaleDateString("en-US", { weekday: "short" })}
+                  </span>
                   <span className={styles.dayNumber}>{date.getDate()}</span>
                   <div className={styles.dotIndicators}>
-                    {hasSlots && <div className={`${styles.dot} ${styles.free}`}></div>}
-                    {hasBookings && <div className={`${styles.dot} ${styles.booked}`}></div>}
-                    {!hasSlots && !hasBookings && <div className={styles.dot}></div>}
+                    {hasSlots && (
+                      <div className={`${styles.dot} ${styles.free}`}></div>
+                    )}
+                    {hasBookings && (
+                      <div className={`${styles.dot} ${styles.booked}`}></div>
+                    )}
+                    {!hasSlots && !hasBookings && (
+                      <div className={styles.dot}></div>
+                    )}
                   </div>
                 </div>
               );
@@ -335,7 +374,11 @@ export default function DoctorSchedule({ isProfileIncomplete = false }) {
 
           <button
             className={styles.navButton}
-            onClick={() => setCurrentDate(new Date(currentDate.getTime() + 7 * 24 * 60 * 60 * 1000))}
+            onClick={() =>
+              setCurrentDate(
+                new Date(currentDate.getTime() + 7 * 24 * 60 * 60 * 1000),
+              )
+            }
           >
             <FiChevronRight size={24} />
           </button>
@@ -346,7 +389,11 @@ export default function DoctorSchedule({ isProfileIncomplete = false }) {
           <div className={styles.agendaContainer}>
             <div className={styles.agendaHeader}>
               <h2 className={styles.agendaDateTitle}>
-                {selectedDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+                {selectedDate.toLocaleDateString("en-US", {
+                  weekday: "long",
+                  month: "long",
+                  day: "numeric",
+                })}
               </h2>
               <p className={styles.agendaSubtitle}>
                 {selectedDateAvailability?.slots?.length || 0} slots available
@@ -356,50 +403,89 @@ export default function DoctorSchedule({ isProfileIncomplete = false }) {
             {selectedDateAvailability?.slots?.length > 0 ? (
               <div className={styles.timelineList}>
                 {selectedDateAvailability.slots.map((slot, idx) => {
-                  const consultation = selectedDateConsultations.find(
-                    (c) => c.startTime === slot.startTime && c.endTime === slot.endTime
+                  // Try to find consultation by ID first (most reliable)
+                  // Then fall back to matching by time
+                  let consultation = null;
+                  if (slot.consultationId) {
+                    consultation = selectedDateConsultations.find(
+                      (c) => c._id === slot.consultationId,
+                    );
+                  }
+                  // Fallback to time-based matching if ID lookup failed
+                  if (!consultation && slot.isBooked) {
+                    consultation = selectedDateConsultations.find(
+                      (c) =>
+                        c.startTime === slot.startTime &&
+                        c.endTime === slot.endTime,
+                    );
+                  }
+
+                  const slotExpired = isSlotExpired(
+                    selectedDateAvailability.availableDate,
+                    slot.endTime,
                   );
-                  const slotExpired = isSlotExpired(selectedDateAvailability.availableDate, slot.endTime);
 
                   return (
                     <div key={idx} className={styles.timelineRow}>
-                      
                       {/* Left: Time */}
                       <div className={styles.timeCol}>
-                        {formatTime(slot.startTime)} - {formatTime(slot.endTime)}
+                        {formatTime(slot.startTime)} -{" "}
+                        {formatTime(slot.endTime)}
                       </div>
 
                       {/* Middle: Info */}
                       <div className={styles.infoCol}>
-                        {slot.isBooked && consultation ? (
-                          <>
-                            <p className={styles.patientName}>{consultation.patient?.name || "Patient"}</p>
-                            <p className={styles.consultationType}>
-                              {getConsultationIcon(consultation.consultationType)}
-                              {consultation.consultationType.charAt(0).toUpperCase() + consultation.consultationType.slice(1)}
-                            </p>
-                          </>
+                        {slot.isBooked ? (
+                          consultation ? (
+                            <>
+                              <p className={styles.patientName}>
+                                {consultation.patient?.name || "Patient"}
+                              </p>
+                              <p className={styles.consultationType}>
+                                {getConsultationIcon(
+                                  consultation.consultationType,
+                                )}
+                                {consultation.consultationType
+                                  .charAt(0)
+                                  .toUpperCase() +
+                                  consultation.consultationType.slice(1)}
+                              </p>
+                            </>
+                          ) : (
+                            <span className={styles.bookedText}>Booked</span>
+                          )
                         ) : slotExpired ? (
                           <span className={styles.expiredText}>Expired</span>
                         ) : (
-                          <span className={styles.freeText}>Available for booking</span>
+                          <span className={styles.freeText}>
+                            Available for booking
+                          </span>
                         )}
                       </div>
 
                       {/* Right: Status */}
                       <div className={styles.actionCol}>
-                        {slot.isBooked && consultation ? (
-                          <div className={`${styles.tinyStatusPill} ${consultation.status === 'completed' ? styles.pillCompleted : styles.pillBooked}`}>
+                        {slot.isBooked ? (
+                          <div
+                            className={`${styles.tinyStatusPill} ${consultation?.status === "completed" ? styles.pillCompleted : styles.pillBooked}`}
+                          >
                             <div className={styles.pillDot}></div>
-                            {consultation.status.charAt(0).toUpperCase() + consultation.status.slice(1)}
+                            {consultation
+                              ? consultation.status.charAt(0).toUpperCase() +
+                                consultation.status.slice(1)
+                              : "Booked"}
                           </div>
                         ) : slotExpired ? (
-                          <div className={`${styles.tinyStatusPill} ${styles.pillExpired}`}>
+                          <div
+                            className={`${styles.tinyStatusPill} ${styles.pillExpired}`}
+                          >
                             <div className={styles.pillDot}></div>
                             Passed
                           </div>
                         ) : (
-                          <div className={`${styles.tinyStatusPill} ${styles.pillAvailable}`}>
+                          <div
+                            className={`${styles.tinyStatusPill} ${styles.pillAvailable}`}
+                          >
                             <div className={styles.pillDot}></div>
                             Free
                           </div>
