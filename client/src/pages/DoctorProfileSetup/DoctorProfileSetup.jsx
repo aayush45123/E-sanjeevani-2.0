@@ -240,65 +240,19 @@ export default function DoctorProfileSetup({ isProfileIncomplete = true }) {
     setIsEditMode(false);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("doctorProfileCompleted");
+    navigate("/");
+  };
+
   return (
     <div className={styles.dashboardLayout}>
-      {/* ═══════════════════════════════════════════════════════════
-          BANNER: Prompt old doctors to add clinic address
-          ═══════════════════════════════════════════════════════════ */}
-      {isProfileComplete && !isEditMode && (
-        <div
-          style={{
-            background: "linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%)",
-            border: "1px solid #fbbf24",
-            padding: "16px 24px",
-            margin: "0 0 24px 0",
-            borderRadius: "8px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.08)",
-          }}
-        >
-          <div>
-            <p
-              style={{
-                margin: "0 0 4px 0",
-                fontWeight: "600",
-                color: "#78350f",
-              }}
-            >
-              📍 Enhance Your Profile
-            </p>
-            <p
-              style={{
-                margin: "0",
-                fontSize: "14px",
-                color: "#92400e",
-              }}
-            >
-              Add your clinic address to appear in location-based searches and
-              help patients find you nearby.
-            </p>
-          </div>
-          <button
-            onClick={handleEditClick}
-            style={{
-              whiteSpace: "nowrap",
-              padding: "8px 16px",
-              background: "white",
-              border: "1px solid #fbbf24",
-              borderRadius: "6px",
-              cursor: "pointer",
-              fontWeight: "600",
-              color: "#78350f",
-              marginLeft: "16px",
-            }}
-          >
-            Add Address
-          </button>
-        </div>
-      )}
-      <DoctorSidebar isProfileIncomplete={true} />
+      <DoctorSidebar
+        isProfileIncomplete={!isProfileComplete}
+        onLogout={handleLogout}
+      />
 
       <main className={styles.mainContent}>
         <div className={styles.wrapper}>
