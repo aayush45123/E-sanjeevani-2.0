@@ -1,19 +1,15 @@
-// server/src/controllers/doctorAvailabilityController.js
+import { and, asc, eq } from "drizzle-orm";
 
-import DoctorAvailability from "../models/DoctorAvailability.js";
-import User from "../models/User.js";
-import DoctorProfile from "../models/DoctorProfile.js";
+import { db } from "../config/neonDb.js";
+
 import {
-  isSameDay,
-  isAfter,
-  isBefore,
-  parseISO,
-  startOfDay,
-  endOfDay,
-  getDay,
-  isWeekend,
-  getDate,
-} from "date-fns";
+  users,
+  doctorProfiles,
+  doctorAvailabilities,
+  availabilitySlots,
+} from "../db/schema/index.js";
+
+const SLOT_DURATION_MINUTES = 30;
 
 /*
 ========================================================
@@ -21,77 +17,259 @@ HELPERS
 ========================================================
 */
 
-const getDateOnly = (date) => {
-  const normalized = new Date(date);
-  normalized.setHours(0, 0, 0, 0);
-  return normalized;
+const getDateString = (value) => {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  const year = date.getFullYear();
+
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 };
 
-const getDayName = (date) =>
-  date.toLocaleDateString("en-US", {
+const getDayName = (value) => {
+  const date = new Date(value);
+
+  return date.toLocaleDateString("en-US", {
     weekday: "long",
   });
-
-const SLOT_DURATION_MINUTES = 30;
-
-/*
-========================================================
-AUTO SLOT BUILDER (fallback from doctor profile)
-========================================================
-*/
+};
 
 const buildSlots = (startTime, endTime) => {
-  const slots = [];
-
   if (!startTime || !endTime) {
-    return slots;
+    return [];
   }
 
   const [startHour, startMinute] = startTime.split(":").map(Number);
+
   const [endHour, endMinute] = endTime.split(":").map(Number);
 
-  const current = new Date(2000, 0, 1, startHour, startMinute, 0, 0);
+  const start = startHour * 60 + startMinute;
 
-  const end = new Date(2000, 0, 1, endHour, endMinute, 0, 0);
+  const end = endHour * 60 + endMinute;
 
-  while (current < end) {
-    const next = new Date(current.getTime() + SLOT_DURATION_MINUTES * 60000);
+  if (Number.isNaN(start) || Number.isNaN(end) || start >= end) {
+    return [];
+  }
 
-    if (next > end) {
-      break;
-    }
+  const slots = [];
 
-    const formatTime = (date) =>
-      `${String(date.getHours()).padStart(2, "0")}:${String(
-        date.getMinutes(),
-      ).padStart(2, "0")}`;
+  const formatMinutes = (totalMinutes) => {
+    const hour = Math.floor(totalMinutes / 60);
 
+    const minute = totalMinutes % 60;
+
+    return `${String(hour).padStart(2, "0")}:${String(minute).padStart(
+      2,
+      "0",
+    )}`;
+  };
+
+  for (
+    let minute = start;
+    minute + SLOT_DURATION_MINUTES <= end;
+    minute += SLOT_DURATION_MINUTES
+  ) {
     slots.push({
-      startTime: formatTime(current),
-      endTime: formatTime(next),
-      isBooked: false,
-      bookedBy: null,
-      consultationId: null,
-    });
+      startTime: formatMinutes(minute),
 
-    current.setTime(next.getTime());
+      endTime: formatMinutes(minute + SLOT_DURATION_MINUTES),
+    });
   }
 
   return slots;
 };
 
+const normalizeRequestedSlots = (slots) => {
+  if (!Array.isArray(slots)) {
+    return [];
+  }
+
+  const normalized = [];
+
+  for (const slot of slots) {
+    const startTime =
+      typeof slot?.startTime === "string" ? slot.startTime.trim() : "";
+
+    const endTime =
+      typeof slot?.endTime === "string" ? slot.endTime.trim() : "";
+
+    if (!startTime || !endTime) {
+      continue;
+    }
+
+    normalized.push({
+      startTime,
+      endTime,
+    });
+  }
+
+  /*
+    Remove duplicate requested slots.
+  */
+  return Array.from(
+    new Map(
+      normalized.map((slot) => [`${slot.startTime}-${slot.endTime}`, slot]),
+    ).values(),
+  );
+};
+
+const formatSlot = (slot) => ({
+  /*
+    MongoDB compatibility.
+  */
+  _id: slot.id,
+
+  id: slot.id,
+
+  startTime: slot.startTime,
+
+  endTime: slot.endTime,
+
+  isBooked: slot.isBooked,
+
+  bookedBy: slot.bookedById ?? null,
+
+  consultationId: slot.consultationId ?? null,
+});
+
+const formatAvailability = (availability, slots) => ({
+  /*
+    MongoDB compatibility.
+  */
+  _id: availability.id,
+
+  id: availability.id,
+
+  doctor: availability.doctorId,
+
+  doctorId: availability.doctorId,
+
+  availableDate: availability.availableDate,
+
+  slots: slots.map(formatSlot),
+
+  isActive: availability.isActive,
+
+  createdAt: availability.createdAt,
+
+  updatedAt: availability.updatedAt,
+});
+
+const getAvailabilityByDate = async (doctorId, availableDate) => {
+  const rows = await db
+    .select()
+    .from(doctorAvailabilities)
+    .where(
+      and(
+        eq(doctorAvailabilities.doctorId, doctorId),
+
+        eq(doctorAvailabilities.availableDate, availableDate),
+      ),
+    )
+    .limit(1);
+
+  return rows[0] ?? null;
+};
+
+const getSlotsForAvailability = async (availabilityId) => {
+  return db
+    .select()
+    .from(availabilitySlots)
+    .where(eq(availabilitySlots.availabilityId, availabilityId))
+    .orderBy(asc(availabilitySlots.startTime));
+};
+
 /*
 ========================================================
-FALLBACK:
-If exact availability not found,
-generate slots from doctor profile working schedule
+REPLACE UNBOOKED SLOTS
+
+IMPORTANT:
+
+Booked slots are preserved.
+
+Manual availability updates cannot erase an
+existing consultation booking.
 ========================================================
 */
 
-const getFallbackSlots = async (doctorId, date) => {
-  const profile = await DoctorProfile.findOne({
-    userId: doctorId,
-  });
+const replaceUnbookedSlots = async (availabilityId, requestedSlots) => {
+  await db.delete(availabilitySlots).where(
+    and(
+      eq(availabilitySlots.availabilityId, availabilityId),
+
+      eq(availabilitySlots.isBooked, false),
+    ),
+  );
+
+  const bookedSlots = await db
+    .select({
+      startTime: availabilitySlots.startTime,
+
+      endTime: availabilitySlots.endTime,
+    })
+    .from(availabilitySlots)
+    .where(
+      and(
+        eq(availabilitySlots.availabilityId, availabilityId),
+
+        eq(availabilitySlots.isBooked, true),
+      ),
+    );
+
+  const bookedKeys = new Set(
+    bookedSlots.map((slot) => `${slot.startTime}-${slot.endTime}`),
+  );
+
+  const slotsToInsert = requestedSlots.filter(
+    (slot) => !bookedKeys.has(`${slot.startTime}-${slot.endTime}`),
+  );
+
+  if (slotsToInsert.length > 0) {
+    await db.insert(availabilitySlots).values(
+      slotsToInsert.map((slot) => ({
+        availabilityId,
+
+        startTime: slot.startTime,
+
+        endTime: slot.endTime,
+
+        isBooked: false,
+      })),
+    );
+  }
+};
+
+/*
+========================================================
+FALLBACK FROM DOCTOR PROFILE
+
+Returns generated slots only.
+
+Database persistence is handled separately.
+========================================================
+*/
+
+const getFallbackSlots = async (doctorId, availableDate) => {
+  const rows = await db
+    .select({
+      workingDays: doctorProfiles.workingDays,
+
+      startTime: doctorProfiles.startTime,
+
+      endTime: doctorProfiles.endTime,
+    })
+    .from(doctorProfiles)
+    .where(eq(doctorProfiles.userId, doctorId))
+    .limit(1);
+
+  const profile = rows[0];
 
   if (!profile) {
     return [];
@@ -101,7 +279,7 @@ const getFallbackSlots = async (doctorId, date) => {
     return [];
   }
 
-  const requestedDay = getDayName(date);
+  const requestedDay = getDayName(`${availableDate}T12:00:00`);
 
   if (!profile.workingDays.includes(requestedDay)) {
     return [];
@@ -113,97 +291,102 @@ const getFallbackSlots = async (doctorId, date) => {
 /*
 ========================================================
 CREATE / UPDATE DOCTOR AVAILABILITY
+
 POST /api/doctor-availability
 ========================================================
 */
 
 export const createDoctorAvailability = async (req, res) => {
   try {
-    const { availableDate, slots } = req.body;
-
-    const doctor = await User.findById(req.user.id);
-
-    if (!doctor || doctor.role.toLowerCase() !== "doctor") {
+    if (req.user.role !== "doctor") {
       return res.status(403).json({
         success: false,
         message: "Only doctors can create availability",
       });
     }
 
-    if (
-      !availableDate ||
-      !slots ||
-      !Array.isArray(slots) ||
-      slots.length === 0
-    ) {
+    const { availableDate, slots } = req.body ?? {};
+
+    const normalizedDate = getDateString(availableDate);
+
+    const normalizedSlots = normalizeRequestedSlots(slots);
+
+    if (!normalizedDate || normalizedSlots.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "availableDate and slots are required",
-      });
-    }
-
-    const selectedDate = getDateOnly(availableDate);
-
-    const nextDate = new Date(selectedDate);
-    nextDate.setDate(nextDate.getDate() + 1);
-
-    let availability = await DoctorAvailability.findOne({
-      doctor: req.user.id,
-      availableDate: {
-        $gte: selectedDate,
-        $lt: nextDate,
-      },
-    });
-
-    /*
-    ========================================================
-    UPDATE EXISTING DATE
-    ========================================================
-    */
-
-    if (availability) {
-      availability.slots = slots.map((slot) => ({
-        startTime: slot.startTime,
-        endTime: slot.endTime,
-        isBooked: false,
-        bookedBy: null,
-        consultationId: null,
-      }));
-
-      await availability.save();
-
-      return res.status(200).json({
-        success: true,
-        message: "Availability updated successfully",
-        availability,
+        message: "Valid availableDate and slots are required",
       });
     }
 
     /*
-    ========================================================
-    CREATE NEW DATE
-    ========================================================
-    */
+        Verify the authenticated doctor
+        still exists in PostgreSQL.
+      */
+    const userRows = await db
+      .select({
+        id: users.id,
+      })
+      .from(users)
+      .where(
+        and(
+          eq(users.id, req.user.id),
 
-    availability = new DoctorAvailability({
-      doctor: req.user.id,
-      availableDate: selectedDate,
-      slots: slots.map((slot) => ({
-        startTime: slot.startTime,
-        endTime: slot.endTime,
-        isBooked: false,
-        bookedBy: null,
-        consultationId: null,
-      })),
-      isActive: true,
-    });
+          eq(users.role, "doctor"),
+        ),
+      )
+      .limit(1);
 
-    await availability.save();
+    if (!userRows[0]) {
+      return res.status(403).json({
+        success: false,
+        message: "Doctor user not found",
+      });
+    }
 
-    return res.status(201).json({
+    let availability = await getAvailabilityByDate(req.user.id, normalizedDate);
+
+    let created = false;
+
+    if (!availability) {
+      const insertedRows = await db
+        .insert(doctorAvailabilities)
+        .values({
+          doctorId: req.user.id,
+
+          availableDate: normalizedDate,
+
+          isActive: true,
+        })
+        .returning();
+
+      availability = insertedRows[0];
+
+      created = true;
+    } else {
+      const updatedRows = await db
+        .update(doctorAvailabilities)
+        .set({
+          isActive: true,
+          updatedAt: new Date(),
+        })
+        .where(eq(doctorAvailabilities.id, availability.id))
+        .returning();
+
+      availability = updatedRows[0];
+    }
+
+    await replaceUnbookedSlots(availability.id, normalizedSlots);
+
+    const savedSlots = await getSlotsForAvailability(availability.id);
+
+    return res.status(created ? 201 : 200).json({
       success: true,
-      message: "Availability created successfully",
-      availability,
+
+      message: created
+        ? "Availability created successfully"
+        : "Availability updated successfully",
+
+      availability: formatAvailability(availability, savedSlots),
     });
   } catch (error) {
     console.error("createDoctorAvailability error:", error);
@@ -219,18 +402,39 @@ export const createDoctorAvailability = async (req, res) => {
 /*
 ========================================================
 GET DOCTOR OWN AVAILABILITY
+
 GET /api/doctor-availability/my-slots
 ========================================================
 */
 
 export const getDoctorOwnAvailability = async (req, res) => {
   try {
-    const availability = await DoctorAvailability.find({
-      doctor: req.user.id,
-      isActive: true,
-    }).sort({
-      availableDate: 1,
-    });
+    if (req.user.role !== "doctor") {
+      return res.status(403).json({
+        success: false,
+        message: "Only doctors can access their availability",
+      });
+    }
+
+    const rows = await db
+      .select()
+      .from(doctorAvailabilities)
+      .where(
+        and(
+          eq(doctorAvailabilities.doctorId, req.user.id),
+
+          eq(doctorAvailabilities.isActive, true),
+        ),
+      )
+      .orderBy(asc(doctorAvailabilities.availableDate));
+
+    const availability = await Promise.all(
+      rows.map(async (row) => {
+        const slots = await getSlotsForAvailability(row.id);
+
+        return formatAvailability(row, slots);
+      }),
+    );
 
     return res.status(200).json({
       success: true,
@@ -249,83 +453,77 @@ export const getDoctorOwnAvailability = async (req, res) => {
 
 /*
 ========================================================
-PATIENT FETCHES DOCTOR AVAILABLE SLOTS
+PATIENT FETCHES AVAILABLE SLOTS
+
 GET /api/doctor-availability/slots/:doctorId?date=YYYY-MM-DD
-========================================================
-
-PROBLEM FIXED:
-Earlier system was checking scheduleType / recurring
-which was NOT stored in DB.
-
-Now:
-→ exact date match
-→ return unbooked slots
-
-Professional + production-ready logic
 ========================================================
 */
 
 export const getDoctorAvailabilitySlots = async (req, res) => {
   try {
     const { doctorId } = req.params;
+
     const { date } = req.query;
 
-    /*
-    ========================================================
-    VALIDATION
-    ========================================================
-    */
+    const normalizedDate = getDateString(date);
 
-    if (!doctorId || !date) {
+    if (!doctorId || !normalizedDate) {
       return res.status(400).json({
         success: false,
-        message: "doctorId and date query parameter are required",
+        message: "Valid doctorId and date query parameter are required",
       });
     }
 
     /*
-    ========================================================
-    NORMALIZE DATE
-    Example:
-    2026-05-04 → start of day
-    ========================================================
-    */
+        Verify doctor exists.
+      */
+    const doctorRows = await db
+      .select({
+        id: users.id,
+      })
+      .from(users)
+      .where(
+        and(
+          eq(users.id, doctorId),
 
-    const selectedDate = new Date(date);
-    selectedDate.setHours(0, 0, 0, 0);
+          eq(users.role, "doctor"),
+        ),
+      )
+      .limit(1);
 
-    const nextDate = new Date(selectedDate);
-    nextDate.setDate(nextDate.getDate() + 1);
+    if (!doctorRows[0]) {
+      return res.status(404).json({
+        success: false,
+        message: "Doctor not found",
+      });
+    }
+
+    let availability = await getAvailabilityByDate(doctorId, normalizedDate);
+
+    let source = "manual-availability";
 
     /*
-    ========================================================
-    FIND EXACT DATE AVAILABILITY
-    ========================================================
-    */
+        Ignore inactive availability.
 
-    let availability = await DoctorAvailability.findOne({
-      doctor: doctorId,
-      isActive: true,
-      availableDate: {
-        $gte: selectedDate,
-        $lt: nextDate,
-      },
-    });
+        An explicitly disabled date should not
+        silently expose old slots.
+      */
+    if (availability && !availability.isActive) {
+      return res.status(200).json({
+        success: true,
+        slots: [],
+        source: "inactive-availability",
+      });
+    }
 
     /*
-    ========================================================
-    FALLBACK:
-    If no manual availability exists,
-    auto-generate from doctor profile working schedule
-    AND SAVE IT TO DATABASE for consistency
-    ========================================================
-    */
-
+        Generate and persist fallback if
+        no exact availability exists.
+      */
     if (!availability) {
-      const fallbackSlots = await getFallbackSlots(doctorId, selectedDate);
+      const fallbackSlots = await getFallbackSlots(doctorId, normalizedDate);
 
-      // If no fallback slots available, return empty
-      if (!fallbackSlots || fallbackSlots.length === 0) {
+      if (fallbackSlots.length === 0) {
         return res.status(200).json({
           success: true,
           slots: [],
@@ -333,49 +531,60 @@ export const getDoctorAvailabilitySlots = async (req, res) => {
         });
       }
 
-      // Use findOneAndUpdate with upsert to avoid duplicates
-      // This ensures only one record exists per doctor per date
-      availability = await DoctorAvailability.findOneAndUpdate(
-        {
-          doctor: doctorId,
-          availableDate: {
-            $gte: selectedDate,
-            $lt: nextDate,
-          },
-        },
-        {
-          doctor: doctorId,
-          availableDate: selectedDate,
-          slots: fallbackSlots,
+      const insertedRows = await db
+        .insert(doctorAvailabilities)
+        .values({
+          doctorId,
+
+          availableDate: normalizedDate,
+
           isActive: true,
-        },
-        {
-          upsert: true,
-          new: true,
-        },
+        })
+        .returning();
+
+      availability = insertedRows[0];
+
+      await db.insert(availabilitySlots).values(
+        fallbackSlots.map((slot) => ({
+          availabilityId: availability.id,
+
+          startTime: slot.startTime,
+
+          endTime: slot.endTime,
+
+          isBooked: false,
+        })),
       );
+
+      source = "doctor-profile-fallback";
     }
 
-    /*
-    ========================================================
-    RETURN ONLY UNBOOKED SLOTS
-    ========================================================
-    */
+    const slots = await db
+      .select()
+      .from(availabilitySlots)
+      .where(
+        and(
+          eq(availabilitySlots.availabilityId, availability.id),
 
-    const availableSlots = availability.slots
-      .filter((slot) => !slot.isBooked)
-      .map((slot) => ({
-        _id: slot._id,
-        startTime: slot.startTime,
-        endTime: slot.endTime,
-      }));
+          eq(availabilitySlots.isBooked, false),
+        ),
+      )
+      .orderBy(asc(availabilitySlots.startTime));
 
     return res.status(200).json({
       success: true,
-      slots: availableSlots,
-      source: availability.isNew
-        ? "doctor-profile-fallback"
-        : "manual-availability",
+
+      slots: slots.map((slot) => ({
+        _id: slot.id,
+
+        id: slot.id,
+
+        startTime: slot.startTime,
+
+        endTime: slot.endTime,
+      })),
+
+      source,
     });
   } catch (error) {
     console.error("getDoctorAvailabilitySlots error:", error);
@@ -391,14 +600,29 @@ export const getDoctorAvailabilitySlots = async (req, res) => {
 /*
 ========================================================
 SOFT DELETE AVAILABILITY
+
+DELETE /api/doctor-availability/:availabilityId
 ========================================================
 */
 
 export const deleteDoctorAvailability = async (req, res) => {
   try {
+    if (req.user.role !== "doctor") {
+      return res.status(403).json({
+        success: false,
+        message: "Only doctors can delete availability",
+      });
+    }
+
     const { availabilityId } = req.params;
 
-    const availability = await DoctorAvailability.findById(availabilityId);
+    const rows = await db
+      .select()
+      .from(doctorAvailabilities)
+      .where(eq(doctorAvailabilities.id, availabilityId))
+      .limit(1);
+
+    const availability = rows[0];
 
     if (!availability) {
       return res.status(404).json({
@@ -407,16 +631,20 @@ export const deleteDoctorAvailability = async (req, res) => {
       });
     }
 
-    if (availability.doctor.toString() !== req.user.id) {
+    if (availability.doctorId !== req.user.id) {
       return res.status(403).json({
         success: false,
         message: "Unauthorized access",
       });
     }
 
-    availability.isActive = false;
-
-    await availability.save();
+    await db
+      .update(doctorAvailabilities)
+      .set({
+        isActive: false,
+        updatedAt: new Date(),
+      })
+      .where(eq(doctorAvailabilities.id, availabilityId));
 
     return res.status(200).json({
       success: true,

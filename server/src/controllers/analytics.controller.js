@@ -1,94 +1,102 @@
-import mongoose from "mongoose";
-import Consultation from "../models/Consultation.js";
+import { db } from "../config/neonDb.js"; // adjust path to your drizzle db instance
+import { consultations, patientProfiles } from "../db/schema/index.js"; // adjust path to your schema barrel file
+import { eq, and, gte, sql } from "drizzle-orm";
 
 /**
  * Get advanced analytics for the authenticated doctor
- * Uses MongoDB Aggregation Framework for high performance
+ * Uses Postgres aggregate queries (via Drizzle's sql`` helper) for high performance
  */
 export const getDoctorAnalytics = async (req, res, next) => {
   try {
-    const doctorId = new mongoose.Types.ObjectId(req.user.userId);
-    
+    const doctorId = req.user.id; // adjust to match your auth middleware (e.g. req.user.id)
+
     // Date ranges
     const now = new Date();
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(now.getDate() - 30);
-    
-    // 1. Basic Stats (Total, Completed, Cancelled)
-    const basicStats = await Consultation.aggregate([
-      { $match: { doctor: doctorId } },
-      { 
-        $group: {
-          _id: null,
-          total: { $sum: 1 },
-          completed: { 
-            $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] } 
-          },
-          cancelled: { 
-            $sum: { $cond: [{ $eq: ["$status", "cancelled"] }, 1, 0] } 
-          },
-          ongoing: { 
-            $sum: { $cond: [{ $eq: ["$status", "ongoing"] }, 1, 0] } 
-          }
-        }
-      }
-    ]);
-    
-    const stats = basicStats.length > 0 ? basicStats[0] : { total: 0, completed: 0, cancelled: 0, ongoing: 0 };
-    
+
+    // 1. Basic Stats (Total, Completed, Cancelled, Ongoing)
+    const [basicStats] = await db
+      .select({
+        total: sql`count(*)`.mapWith(Number),
+        completed:
+          sql`count(*) filter (where ${consultations.status} = 'completed')`.mapWith(
+            Number,
+          ),
+        cancelled:
+          sql`count(*) filter (where ${consultations.status} = 'cancelled')`.mapWith(
+            Number,
+          ),
+        ongoing:
+          sql`count(*) filter (where ${consultations.status} = 'ongoing')`.mapWith(
+            Number,
+          ),
+      })
+      .from(consultations)
+      .where(eq(consultations.doctorId, doctorId));
+
+    const stats = basicStats || {
+      total: 0,
+      completed: 0,
+      cancelled: 0,
+      ongoing: 0,
+    };
+
     // 2. Trend (Last 30 days)
-    const trendData = await Consultation.aggregate([
-      { 
-        $match: { 
-          doctor: doctorId,
-          consultationDate: { $gte: thirtyDaysAgo }
-        }
-      },
-      {
-        $group: {
-          _id: {
-            $dateToString: { format: "%Y-%m-%d", date: "$consultationDate" }
-          },
-          count: { $sum: 1 },
-          completed: { $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] } }
-        }
-      },
-      { $sort: { "_id": 1 } }
-    ]);
-    
+    const trendRows = await db
+      .select({
+        date: sql`to_char(${consultations.consultationDate}, 'YYYY-MM-DD')`.as(
+          "date",
+        ),
+        count: sql`count(*)`.mapWith(Number),
+        completed:
+          sql`count(*) filter (where ${consultations.status} = 'completed')`.mapWith(
+            Number,
+          ),
+      })
+      .from(consultations)
+      .where(
+        and(
+          eq(consultations.doctorId, doctorId),
+          gte(consultations.consultationDate, thirtyDaysAgo),
+        ),
+      )
+      .groupBy(sql`to_char(${consultations.consultationDate}, 'YYYY-MM-DD')`)
+      .orderBy(
+        sql`to_char(${consultations.consultationDate}, 'YYYY-MM-DD') asc`,
+      );
+
     // 3. Modality Distribution (Video vs Call vs Chat)
-    const modalityData = await Consultation.aggregate([
-      { $match: { doctor: doctorId } },
-      {
-        $group: {
-          _id: "$consultationType",
-          value: { $sum: 1 }
-        }
-      }
-    ]);
-    
+    const modalityRows = await db
+      .select({
+        type: consultations.consultationType,
+        value: sql`count(*)`.mapWith(Number),
+      })
+      .from(consultations)
+      .where(eq(consultations.doctorId, doctorId))
+      .groupBy(consultations.consultationType);
+
     // Formulate clean modality array for recharts
-    const modalities = modalityData.map(d => ({
-      name: d._id.charAt(0).toUpperCase() + d._id.slice(1),
-      value: d.value
+    const modalities = modalityRows.map((d) => ({
+      name: d.type.charAt(0).toUpperCase() + d.type.slice(1),
+      value: d.value,
     }));
-    
+
     // 4. Peak Hours (Grouping by startTime)
-    const peakHoursData = await Consultation.aggregate([
-      { $match: { doctor: doctorId } },
-      {
-        $group: {
-          _id: { $substr: ["$startTime", 0, 2] }, // Extract "09" from "09:30"
-          count: { $sum: 1 }
-        }
-      },
-      { $sort: { "_id": 1 } }
-    ]);
-    
+    const peakHoursRows = await db
+      .select({
+        hour: sql`substr(${consultations.startTime}, 1, 2)`.as("hour"), // Extract "09" from "09:30"
+        count: sql`count(*)`.mapWith(Number),
+      })
+      .from(consultations)
+      .where(eq(consultations.doctorId, doctorId))
+      .groupBy(sql`substr(${consultations.startTime}, 1, 2)`)
+      .orderBy(sql`substr(${consultations.startTime}, 1, 2) asc`);
+
     // Format peak hours
-    const peakHours = peakHoursData.map(d => ({
-      hour: `${d._id}:00`,
-      consultations: d.count
+    const peakHours = peakHoursRows.map((d) => ({
+      hour: `${d.hour}:00`,
+      consultations: d.count,
     }));
 
     // Generate continuous 30 day array to fill gaps
@@ -96,56 +104,61 @@ export const getDoctorAnalytics = async (req, res, next) => {
     for (let i = 29; i >= 0; i--) {
       const d = new Date();
       d.setDate(now.getDate() - i);
-      const dateStr = d.toISOString().split('T')[0];
-      
-      const found = trendData.find(t => t._id === dateStr);
+      const dateStr = d.toISOString().split("T")[0];
+
+      const found = trendRows.find((t) => t.date === dateStr);
       last30Days.push({
         date: dateStr,
-        displayDate: d.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+        displayDate: d.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        }),
         total: found ? found.count : 0,
-        completed: found ? found.completed : 0
+        completed: found ? found.completed : 0,
       });
     }
 
     // 5. Patient Demographics & Retention
-    const demographicsData = await Consultation.aggregate([
-      { $match: { doctor: doctorId } },
-      {
-        $group: {
-          _id: "$patient", // Group by unique patients
-          consultationCount: { $sum: 1 }
-        }
-      },
-      {
-        $lookup: {
-          from: "patientprofiles",
-          localField: "_id",
-          foreignField: "userId",
-          as: "profile"
-        }
-      },
-      { $unwind: { path: "$profile", preserveNullAndEmptyArrays: true } }
-    ]);
+    // Group by patient, count their consultations with this doctor, then bring in
+    // their profile (gender/age) via a left join on patient_profiles.
+    const demographicsRows = await db
+      .select({
+        patientId: consultations.patientId,
+        consultationCount: sql`count(*)`.mapWith(Number),
+        gender: patientProfiles.gender,
+        age: patientProfiles.age,
+      })
+      .from(consultations)
+      .leftJoin(
+        patientProfiles,
+        eq(patientProfiles.userId, consultations.patientId),
+      )
+      .where(eq(consultations.doctorId, doctorId))
+      .groupBy(
+        consultations.patientId,
+        patientProfiles.gender,
+        patientProfiles.age,
+      );
 
     let retention = { new: 0, returning: 0 };
     let genderDistribution = { male: 0, female: 0, other: 0 };
     let ageDistribution = { under18: 0, "18to35": 0, "36to50": 0, "51plus": 0 };
 
-    demographicsData.forEach(p => {
+    demographicsRows.forEach((p) => {
       // Retention
       if (p.consultationCount === 1) retention.new++;
       else if (p.consultationCount > 1) retention.returning++;
 
       // Demographics
-      if (p.profile) {
-        // Gender
-        const gender = p.profile.gender ? p.profile.gender.toLowerCase() : null;
-        if (gender === 'male') genderDistribution.male++;
-        else if (gender === 'female') genderDistribution.female++;
-        else if (gender) genderDistribution.other++;
+      if (p.gender) {
+        const gender = p.gender.toLowerCase();
+        if (gender === "male") genderDistribution.male++;
+        else if (gender === "female") genderDistribution.female++;
+        else genderDistribution.other++;
+      }
 
-        // Age
-        const age = p.profile.age;
+      const age = p.age;
+      if (age !== null && age !== undefined) {
         if (age < 18) ageDistribution.under18++;
         else if (age >= 18 && age <= 35) ageDistribution["18to35"]++;
         else if (age >= 36 && age <= 50) ageDistribution["36to50"]++;
@@ -164,7 +177,7 @@ export const getDoctorAnalytics = async (req, res, next) => {
         { name: "18-35", value: ageDistribution["18to35"] },
         { name: "36-50", value: ageDistribution["36to50"] },
         { name: "51+", value: ageDistribution["51plus"] },
-      ]
+      ],
     };
 
     res.status(200).json({
@@ -175,11 +188,9 @@ export const getDoctorAnalytics = async (req, res, next) => {
         modalities,
         peakHours,
         demographics,
-        retention
-      }
+        retention,
+      },
     });
-
-
   } catch (err) {
     next(err);
   }

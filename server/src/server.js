@@ -1,32 +1,40 @@
+import "dotenv/config";
+
 import app from "./app.js";
 import http from "http";
+
 import connectDB from "./config/db.js";
+import { checkPostgresConnection } from "./config/neonDb.js";
+
 import initializeSocket from "./services/socketServer.js";
 import { initializeConsultationReminders } from "./utils/consultationReminderJob.js";
 
 const PORT = process.env.PORT || 5000;
 
-// Global io instance
 export let io = null;
 
-// Connect to database and start server
-connectDB()
-  .then(() => {
-    // Create HTTP server with Express app
+const startServer = async () => {
+  try {
+    // Temporary MongoDB connection during migration
+    await connectDB();
+
+    // New PostgreSQL connection
+    await checkPostgresConnection();
+
     const server = http.createServer(app);
 
-    // Initialize Socket.io and store the instance
     io = initializeSocket(server);
 
-    // Initialize consultation reminder job
+    // Keep enabled because current reminder job still uses MongoDB
     initializeConsultationReminders();
 
-    // Start listening
     server.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });
-  })
-  .catch((err) => {
-    console.error("❌ Failed to connect to database:", err);
+  } catch (error) {
+    console.error("❌ Failed to start server:", error);
     process.exit(1);
-  });
+  }
+};
+
+startServer();

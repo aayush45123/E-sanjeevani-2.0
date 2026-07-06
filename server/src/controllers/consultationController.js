@@ -1,203 +1,418 @@
-import mongoose from "mongoose";
-import Consultation from "../models/Consultation.js";
-import DoctorAvailability from "../models/DoctorAvailability.js";
-import DoctorProfile from "../models/DoctorProfile.js";
-import User from "../models/User.js";
+import { and, asc, count, desc, eq, ilike, sql, or } from "drizzle-orm";
+
+import { db } from "../config/neonDb.js";
+
+import {
+  users,
+  doctorProfiles,
+  doctorAvailabilities,
+  availabilitySlots,
+  consultations,
+} from "../db/schema/index.js";
+
 import { sendAppointmentEmail } from "../utils/sendAppointmentEmail.js";
-import { sendMeetingWaitingEmail } from "../utils/sendMeetingWaitingEmail.js";
-import { io } from "../server.js";
+
+/*
+==================================================
+CONSTANTS
+==================================================
+*/
 
 const SLOT_DURATION_MINUTES = 30;
 
-const getDateOnly = (date) => {
-  const normalized = new Date(date);
-  normalized.setHours(0, 0, 0, 0);
-  return normalized;
+/*
+==================================================
+HELPERS
+==================================================
+*/
+
+const normalizeDate = (value) => {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return date;
 };
 
-const getDayName = (date) =>
-  date.toLocaleDateString("en-US", { weekday: "long" });
+const getDateString = (value) => {
+  const date = normalizeDate(value);
+
+  if (!date) {
+    return null;
+  }
+
+  const year = date.getFullYear();
+
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
+const getDayName = (dateString) => {
+  const date = new Date(`${dateString}T12:00:00`);
+
+  return date.toLocaleDateString("en-US", {
+    weekday: "long",
+  });
+};
 
 const buildSlots = (startTime, endTime) => {
-  const slots = [];
-  if (!startTime || !endTime) return slots;
+  if (!startTime || !endTime) {
+    return [];
+  }
 
   const [startHour, startMinute] = startTime.split(":").map(Number);
+
   const [endHour, endMinute] = endTime.split(":").map(Number);
 
-  const current = new Date(2000, 0, 1, startHour, startMinute, 0, 0);
-  const end = new Date(2000, 0, 1, endHour, endMinute, 0, 0);
+  const start = startHour * 60 + startMinute;
 
-  const formatTime = (d) =>
-    `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  const end = endHour * 60 + endMinute;
 
-  while (current < end) {
-    const next = new Date(current.getTime() + SLOT_DURATION_MINUTES * 60000);
-    if (next > end) break;
+  if (Number.isNaN(start) || Number.isNaN(end) || start >= end) {
+    return [];
+  }
 
+  const slots = [];
+
+  const formatMinutes = (totalMinutes) => {
+    const hour = Math.floor(totalMinutes / 60);
+
+    const minute = totalMinutes % 60;
+
+    return `${String(hour).padStart(2, "0")}:${String(minute).padStart(
+      2,
+      "0",
+    )}`;
+  };
+
+  for (
+    let minute = start;
+    minute + SLOT_DURATION_MINUTES <= end;
+    minute += SLOT_DURATION_MINUTES
+  ) {
     slots.push({
-      startTime: formatTime(current),
-      endTime: formatTime(next),
-      isBooked: false,
-      bookedBy: null,
-      consultationId: null,
-    });
+      startTime: formatMinutes(minute),
 
-    current.setTime(next.getTime());
+      endTime: formatMinutes(minute + SLOT_DURATION_MINUTES),
+    });
   }
 
   return slots;
 };
 
-const getFallbackSlots = async (doctorId, date) => {
-  const profile = await DoctorProfile.findOne({ userId: doctorId });
-  if (!profile || !Array.isArray(profile.workingDays)) return [];
-  if (!profile.workingDays.includes(getDayName(date))) return [];
-  return buildSlots(profile.startTime, profile.endTime);
+const formatDoctor = (user, profile) => ({
+  /*
+  MongoDB compatibility.
+  */
+  _id: user.id,
+
+  id: user.id,
+
+  name: user.name,
+
+  email: user.email,
+
+  role: user.role,
+
+  profileImage: user.profileImage ?? null,
+
+  specialization: profile?.specialization ?? null,
+
+  qualification: profile?.qualification ?? null,
+
+  experience: profile?.experience ?? null,
+
+  hospitalName: profile?.hospitalName ?? null,
+
+  consultationFee: profile?.consultationFee ?? null,
+
+  consultationModes: profile?.consultationModes ?? [],
+
+  aboutDoctor: profile?.aboutDoctor ?? "",
+
+  shortBio: profile?.shortBio ?? "",
+
+  profileCompleted: profile?.profileCompleted ?? false,
+});
+
+const formatSlot = (slot) => ({
+  _id: slot.id,
+
+  id: slot.id,
+
+  startTime: slot.startTime,
+
+  endTime: slot.endTime,
+
+  isBooked: slot.isBooked,
+
+  bookedBy: slot.bookedById ?? null,
+
+  consultationId: slot.consultationId ?? null,
+});
+
+const formatConsultation = (
+  consultation,
+  { patient = null, doctor = null, doctorProfile = null } = {},
+) => {
+  const result = {
+    ...consultation,
+
+    /*
+    MongoDB compatibility.
+    */
+    _id: consultation.id,
+  };
+
+  if (patient) {
+    result.patient = {
+      _id: patient.id,
+      id: patient.id,
+      name: patient.name,
+      email: patient.email,
+      phone: patient.phone ?? null,
+    };
+  } else {
+    result.patient = consultation.patientId;
+  }
+
+  if (doctor) {
+    result.doctor = {
+      _id: doctor.id,
+      id: doctor.id,
+      name: doctor.name,
+      email: doctor.email,
+
+      specialization: doctorProfile?.specialization ?? null,
+
+      qualification: doctorProfile?.qualification ?? null,
+
+      experience: doctorProfile?.experience ?? null,
+    };
+  } else {
+    result.doctor = consultation.doctorId;
+  }
+
+  return result;
 };
 
-const findAvailabilityForDay = async (doctorId, dateOnly) => {
-  const nextDate = new Date(dateOnly);
-  nextDate.setDate(nextDate.getDate() + 1);
+const getDoctorById = async (database, doctorId) => {
+  const rows = await database
+    .select()
+    .from(users)
+    .where(and(eq(users.id, doctorId), eq(users.role, "doctor")))
+    .limit(1);
 
-  return DoctorAvailability.findOne({
-    doctor: doctorId,
-    availableDate: { $gte: dateOnly, $lt: nextDate },
-    isActive: true,
-  });
+  return rows[0] ?? null;
+};
+
+const getAvailabilityByDate = async (database, doctorId, availableDate) => {
+  const rows = await database
+    .select()
+    .from(doctorAvailabilities)
+    .where(
+      and(
+        eq(doctorAvailabilities.doctorId, doctorId),
+
+        eq(doctorAvailabilities.availableDate, availableDate),
+
+        eq(doctorAvailabilities.isActive, true),
+      ),
+    )
+    .limit(1);
+
+  return rows[0] ?? null;
+};
+
+const createFallbackAvailability = async (
+  database,
+  doctorId,
+  availableDate,
+) => {
+  const profileRows = await database
+    .select()
+    .from(doctorProfiles)
+    .where(eq(doctorProfiles.userId, doctorId))
+    .limit(1);
+
+  const profile = profileRows[0];
+
+  if (
+    !profile ||
+    !Array.isArray(profile.workingDays) ||
+    !profile.workingDays.includes(getDayName(availableDate))
+  ) {
+    return null;
+  }
+
+  const generatedSlots = buildSlots(profile.startTime, profile.endTime);
+
+  if (generatedSlots.length === 0) {
+    return null;
+  }
+
+  /*
+    Unique constraint:
+
+    doctor_id + available_date
+
+    prevents duplicate availability rows.
+    */
+  const availabilityRows = await database
+    .insert(doctorAvailabilities)
+    .values({
+      doctorId,
+
+      availableDate,
+
+      isActive: true,
+    })
+    .onConflictDoNothing()
+    .returning();
+
+  let availability = availabilityRows[0];
+
+  /*
+    Another request may have inserted it.
+    */
+  if (!availability) {
+    availability = await getAvailabilityByDate(
+      database,
+      doctorId,
+      availableDate,
+    );
+  }
+
+  if (!availability) {
+    return null;
+  }
+
+  /*
+    Unique constraint:
+
+    availability_id +
+    start_time +
+    end_time
+
+    prevents duplicate slots.
+    */
+  await database
+    .insert(availabilitySlots)
+    .values(
+      generatedSlots.map((slot) => ({
+        availabilityId: availability.id,
+
+        startTime: slot.startTime,
+
+        endTime: slot.endTime,
+
+        isBooked: false,
+      })),
+    )
+    .onConflictDoNothing();
+
+  return availability;
+};
+
+const getOrCreateAvailability = async (database, doctorId, availableDate) => {
+  let availability = await getAvailabilityByDate(
+    database,
+    doctorId,
+    availableDate,
+  );
+
+  if (!availability) {
+    availability = await createFallbackAvailability(
+      database,
+      doctorId,
+      availableDate,
+    );
+  }
+
+  return availability;
 };
 
 /*
 ==================================================
 GET AVAILABLE DOCTORS
-✅ FIX: aggregation joins DoctorProfile so specialization,
-qualification, experience come from DoctorProfile.
-✅ FIX: doctors without a DoctorProfile still appear
-(patients can see the doctor and filter will just show
-no specialization for incomplete profiles).
+
+GET /api/consultations/doctors/available
 ==================================================
 */
+
 export const getAvailableDoctors = async (req, res) => {
   try {
     const { specialization, limit = 10, page = 1 } = req.query;
-    const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
 
-    const matchStage = {
-      $match: {
-        role: { $regex: "^doctor$", $options: "i" },
-      },
-    };
-
-    const pipeline = [
-      matchStage,
-      {
-        $lookup: {
-          from: "doctorprofiles",
-          localField: "_id",
-          foreignField: "userId",
-          as: "profile",
-        },
-      },
-      {
-        $addFields: {
-          profileData: { $arrayElemAt: ["$profile", 0] },
-        },
-      },
-      {
-        $addFields: {
-          // ✅ prefer DoctorProfile fields, fall back to User fields
-          specialization: {
-            $ifNull: ["$profileData.specialization", "$specialization"],
-          },
-          qualification: {
-            $ifNull: ["$profileData.qualification", "$qualification"],
-          },
-          experience: {
-            $ifNull: ["$profileData.experience", "$experience"],
-          },
-          hospitalName: "$profileData.hospitalName",
-          consultationFee: "$profileData.consultationFee",
-          consultationModes: "$profileData.consultationModes",
-          aboutDoctor: "$profileData.aboutDoctor",
-          shortBio: "$profileData.shortBio",
-          // ✅ expose whether profile is fully completed
-          profileCompleted: {
-            $ifNull: ["$profileData.profileCompleted", false],
-          },
-        },
-      },
-    ];
-
-    if (specialization) {
-      pipeline.push({
-        $match: {
-          specialization: { $regex: specialization, $options: "i" },
-        },
-      });
-    }
-
-    pipeline.push(
-      {
-        $project: {
-          password: 0,
-          profile: 0,
-          profileData: 0,
-        },
-      },
-      { $skip: skip },
-      { $limit: parseInt(limit, 10) },
+    const parsedLimit = Math.min(
+      Math.max(Number.parseInt(limit, 10) || 10, 1),
+      100,
     );
 
-    const doctors = await User.aggregate(pipeline);
+    const parsedPage = Math.max(Number.parseInt(page, 10) || 1, 1);
 
-    // count pipeline
-    const countPipeline = [matchStage];
+    const offset = (parsedPage - 1) * parsedLimit;
+
+    const conditions = [eq(users.role, "doctor")];
+
     if (specialization) {
-      countPipeline.push(
-        {
-          $lookup: {
-            from: "doctorprofiles",
-            localField: "_id",
-            foreignField: "userId",
-            as: "profile",
-          },
-        },
-        {
-          $addFields: {
-            specialization: {
-              $ifNull: [
-                { $arrayElemAt: ["$profile.specialization", 0] },
-                "$specialization",
-              ],
-            },
-          },
-        },
-        {
-          $match: {
-            specialization: { $regex: specialization, $options: "i" },
-          },
-        },
+      conditions.push(
+        ilike(doctorProfiles.specialization, `%${specialization}%`),
       );
     }
-    countPipeline.push({ $count: "total" });
 
-    const countResult = await User.aggregate(countPipeline);
-    const total = countResult[0]?.total || 0;
+    const rows = await db
+      .select({
+        user: users,
+        profile: doctorProfiles,
+      })
+      .from(users)
+      .leftJoin(doctorProfiles, eq(doctorProfiles.userId, users.id))
+      .where(and(...conditions))
+      .orderBy(asc(users.name))
+      .limit(parsedLimit)
+      .offset(offset);
 
-    res.json({
+    const countRows = await db
+      .select({
+        total: count(),
+      })
+      .from(users)
+      .leftJoin(doctorProfiles, eq(doctorProfiles.userId, users.id))
+      .where(and(...conditions));
+
+    const total = Number(countRows[0]?.total ?? 0);
+
+    const doctors = rows.map(({ user, profile }) =>
+      formatDoctor(user, profile),
+    );
+
+    return res.status(200).json({
       success: true,
+
       doctors,
+
       pagination: {
         total,
-        pages: Math.ceil(total / limit),
-        currentPage: parseInt(page, 10),
+
+        pages: Math.ceil(total / parsedLimit),
+
+        currentPage: parsedPage,
       },
     });
   } catch (error) {
     console.error("getAvailableDoctors error:", error);
-    res.status(500).json({
+
+    return res.status(500).json({
       success: false,
+
       message: "Failed to fetch doctors",
+
       error: error.message,
     });
   }
@@ -205,216 +420,74 @@ export const getAvailableDoctors = async (req, res) => {
 
 /*
 ==================================================
-GET DOCTORS NEAR ME (LOCATION-BASED FILTERING)
+GET DOCTOR AVAILABLE SLOTS
+
+GET /api/consultations/doctor-slots
 ==================================================
-Filter doctors by proximity to patient's location
-- Requires patient to have address with coordinates
-- Returns doctors with clinic location within radius
-- Default radius: 50km
 */
-export const getDoctorsNearMe = async (req, res) => {
+
+export const getDoctorAvailableSlots = async (req, res) => {
   try {
-    const {
-      latitude,
-      longitude,
-      radiusKm = 50,
-      specialization,
-      limit = 10,
-      page = 1,
-    } = req.query;
+    const { doctorId, date } = req.query;
 
-    // Validate required location parameters
-    if (!latitude || !longitude) {
+    const availableDate = getDateString(date);
+
+    if (!doctorId || !availableDate) {
       return res.status(400).json({
         success: false,
-        message: "Latitude and longitude are required",
+
+        message: "doctorId and valid date are required",
       });
     }
 
-    const lat = parseFloat(latitude);
-    const lng = parseFloat(longitude);
-    const radius = parseInt(radiusKm, 10) * 1000; // Convert km to meters
+    const doctor = await getDoctorById(db, doctorId);
 
-    // Validate coordinates
-    if (
-      isNaN(lat) ||
-      isNaN(lng) ||
-      lat < -90 ||
-      lat > 90 ||
-      lng < -180 ||
-      lng > 180
-    ) {
-      return res.status(400).json({
+    if (!doctor) {
+      return res.status(404).json({
         success: false,
-        message: "Invalid latitude or longitude",
+
+        message: "Doctor not found",
       });
     }
 
-    const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
+    const availability = await getOrCreateAvailability(
+      db,
+      doctorId,
+      availableDate,
+    );
 
-    // Query doctors with clinic location near patient
-    const matchStage = {
-      $match: {
-        role: { $regex: "^doctor$", $options: "i" },
-      },
-    };
+    if (!availability) {
+      return res.status(200).json({
+        success: true,
+        slots: [],
+      });
+    }
 
-    const pipeline = [
-      matchStage,
-      {
-        $lookup: {
-          from: "doctorprofiles",
-          localField: "_id",
-          foreignField: "userId",
-          as: "profile",
-        },
-      },
-      {
-        $addFields: {
-          profileData: { $arrayElemAt: ["$profile", 0] },
-        },
-      },
-      // Filter: only doctors with clinic and location data
-      {
-        $match: {
-          "profileData.hasClinic": true,
-          "profileData.clinicAddress.coordinates.coordinates": {
-            $exists: true,
-          },
-        },
-      },
-      // Geospatial query: find docs within radius
-      {
-        $geoNear: {
-          near: {
-            type: "Point",
-            coordinates: [lng, lat],
-          },
-          distanceField: "distanceFromPatient",
-          maxDistance: radius,
-          spherical: true,
-        },
-      },
-      // Optional: filter by specialization
-      ...(specialization
-        ? [
-            {
-              $match: {
-                "profileData.specialization": {
-                  $regex: specialization,
-                  $options: "i",
-                },
-              },
-            },
-          ]
-        : []),
-      // Add computed fields
-      {
-        $addFields: {
-          specialization: {
-            $ifNull: ["$profileData.specialization", "$specialization"],
-          },
-          qualification: {
-            $ifNull: ["$profileData.qualification", "$qualification"],
-          },
-          experience: { $ifNull: ["$profileData.experience", "$experience"] },
-          hospitalName: "$profileData.hospitalName",
-          consultationFee: "$profileData.consultationFee",
-          consultationModes: "$profileData.consultationModes",
-          aboutDoctor: "$profileData.aboutDoctor",
-          shortBio: "$profileData.shortBio",
-          hasClinic: "$profileData.hasClinic",
-          clinicAddress: "$profileData.clinicAddress",
-          profileCompleted: {
-            $ifNull: ["$profileData.profileCompleted", false],
-          },
-          distanceInKm: { $divide: ["$distanceFromPatient", 1000] },
-        },
-      },
-      {
-        $project: {
-          password: 0,
-          profile: 0,
-          profileData: 0,
-          distanceFromPatient: 0,
-        },
-      },
-      { $skip: skip },
-      { $limit: parseInt(limit, 10) },
-    ];
+    const slots = await db
+      .select()
+      .from(availabilitySlots)
+      .where(
+        and(
+          eq(availabilitySlots.availabilityId, availability.id),
 
-    const doctors = await User.aggregate(pipeline);
+          eq(availabilitySlots.isBooked, false),
+        ),
+      )
+      .orderBy(asc(availabilitySlots.startTime));
 
-    // Get total count for pagination
-    const countPipeline = [
-      matchStage,
-      {
-        $lookup: {
-          from: "doctorprofiles",
-          localField: "_id",
-          foreignField: "userId",
-          as: "profile",
-        },
-      },
-      {
-        $addFields: {
-          profileData: { $arrayElemAt: ["$profile", 0] },
-        },
-      },
-      {
-        $match: {
-          "profileData.hasClinic": true,
-          "profileData.clinicAddress.coordinates.coordinates": {
-            $exists: true,
-          },
-        },
-      },
-      {
-        $geoNear: {
-          near: {
-            type: "Point",
-            coordinates: [lng, lat],
-          },
-          distanceField: "distanceFromPatient",
-          maxDistance: radius,
-          spherical: true,
-        },
-      },
-      ...(specialization
-        ? [
-            {
-              $match: {
-                "profileData.specialization": {
-                  $regex: specialization,
-                  $options: "i",
-                },
-              },
-            },
-          ]
-        : []),
-      { $count: "total" },
-    ];
-
-    const countResult = await User.aggregate(countPipeline);
-    const total = countResult.length > 0 ? countResult[0].total : 0;
-
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      data: {
-        doctors,
-        pagination: {
-          total,
-          page: parseInt(page, 10),
-          limit: parseInt(limit, 10),
-          pages: Math.ceil(total / parseInt(limit, 10)),
-        },
-      },
+
+      slots: slots.map(formatSlot),
     });
   } catch (error) {
-    console.error("Get doctors near me error:", error);
-    res.status(500).json({
+    console.error("getDoctorAvailableSlots error:", error);
+
+    return res.status(500).json({
       success: false,
-      message: "Failed to fetch nearby doctors",
+
+      message: "Failed to fetch doctor slots",
+
       error: error.message,
     });
   }
@@ -423,10 +496,21 @@ export const getDoctorsNearMe = async (req, res) => {
 /*
 ==================================================
 CREATE CONSULTATION
+
+POST /api/consultations/book
 ==================================================
 */
+
 export const createConsultation = async (req, res) => {
   try {
+    if (req.user.role !== "patient") {
+      return res.status(403).json({
+        success: false,
+
+        message: "Only patients can book consultations",
+      });
+    }
+
     const {
       doctorId,
       consultationType,
@@ -451,177 +535,241 @@ export const createConsultation = async (req, res) => {
     ) {
       return res.status(400).json({
         success: false,
+
         message: "All required fields must be provided",
       });
     }
 
-    // ✅ case-insensitive role check
-    const doctor = await User.findById(doctorId);
-    if (!doctor || doctor.role.toLowerCase() !== "doctor") {
+    const availableDate = getDateString(consultationDate);
+
+    const normalizedConsultationDate = normalizeDate(consultationDate);
+
+    if (!availableDate || !normalizedConsultationDate) {
+      return res.status(400).json({
+        success: false,
+
+        message: "Invalid consultation date",
+      });
+    }
+
+    const patientRows = await db
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        role: users.role,
+      })
+      .from(users)
+      .where(
+        and(
+          eq(users.id, req.user.id),
+
+          eq(users.role, "patient"),
+        ),
+      )
+      .limit(1);
+
+    const patient = patientRows[0];
+
+    if (!patient) {
       return res.status(404).json({
         success: false,
+
+        message: "Patient not found",
+      });
+    }
+
+    const doctor = await getDoctorById(db, doctorId);
+
+    if (!doctor) {
+      return res.status(404).json({
+        success: false,
+
         message: "Doctor not found",
       });
     }
 
-    const selectedDate = getDateOnly(consultationDate);
-    let availability = await findAvailabilityForDay(doctorId, selectedDate);
+    /*
+      Ensure availability exists before transaction.
+
+      Availability creation itself is idempotent because
+      of database unique constraints.
+      */
+    const availability = await getOrCreateAvailability(
+      db,
+      doctorId,
+      availableDate,
+    );
 
     if (!availability) {
-      const fallbackSlots = await getFallbackSlots(doctorId, selectedDate);
-      if (!fallbackSlots.length) {
-        return res.status(400).json({
-          success: false,
-          message: "Doctor is not available on the selected date",
-        });
-      }
-      availability = await DoctorAvailability.create({
-        doctor: doctorId,
-        availableDate: selectedDate,
-        slots: fallbackSlots,
-        isActive: true,
-      });
-    }
-
-    const selectedSlot = availability.slots.find(
-      (slot) =>
-        slot.startTime === startTime &&
-        slot.endTime === endTime &&
-        slot.isBooked === false,
-    );
-
-    if (!selectedSlot) {
       return res.status(400).json({
         success: false,
-        message: "Selected slot is not available",
+
+        message: "Doctor is not available on the selected date",
       });
     }
 
-    const consultation = new Consultation({
-      patient: req.user.id,
-      doctor: doctorId,
-      consultationType,
-      symptoms,
-      currentProblem,
-      currentMedication,
-      medicalHistory,
-      allergies,
-      consultationDate,
-      startTime,
-      endTime,
-      status: "scheduled",
+    /*
+      TRANSACTION:
+
+      1. Atomically claim exact slot.
+      2. Create consultation.
+      3. Attach consultation ID.
+      */
+    const createdConsultation = await db.transaction(async (tx) => {
+      /*
+            Atomic conditional UPDATE.
+
+            Even if two transactions try booking
+            simultaneously, only one can change
+            isBooked false → true.
+            */
+      const claimedSlots = await tx
+        .update(availabilitySlots)
+        .set({
+          isBooked: true,
+
+          bookedById: req.user.id,
+
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(availabilitySlots.availabilityId, availability.id),
+
+            eq(availabilitySlots.startTime, startTime),
+
+            eq(availabilitySlots.endTime, endTime),
+
+            eq(availabilitySlots.isBooked, false),
+          ),
+        )
+        .returning();
+
+      const claimedSlot = claimedSlots[0];
+
+      if (!claimedSlot) {
+        const error = new Error("Selected slot is not available");
+
+        error.statusCode = 409;
+
+        throw error;
+      }
+
+      const consultationRows = await tx
+        .insert(consultations)
+        .values({
+          patientId: req.user.id,
+
+          doctorId,
+
+          consultationType,
+
+          symptoms: String(symptoms),
+
+          currentProblem: String(currentProblem),
+
+          currentMedication: currentMedication ? String(currentMedication) : "",
+
+          medicalHistory: medicalHistory ? String(medicalHistory) : "",
+
+          allergies: allergies ? String(allergies) : "",
+
+          consultationDate: normalizedConsultationDate,
+
+          startTime,
+
+          endTime,
+
+          status: "scheduled",
+
+          roomId: crypto.randomUUID(),
+
+          updatedAt: new Date(),
+        })
+        .returning();
+
+      const consultation = consultationRows[0];
+
+      await tx
+        .update(availabilitySlots)
+        .set({
+          consultationId: consultation.id,
+
+          updatedAt: new Date(),
+        })
+        .where(eq(availabilitySlots.id, claimedSlot.id));
+
+      return consultation;
     });
 
-    await consultation.save();
+    /*
+      Send email AFTER COMMIT.
 
-    selectedSlot.isBooked = true;
-    selectedSlot.bookedBy = req.user.id;
-    selectedSlot.consultationId = consultation._id;
-    await availability.save();
-
-    await consultation.populate(
-      "doctor",
-      "name specialization qualification experience",
-    );
-
-    // ✅ Send appointment confirmation emails
-    const patient = await User.findById(req.user.id);
-    console.log("📧 EMAIL DEBUG:");
-    console.log("  Patient ID:", req.user.id);
-    console.log("  Patient found:", !!patient);
-    console.log("  Patient email:", patient?.email);
-    console.log("  Doctor found:", !!doctor);
-    console.log("  Doctor email:", doctor?.email);
-
-    if (patient && doctor && doctor.email && patient.email) {
+      Email failure must never rollback booking.
+      */
+    if (patient.email && doctor.email) {
       try {
-        console.log("🚀 Sending emails to:", {
-          patient: patient.email,
-          doctor: doctor.email,
-        });
-        const emailResult = await sendAppointmentEmail({
+        await sendAppointmentEmail({
           patientEmail: patient.email,
+
           doctorEmail: doctor.email,
+
           patientName: patient.name,
+
           doctorName: doctor.name,
+
           consultationDate,
+
           startTime,
+
           endTime,
+
           consultationType,
         });
-        console.log("✅ Email result:", emailResult);
       } catch (emailError) {
         console.error(
-          "❌ Email sending failed (non-critical):",
+          "Appointment email failed (non-critical):",
           emailError.message,
         );
-        console.error("Stack:", emailError.stack);
-        // Don't fail the booking if email fails
       }
-    } else {
-      console.warn("⚠️ Skipped email sending - missing data:", {
-        hasPatient: !!patient,
-        hasDoctor: !!doctor,
-        hasPatientEmail: !!patient?.email,
-        hasDoctorEmail: !!doctor?.email,
-      });
     }
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
+
       message: "Consultation booked successfully",
-      consultation,
+
+      consultation: formatConsultation(createdConsultation, {
+        doctor,
+      }),
     });
   } catch (error) {
     console.error("createConsultation error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to create consultation",
-      error: error.message,
-    });
-  }
-};
 
-/*
-==================================================
-GET DOCTOR AVAILABLE SLOTS
-==================================================
-*/
-export const getDoctorAvailableSlots = async (req, res) => {
-  try {
-    const { doctorId, date } = req.query;
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({
+        success: false,
+        message: error.message,
+      });
+    }
 
-    if (!doctorId || !date) {
+    /*
+      Invalid PostgreSQL enum value.
+      */
+    if (error.code === "22P02") {
       return res.status(400).json({
         success: false,
-        message: "doctorId and date are required",
+
+        message: "Invalid consultation type or consultation data",
       });
     }
 
-    const selectedDate = getDateOnly(date);
-    let availability = await findAvailabilityForDay(doctorId, selectedDate);
-
-    if (!availability) {
-      const fallbackSlots = await getFallbackSlots(doctorId, selectedDate);
-      if (!fallbackSlots.length) {
-        return res.json({ success: true, slots: [] });
-      }
-      availability = await DoctorAvailability.create({
-        doctor: doctorId,
-        availableDate: selectedDate,
-        slots: fallbackSlots,
-        isActive: true,
-      });
-    }
-
-    const availableSlots = availability.slots.filter((slot) => !slot.isBooked);
-
-    res.json({ success: true, slots: availableSlots });
-  } catch (error) {
-    console.error("getDoctorAvailableSlots error:", error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
-      message: "Failed to fetch doctor slots",
+
+      message: "Failed to create consultation",
+
       error: error.message,
     });
   }
@@ -630,20 +778,57 @@ export const getDoctorAvailableSlots = async (req, res) => {
 /*
 ==================================================
 DOCTOR DASHBOARD CONSULTATIONS
+
+GET /api/consultations/doctor-dashboard
 ==================================================
 */
+
 export const getDoctorConsultations = async (req, res) => {
   try {
-    const consultations = await Consultation.find({ doctor: req.user.id })
-      .populate("patient", "name email phone")
-      .sort({ consultationDate: 1, startTime: 1 });
+    if (req.user.role !== "doctor") {
+      return res.status(403).json({
+        success: false,
 
-    res.json({ success: true, consultations });
+        message: "Only doctors can access doctor dashboard consultations",
+      });
+    }
+
+    const rows = await db
+      .select({
+        consultation: consultations,
+
+        patient: {
+          id: users.id,
+          name: users.name,
+          email: users.email,
+        },
+      })
+      .from(consultations)
+      .innerJoin(users, eq(consultations.patientId, users.id))
+      .where(eq(consultations.doctorId, req.user.id))
+      .orderBy(
+        asc(consultations.consultationDate),
+
+        asc(consultations.startTime),
+      );
+
+    return res.status(200).json({
+      success: true,
+
+      consultations: rows.map(({ consultation, patient }) =>
+        formatConsultation(consultation, {
+          patient,
+        }),
+      ),
+    });
   } catch (error) {
     console.error("getDoctorConsultations error:", error);
-    res.status(500).json({
+
+    return res.status(500).json({
       success: false,
+
       message: "Failed to fetch doctor consultations",
+
       error: error.message,
     });
   }
@@ -652,68 +837,340 @@ export const getDoctorConsultations = async (req, res) => {
 /*
 ==================================================
 PATIENT CONSULTATIONS
+
+GET /api/consultations/my-consultations
 ==================================================
 */
+
 export const getPatientConsultations = async (req, res) => {
   try {
-    const consultations = await Consultation.find({ patient: req.user.id })
-      .populate("doctor", "name specialization qualification experience")
-      .sort({ consultationDate: -1 });
+    if (req.user.role !== "patient") {
+      return res.status(403).json({
+        success: false,
 
-    res.json({ success: true, consultations });
+        message: "Only patients can access patient consultations",
+      });
+    }
+
+    const rows = await db
+      .select({
+        consultation: consultations,
+
+        doctor: {
+          id: users.id,
+          name: users.name,
+          email: users.email,
+        },
+
+        doctorProfile: doctorProfiles,
+      })
+      .from(consultations)
+      .innerJoin(users, eq(consultations.doctorId, users.id))
+      .leftJoin(
+        doctorProfiles,
+        eq(doctorProfiles.userId, consultations.doctorId),
+      )
+      .where(eq(consultations.patientId, req.user.id))
+      .orderBy(desc(consultations.consultationDate));
+
+    return res.status(200).json({
+      success: true,
+
+      consultations: rows.map(({ consultation, doctor, doctorProfile }) =>
+        formatConsultation(consultation, {
+          doctor,
+          doctorProfile,
+        }),
+      ),
+    });
   } catch (error) {
     console.error("getPatientConsultations error:", error);
-    res.status(500).json({
+
+    return res.status(500).json({
       success: false,
+
       message: "Failed to fetch patient consultations",
+
       error: error.message,
     });
   }
 };
 
-/*
-==================================================
-UPDATE CONSULTATION STATUS
-==================================================
-*/
+export const getDoctorsNearMe = async (req, res) => {
+  try {
+    const latitude = Number(req.query.latitude);
+    const longitude = Number(req.query.longitude);
+
+    const radius = Math.min(Math.max(Number(req.query.radius) || 10, 1), 100);
+
+    if (
+      !Number.isFinite(latitude) ||
+      !Number.isFinite(longitude) ||
+      latitude < -90 ||
+      latitude > 90 ||
+      longitude < -180 ||
+      longitude > 180
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Valid latitude and longitude are required",
+      });
+    }
+
+    /*
+      Haversine distance in kilometers.
+
+      clinicLatitude / clinicLongitude are numeric columns,
+      so PostgreSQL casts them to double precision for
+      trigonometric functions.
+    */
+    const distanceExpression = sql`
+      (
+        6371 * acos(
+          least(
+            1,
+            greatest(
+              -1,
+              cos(radians(${latitude}))
+              * cos(radians(${doctorProfiles.clinicLatitude}::double precision))
+              * cos(
+                  radians(${doctorProfiles.clinicLongitude}::double precision)
+                  - radians(${longitude})
+                )
+              + sin(radians(${latitude}))
+              * sin(radians(${doctorProfiles.clinicLatitude}::double precision))
+            )
+          )
+        )
+      )
+    `;
+
+    const rows = await db
+      .select({
+        user: users,
+        profile: doctorProfiles,
+        distance: distanceExpression,
+      })
+      .from(users)
+      .innerJoin(doctorProfiles, eq(doctorProfiles.userId, users.id))
+      .where(
+        and(
+          eq(users.role, "doctor"),
+          eq(users.isActive, true),
+          eq(doctorProfiles.hasClinic, true),
+          sql`${doctorProfiles.clinicLatitude} IS NOT NULL`,
+          sql`${doctorProfiles.clinicLongitude} IS NOT NULL`,
+          sql`${distanceExpression} <= ${radius}`,
+        ),
+      )
+      .orderBy(distanceExpression);
+
+    return res.status(200).json({
+      success: true,
+
+      doctors: rows.map(({ user, profile, distance }) => ({
+        ...formatDoctor(user, profile),
+
+        distance: Number(Number(distance).toFixed(2)),
+
+        clinicAddress: {
+          apartment: profile.clinicApartment ?? "",
+          street: profile.clinicStreet ?? "",
+          district: profile.clinicDistrict ?? "",
+          city: profile.clinicCity ?? "",
+          pinCode: profile.clinicPinCode ?? "",
+          state: profile.clinicState ?? "",
+
+          coordinates: {
+            type: "Point",
+
+            coordinates: [
+              Number(profile.clinicLongitude),
+              Number(profile.clinicLatitude),
+            ],
+          },
+        },
+      })),
+    });
+  } catch (error) {
+    console.error("getDoctorsNearMe error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch nearby doctors",
+      error: error.message,
+    });
+  }
+};
+
+const CONSULTATION_STATUS_TRANSITIONS = {
+  scheduled: ["confirmed", "cancelled"],
+  confirmed: ["in_progress", "cancelled"],
+  in_progress: ["completed", "cancelled"],
+  completed: [],
+  cancelled: [],
+};
+
+const canUpdateStatus = (consultation, user, nextStatus) => {
+  const allowedTransitions =
+    CONSULTATION_STATUS_TRANSITIONS[consultation.status] ?? [];
+
+  if (!allowedTransitions.includes(nextStatus)) {
+    return false;
+  }
+
+  /*
+    Doctor can manage only consultations assigned to them.
+  */
+  if (user.role === "doctor") {
+    if (consultation.doctorId !== user.id) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /*
+    Patient can only cancel their own consultation.
+  */
+  if (user.role === "patient") {
+    return consultation.patientId === user.id && nextStatus === "cancelled";
+  }
+
+  return false;
+};
+
 export const updateConsultationStatus = async (req, res) => {
   try {
     const { consultationId } = req.params;
     const { status } = req.body;
 
-    const allowedStatus = [
-      "scheduled",
-      "ongoing",
-      "completed",
-      "cancelled",
-      "missed",
-    ];
-    if (!allowedStatus.includes(status)) {
+    if (!status) {
       return res.status(400).json({
         success: false,
-        message: "Invalid consultation status",
+        message: "Status is required",
       });
     }
 
-    const consultation = await Consultation.findById(consultationId);
-    if (!consultation) {
+    const rows = await db
+      .select()
+      .from(consultations)
+      .where(eq(consultations.id, consultationId))
+      .limit(1);
+
+    const existingConsultation = rows[0];
+
+    if (!existingConsultation) {
       return res.status(404).json({
         success: false,
         message: "Consultation not found",
       });
     }
 
-    consultation.status = status;
-    await consultation.save();
+    if (!canUpdateStatus(existingConsultation, req.user, status)) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to perform this status transition",
+      });
+    }
 
-    res.json({
+    const updatedConsultation = await db.transaction(async (tx) => {
+      /*
+        Lock the consultation row.
+
+        This prevents simultaneous status transitions from
+        reading the same old status and both succeeding.
+      */
+      const lockedResult = await tx.execute(sql`
+        SELECT *
+        FROM consultations
+        WHERE id = ${consultationId}
+        FOR UPDATE
+      `);
+
+      const lockedConsultation = lockedResult.rows[0];
+
+      if (!lockedConsultation) {
+        const error = new Error("Consultation not found");
+        error.statusCode = 404;
+        throw error;
+      }
+
+      /*
+        Raw SQL returns snake_case properties.
+      */
+      const lockedNormalized = {
+        id: lockedConsultation.id,
+        patientId: lockedConsultation.patient_id,
+        doctorId: lockedConsultation.doctor_id,
+        status: lockedConsultation.status,
+      };
+
+      if (!canUpdateStatus(lockedNormalized, req.user, status)) {
+        const error = new Error(
+          "Consultation status changed or transition is not allowed",
+        );
+
+        error.statusCode = 409;
+        throw error;
+      }
+
+      const updatedRows = await tx
+        .update(consultations)
+        .set({
+          status,
+          updatedAt: new Date(),
+        })
+        .where(eq(consultations.id, consultationId))
+        .returning();
+
+      const consultation = updatedRows[0];
+
+      /*
+        Cancellation releases only the slot linked
+        to this consultation.
+
+        Clearing consultationId, bookedById, and isBooked
+        makes it available again.
+      */
+      if (status === "cancelled") {
+        await tx
+          .update(availabilitySlots)
+          .set({
+            isBooked: false,
+            bookedById: null,
+            consultationId: null,
+            updatedAt: new Date(),
+          })
+          .where(eq(availabilitySlots.consultationId, consultationId));
+      }
+
+      return consultation;
+    });
+
+    return res.status(200).json({
       success: true,
       message: "Consultation status updated successfully",
-      consultation,
+      consultation: formatConsultation(updatedConsultation),
     });
   } catch (error) {
     console.error("updateConsultationStatus error:", error);
-    res.status(500).json({
+
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    if (error.code === "22P02") {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid consultation status",
+      });
+    }
+
+    return res.status(500).json({
       success: false,
       message: "Failed to update consultation status",
       error: error.message,
@@ -721,17 +1178,27 @@ export const updateConsultationStatus = async (req, res) => {
   }
 };
 
-/*
-==================================================
-DOCTOR NOTES + PRESCRIPTION
-==================================================
-*/
 export const addDoctorNotes = async (req, res) => {
   try {
+    if (req.user.role !== "doctor") {
+      return res.status(403).json({
+        success: false,
+        message: "Only doctors can update consultation notes",
+      });
+    }
+
     const { consultationId } = req.params;
+
     const { doctorNotes, prescription, followUpRequired } = req.body;
 
-    const consultation = await Consultation.findById(consultationId);
+    const rows = await db
+      .select()
+      .from(consultations)
+      .where(eq(consultations.id, consultationId))
+      .limit(1);
+
+    const consultation = rows[0];
+
     if (!consultation) {
       return res.status(404).json({
         success: false,
@@ -739,145 +1206,221 @@ export const addDoctorNotes = async (req, res) => {
       });
     }
 
-    consultation.doctorNotes = doctorNotes || "";
-    consultation.prescription = prescription || "";
-    consultation.followUpRequired = followUpRequired || false;
+    if (consultation.doctorId !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: "You can update notes only for consultations assigned to you",
+      });
+    }
 
-    await consultation.save();
+    const updates = {
+      updatedAt: new Date(),
+    };
 
-    res.json({
+    if (doctorNotes !== undefined) {
+      updates.doctorNotes = String(doctorNotes);
+    }
+
+    if (prescription !== undefined) {
+      updates.prescription = String(prescription);
+    }
+
+    if (followUpRequired !== undefined) {
+      updates.followUpRequired =
+        followUpRequired === true || followUpRequired === "true";
+    }
+
+    if (Object.keys(updates).length === 1) {
+      return res.status(400).json({
+        success: false,
+        message: "No consultation note fields provided",
+      });
+    }
+
+    const updatedRows = await db
+      .update(consultations)
+      .set(updates)
+      .where(
+        and(
+          eq(consultations.id, consultationId),
+          eq(consultations.doctorId, req.user.id),
+        ),
+      )
+      .returning();
+
+    const updatedConsultation = updatedRows[0];
+
+    if (!updatedConsultation) {
+      return res.status(409).json({
+        success: false,
+        message: "Consultation could not be updated",
+      });
+    }
+
+    return res.status(200).json({
       success: true,
-      message: "Doctor notes added successfully",
-      consultation,
+      message: "Doctor notes updated successfully",
+      consultation: formatConsultation(updatedConsultation),
     });
   } catch (error) {
     console.error("addDoctorNotes error:", error);
-    res.status(500).json({
+
+    return res.status(500).json({
       success: false,
-      message: "Failed to add doctor notes",
+      message: "Failed to update doctor notes",
       error: error.message,
     });
   }
 };
 
-// Mark user as joined in consultation
 export const markUserJoined = async (req, res) => {
   try {
     const { consultationId } = req.params;
-    const userId = req.user.id;
 
-    const consultation = await Consultation.findById(consultationId)
-      .populate("patient", "name email")
-      .populate("doctor", "name email");
+    const rows = await db
+      .select({
+        consultation: consultations,
 
-    if (!consultation) {
+        patient: {
+          id: users.id,
+          name: users.name,
+          email: users.email,
+        },
+      })
+      .from(consultations)
+      .innerJoin(users, eq(consultations.patientId, users.id))
+      .where(eq(consultations.id, consultationId))
+      .limit(1);
+
+    const row = rows[0];
+
+    if (!row) {
       return res.status(404).json({
         success: false,
         message: "Consultation not found",
       });
     }
 
-    // Check if user is patient or doctor
-    let userRole = null;
-    let otherUserRole = null;
-    let otherUserHasJoined = false;
-    let otherUserEmail = null;
-    let otherUserName = null;
-    let currentUserName = null;
+    const consultation = row.consultation;
 
-    if (consultation.patient._id.toString() === userId) {
-      consultation.patientJoined = true;
-      userRole = "patient";
-      otherUserRole = "doctor";
-      otherUserHasJoined = consultation.doctorJoined;
-      otherUserEmail = consultation.doctor.email;
-      otherUserName = consultation.doctor.name;
-      currentUserName = consultation.patient.name;
-      await consultation.save();
+    if (
+      req.user.id !== consultation.patientId &&
+      req.user.id !== consultation.doctorId
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not part of this consultation",
+      });
+    }
 
-      console.log(
-        `✅ Patient marked as joined for consultation ${consultationId}`,
-      );
-    } else if (consultation.doctor._id.toString() === userId) {
-      consultation.doctorJoined = true;
-      userRole = "doctor";
-      otherUserRole = "patient";
-      otherUserHasJoined = consultation.patientJoined;
-      otherUserEmail = consultation.patient.email;
-      otherUserName = consultation.patient.name;
-      currentUserName = consultation.doctor.name;
-      await consultation.save();
+    let joinField;
 
-      console.log(
-        `✅ Doctor marked as joined for consultation ${consultationId}`,
-      );
+    if (req.user.role === "patient" && req.user.id === consultation.patientId) {
+      joinField = "patient";
+    } else if (
+      req.user.role === "doctor" &&
+      req.user.id === consultation.doctorId
+    ) {
+      joinField = "doctor";
     } else {
       return res.status(403).json({
         success: false,
-        message: "User not authorized for this consultation",
+        message: "Invalid consultation participant role",
       });
     }
 
-    // Update status to ongoing if it wasn't already
-    if (consultation.status === "scheduled") {
-      consultation.status = "ongoing";
-      await consultation.save();
+    const updates = {
+      updatedAt: new Date(),
+    };
+
+    if (joinField === "patient") {
+      updates.patientJoined = true;
+    } else {
+      updates.doctorJoined = true;
     }
 
-    // 📧 SEND EMAIL TO OTHER PARTICIPANT IF THEY HAVEN'T JOINED YET
-    if (!otherUserHasJoined && otherUserEmail) {
-      await sendMeetingWaitingEmail({
-        recipientEmail: otherUserEmail,
-        recipientName: otherUserName,
-        waitingUserRole: userRole,
-        waitingUserName: currentUserName,
-        consultationId: consultationId,
-        consultationDate: consultation.consultationDate,
-        startTime: consultation.startTime,
-      });
-    }
+    const updatedRows = await db
+      .update(consultations)
+      .set(updates)
+      .where(eq(consultations.id, consultationId))
+      .returning();
 
-    // 🔔 Notify the other user in real-time via Socket.io
+    const updatedConsultation = updatedRows[0];
+
+    /*
+      Socket.IO side effects after successful DB update.
+    */
     if (io) {
-      io.to(consultationId).emit("user-status-updated", {
+      io.to(consultationId).emit("participant-joined", {
         consultationId,
-        userRole,
-        userJoined: true,
-        patientJoined: consultation.patientJoined,
-        doctorJoined: consultation.doctorJoined,
-        message: `${userRole.charAt(0).toUpperCase() + userRole.slice(1)} has joined the consultation`,
+
+        userId: req.user.id,
+
+        role: req.user.role,
+
+        patientJoined: updatedConsultation.patientJoined,
+
+        doctorJoined: updatedConsultation.doctorJoined,
       });
+    }
 
-      // 🔔 If other user hasn't joined, send them a "waiting" notification
-      if (!otherUserHasJoined) {
-        io.to(consultationId).emit("participant-waiting", {
-          consultationId,
-          waitingUserRole: userRole,
-          waitingUserName: currentUserName,
-          message: `${currentUserName} (${userRole === "doctor" ? "Dr." : "Patient"}) has joined and is waiting for you to join`,
-          timestamp: new Date(),
-        });
+    /*
+      Preserve the old waiting-email behavior:
 
-        console.log(
-          `⏳ Participant waiting notification sent for ${consultationId}`,
+      patient joined,
+      doctor has not joined yet.
+    */
+    if (joinField === "patient" && !updatedConsultation.doctorJoined) {
+      try {
+        const doctorRows = await db
+          .select({
+            name: users.name,
+            email: users.email,
+          })
+          .from(users)
+          .where(eq(users.id, consultation.doctorId))
+          .limit(1);
+
+        const doctor = doctorRows[0];
+
+        if (doctor?.email) {
+          await sendMeetingWaitingEmail({
+            doctorEmail: doctor.email,
+
+            doctorName: doctor.name,
+
+            patientName: row.patient.name,
+
+            consultationId,
+
+            consultationDate: consultation.consultationDate,
+
+            startTime: consultation.startTime,
+          });
+        }
+      } catch (emailError) {
+        console.error(
+          "Meeting waiting email failed (non-critical):",
+          emailError.message,
         );
       }
-
-      console.log(
-        `🔔 Socket notification sent to consultation room ${consultationId}`,
-      );
     }
 
-    res.json({
+    return res.status(200).json({
       success: true,
-      message: "User marked as joined",
-      consultation,
+
+      message: `${req.user.role} marked as joined`,
+
+      consultation: formatConsultation(updatedConsultation, {
+        patient: row.patient,
+      }),
     });
   } catch (error) {
     console.error("markUserJoined error:", error);
-    res.status(500).json({
+
+    return res.status(500).json({
       success: false,
-      message: "Failed to mark user as joined",
+      message: "Failed to update meeting join status",
       error: error.message,
     });
   }

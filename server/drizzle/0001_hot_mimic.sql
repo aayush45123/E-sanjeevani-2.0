@@ -1,0 +1,2 @@
+CREATE UNIQUE INDEX "doctor_available_date_unique" ON "doctor_availabilities" USING btree ("doctor_id","available_date");--> statement-breakpoint
+CREATE UNIQUE INDEX "availability_slot_time_unique" ON "availability_slots" USING btree ("availability_id","start_time","end_time");

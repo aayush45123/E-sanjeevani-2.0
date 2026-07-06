@@ -1,6 +1,13 @@
-import TriageSession from "../models/TriageSession.js";
-import TriageResponse from "../models/TriageResponse.js";
-import User from "../models/User.js";
+import { db } from "../config/neonDb.js"; // adjust path to your drizzle db instance
+import {
+  triageSessions,
+  triageResponses,
+  patientProfiles,
+  users,
+  doctorProfiles,
+} from "../db/schema/index.js"; // adjust path to your schema barrel file
+import { eq, desc } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import {
   calculateUrgencyScore,
   getUrgencyLevel,
@@ -16,9 +23,7 @@ import {
 // Start/Create a new triage session
 export const createTriageSession = async (req, res) => {
   try {
-    console.log("🔍 createTriageSession called");
-    console.log("📦 Request body:", req.body);
-    console.log("👤 req.user:", req.user);
+    // Request logging removed to reduce noise
 
     const {
       symptoms,
@@ -29,7 +34,7 @@ export const createTriageSession = async (req, res) => {
     } = req.body;
 
     // Get patientId from req.user
-    const patientId = req.user?._id;
+    const patientId = req.user?.userId; // adjust to match your auth middleware (e.g. req.user.id)
 
     if (!patientId) {
       console.error("❌ ERROR: patientId not found. req.user:", req.user);
@@ -47,27 +52,27 @@ export const createTriageSession = async (req, res) => {
         .json({ message: "At least one symptom is required" });
     }
 
-    console.log("✅ Creating triage session for patient:", patientId);
-    console.log("📋 Symptoms:", symptoms);
+    // Creating triage session
 
     // Create new triage session
-    const triageSession = new TriageSession({
-      patientId,
-      symptoms,
-      medicalHistory,
-      currentMedications,
-      allergies,
-      additionalNotes,
-      status: "pending",
-    });
+    const [triageSession] = await db
+      .insert(triageSessions)
+      .values({
+        patientId,
+        symptoms,
+        medicalHistory,
+        currentMedications,
+        allergies,
+        additionalNotes,
+        status: "pending",
+      })
+      .returning();
 
-    await triageSession.save();
-
-    console.log("✅ Triage session saved:", triageSession._id);
+    // Triage session saved
 
     res.status(201).json({
       message: "Triage session created successfully",
-      triageSessionId: triageSession._id,
+      triageSessionId: triageSession.id,
       session: triageSession,
     });
   } catch (error) {
@@ -82,35 +87,39 @@ export const createTriageSession = async (req, res) => {
 // Process triage and generate AI response
 export const processTriageResponse = async (req, res) => {
   try {
-    console.log("🔍 processTriageResponse called");
+    // processTriageResponse invoked
     const { triageSessionId } = req.params;
-    const patientId = req.user?._id;
+    const patientId = req.user?.userId; // adjust to match your auth middleware (e.g. req.user.id)
 
-    console.log(
-      "📋 Processing triage:",
-      triageSessionId,
-      "for patient:",
-      patientId,
-    );
+    // Processing triage
 
     // Get triage session
-    const triageSession = await TriageSession.findById(triageSessionId);
+    const [triageSession] = await db
+      .select()
+      .from(triageSessions)
+      .where(eq(triageSessions.id, triageSessionId));
+
     if (!triageSession) {
       console.warn("⚠️ Triage session not found");
       return res.status(404).json({ message: "Triage session not found" });
     }
 
     // Verify ownership
-    if (triageSession.patientId.toString() !== patientId.toString()) {
+    if (triageSession.patientId !== patientId) {
       console.error("❌ Unauthorized access");
       return res.status(403).json({ message: "Unauthorized" });
     }
 
-    // Get patient details for age-based scoring
-    const patient = await User.findById(patientId);
-    const age = patient?.age || 30;
+    // Get patient details for age-based scoring.
+    // Note: "age" now lives on patient_profiles, not on the users table.
+    const [profile] = await db
+      .select({ age: patientProfiles.age })
+      .from(patientProfiles)
+      .where(eq(patientProfiles.userId, patientId));
 
-    console.log("👤 Patient age:", age);
+    const age = profile?.age || 30;
+
+    // Patient age retrieved
 
     // Calculate urgency score
     const urgencyScore = calculateUrgencyScore(
@@ -120,7 +129,7 @@ export const processTriageResponse = async (req, res) => {
     );
     const urgencyLevel = getUrgencyLevel(urgencyScore);
 
-    console.log("📊 Urgency score:", urgencyScore, "Level:", urgencyLevel);
+    // Urgency score calculated
 
     // Generate preliminary assessment (in real scenario, this would call GPT or similar AI)
     const preliminaryAssessment = generateAIPreliminaryAssessment(
@@ -151,30 +160,33 @@ export const processTriageResponse = async (req, res) => {
     );
 
     // Create triage response
-    const triageResponse = new TriageResponse({
-      triageSessionId,
-      patientId,
-      symptoms: triageSession.symptoms,
-      preliminaryAssessment,
-      possibleConditions,
-      recommendedTests,
-      recommendedSpecialties,
+    const [triageResponse] = await db
+      .insert(triageResponses)
+      .values({
+        triageSessionId,
+        patientId,
+        symptoms: triageSession.symptoms,
+        preliminaryAssessment,
+        possibleConditions,
+        recommendedTests,
+        recommendedSpecialties,
+        urgencyScore,
+        urgencyLevel,
+        immediateRecommendations,
+        shouldAutoMatchDoctor: urgencyScore > 8,
+      })
+      .returning();
+
+    // Prepare triage session update
+    const updateData = {
       urgencyScore,
       urgencyLevel,
-      immediateRecommendations,
-      shouldAutoMatchDoctor: urgencyScore > 8,
-    });
-
-    await triageResponse.save();
-
-    // Update triage session
-    triageSession.aiResponse = triageResponse._id;
-    triageSession.urgencyScore = urgencyScore;
-    triageSession.urgencyLevel = urgencyLevel;
-    triageSession.recommendedSpecialty = recommendedSpecialties[0];
-    triageSession.summaryTitle = `${urgencyLevel.toUpperCase()}: ${triageSession.symptoms[0].symptom}`;
-    triageSession.summaryDescription = preliminaryAssessment;
-    triageSession.status = "completed";
+      recommendedSpecialty: recommendedSpecialties[0],
+      summaryTitle: `${urgencyLevel.toUpperCase()}: ${triageSession.symptoms[0].symptom}`,
+      summaryDescription: preliminaryAssessment,
+      status: "completed",
+      updatedAt: new Date(),
+    };
 
     // Auto-match doctor if urgency score > 8
     if (urgencyScore > 8) {
@@ -192,18 +204,21 @@ export const processTriageResponse = async (req, res) => {
           );
 
           if (consultation) {
-            triageSession.assignedDoctor = matchedDoctor.doctorId;
-            triageSession.status = "assigned_doctor";
-            triageResponse.shouldAutoMatchDoctor = true;
+            updateData.assignedDoctorId = matchedDoctor.doctorId;
+            updateData.status = "assigned_doctor";
 
-            await triageSession.save();
+            const [updatedSession] = await db
+              .update(triageSessions)
+              .set(updateData)
+              .where(eq(triageSessions.id, triageSessionId))
+              .returning();
 
             return res.status(200).json({
               message:
                 "Triage completed. Doctor auto-matched due to high urgency!",
               triageResponse,
               autoMatchedConsultation: {
-                consultationId: consultation._id,
+                consultationId: consultation.id,
                 doctorName: matchedDoctor.doctor.fullName,
                 specialization: matchedDoctor.doctor.specialization,
                 scheduledDate: consultation.scheduledDate,
@@ -218,12 +233,16 @@ export const processTriageResponse = async (req, res) => {
       }
     }
 
-    await triageSession.save();
+    const [updatedSession] = await db
+      .update(triageSessions)
+      .set(updateData)
+      .where(eq(triageSessions.id, triageSessionId))
+      .returning();
 
     res.status(200).json({
       message: "Triage processed successfully",
       triageResponse,
-      triageSession,
+      triageSession: updatedSession,
     });
   } catch (error) {
     console.error("Error processing triage response:", error);
@@ -236,30 +255,72 @@ export const processTriageResponse = async (req, res) => {
 // Get patient's triage history (summaries only)
 export const getTriageHistory = async (req, res) => {
   try {
-    console.log("🔍 getTriageHistory called");
-    const patientId = req.user?._id;
-    console.log("👤 PatientId:", patientId);
+    // getTriageHistory invoked
+    const patientId = req.user?.userId; // adjust to match your auth middleware (e.g. req.user.id)
 
     if (!patientId) {
       console.error("❌ No patientId found");
       return res.status(401).json({ message: "Unauthorized" });
     }
 
+    // Aliases so we can join "users" and "doctor_profiles" for the assigned doctor
+    const assignedDoctorUser = alias(users, "assigned_doctor_user");
+    const assignedDoctorProfile = alias(
+      doctorProfiles,
+      "assigned_doctor_profile",
+    );
+
     // Get all triage sessions for patient, showing only summary
-    const triageSessions = await TriageSession.find({ patientId })
-      .select(
-        "summaryTitle summaryDescription urgencyScore urgencyLevel recommendedSpecialty createdAt status assignedDoctor",
+    const rows = await db
+      .select({
+        id: triageSessions.id,
+        summaryTitle: triageSessions.summaryTitle,
+        summaryDescription: triageSessions.summaryDescription,
+        urgencyScore: triageSessions.urgencyScore,
+        urgencyLevel: triageSessions.urgencyLevel,
+        recommendedSpecialty: triageSessions.recommendedSpecialty,
+        createdAt: triageSessions.createdAt,
+        status: triageSessions.status,
+        assignedDoctorId: triageSessions.assignedDoctorId,
+        assignedDoctorName: assignedDoctorUser.name,
+        assignedDoctorSpecialization: assignedDoctorProfile.specialization,
+      })
+      .from(triageSessions)
+      .leftJoin(
+        assignedDoctorUser,
+        eq(assignedDoctorUser.id, triageSessions.assignedDoctorId),
       )
-      .populate("assignedDoctor", "fullName specialization")
-      .sort({ createdAt: -1 })
+      .leftJoin(
+        assignedDoctorProfile,
+        eq(assignedDoctorProfile.userId, triageSessions.assignedDoctorId),
+      )
+      .where(eq(triageSessions.patientId, patientId))
+      .orderBy(desc(triageSessions.createdAt))
       .limit(10); // Get last 10 sessions
 
-    console.log("✅ Found triage sessions:", triageSessions.length);
-    console.log("📊 Sessions:", triageSessions);
+    const triageHistory = rows.map((row) => ({
+      _id: row.id,
+      summaryTitle: row.summaryTitle,
+      summaryDescription: row.summaryDescription,
+      urgencyScore: row.urgencyScore,
+      urgencyLevel: row.urgencyLevel,
+      recommendedSpecialty: row.recommendedSpecialty,
+      createdAt: row.createdAt,
+      status: row.status,
+      assignedDoctor: row.assignedDoctorId
+        ? {
+            _id: row.assignedDoctorId,
+            fullName: row.assignedDoctorName,
+            specialization: row.assignedDoctorSpecialization,
+          }
+        : null,
+    }));
+
+    // Triage history prepared
 
     res.status(200).json({
       message: "Triage history retrieved",
-      triageHistory: triageSessions,
+      triageHistory,
     });
   } catch (error) {
     console.error("❌ Error getting triage history:", error.message);
@@ -273,24 +334,17 @@ export const getTriageHistory = async (req, res) => {
 // Get specific triage session details
 export const getTriageSessionDetails = async (req, res) => {
   try {
-    console.log("🔍 getTriageSessionDetails called");
+    // getTriageSessionDetails invoked
     const { triageSessionId } = req.params;
-    const patientId = req.user?._id;
+    const patientId = req.user?.userId; // adjust to match your auth middleware (e.g. req.user.id)
 
-    console.log(
-      "📋 Fetching triage:",
-      triageSessionId,
-      "for patient:",
-      patientId,
-    );
+    // Fetching triage session details
 
     // Get triage session
-    const triageSession = await TriageSession.findById(triageSessionId)
-      .populate("aiResponse")
-      .populate(
-        "assignedDoctor",
-        "fullName specialization rating yearsOfExperience",
-      );
+    const [triageSession] = await db
+      .select()
+      .from(triageSessions)
+      .where(eq(triageSessions.id, triageSessionId));
 
     if (!triageSession) {
       console.warn("⚠️ Triage session not found");
@@ -298,15 +352,53 @@ export const getTriageSessionDetails = async (req, res) => {
     }
 
     // Verify ownership
-    if (triageSession.patientId.toString() !== patientId.toString()) {
+    if (triageSession.patientId !== patientId) {
       console.error("❌ Unauthorized access");
       return res.status(403).json({ message: "Unauthorized" });
     }
 
-    console.log("✅ Returning triage session details");
+    // Equivalent of the old .populate("aiResponse") — the response now lives
+    // in its own table, keyed by triageSessionId.
+    const [aiResponse] = await db
+      .select()
+      .from(triageResponses)
+      .where(eq(triageResponses.triageSessionId, triageSessionId));
+
+    // Equivalent of the old .populate("assignedDoctor", "fullName specialization rating yearsOfExperience")
+    let assignedDoctor = null;
+    if (triageSession.assignedDoctorId) {
+      const [doctorRow] = await db
+        .select({
+          id: users.id,
+          fullName: users.name,
+          specialization: doctorProfiles.specialization,
+          experience: doctorProfiles.experience,
+        })
+        .from(users)
+        .leftJoin(doctorProfiles, eq(doctorProfiles.userId, users.id))
+        .where(eq(users.id, triageSession.assignedDoctorId));
+
+      // Note: "rating" does not exist on doctor_profiles in the current schema,
+      // so it isn't included here. "experience" is exposed as yearsOfExperience
+      // to keep the response shape close to the original.
+      assignedDoctor = doctorRow
+        ? {
+            _id: doctorRow.id,
+            fullName: doctorRow.fullName,
+            specialization: doctorRow.specialization,
+            yearsOfExperience: doctorRow.experience,
+          }
+        : null;
+    }
+
+    // Returning triage session details
     res.status(200).json({
       message: "Triage session details",
-      triageSession,
+      triageSession: {
+        ...triageSession,
+        aiResponse: aiResponse || null,
+        assignedDoctor,
+      },
     });
   } catch (error) {
     console.error("❌ Error getting triage session details:", error.message);

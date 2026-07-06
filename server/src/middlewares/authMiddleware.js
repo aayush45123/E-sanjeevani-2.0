@@ -1,50 +1,76 @@
-// middlewares/authMiddleware.js
 import jwt from "jsonwebtoken";
-import User from "../models/User.js";
+import { eq } from "drizzle-orm";
+
+import { db } from "../config/neonDb.js";
+import { users } from "../db/schema/index.js";
 
 const authMiddleware = async (req, res, next) => {
   try {
-    const token = req.headers.authorization?.split(" ")[1];
+    const authorization = req.headers.authorization;
 
-    if (!token) {
-      console.log("❌ No token provided");
+    if (!authorization?.startsWith("Bearer ")) {
       return res.status(401).json({
         success: false,
         message: "No token, authorization denied",
       });
     }
 
+    const token = authorization.slice(7);
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log("✅ Token decoded:", decoded);
 
-    const user = await User.findById(decoded.userId).select("-password");
+    const result = await db
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        role: users.role,
+        isVerified: users.isVerified,
+        isActive: users.isActive,
+      })
+      .from(users)
+      .where(eq(users.id, decoded.userId))
+      .limit(1);
 
-    if (!user) {
-      console.error("❌ User not found for userId:", decoded.userId);
+    const user = result[0];
+
+    if (!user || !user.isActive) {
       return res.status(401).json({
         success: false,
-        message: "User not found",
+        message: "User not found or inactive",
       });
     }
 
-    // ✅ FIX: Properly set req.user with all necessary fields
+    /*
+      Compatibility shape.
+
+      Existing controllers may use:
+      req.user._id
+      req.user.id
+      req.user.id
+
+      During migration, all three contain the PostgreSQL UUID.
+    */
     req.user = {
-      _id: user._id, // MongoDB ObjectId for database queries
-      id: user._id.toString(), // String version
-      userId: decoded.userId, // From token
-      email: decoded.email,
-      role: decoded.role,
+      _id: user.id,
+      id: user.id,
+      userId: user.id,
+
       name: user.name,
+      email: user.email,
+      role: user.role,
+
+      isVerified: user.isVerified,
+      isActive: user.isActive,
     };
 
-    console.log("✅ Auth successful for user:", req.user._id);
     next();
-  } catch (err) {
-    console.error("❌ Auth middleware error:", err.message);
+  } catch (error) {
+    console.error("Auth middleware error:", error.message);
+
     return res.status(401).json({
       success: false,
       message: "Invalid token",
-      error: err.message,
     });
   }
 };

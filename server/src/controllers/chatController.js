@@ -1,7 +1,9 @@
 import { OpenAI } from "openai";
-import ChatMessage from "../models/ChatMessage.js";
-import Consultation from "../models/Consultation.js";
+import { db } from "../config/neonDb.js"; // adjust path to your drizzle db instance
+import { chatMessages, consultations } from "../db/schema/index.js"; // adjust path to your schema barrel file
+import { eq, asc } from "drizzle-orm";
 
+// No DB involved here — unchanged from the original implementation
 export const handleChat = async (req, res) => {
   try {
     const { prompt } = req.body;
@@ -59,7 +61,7 @@ export const handleChat = async (req, res) => {
 export const saveConsultationMessage = async (req, res) => {
   try {
     const { consultationId, text, senderName } = req.body;
-    const senderId = req.user._id;
+    const senderId = req.user.id; // adjust to match your auth middleware (e.g. req.user.id)
     const senderRole = req.user.role;
 
     if (!consultationId || !text) {
@@ -69,31 +71,36 @@ export const saveConsultationMessage = async (req, res) => {
     }
 
     // Verify consultation exists and user is part of it
-    const consultation = await Consultation.findById(consultationId);
+    const [consultation] = await db
+      .select()
+      .from(consultations)
+      .where(eq(consultations.id, consultationId));
+
     if (!consultation) {
       return res.status(404).json({ message: "Consultation not found" });
     }
 
     // Verify user is part of this consultation
     if (
-      consultation.patientId.toString() !== senderId.toString() &&
-      consultation.doctorId.toString() !== senderId.toString()
+      consultation.patientId !== senderId &&
+      consultation.doctorId !== senderId
     ) {
       return res
         .status(403)
         .json({ message: "Unauthorized to message in this consultation" });
     }
 
-    const message = new ChatMessage({
-      consultationId,
-      senderId,
-      senderName: senderName || "User",
-      senderRole,
-      text,
-      messageType: "text",
-    });
-
-    await message.save();
+    const [message] = await db
+      .insert(chatMessages)
+      .values({
+        consultationId,
+        senderId,
+        senderName: senderName || "User",
+        senderRole,
+        text,
+        messageType: "text",
+      })
+      .returning();
 
     res.status(201).json({
       message: "Message saved successfully",
@@ -111,25 +118,36 @@ export const saveConsultationMessage = async (req, res) => {
 export const getConsultationMessages = async (req, res) => {
   try {
     const { consultationId } = req.params;
-    const userId = req.user._id;
+    const userId = req.user.id; // adjust to match your auth middleware (e.g. req.user.id)
 
     // Verify consultation exists and user is part of it
-    const consultation = await Consultation.findById(consultationId);
+    const [consultation] = await db
+      .select()
+      .from(consultations)
+      .where(eq(consultations.id, consultationId));
+
     if (!consultation) {
       return res.status(404).json({ message: "Consultation not found" });
     }
 
     // Verify user is part of this consultation
-    if (
-      consultation.patientId.toString() !== userId.toString() &&
-      consultation.doctorId.toString() !== userId.toString()
-    ) {
+    if (consultation.patientId !== userId && consultation.doctorId !== userId) {
       return res.status(403).json({ message: "Unauthorized to view messages" });
     }
 
-    const messages = await ChatMessage.find({ consultationId })
-      .select("senderId senderName senderRole text messageType createdAt")
-      .sort({ createdAt: 1 }); // Oldest first
+    const messages = await db
+      .select({
+        id: chatMessages.id,
+        senderId: chatMessages.senderId,
+        senderName: chatMessages.senderName,
+        senderRole: chatMessages.senderRole,
+        text: chatMessages.text,
+        messageType: chatMessages.messageType,
+        createdAt: chatMessages.createdAt,
+      })
+      .from(chatMessages)
+      .where(eq(chatMessages.consultationId, consultationId))
+      .orderBy(asc(chatMessages.createdAt)); // Oldest first
 
     res.status(200).json({
       message: "Messages retrieved successfully",

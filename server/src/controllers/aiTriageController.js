@@ -1,5 +1,7 @@
 import axios from "axios";
-import AITriageChat from "../models/AITriageChat.js";
+import { db } from "../config/neonDb.js";
+
+import { aiTriageChats } from "../db/schema/index.js";
 
 export const predictDisease = async (req, res) => {
   try {
@@ -12,37 +14,40 @@ export const predictDisease = async (req, res) => {
       });
     }
 
-    console.log(
-      "🔍 Calling Python AI Service with message:",
-      message.substring(0, 50) + "...",
-    );
+    // Detailed request logs removed to reduce noise
 
     // Call Python Flask API
     const aiResponse = await axios.post("http://127.0.0.1:8000/predict", {
       message,
     });
 
-    console.log(
-      "✅ Python API Response:",
-      JSON.stringify(aiResponse.data).substring(0, 200),
-    );
+    // Response logging removed to reduce noise
 
     const result = aiResponse.data;
 
     // Extract the actual prediction data from the response
     const predictionData = result.data || result;
 
-    // Save to MongoDB
-    const savedChat = await AITriageChat.create({
-      userId,
-      symptoms: message,
-      predictedDisease: predictionData.predictedDisease,
-      urgency: predictionData.urgency,
-      doctorType: predictionData.doctorType,
-      finalDoctorDiagnosis: "",
-    });
+    const insertedRows = await db
+      .insert(aiTriageChats)
+      .values({
+        userId,
 
-    console.log("💾 Saved to MongoDB with urgency:", predictionData.urgency);
+        symptoms: message,
+
+        predictedDisease: predictionData.predictedDisease,
+
+        urgency: predictionData.urgency,
+
+        doctorType: predictionData.doctorType,
+
+        finalDoctorDiagnosis: "",
+      })
+      .returning();
+
+    const savedChat = insertedRows[0];
+
+    // saved chat persisted
 
     // Return the properly formatted response
     return res.status(200).json({
