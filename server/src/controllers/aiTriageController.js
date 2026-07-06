@@ -5,7 +5,16 @@ import { aiTriageChats } from "../db/schema/index.js";
 
 export const predictDisease = async (req, res) => {
   try {
-    const { userId, message } = req.body;
+    const { message } = req.body;
+
+    const userId = req.user?.id ?? null;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+    }
 
     if (!message) {
       return res.status(400).json({
@@ -17,9 +26,21 @@ export const predictDisease = async (req, res) => {
     // Detailed request logs removed to reduce noise
 
     // Call Python Flask API
-    const aiResponse = await axios.post("http://127.0.0.1:8000/predict", {
-      message,
-    });
+    let aiResponse;
+
+    try {
+      aiResponse = await axios.post("http://127.0.0.1:8000/predict", {
+        message,
+      });
+    } catch (err) {
+      console.error("AI service request failed:", err.message);
+
+      return res.status(503).json({
+        success: false,
+        message: "AI service unavailable",
+        error: err.message,
+      });
+    }
 
     // Response logging removed to reduce noise
 

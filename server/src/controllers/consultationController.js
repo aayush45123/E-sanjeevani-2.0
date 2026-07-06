@@ -609,6 +609,61 @@ export const createConsultation = async (req, res) => {
       });
     }
 
+    // Normalize time format to HH:MM to match stored slot format
+    const normalizeTime = (t) => {
+      if (typeof t !== "string") return null;
+
+      const parts = t.split(":").map((p) => Number(p));
+
+      if (parts.length < 2 || parts.some((n) => Number.isNaN(n))) return null;
+
+      const hh = String(parts[0]).padStart(2, "0");
+
+      const mm = String(parts[1]).padStart(2, "0");
+
+      return `${hh}:${mm}`;
+    };
+
+    const normStartTime = normalizeTime(startTime);
+
+    const normEndTime = normalizeTime(endTime);
+
+    if (!normStartTime || !normEndTime) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid startTime or endTime format. Use HH:MM",
+      });
+    }
+
+    // Check slot existence and booking status before attempting transaction
+    const slotRows = await db
+      .select()
+      .from(availabilitySlots)
+      .where(
+        and(
+          eq(availabilitySlots.availabilityId, availability.id),
+          eq(availabilitySlots.startTime, normStartTime),
+          eq(availabilitySlots.endTime, normEndTime),
+        ),
+      )
+      .limit(1);
+
+    const slot = slotRows[0];
+
+    if (!slot) {
+      return res.status(404).json({
+        success: false,
+        message: "Selected slot does not exist for this date",
+      });
+    }
+
+    if (slot.isBooked) {
+      return res.status(409).json({
+        success: false,
+        message: "Selected slot is already booked",
+      });
+    }
+
     /*
       TRANSACTION:
 
@@ -637,9 +692,9 @@ export const createConsultation = async (req, res) => {
           and(
             eq(availabilitySlots.availabilityId, availability.id),
 
-            eq(availabilitySlots.startTime, startTime),
+            eq(availabilitySlots.startTime, normStartTime),
 
-            eq(availabilitySlots.endTime, endTime),
+            eq(availabilitySlots.endTime, normEndTime),
 
             eq(availabilitySlots.isBooked, false),
           ),
