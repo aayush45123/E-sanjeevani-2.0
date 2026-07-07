@@ -6,8 +6,6 @@ import { eq } from "drizzle-orm";
 import { db } from "../config/neonDb.js";
 import { users, patientProfiles } from "../db/schema/index.js";
 
-import MongoUser from "../models/User.js";
-
 const normalizeEmail = (email) => {
   return email.trim().toLowerCase();
 };

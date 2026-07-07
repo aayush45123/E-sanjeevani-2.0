@@ -3,7 +3,6 @@ import "dotenv/config";
 import app from "./app.js";
 import http from "http";
 
-import connectDB from "./config/db.js";
 import { checkPostgresConnection } from "./config/neonDb.js";
 
 import initializeSocket from "./services/socketServer.js";
@@ -15,8 +14,6 @@ export let io = null;
 
 const startServer = async () => {
   try {
-    // Temporary MongoDB connection during migration
-    await connectDB();
 
     // New PostgreSQL connection
     await checkPostgresConnection();
