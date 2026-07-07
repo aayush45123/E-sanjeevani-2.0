@@ -47,6 +47,7 @@ const ProfileCompletion = () => {
   const [saving, setSaving] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isProfileComplete, setIsProfileComplete] = useState(false);
+  const [hasProfile, setHasProfile] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -63,9 +64,13 @@ const ProfileCompletion = () => {
               profile.patientAddress || initialFormState.patientAddress,
             patientCoordinates: profile.patientCoordinates || {},
           });
+          setHasProfile(true); // NEW — profile exists, use PATCH later
+          setIsEditMode(false);
+        } else {
+          setHasProfile(false); // NEW — no profile yet, use POST later
+          setIsEditMode(true); // NEW — put a new user straight into edit mode
         }
         setIsProfileComplete(complete);
-        setIsEditMode(false);
       } catch (error) {
         console.error("Profile fetch failed:", error);
       } finally {
@@ -99,13 +104,19 @@ const ProfileCompletion = () => {
     e.preventDefault();
     setSaving(true);
     try {
-      // Prepare data with location
       const submitData = {
         ...formData,
         patientLatitude: formData.patientCoordinates.latitude,
         patientLongitude: formData.patientCoordinates.longitude,
       };
-      await apiClient.patch("/patient/profile", submitData);
+
+      if (hasProfile) {
+        await apiClient.patch("/patient/profile", submitData);
+      } else {
+        await apiClient.post("/patient/profile", submitData);
+        setHasProfile(true); // NEW — now that it's created, future saves are PATCH
+      }
+
       setIsEditMode(false);
       setIsProfileComplete(true);
       window.dispatchEvent(new Event("profileUpdated"));
