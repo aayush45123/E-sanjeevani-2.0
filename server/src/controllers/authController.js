@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import { sendWelcomeEmail } from "../utils/sendWelcomeEmail.js";
 
 import { eq } from "drizzle-orm";
 
@@ -103,6 +104,13 @@ export const register = async (req, res) => {
       });
 
     const user = insertedUsers[0];
+
+    // Send welcome email in background (non-blocking)
+    sendWelcomeEmail({
+      email: user.email,
+      name: user.name,
+      role: user.role,
+    });
 
     const token = createToken(user);
 
