@@ -1,5 +1,8 @@
 import cron from "node-cron";
-import Consultation from "../models/Consultation.js";
+import { db } from "../config/neonDb.js"; // adjust path to your drizzle db instance
+import { consultations, users } from "../db/schema/index.js"; // adjust path to your schema barrel file
+import { eq, and, gte, lte } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { sendConsultationReminderEmail } from "./sendAppointmentEmail.js";
 
 /**
@@ -48,34 +51,47 @@ export const initializeConsultationReminders = () => {
       /*
       ============================================
       Find Consultations That Need Reminder
+      (patient/doctor pulled via join instead of .populate,
+      since both patientId and doctorId are required FKs on consultations)
       ============================================
       */
 
-      const consultations = await Consultation.find({
-        consultationDate: {
-          $gte: todayStart,
-          $lte: todayEnd,
-        },
+      const patientUser = alias(users, "reminder_patient_user");
+      const doctorUser = alias(users, "reminder_doctor_user");
 
-        status: "scheduled",
+      const dueConsultations = await db
+        .select({
+          id: consultations.id,
+          consultationDate: consultations.consultationDate,
+          startTime: consultations.startTime,
+          endTime: consultations.endTime,
+          consultationType: consultations.consultationType,
+          patientEmail: patientUser.email,
+          patientName: patientUser.name,
+          doctorEmail: doctorUser.email,
+          doctorName: doctorUser.name,
+        })
+        .from(consultations)
+        .innerJoin(patientUser, eq(patientUser.id, consultations.patientId))
+        .innerJoin(doctorUser, eq(doctorUser.id, consultations.doctorId))
+        .where(
+          and(
+            gte(consultations.consultationDate, todayStart),
+            lte(consultations.consultationDate, todayEnd),
+            eq(consultations.status, "scheduled"),
+            eq(consultations.reminderSent, false),
+            eq(consultations.patientJoined, false),
+            eq(consultations.doctorJoined, false),
+            eq(consultations.startTime, currentTime),
+          ),
+        );
 
-        reminderSent: false,
-
-        patientJoined: false,
-
-        doctorJoined: false,
-
-        startTime: currentTime,
-      })
-        .populate("patient", "email name")
-        .populate("doctor", "email name");
-
-      if (!consultations.length) {
+      if (!dueConsultations.length) {
         return;
       }
 
       console.log(
-        `\n⏰ CONSULTATION REMINDER JOB: Found ${consultations.length} consultation(s) at ${currentTime}`,
+        `\n⏰ CONSULTATION REMINDER JOB: Found ${dueConsultations.length} consultation(s) at ${currentTime}`,
       );
 
       /*
@@ -84,26 +100,23 @@ export const initializeConsultationReminders = () => {
       ============================================
       */
 
-      for (const consultation of consultations) {
+      for (const consultation of dueConsultations) {
         try {
-          const patient = consultation.patient;
-          const doctor = consultation.doctor;
-
           /*
           ============================================
           Validate Emails
           ============================================
           */
 
-          if (!patient?.email || !doctor?.email) {
+          if (!consultation.patientEmail || !consultation.doctorEmail) {
             console.warn(
-              `⚠️ Skipping consultation ${consultation._id} because email is missing`,
+              `⚠️ Skipping consultation ${consultation.id} because email is missing`,
             );
             continue;
           }
 
           console.log(
-            `📧 Sending reminder for consultation: ${consultation._id}`,
+            `📧 Sending reminder for consultation: ${consultation.id}`,
           );
 
           /*
@@ -113,11 +126,11 @@ export const initializeConsultationReminders = () => {
           */
 
           const result = await sendConsultationReminderEmail({
-            patientEmail: patient.email,
-            doctorEmail: doctor.email,
+            patientEmail: consultation.patientEmail,
+            doctorEmail: consultation.doctorEmail,
 
-            patientName: patient.name,
-            doctorName: doctor.name,
+            patientName: consultation.patientName,
+            doctorName: consultation.doctorName,
 
             consultationDate: consultation.consultationDate,
 
@@ -134,23 +147,27 @@ export const initializeConsultationReminders = () => {
           */
 
           if (result.success) {
-            consultation.reminderSent = true;
-            consultation.reminderSentAt = new Date();
-
-            await consultation.save();
+            await db
+              .update(consultations)
+              .set({
+                reminderSent: true,
+                reminderSentAt: new Date(),
+                updatedAt: new Date(),
+              })
+              .where(eq(consultations.id, consultation.id));
 
             console.log(
-              `✅ Reminder successfully sent for consultation ${consultation._id}`,
+              `✅ Reminder successfully sent for consultation ${consultation.id}`,
             );
           } else {
             console.error(
-              `❌ Reminder failed for consultation ${consultation._id}:`,
+              `❌ Reminder failed for consultation ${consultation.id}:`,
               result.error,
             );
           }
         } catch (error) {
           console.error(
-            `❌ Error while processing consultation ${consultation._id}:`,
+            `❌ Error while processing consultation ${consultation.id}:`,
             error.message,
           );
         }
