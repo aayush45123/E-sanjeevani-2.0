@@ -1,28 +1,25 @@
 import express from "express";
-import * as triageController from "../controllers/triageController.js";
 import authMiddleware from "../middlewares/authMiddleware.js";
+import {
+  createTriageSession,
+  processTriageResponse,
+  getTriageHistory,
+  getTriageSessionDetails,
+} from "../controllers/triageController.js";
+import { validate } from "../validators/validation.middleware.js";
+import {
+  createTriageSessionSchema,
+  processTriageSchema,
+  triageDetailsSchema,
+} from "../validators/triage.validator.js";
 
 const router = express.Router();
 
-// Protect all triage routes with authentication
 router.use(authMiddleware);
 
-// Create a new triage session
-router.post("/create", triageController.createTriageSession);
-
-// Process triage and get AI response
-router.post(
-  "/process/:triageSessionId",
-  triageController.processTriageResponse,
-);
-
-// Get patient's triage history (summaries)
-router.get("/history", triageController.getTriageHistory);
-
-// Get specific triage session details
-router.get(
-  "/details/:triageSessionId",
-  triageController.getTriageSessionDetails,
-);
+router.post("/create", validate(createTriageSessionSchema), createTriageSession);
+router.post("/process/:triageSessionId", validate(processTriageSchema), processTriageResponse);
+router.get("/history", getTriageHistory);
+router.get("/details/:triageSessionId", validate(triageDetailsSchema), getTriageSessionDetails);
 
 export default router;

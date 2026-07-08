@@ -50,41 +50,31 @@ export const severityScore = {
 export const calculateUrgencyScore = (symptoms, medicalHistory, age) => {
   let score = 0;
 
-  // Check for critical symptoms
   symptoms.forEach((symptom) => {
     const symptomLower = symptom.symptom.toLowerCase();
 
-    // Critical check
     if (
       urgencyKeywords.critical.some((keyword) => symptomLower.includes(keyword))
     ) {
       score += 10;
-    }
-    // High check
-    else if (
+    } else if (
       urgencyKeywords.high.some((keyword) => symptomLower.includes(keyword))
     ) {
       score += 7;
-    }
-    // Moderate check
-    else if (
+    } else if (
       urgencyKeywords.moderate.some((keyword) => symptomLower.includes(keyword))
     ) {
       score += 4;
-    }
-    // Low check
-    else if (
+    } else if (
       urgencyKeywords.low.some((keyword) => symptomLower.includes(keyword))
     ) {
       score += 1;
     }
 
-    // Add severity factor
     if (symptom.severity) {
       score += severityScore[symptom.severity] || 0;
     }
 
-    // Duration factor - longer duration might indicate more concern
     if (symptom.duration) {
       if (
         symptom.duration.includes("week") ||
@@ -95,14 +85,12 @@ export const calculateUrgencyScore = (symptoms, medicalHistory, age) => {
     }
   });
 
-  // Age factor - older patients with same symptoms get slightly higher score
   if (age > 60) {
     score += 1;
   } else if (age < 5) {
     score += 1;
   }
 
-  // Cap at 10
   score = Math.min(score, 10);
   score = Math.max(score, 0);
 
@@ -119,7 +107,6 @@ export const getUrgencyLevel = (score) => {
 export const getRecommendedTests = (symptoms, conditions) => {
   const tests = new Set();
 
-  // Common tests based on symptoms
   const symptomTests = {
     fever: ["Blood Test", "CBC"],
     cough: ["Chest X-ray", "Pulmonary Function Test"],
@@ -139,7 +126,6 @@ export const getRecommendedTests = (symptoms, conditions) => {
     });
   });
 
-  // Add basic tests
   tests.add("Blood Test");
   tests.add("Vital Signs Check");
 
@@ -181,7 +167,6 @@ export const getRecommendedSpecialties = (symptoms, urgencyScore) => {
     });
   });
 
-  // Default specialty
   if (specialties.size === 0) {
     specialties.add("General Physician");
   }
@@ -210,7 +195,6 @@ export const getImmediateRecommendations = (urgencyScore, symptoms) => {
     recommendations.push("Maintain healthy lifestyle habits");
   }
 
-  // Add specific recommendations based on symptoms
   const symptomLower = symptoms.map((s) => s.symptom.toLowerCase()).join(" ");
 
   if (symptomLower.includes("fever")) {

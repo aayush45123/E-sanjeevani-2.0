@@ -1,6 +1,5 @@
 import express from "express";
 import authMiddleware from "../middlewares/authMiddleware.js";
-
 import {
   createConsultation,
   getDoctorAvailableSlots,
@@ -12,85 +11,36 @@ import {
   getDoctorsNearMe,
   markUserJoined,
 } from "../controllers/consultationController.js";
+import { validate } from "../validators/validation.middleware.js";
+import {
+  getAvailableDoctorsSchema,
+  getDoctorAvailableSlotsSchema,
+  createConsultationSchema,
+  updateConsultationStatusSchema,
+  addDoctorNotesSchema,
+  getDoctorsNearMeSchema,
+  markUserJoinedSchema,
+} from "../validators/consultation.validator.js";
 
 const router = express.Router();
 
-/*
-==================================================
-ALL ROUTES REQUIRE AUTH
-==================================================
-*/
-
 router.use(authMiddleware);
 
-/*
-==================================================
-PATIENT ROUTES
-==================================================
-*/
-router.get("/doctors/available", getAvailableDoctors); // ✅ moved above /:consultationId
-
-router.get("/doctors/nearby", getDoctorsNearMe); // ✅ Location-based doctor search
-
-/*
-Book consultation
-POST /api/consultations/book
-*/
-router.post("/book", createConsultation);
-
-/*
-Get patient's own consultations
-GET /api/consultations/my-consultations
-*/
+// Patient routes
+router.get("/doctors/available", validate(getAvailableDoctorsSchema), getAvailableDoctors);
+router.get("/doctors/nearby", validate(getDoctorsNearMeSchema), getDoctorsNearMe);
+router.post("/book", validate(createConsultationSchema), createConsultation);
 router.get("/my-consultations", getPatientConsultations);
 
-/*
-==================================================
-DOCTOR SLOT ROUTES
-==================================================
-*/
+// Doctor slots
+router.get("/doctor-slots", validate(getDoctorAvailableSlotsSchema), getDoctorAvailableSlots);
 
-/*
-Get available slots for selected doctor + date
-
-GET /api/consultations/doctor-slots
-?doctorId=xxx
-&date=2026-04-30
-*/
-router.get("/doctor-slots", getDoctorAvailableSlots);
-
-/*
-==================================================
-DOCTOR DASHBOARD ROUTES
-==================================================
-*/
-
-/*
-Doctor dashboard consultation list
-
-GET /api/consultations/doctor-dashboard
-*/
+// Doctor dashboard
 router.get("/doctor-dashboard", getDoctorConsultations);
 
-/*
-Update consultation status
-
-PATCH /api/consultations/:consultationId/status
-*/
-router.patch("/:consultationId/status", updateConsultationStatus);
-
-/*
-Add doctor notes + prescription
-
-PATCH /api/consultations/:consultationId/notes
-*/
-router.patch("/:consultationId/notes", addDoctorNotes);
-
-/*
-Mark user as joined in consultation
-
-POST /api/consultations/:consultationId/mark-joined
-*/
-router.post("/:consultationId/mark-joined", markUserJoined);
+// Status and notes update
+router.patch("/:consultationId/status", validate(updateConsultationStatusSchema), updateConsultationStatus);
+router.patch("/:consultationId/notes", validate(addDoctorNotesSchema), addDoctorNotes);
+router.post("/:consultationId/mark-joined", validate(markUserJoinedSchema), markUserJoined);
 
 export default router;

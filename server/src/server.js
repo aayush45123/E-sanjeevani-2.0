@@ -5,8 +5,8 @@ import http from "http";
 
 import { checkPostgresConnection } from "./config/neonDb.js";
 
-import initializeSocket from "./services/socketServer.js";
-import { initializeConsultationReminders } from "./utils/consultationReminderJob.js";
+import initializeSocket from "./socket/socketServer.js";
+import { initializeConsultationReminders } from "./cron/consultationReminderJob.js";
 
 const PORT = process.env.PORT || 5000;
 

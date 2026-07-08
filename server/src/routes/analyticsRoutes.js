@@ -4,7 +4,8 @@ import { getDoctorAnalytics } from "../controllers/analytics.controller.js";
 
 const router = express.Router();
 
-// Doctor Analytics (Protected, Doctor only)
-router.get("/doctor", authMiddleware, getDoctorAnalytics);
+router.use(authMiddleware);
+
+router.get("/doctor-analytics", getDoctorAnalytics);
 
 export default router;

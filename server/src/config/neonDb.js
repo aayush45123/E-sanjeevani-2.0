@@ -4,7 +4,7 @@ import { Pool, neonConfig } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-serverless";
 import ws from "ws";
 
-import * as schema from "../db/schema/index.js";
+import * as schema from "../database/schema/index.js";
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL is missing from server/.env");

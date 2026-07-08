@@ -1,32 +1,5 @@
 import { Server } from "socket.io";
 
-/*
-==================================================
-FINAL UPDATED ROOM-BASED SOCKET.IO SERVER
-E-Sanjeevani WebRTC Video Consultation
-FULLY MATCHED WITH NATIVE WEBRTC FRONTEND
-==================================================
-
-FLOW:
-
-User 1 joins room
-→ waits
-
-User 2 joins same room
-→ User 1 gets "other-user" and creates OFFER
-
-User 2 gets "incoming-call"
-→ creates ANSWER automatically
-
-User 1 gets "call-accepted"
-
-ICE candidates exchanged
-
-Remote participant video appears successfully
-
-==================================================
-*/
-
 const roomUsers = {};
 const socketRoomMap = {};
 

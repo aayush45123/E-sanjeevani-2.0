@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import { eq } from "drizzle-orm";
 
 import { db } from "../config/neonDb.js";
-import { users } from "../db/schema/index.js";
+import { users } from "../database/schema/index.js";
 
 const authMiddleware = async (req, res, next) => {
   try {

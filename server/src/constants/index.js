@@ -1,0 +1,2 @@
+export const SLOT_DURATION_MINUTES = 30;
+export const AVAILABILITY_LOOKAHEAD_DAYS = 30;

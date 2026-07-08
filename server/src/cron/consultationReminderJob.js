@@ -1,29 +1,9 @@
 import cron from "node-cron";
-import { db } from "../config/neonDb.js"; // adjust path to your drizzle db instance
-import { consultations, users } from "../db/schema/index.js"; // adjust path to your schema barrel file
+import { db } from "../config/neonDb.js";
+import { consultations, users } from "../database/schema/index.js";
 import { eq, and, gte, lte } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
-import { sendConsultationReminderEmail } from "./sendAppointmentEmail.js";
-
-/**
- * ==================================================
- * CONSULTATION REMINDER CRON JOB
- *
- * Runs every minute
- *
- * If:
- * - consultation is scheduled
- * - today's consultation
- * - start time matches current time
- * - reminder not sent yet
- * - doctor + patient have not joined yet
- *
- * Then:
- * - send reminder mail to patient
- * - send reminder mail to doctor
- * - mark reminder as sent
- * ==================================================
- */
+import { sendConsultationReminderEmail } from "../emails/sendAppointmentEmail.js";
 
 export const initializeConsultationReminders = () => {
   // Every minute
@@ -36,25 +16,11 @@ export const initializeConsultationReminders = () => {
 
       const currentTime = `${currentHour}:${currentMinute}`;
 
-      /*
-      ============================================
-      Today's Date Range
-      ============================================
-      */
-
       const todayStart = new Date(now);
       todayStart.setHours(0, 0, 0, 0);
 
       const todayEnd = new Date(now);
       todayEnd.setHours(23, 59, 59, 999);
-
-      /*
-      ============================================
-      Find Consultations That Need Reminder
-      (patient/doctor pulled via join instead of .populate,
-      since both patientId and doctorId are required FKs on consultations)
-      ============================================
-      */
 
       const patientUser = alias(users, "reminder_patient_user");
       const doctorUser = alias(users, "reminder_doctor_user");
@@ -94,20 +60,8 @@ export const initializeConsultationReminders = () => {
         `\n⏰ CONSULTATION REMINDER JOB: Found ${dueConsultations.length} consultation(s) at ${currentTime}`,
       );
 
-      /*
-      ============================================
-      Process Each Consultation
-      ============================================
-      */
-
       for (const consultation of dueConsultations) {
         try {
-          /*
-          ============================================
-          Validate Emails
-          ============================================
-          */
-
           if (!consultation.patientEmail || !consultation.doctorEmail) {
             console.warn(
               `⚠️ Skipping consultation ${consultation.id} because email is missing`,
@@ -119,32 +73,16 @@ export const initializeConsultationReminders = () => {
             `📧 Sending reminder for consultation: ${consultation.id}`,
           );
 
-          /*
-          ============================================
-          Send Reminder Email
-          ============================================
-          */
-
           const result = await sendConsultationReminderEmail({
             patientEmail: consultation.patientEmail,
             doctorEmail: consultation.doctorEmail,
-
             patientName: consultation.patientName,
             doctorName: consultation.doctorName,
-
             consultationDate: consultation.consultationDate,
-
             startTime: consultation.startTime,
             endTime: consultation.endTime,
-
             consultationType: consultation.consultationType,
           });
-
-          /*
-          ============================================
-          Only Mark Sent If Email Success
-          ============================================
-          */
 
           if (result.success) {
             await db

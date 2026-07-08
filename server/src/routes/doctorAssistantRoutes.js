@@ -4,6 +4,8 @@ import { getDoctorAssistantData } from "../controllers/doctorAssistantController
 
 const router = express.Router();
 
-router.get("/:consultationId", authMiddleware, getDoctorAssistantData);
+router.use(authMiddleware);
+
+router.get("/data/:consultationId", getDoctorAssistantData);
 
 export default router;
