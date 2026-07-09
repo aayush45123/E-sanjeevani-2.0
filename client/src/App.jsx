@@ -168,7 +168,10 @@ const App = () => {
   Navbar only on landing page
   */
 
-  const showNavbar = location.pathname === "/" || location.pathname === "";
+  const showNavbar =
+    location.pathname === "/" ||
+    location.pathname === "" ||
+    location.pathname === "/auth";
 
   /*
   ==================================================
