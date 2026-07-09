@@ -22,8 +22,12 @@ export class ChatService {
     });
 
     const chatCompletion = await client.chat.completions.create({
-      model: "Intelligent-Internet/II-Medical-8B:featherless-ai",
+      model: "meta-llama/Llama-3.1-8B-Instruct",
       messages: [
+        {
+          role: "system",
+          content: "You are a professional, empathetic clinical AI assistant. Provide helpful, accurate medical triage and health education. Always advise the patient to consult a doctor for serious symptoms.",
+        },
         {
           role: "user",
           content: prompt,
