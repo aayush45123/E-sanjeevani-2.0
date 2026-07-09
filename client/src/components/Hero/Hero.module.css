@@ -1,225 +1,290 @@
-/* Hero.module.css - Premium Light SaaS Theme */
+/* Hero.module.css — Clean, trust-focused healthcare hero */
 
-.pageWrapper {
-  /* Ultra-light grey base with a subtle green radial glow at the top */
-  background-color: #fafafa;
-  background-image: radial-gradient(ellipse at top, rgba(22, 163, 74, 0.08) 0%, #fafafa 70%);
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  font-family: var(--font-primary);
-  position: relative;
-  overflow: hidden;
-}
-
-.heroContent {
-  flex: 1;
+/* ── Section ─────────────────────────────────── */
+.hero {
+  padding-top: 56px; /* navbar height */
+  min-height: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-align: center;
-  padding: 160px var(--space-4) 0;
-  max-width: 1280px; /* Increased from 1000px to allow a much larger mockup */
-  margin: 0 auto;
   position: relative;
-  z-index: 2;
+  overflow: visible;
+  background-color: var(--bg-subtle);
+  background-image: radial-gradient(circle at 50% -20%, rgba(14, 165, 164, 0.05) 0%, transparent 60%);
 }
 
-/* ===== TOP TAG ===== */
-.topTag {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  background-color: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-  border-radius: 40px;
-  padding: 6px 16px 6px 6px;
-  font-family: var(--font-primary);
-  font-size: 13px;
-  font-weight: 600;
-  color: #475569;
-  margin-bottom: var(--space-6);
-}
-
-.tagBadge {
-  background-color: #16a34a;
-  color: #ffffff;
-  font-weight: 700;
-  font-size: 11px;
-  padding: 4px 10px;
-  border-radius: 20px;
-  letter-spacing: 0.05em;
-}
-
-/* ===== MAIN TITLE ===== */
-.title {
-  font-family: var(--font-primary);
-  font-size: clamp(40px, 6vw, 68px);
-  font-weight: 800;
-  /* Extra bold looks great in light mode */
-  line-height: 1.15;
-  color: #0f172a;
-  /* Near black */
-  letter-spacing: -0.03em;
-  margin: 0 0 var(--space-6) 0;
-}
-
-/* ===== DESCRIPTION ===== */
-.description {
-  font-family: var(--font-primary);
-  font-size: 18px;
-  color: #475569;
-  /* Slate grey */
-  max-width: 650px;
-  margin: 0 0 var(--space-8) 0;
-  line-height: 1.6;
-}
-
-/* ===== CTA BUTTONS ===== */
-.ctaWrapper {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  margin-bottom: 80px;
-}
-
-.btnPrimary {
-  background-color: #16a34a;
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  padding: 16px 32px;
-  font-family: var(--font-primary);
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 8px 20px rgba(22, 163, 74, 0.25);
-}
-
-.btnPrimary:hover {
-  background-color: #15803d;
-  transform: translateY(-2px);
-  box-shadow: 0 12px 24px rgba(22, 163, 74, 0.3);
-}
-
-.btnSecondary {
-  background-color: #ffffff;
-  color: #0f172a;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-  padding: 16px 32px;
-  font-family: var(--font-primary);
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-}
-
-.btnSecondary:hover {
-  background-color: #f8fafc;
-  border-color: rgba(0, 0, 0, 0.2);
-  transform: translateY(-2px);
-}
-
-/* ===== LIGHT DASHBOARD MOCKUP ===== */
-.dashboardAnchor {
-  position: relative;
-  width: 100%;
-  max-width: 1280px; /* Increased to allow it to be much larger and more prominent */
-  margin-top: 40px; /* Space for the glow to bleed out */
-}
-
-/* Vibrant multi-colored gradient glow behind the mockup */
-.dashboardGlow {
+/* ── Dot grid background ─────────────────────── */
+/* Subtle directional cue without decoration */
+.grid {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 120%;
-  height: 120%;
-  background: radial-gradient(circle at 50% 50%, rgba(244, 114, 182, 0.3) 0%, rgba(251, 146, 60, 0.2) 30%, rgba(22, 163, 74, 0.05) 60%, transparent 80%);
-  filter: blur(80px);
-  z-index: 0;
+  inset: 0;
+  background-image: radial-gradient(circle, var(--slate-200) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(ellipse 80% 55% at 50% 0%, black 0%, transparent 75%);
+  opacity: 0.45;
   pointer-events: none;
 }
 
-/* Glassmorphic outer container providing the premium aesthetic */
-.dashboardContainer {
+/* ── Content wrapper ────────────────────────── */
+.container {
   position: relative;
   z-index: 1;
   width: 100%;
-  max-width: inherit;
-  
-  /* Glassmorphism Effect */
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  
-  /* Padding creates the "frame" effect around the actual app screenshot */
-  padding: 24px;
-  
-  /* Large rounded corners for the outer frame */
-  border-radius: 32px;
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  
-  /* Deep, soft shadow to elevate the entire glass frame */
-  box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.6);
-  transform: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ── Text content ───────────────────────────── */
+.content {
+  max-width: 680px;
+  text-align: center;
+  padding: var(--sp-20) var(--sp-6) 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-4);
+}
+
+/* ── Announcement pill ──────────────────────── */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--text-tertiary);
+  text-decoration: none;
+  transition: all var(--duration-fast) var(--ease);
+  box-shadow: var(--shadow-xs);
+  letter-spacing: 0.01em;
+}
+
+.pill:hover {
+  border-color: var(--slate-300);
+  color: var(--text-secondary);
+}
+
+.pillDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+  animation: pulse 2.5s var(--ease) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.85); }
+}
+
+/* ── Headline ───────────────────────────────── */
+.headline {
+  font-size: clamp(1.875rem, 4.5vw, 2.75rem);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.15;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.highlight {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: inline-block;
+}
+
+/* ── Subheadline ────────────────────────────── */
+.sub {
+  font-size: clamp(0.9375rem, 1.8vw, 1rem);
+  color: var(--text-tertiary);
+  line-height: 1.7;
+  max-width: 480px;
+  font-weight: 400;
+  margin: 0;
+}
+
+/* ── CTA buttons ────────────────────────────── */
+.ctas {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.btnPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 10px 20px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--white);
+  background: var(--slate-900);
+  border: 1px solid var(--slate-900);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease);
+  letter-spacing: -0.01em;
+}
+
+.btnPrimary:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+.btnPrimary:active { transform: scale(0.98); }
+
+.btnSecondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 6px;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-tertiary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease);
+  letter-spacing: -0.01em;
+}
+
+.btnSecondary:hover { color: var(--text-primary); }
+
+.btnSecondary svg {
+  transition: transform var(--duration-fast) var(--ease);
+}
+
+.btnSecondary:hover svg { transform: translateX(3px); }
+
+/* ── Browser Mockup ─────────────────────────── */
+.dashboardAnchor {
+  position: relative;
+  width: 100%;
+  max-width: 1000px;
+  margin-top: 36px;
+  padding: 0 var(--sp-6);
+  display: flex;
+  justify-content: center;
+  z-index: 10;
+  margin-bottom: -160px; /* Let it overlap the next section border */
+}
+
+.dashboardContainer {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 
+    0 30px 60px -15px rgba(15, 23, 42, 0.08), 
+    0 10px 20px -10px rgba(15, 23, 42, 0.04),
+    0 0 0 1px rgba(15, 23, 42, 0.02);
+  transition:
+    transform var(--duration) var(--ease),
+    box-shadow var(--duration) var(--ease);
+}
+
+.dashboardContainer:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 40px 80px -15px rgba(15, 23, 42, 0.12), 
+    0 15px 30px -10px rgba(15, 23, 42, 0.06);
+}
+
+.mockupContent {
+  position: relative;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  min-height: 480px;
 }
 
 .dashboardImage {
-  position: relative;
-  z-index: 1;
+  display: block;
   width: 100%;
   height: auto;
-  display: block;
+  object-fit: cover;
   object-position: top;
-  
-  /* Inner image styling */
-  border-radius: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  /* Give the inner app image its own subtle shadow to float inside the glass */
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
 }
 
-/* ===== RESPONSIVE ===== */
+.mockupSkeleton {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 50%, #f1f5f9 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Responsive ─────────────────────────────── */
 @media (max-width: 768px) {
-  .title {
-    font-size: 36px;
-    margin-bottom: var(--space-4);
+  .hero { padding-top: 56px; }
+
+  .content {
+    padding: var(--sp-16) var(--sp-4) 0;
+    gap: var(--sp-4);
   }
 
-  .ctaWrapper {
-    flex-direction: column;
-    width: 100%;
-  }
+  .headline { font-size: 2rem; }
 
-  .btnPrimary,
-  .btnSecondary {
-    width: 100%;
-    justify-content: center;
-    padding: 14px 24px;
-  }
+  .sub { font-size: 0.9375rem; line-height: 1.65; }
 
   .dashboardAnchor {
-    margin-top: 20px;
+    padding: 0 var(--sp-4);
+    margin-top: 28px;
+    margin-bottom: -100px;
   }
 
   .dashboardContainer {
-    padding: 12px; /* Less padding on mobile */
-    border-radius: 20px;
-    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
+    padding: 8px;
+    border-radius: 14px;
   }
 
-  .dashboardImage {
-    border-radius: 8px;
+  .mockupContent {
+    border-radius: 10px;
+    min-height: 300px;
   }
+}
+
+@media (max-width: 480px) {
+  .content {
+    padding: var(--sp-12) var(--sp-4) 0;
+    gap: var(--sp-4);
+  }
+
+  .headline {
+    font-size: 1.875rem;
+    letter-spacing: -0.03em;
+  }
+
+  .ctas { flex-direction: column; width: 100%; }
+  .btnPrimary { width: 100%; justify-content: center; }
+  .btnSecondary { justify-content: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pillDot { animation: none; }
+  .btnPrimary, .btnSecondary { transition: none; }
+  .mockupSkeleton { animation: none; }
 }

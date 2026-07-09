@@ -1,84 +1,106 @@
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuthGuard } from "../../hooks/useAuthGuard";
-import styles from "./Hero.module.css";
 import dashboardMockupImg from "../../assets/dashboard_mockup.png";
+import styles from "./Hero.module.css";
 
 const Hero = () => {
-  const { checkAuthAndNavigate } = useAuthGuard();
+  const navigate = useNavigate();
+  const { checkAuthAndNavigate } = useAuthGuard();
+  const [imageLoaded, setImageLoaded] = useState(false);
 
-  const handleStartConsultation = () => {
-    checkAuthAndNavigate("/ai-triage");
-  };
+  const handleBook = () => checkAuthAndNavigate("/consultation-booking");
 
-  const handleWhitepaper = () => {
-    // Whitepaper is public, so just navigate directly
-    // You can change this if whitepaper should also be auth-protected
-    window.open("/whitepaper.pdf", "_blank");
-  };
+  return (
+    <section className={styles.hero}>
+      {/* Subtle dot grid */}
+      <div className={styles.grid} aria-hidden="true" />
 
-  return (
-    <div className={styles.pageWrapper}>
-      {/* Centered Hero Content */}
-      <div className={styles.heroContent}>
-        {/* Sleek Pill Tag */}
-        <div className={styles.topTag}>
-          <span className={styles.tagBadge}>NEW</span>
-          E-Sanjeevani 2.0 is now live!
-        </div>
+      <div className={styles.container}>
+        {/* ── Text Content ── */}
+        <div className={styles.content}>
+          {/* Announcement pill */}
+          <a href="#platform" className={styles.pill} id="hero-announce-pill">
+            <span className={styles.pillDot} aria-hidden="true" />
+            <span>AI-powered triage now available</span>
+            <svg
+              width="11"
+              height="11"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              aria-hidden="true"
+            >
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </a>
 
-        {/* Clean, Bold, Sans-Serif Title */}
-        <h1 className={styles.title}>
-          Smart Healthcare & Instant
-          <br />
-          Consultations. Get Your Care Back.
-        </h1>
+          {/* Main headline */}
+          <h1 className={styles.headline}>
+            AI-Powered Healthcare,
+            <br />
+            <span className={styles.highlight}>Delivered Anywhere</span>
+          </h1>
 
-        {/* Description */}
-        <p className={styles.description}>
-          Harness the power of AI telemetry and automated triage to deliver
-          seamless, clinical-grade precision at a national scale.
-        </p>
+          {/* Subheadline */}
+          <p className={styles.sub}>
+            Instant AI symptom triage and secure video consultations with verified doctors. 
+            Manage your clinical care journey in one streamlined platform.
+          </p>
 
-        {/* Side-by-Side CTAs */}
-        <div className={styles.ctaWrapper}>
-          <button
-            className={styles.btnPrimary}
-            onClick={handleStartConsultation}
-          >
-            Start AI Consultation
-          </button>
+          {/* CTA buttons */}
+          <div className={styles.ctas}>
+            <button
+              className={styles.btnPrimary}
+              onClick={handleBook}
+              id="hero-book-btn"
+            >
+              Book a Consultation
+            </button>
+            <button
+              className={styles.btnSecondary}
+              onClick={() => navigate("/auth")}
+              id="hero-doctors-btn"
+            >
+              Explore for Doctors
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                aria-hidden="true"
+              >
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        </div>
 
-          <button className={styles.btnSecondary} onClick={handleWhitepaper}>
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-              <polyline points="14 2 14 8 20 8"></polyline>
-              <line x1="16" y1="13" x2="8" y2="13"></line>
-              <line x1="16" y1="17" x2="8" y2="17"></line>
-              <polyline points="10 9 9 9 8 9"></polyline>
-            </svg>
-            Technical Whitepaper
-          </button>
-        </div>
-
-        {/* Glowing Dashboard Anchor - Main container for the mockup section */}
-        <div className={styles.dashboardAnchor}>
-          {/* Vibrant gradient glow behind the mockup */}
-          <div className={styles.dashboardGlow}></div>
-          {/* This new container holds the clean border and shadow effect */}
-          <div className={styles.dashboardContainer}>
-            <img src={dashboardMockupImg} alt="Dashboard Preview" className={styles.dashboardImage} />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+        {/* ── Dashboard Mockup ── */}
+        <div className={styles.dashboardAnchor}>
+          <div className={styles.dashboardContainer}>
+            <figure className={styles.mockupContent}>
+              <img
+                src={dashboardMockupImg}
+                alt="eSanjeevani patient dashboard showing AI-powered triage interface, symptom input, clinical records, and consultation history"
+                className={styles.dashboardImage}
+                loading="lazy"
+                onLoad={() => setImageLoaded(true)}
+                width="1080"
+                height="600"
+              />
+              {!imageLoaded && (
+                <div className={styles.mockupSkeleton} aria-hidden="true" />
+              )}
+            </figure>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 };
 
 export default Hero;
