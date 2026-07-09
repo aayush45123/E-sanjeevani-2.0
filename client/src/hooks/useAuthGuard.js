@@ -5,21 +5,21 @@ export const useAuthGuard = () => {
   const navigate = useNavigate();
 
   const checkAuthAndNavigate = (targetPath) => {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      // Redirect to auth if not logged in
+    try {
+      // With httpOnly cookies, presence of token isn't reliable in localStorage.
+      // Let the /me endpoint decide.
+      navigate(targetPath);
+      return true;
+    } catch {
       navigate("/auth");
       return false;
     }
-
-    // If logged in, navigate to target path
-    navigate(targetPath);
-    return true;
   };
 
   const isUserLoggedIn = () => {
-    return !!localStorage.getItem("token");
+    // Cookies are httpOnly; cannot be read from JS.
+    // Treat as logged out; protected routes should rely on server 401 redirects.
+    return false;
   };
 
   return { checkAuthAndNavigate, isUserLoggedIn };

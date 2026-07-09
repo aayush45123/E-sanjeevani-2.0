@@ -6,16 +6,15 @@ import { users } from "../database/schema/index.js";
 
 const authMiddleware = async (req, res, next) => {
   try {
-    const authorization = req.headers.authorization;
+    const accessCookieName = process.env.ACCESS_COOKIE_NAME || "access_token";
+    const token = req.cookies?.[accessCookieName];
 
-    if (!authorization?.startsWith("Bearer ")) {
+    if (!token) {
       return res.status(401).json({
         success: false,
-        message: "No token, authorization denied",
+        message: "No access token",
       });
     }
-
-    const token = authorization.slice(7);
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 

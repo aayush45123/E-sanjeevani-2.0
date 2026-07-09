@@ -42,64 +42,21 @@ const Auth = () => {
   */
 
   const handleAuthSuccess = (responseData) => {
-    const token = responseData.token;
     const user = responseData.user;
 
-    if (!token || !user) {
+    if (!user) {
       setMessage("✕ Invalid login response from server");
       return;
     }
 
-    /*
-    Clear old broken localStorage first
-    */
-
+    // Auth is stored in httpOnly cookies.
+    // Keep only minimal UI state in localStorage.
     localStorage.clear();
-
-    /*
-    Save auth token
-    */
-
-    localStorage.setItem("token", token);
-
-    /*
-    Save user role
-    */
-
     localStorage.setItem("userRole", user.role);
-
-    /*
-    VERY IMPORTANT
-    Save complete user object
-    */
-
     localStorage.setItem("user", JSON.stringify(user));
-
-    /*
-    VERY IMPORTANT
-    Save userId separately for WebRTC socket room
-    */
-
-    localStorage.setItem("userId", user._id);
-
-    /*
-    Trigger global auth update
-    */
+    localStorage.setItem("userId", user.id || user._id);
 
     window.dispatchEvent(new Event("authChange"));
-
-    /*
-    Debug (remove later if needed)
-    */
-
-    console.log("LOGIN SUCCESS");
-    console.log("Saved User:", user);
-    console.log("Saved User ID:", user._id);
-
-    /*
-    Navigate to dashboard
-    */
-
     navigate("/dashboard");
   };
 
@@ -128,7 +85,7 @@ const Auth = () => {
           password: form.password,
         });
 
-        if (response.data.success && response.data.token) {
+        if (response.data.success && response.data.user) {
           setMessage("✓ Login successful!");
           handleAuthSuccess(response.data);
         } else {
@@ -150,7 +107,7 @@ const Auth = () => {
           role: form.role,
         });
 
-        if (signupResponse.data.success && signupResponse.data.token) {
+        if (signupResponse.data.success && signupResponse.data.user) {
           setMessage("✓ Account created successfully!");
           handleAuthSuccess(signupResponse.data);
         } else {
@@ -207,8 +164,9 @@ const Auth = () => {
             </h1>
 
             <p className={styles.tagline}>
-              Integrate advanced AI symptom triage with secure video consultations. 
-              Get matched with the right healthcare specialist instantly.
+              Integrate advanced AI symptom triage with secure video
+              consultations. Get matched with the right healthcare specialist
+              instantly.
             </p>
 
             <ul className={styles.featuresList}>

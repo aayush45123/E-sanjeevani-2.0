@@ -2,7 +2,10 @@ export * from "./enums.js";
 
 export * from "./users.js";
 
+export * from "./refreshTokens.js";
+
 export * from "./patientProfiles.js";
+
 export * from "./patientAddresses.js";
 export * from "./doctorProfiles.js";
 

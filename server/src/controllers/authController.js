@@ -2,11 +2,11 @@ import { AuthService } from "../services/auth.service.js";
 
 export const register = async (req, res) => {
   try {
-    const result = await AuthService.register(req.body);
+    const result = await AuthService.register(req.body, res);
     return res.status(201).json({
       success: true,
       message: "User registered successfully",
-      ...result,
+      user: result.user,
     });
   } catch (error) {
     console.error("Register controller error:", error);
@@ -20,11 +20,11 @@ export const register = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
-    const result = await AuthService.login(req.body);
+    const result = await AuthService.login(req.body, res);
     return res.status(200).json({
       success: true,
       message: "Login successful",
-      ...result,
+      user: result.user,
     });
   } catch (error) {
     console.error("Login controller error:", error);
@@ -36,11 +36,38 @@ export const login = async (req, res) => {
   }
 };
 
+export const refresh = async (req, res) => {
+  try {
+    const result = await AuthService.refresh(req, res);
+    return res.status(200).json({
+      success: true,
+      message: "Token refreshed",
+      ...result,
+    });
+  } catch (error) {
+    return res.status(error.status || 401).json({
+      success: false,
+      message: error.message || "Refresh failed",
+      error: error.error || error.message,
+    });
+  }
+};
+
 export const logout = async (req, res) => {
-  return res.status(200).json({
-    success: true,
-    message: "Logout successful",
-  });
+  try {
+    await AuthService.logout(req, res);
+    return res.status(200).json({
+      success: true,
+      message: "Logout successful",
+    });
+  } catch (error) {
+    console.error("Logout controller error:", error);
+    return res.status(error.status || 500).json({
+      success: false,
+      message: error.message || "Logout failed",
+      error: error.error || error.message,
+    });
+  }
 };
 
 export const me = async (req, res) => {
@@ -63,21 +90,24 @@ export const me = async (req, res) => {
 export const getPatientProfile = async (req, res) => {
   return res.status(503).json({
     success: false,
-    message: "Patient profile endpoint is temporarily unavailable during PostgreSQL migration",
+    message:
+      "Patient profile endpoint is temporarily unavailable during PostgreSQL migration",
   });
 };
 
 export const updatePatientProfile = async (req, res) => {
   return res.status(503).json({
     success: false,
-    message: "Patient profile update is temporarily unavailable during PostgreSQL migration",
+    message:
+      "Patient profile update is temporarily unavailable during PostgreSQL migration",
   });
 };
 
 export const completePatientProfile = async (req, res) => {
   return res.status(503).json({
     success: false,
-    message: "Patient profile completion is temporarily unavailable during PostgreSQL migration",
+    message:
+      "Patient profile completion is temporarily unavailable during PostgreSQL migration",
   });
 };
 
