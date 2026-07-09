@@ -19,6 +19,7 @@ import NotificationService from "../../utils/notificationService";
 import { useNavigate } from "react-router-dom";
 import styles from "./DoctorDashboard.module.css";
 import { authApi, consultationApi } from "../../utils/api";
+import { performLogout } from "../../utils/auth";
 
 export default function DoctorDashboard({ isProfileIncomplete = false }) {
   const navigate = useNavigate();
@@ -54,7 +55,6 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
     avgRating: 4.8,
   });
 
-  const token = localStorage.getItem("token");
 
   /*
   ==================================================
@@ -84,12 +84,7 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
         console.error(err);
 
         if (err.status === 401 || err.response?.status === 401) {
-          localStorage.removeItem("token");
-          localStorage.removeItem("userRole");
-          localStorage.removeItem("user");
-          localStorage.removeItem("userId");
-
-          window.location.href = "/auth";
+          performLogout();
         }
       } finally {
         setLoading(false);
@@ -234,12 +229,12 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
           );
 
           const response = await fetch(
-            "http://localhost:5000/api/ai-triage/predict",
+            "/api/ai-triage/predict",
             {
               method: "POST",
+              credentials: "include",
               headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
               },
               body: JSON.stringify({
                 userId: consultation.patient?._id,
@@ -367,14 +362,7 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
   ==================================================
   */
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userRole");
-    localStorage.removeItem("user");
-    localStorage.removeItem("userId");
-
-    window.location.href = "/auth";
-  };
+  const handleLogout = () => performLogout();
 
   /*
   ==================================================

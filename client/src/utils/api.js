@@ -10,14 +10,68 @@ export const apiClient = axios.create({
   withCredentials: true,
 });
 
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 // Response interceptor for error handling
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      window.dispatchEvent(new Event("authChange"));
+  async (error) => {
+    const originalRequest = error.config;
+
+    // Check if the error is 401 Unauthorized and we haven't retried yet
+    // Do NOT retry if the request itself failed to refresh the token, or was login/register
+    const isRefreshRequest = originalRequest.url === "/auth/refresh";
+    const isLoginRequest = originalRequest.url === "/auth/login" || originalRequest.url === "/auth/register";
+
+    if (error.response?.status === 401 && !originalRequest._retry && !isRefreshRequest && !isLoginRequest) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then(() => {
+            return apiClient(originalRequest);
+          })
+          .catch((err) => {
+            return Promise.reject(err);
+          });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        await apiClient.post("/auth/refresh");
+        isRefreshing = false;
+        processQueue(null);
+        return apiClient(originalRequest);
+      } catch (refreshError) {
+        isRefreshing = false;
+        processQueue(refreshError);
+        
+        // Full logout state clearing
+        localStorage.removeItem("userRole");
+        localStorage.removeItem("user");
+        localStorage.removeItem("userId");
+        localStorage.removeItem("doctorProfileCompleted");
+        
+        window.dispatchEvent(new Event("authChange"));
+        window.location.href = "/auth";
+        return Promise.reject(refreshError);
+      }
     }
+
     return Promise.reject(error);
   },
 );
@@ -28,6 +82,7 @@ export const authApi = {
   signup: (data) => apiClient.post("/auth/register", data), // ✅ Alias
   login: (data) => apiClient.post("/auth/login", data),
   logout: () => apiClient.post("/auth/logout"),
+  refresh: () => apiClient.post("/auth/refresh"),
   me: () => apiClient.get("/auth/me"),
   updateProfile: (data) => apiClient.put("/auth/patient/update", data),
   completePatientProfile: (data) =>

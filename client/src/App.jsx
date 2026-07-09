@@ -35,7 +35,8 @@ import { doctorProfileApi, authApi, apiClient } from "./utils/api";
 const App = () => {
   const location = useLocation();
 
-  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
+  // Auth lives in httpOnly cookies. Use the cached user object as a UI hint.
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("user"));
 
   const [userRole, setUserRole] = useState(localStorage.getItem("userRole"));
 
@@ -53,10 +54,10 @@ const App = () => {
 
   useEffect(() => {
     const checkAccess = async () => {
-      const token = localStorage.getItem("token");
+      const userJson = localStorage.getItem("user");
       const role = localStorage.getItem("userRole");
 
-      setIsLoggedIn(!!token);
+      setIsLoggedIn(!!userJson);
       setUserRole(role);
 
       /*
@@ -65,7 +66,7 @@ const App = () => {
       ================================================
       */
 
-      if (token && role === "doctor") {
+      if (userJson && role === "doctor") {
         try {
           const response = await doctorProfileApi.checkProfileStatus();
 
@@ -86,7 +87,7 @@ const App = () => {
       ================================================
       */
 
-      if (token && role === "patient") {
+      if (userJson && role === "patient") {
         try {
           const response = await apiClient.get("/patient/profile/status");
 
@@ -114,7 +115,7 @@ const App = () => {
 
   useEffect(() => {
     const handleAuthChange = () => {
-      setIsLoggedIn(!!localStorage.getItem("token"));
+      setIsLoggedIn(!!localStorage.getItem("user"));
       setUserRole(localStorage.getItem("userRole"));
     };
 

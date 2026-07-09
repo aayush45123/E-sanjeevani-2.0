@@ -26,7 +26,6 @@ export default function VideoCall() {
   const [doctorAiLoading, setDoctorAiLoading] = useState(false);
 
   const userRole = localStorage.getItem("userRole");
-  const token = localStorage.getItem("token");
 
   const userName =
     localStorage.getItem("userName") ||
@@ -67,9 +66,8 @@ export default function VideoCall() {
       const response = await fetch(
         `/api/chat/consultation/${consultationId}/messages`,
         {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+          credentials: "include",
+          headers: {},
         },
       );
 
@@ -102,9 +100,9 @@ export default function VideoCall() {
     try {
       await fetch(`/api/chat/consultation/${consultationId}/save`, {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: JSON.stringify({
           consultationId,
@@ -282,11 +280,10 @@ export default function VideoCall() {
 
       try {
         const response = await fetch(
-          `http://localhost:5000/api/doctor-assistant/${consultationId}`,
+          `/api/doctor-assistant/${consultationId}`,
           {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            credentials: "include",
+            headers: {},
           },
         );
 
@@ -301,7 +298,7 @@ export default function VideoCall() {
     };
 
     fetchDoctorAssistantData();
-  }, [consultationId, userRole, token]);
+  }, [consultationId, userRole]);
 
   /*
   =============================================
@@ -352,8 +349,8 @@ export default function VideoCall() {
 
             fetch(`/api/consultations/${consultationId}/mark-joined`, {
               method: "POST",
+              credentials: "include",
               headers: {
-                Authorization: `Bearer ${token}`,
                 "Content-Type": "application/json",
               },
             })
@@ -542,11 +539,11 @@ Urgency: ${doctorAssistantData?.latestAITriage?.urgency || ""}
 Recommended Specialist: ${doctorAssistantData?.latestAITriage?.doctorType || ""}
 `;
 
-      const response = await fetch("http://localhost:5000/api/chat", {
+      const response = await fetch("/api/chat", {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           prompt: `

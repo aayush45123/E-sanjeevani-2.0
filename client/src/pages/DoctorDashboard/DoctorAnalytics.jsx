@@ -10,6 +10,7 @@ import {
 import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
 import { authApi, analyticsApi } from "../../utils/api";
 import styles from "./DoctorAnalytics.module.css";
+import { performLogout } from "../../utils/auth";
 import {
   AreaChart,
   Area,
@@ -49,13 +50,7 @@ export default function DoctorAnalytics({ isProfileIncomplete = false }) {
   ==================================================
   */
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userRole");
-    localStorage.removeItem("user");
-    localStorage.removeItem("userId");
-    navigate("/auth");
-  };
+  const handleLogout = () => performLogout();
 
   useEffect(() => {
     const fetchAnalytics = async () => {

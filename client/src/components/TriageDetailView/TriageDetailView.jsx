@@ -16,9 +16,8 @@ const TriageDetailView = ({ triageSessionId, onClose }) => {
     try {
       setIsLoading(true);
       const response = await fetch(`/api/triage/details/${triageSessionId}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+        credentials: "include",
+        headers: {},
       });
 
       const data = await response.json();

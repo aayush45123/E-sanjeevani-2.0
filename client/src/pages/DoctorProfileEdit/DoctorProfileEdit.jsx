@@ -15,6 +15,7 @@ import {
 import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
 import styles from "./DoctorProfileEdit.module.css";
 import { doctorProfileApi, doctorAvailabilityApi } from "../../utils/api";
+import { performLogout } from "../../utils/auth";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -259,13 +260,7 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
   ==================================================
   */
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userRole");
-    localStorage.removeItem("user");
-    localStorage.removeItem("userId");
-    navigate("/auth");
-  };
+  const handleLogout = () => performLogout();
 
   useEffect(() => {
     (async () => {

@@ -42,17 +42,11 @@ const AiTriage = () => {
 
     setIsLoading(true);
     try {
-      const token = localStorage.getItem("token");
-      console.log(
-        "📤 Sending triage request with token:",
-        token ? "✅ Present" : "❌ Missing",
-      );
-
       const response = await fetch("/api/triage/create", {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           symptoms,
@@ -88,9 +82,9 @@ const AiTriage = () => {
     try {
       const response = await fetch(`/api/triage/process/${triageSessionId}`, {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
 

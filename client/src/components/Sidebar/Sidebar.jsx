@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import styles from "./Sidebar.module.css";
+import { performLogout } from "../../utils/auth";
 
 import {
   LayoutDashboard,
@@ -48,13 +49,7 @@ const Sidebar = () => {
     };
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userRole");
-    localStorage.removeItem("userName");
-    window.dispatchEvent(new Event("authChange"));
-    navigate("/auth");
-  };
+  const handleLogout = () => performLogout();
 
   const handleProfileClick = () => {
     if (user.role === "doctor") navigate("/doctor-profile-edit");

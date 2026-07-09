@@ -13,6 +13,7 @@ import {
 } from "react-icons/fi";
 import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
 import styles from "./MyPatients.module.css";
+import { performLogout } from "../../utils/auth";
 import { consultationApi } from "../../utils/api";
 
 export default function MyPatients() {
@@ -30,13 +31,7 @@ export default function MyPatients() {
   ==================================================
   */
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userRole");
-    localStorage.removeItem("user");
-    localStorage.removeItem("userId");
-    navigate("/auth");
-  };
+  const handleLogout = () => performLogout();
 
   // Fetch consultations and process patient data
   useEffect(() => {

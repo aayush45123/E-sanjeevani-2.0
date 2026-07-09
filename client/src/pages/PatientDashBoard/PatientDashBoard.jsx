@@ -19,6 +19,7 @@ import TriageDetailView from "../../components/TriageDetailView/TriageDetailView
 import NotificationService from "../../utils/notificationService";
 import styles from "./PatientDashBoard.module.css";
 import { authApi } from "../../utils/api";
+import { performLogout } from "../../utils/auth";
 
 // ─── Tight Markdown renderer ────────────────────────────────────────────────
 const TightMarkdown = ({ children }) => (
@@ -234,8 +235,7 @@ export default function PatientDashboard() {
         }
       } catch (err) {
         if (err.status === 401 || err.response?.status === 401) {
-          localStorage.removeItem("token");
-          window.location.href = "/auth";
+          performLogout();
         }
       } finally {
         setLoading(false);
@@ -323,11 +323,11 @@ export default function PatientDashboard() {
       → /api/chat
     */
       if (selectedModel.id === "ii-medical-8b") {
-        response = await fetch("http://localhost:5000/api/chat", {
+        response = await fetch("/api/chat", {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
           body: JSON.stringify({
             prompt: currentInput,
@@ -353,11 +353,11 @@ export default function PatientDashboard() {
       Your trained ML model
       → /api/ai-triage/predict
     */
-        response = await fetch("http://localhost:5000/api/ai-triage/predict", {
+        response = await fetch("/api/ai-triage/predict", {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
           body: JSON.stringify({
             userId: user?._id || user?.id,
@@ -447,11 +447,7 @@ Please consult the assigned doctor for final diagnosis.
   };
 
   // ── Logout ────────────────────────────────────────────────────────────────
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userRole");
-    window.location.href = "/auth";
-  };
+  const handleLogout = () => performLogout();
 
   const firstName = user?.name?.split(" ")[0] || "Patient";
 

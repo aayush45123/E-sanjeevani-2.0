@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import styles from "./Navbar.module.css";
+import { performLogout } from "../../utils/auth";
 
 // Public folder assets are served at root path, no import needed
 const logo = "/logo-svg.svg";
@@ -35,22 +36,7 @@ const Navbar = () => {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
 
-  const logout = async () => {
-    try {
-      // Server will revoke refresh token and clear cookies.
-      await fetch("http://localhost:5000/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
-    } catch {
-      // ignore
-    }
-    localStorage.removeItem("userRole");
-    localStorage.removeItem("user");
-    localStorage.removeItem("userId");
-    window.dispatchEvent(new Event("authChange"));
-    window.location.href = "/";
-  };
+  const logout = () => performLogout();
 
   return (
     <>

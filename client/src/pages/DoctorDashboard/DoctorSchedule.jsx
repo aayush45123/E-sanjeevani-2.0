@@ -21,6 +21,7 @@ import {
   authApi,
 } from "../../utils/api";
 import styles from "./DoctorSchedule.module.css";
+import { performLogout } from "../../utils/auth";
 
 export default function DoctorSchedule({ isProfileIncomplete = false }) {
   const navigate = useNavigate();
@@ -253,13 +254,7 @@ export default function DoctorSchedule({ isProfileIncomplete = false }) {
   ==================================================
   */
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userRole");
-    localStorage.removeItem("user");
-    localStorage.removeItem("userId");
-    navigate("/auth");
-  };
+  const handleLogout = () => performLogout();
 
   if (loading) {
     return (

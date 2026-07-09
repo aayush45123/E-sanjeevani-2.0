@@ -7,6 +7,7 @@ import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
 import AddressInput from "../../components/AddressInput/AddressInput";
 import styles from "./DoctorProfileSetup.module.css";
 import { doctorProfileApi, doctorAvailabilityApi } from "../../utils/api";
+import { performLogout } from "../../utils/auth";
 
 export default function DoctorProfileSetup({ isProfileIncomplete = true }) {
   const navigate = useNavigate();
@@ -240,12 +241,7 @@ export default function DoctorProfileSetup({ isProfileIncomplete = true }) {
     setIsEditMode(false);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userRole");
-    localStorage.removeItem("doctorProfileCompleted");
-    navigate("/");
-  };
+  const handleLogout = () => performLogout();
 
   return (
     <div className={styles.dashboardLayout}>

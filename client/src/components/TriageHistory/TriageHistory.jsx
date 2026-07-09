@@ -24,9 +24,8 @@ const TriageHistory = ({ onSelectTriage }) => {
   const fetchTriageHistory = async () => {
     try {
       const response = await fetch("/api/triage/history", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+        credentials: "include",
+        headers: {},
       });
 
       const data = await response.json();
