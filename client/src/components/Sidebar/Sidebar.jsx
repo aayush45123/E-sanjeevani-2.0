@@ -1,6 +1,4 @@
-// FULL UPDATED Sidebar.jsx
-// Industry-level fixed profile navigation + stable sidebar behavior
-
+// Sidebar.jsx — Clean minimal sidebar (Reference 1 style)
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import styles from "./Sidebar.module.css";
@@ -16,6 +14,7 @@ import {
   ClipboardList,
   Users,
   BarChart3,
+  Brain,
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -27,12 +26,6 @@ const Sidebar = () => {
     role: localStorage.getItem("userRole") || "patient",
   });
 
-  /*
-  ==================================================
-  LOAD USER INFO
-  ==================================================
-  */
-
   useEffect(() => {
     const updateUserData = () => {
       let name = "User";
@@ -40,7 +33,6 @@ const Sidebar = () => {
         const userObj = JSON.parse(localStorage.getItem("user"));
         if (userObj && userObj.name) name = userObj.name;
       } catch (e) {}
-
       const role = localStorage.getItem("userRole") || "patient";
       setUser({ name, role });
     };
@@ -49,7 +41,6 @@ const Sidebar = () => {
     window.addEventListener("storage", updateUserData);
     window.addEventListener("profileUpdated", updateUserData);
     window.addEventListener("authChange", updateUserData);
-
     return () => {
       window.removeEventListener("storage", updateUserData);
       window.removeEventListener("profileUpdated", updateUserData);
@@ -57,192 +48,102 @@ const Sidebar = () => {
     };
   }, []);
 
-  /*
-  ==================================================
-  LOGOUT
-  ==================================================
-  */
-
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userRole");
     localStorage.removeItem("userName");
-
     window.dispatchEvent(new Event("authChange"));
-
     navigate("/auth");
   };
 
-  /*
-  ==================================================
-  PROFILE CLICK
-  FIX:
-  Patient → /profile
-  Doctor → /doctor-profile-edit
-  ==================================================
-  */
-
   const handleProfileClick = () => {
-    if (user.role === "doctor") {
-      navigate("/doctor-profile-edit");
-    } else {
-      /*
-    patient route must match App.jsx route
-    */
-      navigate("/profile-setup");
-    }
+    if (user.role === "doctor") navigate("/doctor-profile-edit");
+    else navigate("/profile-setup");
   };
 
-  /*
-  ==================================================
-  MENU ITEMS
-  ==================================================
-  */
-
   const patientMenu = [
-    {
-      label: "Dashboard",
-      icon: <LayoutDashboard size={18} />,
-      path: "/dashboard",
-    },
-    {
-      label: "Consultations",
-      icon: <Calendar size={18} />,
-      path: "/consultations",
-    },
-    {
-      label: "Clinical Records",
-      icon: <FileText size={18} />,
-      path: "/clinical-records",
-    },
+    { label: "Dashboard",        icon: <LayoutDashboard size={15} />, path: "/dashboard" },
+    { label: "Consultations",    icon: <Calendar size={15} />,        path: "/consultations" },
+    { label: "AI Triage",        icon: <Brain size={15} />,           path: "/ai-triage" },
+    { label: "Clinical Records", icon: <FileText size={15} />,        path: "/clinical-records" },
   ];
 
   const doctorMenu = [
-    {
-      label: "Dashboard",
-      icon: <LayoutDashboard size={18} />,
-      path: "/dashboard",
-    },
-    {
-      label: "Schedule",
-      icon: <Calendar size={18} />,
-      path: "/doctor-schedule",
-    },
-    {
-      label: "My Patients",
-      icon: <Users size={18} />,
-      path: "/my-patients",
-    },
-    {
-      label: "Clinical Records",
-      icon: <ClipboardList size={18} />,
-      path: "/clinical-records",
-    },
-    {
-      label: "Analytics",
-      icon: <BarChart3 size={18} />,
-      path: "/analytics",
-    },
+    { label: "Dashboard",        icon: <LayoutDashboard size={15} />, path: "/dashboard" },
+    { label: "My Patients",      icon: <Users size={15} />,           path: "/doctor-dashboard/patients" },
+    { label: "Schedule",         icon: <Calendar size={15} />,        path: "/doctor-dashboard/schedule" },
+    { label: "Clinical Records", icon: <ClipboardList size={15} />,   path: "/clinical-records" },
+    { label: "Analytics",        icon: <BarChart3 size={15} />,       path: "/doctor-dashboard/analytics" },
   ];
 
   const supportMenu = [
-    {
-      label: "Settings",
-      icon: <Settings size={18} />,
-      path: "/settings",
-    },
-    {
-      label: "Help Center",
-      icon: <HelpCircle size={18} />,
-      path: "/help-center",
-    },
+    { label: "Settings",     icon: <Settings size={15} />,    path: "/settings" },
+    { label: "Help Center",  icon: <HelpCircle size={15} />,  path: "/help-center" },
+    { label: "Profile",      icon: <User size={15} />,        onClick: handleProfileClick },
   ];
 
   const activeMenu = user.role === "doctor" ? doctorMenu : patientMenu;
+  const isActive = (path) => location.pathname === path;
 
-  /*
-  ==================================================
-  ACTIVE PATH CHECK
-  ==================================================
-  */
-
-  const isActive = (path) => {
-    return location.pathname === path;
-  };
+  const NavItem = ({ item }) => (
+    <button
+      className={`${styles.item} ${item.path && isActive(item.path) ? styles.itemActive : ""}`}
+      onClick={() => item.onClick ? item.onClick() : navigate(item.path)}
+    >
+      <span className={styles.itemIcon}>{item.icon}</span>
+      {item.label}
+    </button>
+  );
 
   return (
-    <div className={styles.sidebar}>
-      {/* LOGO */}
-
-      <div
-        className={styles.logoSection}
-        onClick={() => navigate("/dashboard")}
-      >
-        <img src="./logo-svg.svg " alt="E-Sanjeevani" className={styles.logo} />
-
-        <h2>E-Sanjeevani</h2>
+    <aside className={styles.sidebar}>
+      {/* Header */}
+      <div className={styles.header}>
+        <button className={styles.logoBtn} onClick={() => navigate("/dashboard")}>
+          <img
+            src="/logo-svg.svg"
+            alt="eSanjeevani"
+            className={styles.logoImg}
+            width="22"
+            height="22"
+          />
+          <span className={styles.logoText}>eSanjeevani</span>
+        </button>
       </div>
 
-      {/* OVERVIEW */}
-
-      <div className={styles.section}>
-        <p className={styles.sectionTitle}>OVERVIEW</p>
-
-        {activeMenu.map((item, index) => (
-          <button
-            key={index}
-            className={`${styles.menuItem} ${
-              isActive(item.path) ? styles.active : ""
-            }`}
-            onClick={() => navigate(item.path)}
-          >
-            <span className={styles.icon}>{item.icon}</span>
-
-            <span>{item.label}</span>
-          </button>
+      {/* Nav */}
+      <nav className={styles.nav}>
+        <p className={styles.sectionLabel}>Overview</p>
+        {activeMenu.map((item) => (
+          <NavItem key={item.label} item={item} />
         ))}
-      </div>
 
-      {/* SUPPORT */}
-
-      <div className={styles.section}>
-        <p className={styles.sectionTitle}>SUPPORT</p>
-
-        {supportMenu.map((item, index) => (
-          <button
-            key={index}
-            className={`${styles.menuItem} ${
-              isActive(item.path) ? styles.active : ""
-            }`}
-            onClick={() => navigate(item.path)}
-          >
-            <span className={styles.icon}>{item.icon}</span>
-
-            <span>{item.label}</span>
-          </button>
+        <p className={styles.sectionLabel}>Support</p>
+        {supportMenu.map((item) => (
+          <NavItem key={item.label} item={item} />
         ))}
-      </div>
+      </nav>
 
-      {/* PROFILE FOOTER */}
-
-      <div className={styles.profileFooter}>
-        <div className={styles.profileCard} onClick={handleProfileClick}>
+      {/* Footer profile */}
+      <div className={styles.footer}>
+        <div className={styles.profile} onClick={handleProfileClick}>
           <div className={styles.avatar}>
             {user.name?.charAt(0)?.toUpperCase() || "U"}
           </div>
-
           <div className={styles.profileInfo}>
-            <h4>{user.name || "User"}</h4>
-            <p>{user.role === "doctor" ? "Doctor" : "Patient"}</p>
+            <div className={styles.profileName}>{user.name || "User"}</div>
+            <div className={styles.profileRole}>{user.role === "doctor" ? "Doctor" : "Patient"}</div>
           </div>
+          <svg className={styles.profileChevron} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M9 18l6-6-6-6"/>
+          </svg>
         </div>
-
-        <button className={styles.logoutButton} onClick={handleLogout}>
-          <LogOut size={16} />
-          Logout
+        <button className={styles.logoutBtn} onClick={handleLogout}>
+          <LogOut size={15} />
+          Sign out
         </button>
       </div>
-    </div>
+    </aside>
   );
 };
 

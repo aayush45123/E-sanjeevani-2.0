@@ -1,8 +1,11 @@
-// Navbar.jsx
+// Navbar.jsx — Minimal SaaS nav (Every AI / Linear style)
 import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import styles from "./Navbar.module.css";
-import logoSvg from "../../assets/logo-svg.svg";
+
+// Public folder assets are served at root path, no import needed
+const logo = "/logo-svg.svg";
+
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -10,212 +13,99 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
 
   const location = useLocation();
+  const navigate = useNavigate();
   const isAuthPage = location.pathname.startsWith("/auth");
 
-  // Re-check token on every route change (covers logout → re-login flow)
-  useEffect(() => {
-    setIsLoggedIn(!!localStorage.getItem("token"));
-  }, [location.pathname]);
+  useEffect(() => { setIsLoggedIn(!!localStorage.getItem("token")); }, [location.pathname]);
 
-  // Re-check token when authChange fires (same-tab login/signup)
   useEffect(() => {
     const onAuthChange = () => setIsLoggedIn(!!localStorage.getItem("token"));
     window.addEventListener("authChange", onAuthChange);
     return () => window.removeEventListener("authChange", onAuthChange);
   }, []);
 
-  // Scroll listener
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    const onScroll = () => setIsScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Same logout logic as Sidebar
- const logout = () => {
-  localStorage.removeItem("token");
-  window.dispatchEvent(new Event("authChange"));  // ← Fire auth change event
-  window.location.href = "/";
-};
+  useEffect(() => { setIsMobileMenuOpen(false); }, [location.pathname]);
 
-  const toggleMobileMenu = () => setIsMobileMenuOpen((prev) => !prev);
-  const closeMobileMenu = () => setIsMobileMenuOpen(false);
-
-  const renderAuthButton = () => {
-    if (isAuthPage) return null;
-    if (isLoggedIn) {
-      return (
-        <button className={styles.btnLogout} onClick={logout}>
-          Logout
-        </button>
-      );
-    }
-    return (
-      <button
-        className={styles.btnSignIn}
-        onClick={() => (window.location.href = "/auth")}
-      >
-        Sign In
-      </button>
-    );
-  };
-
-  const renderMobileAuthButton = () => {
-    if (isAuthPage) return null;
-    if (isLoggedIn) {
-      return (
-        <button className={styles.btnLogoutMobile} onClick={logout}>
-          Logout
-        </button>
-      );
-    }
-    return (
-      <button
-        className={styles.btnSignInMobile}
-        onClick={() => (window.location.href = "/auth")}
-      >
-        Sign In
-      </button>
-    );
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userRole");
+    window.dispatchEvent(new Event("authChange"));
+    window.location.href = "/";
   };
 
   return (
-    <nav className={`${styles.navbar} ${isScrolled ? styles.scrolled : ""}`}>
-      <div className={styles.container}>
-        {/* Logo */}
-        <a href="/" className={styles.logo}>
-          <img
-            src={logoSvg}
-            alt="E-Sanjeevani Logo"
-            className={styles.logoIcon}
-          />
-          <span className={styles.logoText}>E-Sanjeevani 2.0</span>
-        </a>
+    <>
+      <nav className={`${styles.nav} ${isScrolled ? styles.scrolled : ""}`}>
+        <div className={styles.inner}>
+          {/* Logo */}
+          <a href="/" className={styles.logo} id="nav-logo">
+            <img src={logo} alt="eSanjeevani Logo" className={styles.logoImg} />
+            <span className={styles.logoText}>eSanjeevani</span>
+          </a>
 
-        {/* Desktop Navigation */}
-        <div className={styles.navLinks}>
-          <a href="#platform" className={`${styles.navLink} ${styles.active}`}>
-            Platform
-          </a>
-          <a href="#triage" className={styles.navLink}>
-            AI Triage
-          </a>
-          <a href="#specialties" className={styles.navLink}>
-            Specialties
-          </a>
-          <a href="#intelligence" className={styles.navLink}>
-            Clinical Intelligence
-          </a>
-          <a href="#archives" className={styles.navLink}>
-            Archives
-          </a>
-        </div>
+          {/* Center links */}
+          <div className={styles.links}>
+            <a href="#platform" className={styles.link}>Platform</a>
+            <a href="#triage" className={styles.link}>AI Triage</a>
+            <a href="#how-it-works" className={styles.link}>How it works</a>
+            <a href="#doctors" className={styles.link}>For Doctors</a>
+          </div>
 
-        {/* Desktop Actions */}
-        <div className={styles.navActions}>
-          <button className={styles.iconBtn} aria-label="Notifications">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-            </svg>
+          {/* Right actions */}
+          {!isAuthPage && (
+            <div className={styles.actions}>
+              {isLoggedIn ? (
+                <>
+                  <button className={styles.btnGhost} onClick={() => navigate("/dashboard")}>Dashboard</button>
+                  <button className={styles.btnGhost} onClick={logout}>Sign out</button>
+                </>
+              ) : (
+                <>
+                  <button className={styles.btnGhost} onClick={() => navigate("/auth")} id="nav-login">Login</button>
+                  <button className={styles.btnDark} onClick={() => navigate("/auth")} id="nav-signup">Sign Up</button>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Mobile toggle */}
+          <button
+            className={styles.toggle}
+            onClick={() => setIsMobileMenuOpen(p => !p)}
+            aria-label="Toggle menu"
+          >
+            {isMobileMenuOpen
+              ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            }
           </button>
-          <button className={styles.iconBtn} aria-label="Profile">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-              <circle cx="12" cy="7" r="4"></circle>
-            </svg>
-          </button>
-          {renderAuthButton()}
         </div>
 
-        {/* Mobile Hamburger */}
-        <button
-          className={styles.mobileMenuBtn}
-          onClick={toggleMobileMenu}
-          aria-label="Toggle menu"
-        >
-          <span
-            className={`${styles.menuLine} ${
-              isMobileMenuOpen ? styles.menuLineOpen : ""
-            }`}
-          ></span>
-          <span
-            className={`${styles.menuLine} ${
-              isMobileMenuOpen ? styles.menuLineOpen : ""
-            }`}
-          ></span>
-          <span
-            className={`${styles.menuLine} ${
-              isMobileMenuOpen ? styles.menuLineOpen : ""
-            }`}
-          ></span>
-        </button>
-      </div>
-
-      {/* Mobile Menu */}
-      <div
-        className={`${styles.mobileMenu} ${
-          isMobileMenuOpen ? styles.mobileMenuOpen : ""
-        }`}
-      >
-        <div className={styles.mobileMenuContent}>
-          <a
-            href="#platform"
-            className={styles.mobileNavLink}
-            onClick={closeMobileMenu}
-          >
-            Platform
-          </a>
-          <a
-            href="#triage"
-            className={styles.mobileNavLink}
-            onClick={closeMobileMenu}
-          >
-            AI Triage
-          </a>
-          <a
-            href="#specialties"
-            className={styles.mobileNavLink}
-            onClick={closeMobileMenu}
-          >
-            Specialties
-          </a>
-          <a
-            href="#intelligence"
-            className={styles.mobileNavLink}
-            onClick={closeMobileMenu}
-          >
-            Clinical Intelligence
-          </a>
-          <a
-            href="#archives"
-            className={styles.mobileNavLink}
-            onClick={closeMobileMenu}
-          >
-            Archives
-          </a>
-          <div className={styles.mobileActions}>{renderMobileAuthButton()}</div>
-        </div>
-      </div>
-    </nav>
+        {/* Mobile drawer */}
+        {isMobileMenuOpen && (
+          <div className={styles.mobileMenu}>
+            <a href="#platform" className={styles.mobileLink} onClick={() => setIsMobileMenuOpen(false)}>Platform</a>
+            <a href="#triage" className={styles.mobileLink} onClick={() => setIsMobileMenuOpen(false)}>AI Triage</a>
+            <a href="#how-it-works" className={styles.mobileLink} onClick={() => setIsMobileMenuOpen(false)}>How it works</a>
+            <a href="#doctors" className={styles.mobileLink} onClick={() => setIsMobileMenuOpen(false)}>For Doctors</a>
+            <div className={styles.mobileDivider} />
+            {isLoggedIn
+              ? <button className={styles.mobileDark} onClick={() => navigate("/dashboard")}>Dashboard</button>
+              : <>
+                  <button className={styles.mobileGhost} onClick={() => navigate("/auth")}>Login</button>
+                  <button className={styles.mobileDark} onClick={() => navigate("/auth")}>Sign Up</button>
+                </>
+            }
+          </div>
+        )}
+      </nav>
+    </>
   );
 };
 

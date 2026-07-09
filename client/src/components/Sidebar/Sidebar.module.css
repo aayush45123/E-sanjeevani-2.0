@@ -1,13 +1,10 @@
-/* FULL PROFESSIONAL UPDATED Sidebar.module.css */
-/* Better structure + spacing + proper visual balance */
-/* Same colors/design language preserved */
-/* Only improved layout + industry-level polish */
+/* Sidebar.module.css — Patient sidebar, clean white */
 
 .sidebar {
-  width: 270px;
-  min-width: 270px;
-  background: #fafafa;
-  border-right: 1px solid #eaeaea;
+  width: var(--sidebar-width, 240px);
+  min-width: var(--sidebar-width, 240px);
+  background: var(--bg-card);
+  border-right: 1px solid var(--border);
   position: fixed;
   top: 0;
   left: 0;
@@ -15,262 +12,216 @@
   display: flex;
   flex-direction: column;
   z-index: 100;
-  font-family: var(--font-primary, system-ui, sans-serif);
-  overflow: hidden;
+  font-family: var(--font);
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
-/*
-========================================
-LOGO SECTION
-========================================
-*/
-
-.logoSection {
+/* ── Header / Logo ───────────────────────────── */
+.header {
+  padding: var(--sp-4);
+  border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 26px 22px;
-  border-bottom: 1px solid #ececec;
-  cursor: pointer;
+  justify-content: space-between;
   flex-shrink: 0;
-  background: #fafafa;
+  height: 56px;
 }
 
-.logo {
-  width: 36px;
-  height: 36px;
+.logoBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: var(--sp-1) var(--sp-2);
+  border-radius: var(--radius-md);
+  transition: background var(--duration-fast) var(--ease);
+  width: 100%;
+}
+
+.logoBtn:hover { background: var(--bg-subtle); }
+
+.logoImg {
+  width: 22px;
+  height: 22px;
   object-fit: contain;
   flex-shrink: 0;
 }
 
-.logoSection h2 {
-  margin: 0;
-  font-size: 16px;
+.logoText {
+  font-size: var(--text-sm);
   font-weight: 700;
-  color: #0f172a;
-  letter-spacing: -0.02em;
-  line-height: 1;
+  color: var(--text-primary);
+  letter-spacing: -0.03em;
 }
 
-/*
-========================================
-MIDDLE CONTENT
-========================================
-*/
-
-.section {
-  padding: 24px 16px 0;
+/* ── Nav ─────────────────────────────────────── */
+.nav {
+  flex: 1;
+  padding: var(--sp-3) var(--sp-2);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
 }
 
-.section:first-of-type {
-  padding-top: 28px;
-}
-
-.sectionTitle {
-  font-size: 11px;
-  font-weight: 700;
-  color: #9ca3af;
-  letter-spacing: 0.08em;
+.sectionLabel {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-quaternary);
+  letter-spacing: 0.07em;
   text-transform: uppercase;
-  margin: 0 0 14px;
-  padding-left: 8px;
+  padding: var(--sp-3) var(--sp-3) var(--sp-1);
+  margin-top: var(--sp-2);
 }
 
-/*
-========================================
-MENU ITEMS
-========================================
-*/
+.sectionLabel:first-child { margin-top: 0; }
 
-.menuItem {
+/* ── Menu item ───────────────────────────────── */
+.item {
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  margin-bottom: 4px;
-
+  gap: 8px;
+  padding: 7px var(--sp-3);
   border: none;
-  outline: none;
   background: transparent;
-  border-radius: 10px;
-
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all 0.2s ease;
-
-  color: #52525b;
-  font-size: 14px;
-  font-weight: 500;
   text-align: left;
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--text-tertiary);
+  transition:
+    background var(--duration-fast) var(--ease),
+    color var(--duration-fast) var(--ease);
 }
 
-.menuItem:hover {
-  background: #f4f4f5;
-  color: #111827;
+.item:hover {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
 }
 
-.active {
-  background: #f1f5f9;
-  color: #111827;
-  font-weight: 600;
+.itemActive {
+  background: var(--accent-light);
+  color: var(--accent);
+  font-weight: 500;
 }
 
-.icon {
+.itemActive:hover {
+  background: var(--accent-light);
+  color: var(--accent);
+}
+
+.itemIcon {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  width: 18px;
-}
-
-/*
-========================================
-PUSH FOOTER TO BOTTOM
-========================================
-*/
-
-.profileFooter {
-  margin-top: auto;
-  padding: 18px 16px;
-  border-top: 1px solid #ececec;
-  background: #fafafa;
+  width: 16px;
+  height: 16px;
   flex-shrink: 0;
 }
 
-/*
-========================================
-PROFILE CARD
-========================================
-*/
+/* ── Footer / Profile ────────────────────────── */
+.footer {
+  padding: var(--sp-3) var(--sp-2);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
 
-.profileCard {
+.profile {
   display: flex;
   align-items: center;
-  gap: 12px;
-
-  padding: 10px;
-  border-radius: 12px;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: 0.2s ease;
+  transition: background var(--duration-fast) var(--ease);
 }
 
-.profileCard:hover {
-  background: #f4f4f5;
-}
+.profile:hover { background: var(--bg-subtle); }
 
 .avatar {
-  width: 42px;
-  height: 42px;
-  background: #0f172a;
-  border-radius: 10px;
-
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-md);
+  background: var(--slate-900);
+  color: var(--white);
+  font-size: 11px;
+  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
-
-  color: white;
-  font-weight: 700;
-  font-size: 14px;
   flex-shrink: 0;
 }
 
 .profileInfo {
-  display: flex;
-  flex-direction: column;
+  flex: 1;
   min-width: 0;
-  gap: 2px;
 }
 
-.profileInfo h4 {
-  margin: 0;
-  font-size: 14px;
+.profileName {
+  font-size: var(--text-sm);
   font-weight: 600;
-  color: #111827;
-  line-height: 1.2;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
 }
 
-.profileInfo p {
-  margin: 0;
-  font-size: 12px;
-  color: #71717a;
-  line-height: 1.2;
+.profileRole {
+  font-size: var(--text-xs);
+  color: var(--text-quaternary);
+  line-height: 1.3;
 }
 
-/*
-========================================
-LOGOUT BUTTON
-========================================
-*/
+.profileChevron {
+  color: var(--text-quaternary);
+  flex-shrink: 0;
+}
 
-.logoutButton {
+.logoutBtn {
   width: 100%;
-  margin-top: 14px;
-
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 8px;
-
-  padding: 11px 14px;
-
-  border-radius: 10px;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
-
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  font-size: 13px;
-  font-weight: 500;
-  color: #52525b;
-}
-
-.logoutButton:hover {
-  background: #f8fafc;
-  color: #111827;
-  border-color: #d1d5db;
-}
-
-/*
-========================================
-SCROLLBAR
-========================================
-*/
-
-.sidebar::-webkit-scrollbar {
-  width: 5px;
-}
-
-.sidebar::-webkit-scrollbar-thumb {
-  background: #d4d4d8;
-  border-radius: 999px;
-}
-
-.sidebar::-webkit-scrollbar-track {
+  padding: 7px var(--sp-3);
+  margin-top: 2px;
+  border: none;
   background: transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--text-tertiary);
+  transition:
+    background var(--duration-fast) var(--ease),
+    color var(--duration-fast) var(--ease);
 }
 
-/*
-========================================
-RESPONSIVE
-========================================
-*/
+.logoutBtn:hover {
+  background: rgba(185, 28, 28, 0.05);
+  color: #b91c1c;
+}
 
+/* ── Scrollbar ───────────────────────────────── */
+.sidebar::-webkit-scrollbar { width: 0; }
+
+/* ── Responsive ──────────────────────────────── */
 @media (max-width: 1024px) {
-  .sidebar {
-    width: 250px;
-    min-width: 250px;
-  }
+  .sidebar { width: 200px; min-width: 200px; }
 }
 
 @media (max-width: 768px) {
   .sidebar {
-    left: -270px;
-    transition: left 0.3s ease;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    transform: translateX(-100%);
+    transition: transform var(--duration-slow) var(--ease-out);
+    box-shadow: var(--shadow-xl);
   }
 
-  .sidebar.open {
-    left: 0;
-  }
+  .sidebar.open { transform: translateX(0); }
 }
