@@ -112,11 +112,10 @@ export default function DoctorSidebar({
       <div className={styles.logo}>
         <img
           src={logoImage}
-          alt="E-Sanjeevani"
+          alt="eSanjeevani"
           className={styles.logoImage}
-          style={{ width: "32px", height: "32px" }}
         />
-        <span className={styles.logoText}>E-Sanjeevani</span>
+        <span className={styles.logoText}>eSanjeevani</span>
       </div>
 
       {/* Navigation */}
