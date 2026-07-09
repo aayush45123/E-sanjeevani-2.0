@@ -106,8 +106,11 @@ const ProfileCompletion = () => {
     try {
       const submitData = {
         ...formData,
-        patientLatitude: formData.patientCoordinates.latitude,
-        patientLongitude: formData.patientCoordinates.longitude,
+        age: formData.age !== "" ? Number(formData.age) : undefined,
+        height: formData.height !== "" ? Number(formData.height) : undefined,
+        weight: formData.weight !== "" ? Number(formData.weight) : undefined,
+        patientLatitude: formData.patientCoordinates?.latitude,
+        patientLongitude: formData.patientCoordinates?.longitude,
       };
 
       if (hasProfile) {
