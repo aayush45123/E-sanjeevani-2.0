@@ -1,11 +1,11 @@
 .dashboardLayout {
   display: flex;
   height: 100vh;
-  width: calc(100vw - 260px);
-  margin-left: 260px;
-  background-color: #ffffff;
-  font-family: var(--font-primary, system-ui, -apple-system, sans-serif);
-  color: #111827;
+  width: calc(100vw - 240px);
+  margin-left: 240px;
+  background-color: var(--bg);
+  font-family: var(--font, system-ui, -apple-system, sans-serif);
+  color: var(--text-primary);
   overflow: hidden;
 }
 
@@ -14,7 +14,7 @@
   display: flex;
   flex-direction: column;
   position: relative;
-  background: #ffffff;
+  background: var(--bg-card);
   overflow-y: auto;
 }
 
@@ -24,11 +24,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #ffffff;
+  background: var(--bg);
 }
 
 .spinner {
-  color: #51da4d;
+  color: var(--accent);
   animation: spin 1s linear infinite;
 }
 

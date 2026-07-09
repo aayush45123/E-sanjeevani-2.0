@@ -1,16 +1,20 @@
+// Home.jsx — Composed landing page
 import React from "react";
 import Hero from "../../components/Hero/Hero";
-import DualPath from "../../components/DualPath/DualPath";
-import ClinicalIntelligence from "../../components/ClinicalIntelligence/ClinicalIntelligence";
+import FeaturesGrid from "../../components/FeaturesGrid/FeaturesGrid";
+import HowItWorks from "../../components/HowItWorks/HowItWorks";
+import WhyChoose from "../../components/WhyChoose/WhyChoose";
+import CtaBanner from "../../components/CtaBanner/CtaBanner";
 
 const Home = () => {
   return (
-    <div>
-      <Hero></Hero>
-      <DualPath></DualPath>
-      <ClinicalIntelligence></ClinicalIntelligence>
-      {/* k */}
-    </div>
+    <main>
+      <Hero />
+      <FeaturesGrid />
+      <HowItWorks />
+      <WhyChoose />
+      <CtaBanner />
+    </main>
   );
 };
 

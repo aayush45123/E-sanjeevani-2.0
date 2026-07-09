@@ -7,10 +7,10 @@
 .dashboardLayout {
   display: flex;
   min-height: 100vh;
-  width: calc(100% - 230px);
-  margin-left: 230px;
+  width: calc(100% - 240px);
+  margin-left: 240px;
   background: #fafafa;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--font, 'Inter', system-ui, sans-serif);
   color: #111827;
 }
 

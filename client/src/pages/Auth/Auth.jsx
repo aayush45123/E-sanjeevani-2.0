@@ -180,128 +180,55 @@ const Auth = () => {
 
   return (
     <div className={styles.pageWrapper}>
-      {/* NAVBAR */}
-      <nav className={styles.navbar}>
-        <div className={styles.navContent}>
-          <div className={styles.navLeft}>
-            <div className={styles.navLogo}>
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-              >
-                <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
-              </svg>
-              <span>E-Sanjeevani 2.0</span>
-            </div>
-          </div>
-          <div className={styles.navCenter}>
-            <a href="#platform" className={styles.navLink}>
-              Platform
-            </a>
-            <a href="#triage" className={styles.navLink}>
-              AI Triage
-            </a>
-            <a href="#specialties" className={styles.navLink}>
-              Specialties
-            </a>
-            <a href="#intelligence" className={styles.navLink}>
-              Clinical Intelligence
-            </a>
-            <a href="#archives" className={styles.navLink}>
-              Archives
-            </a>
-          </div>
-          <div className={styles.navRight}>
-            <button className={styles.navIcon}>
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-              </svg>
-            </button>
-            <button className={styles.navIcon}>
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <circle cx="12" cy="12" r="1"></circle>
-                <circle cx="19" cy="12" r="1"></circle>
-                <circle cx="5" cy="12" r="1"></circle>
-              </svg>
-            </button>
-          </div>
-        </div>
-      </nav>
-
       {/* MAIN CONTENT */}
       <div className={styles.wrapper}>
         <div className={styles.leftSidebar}>
           <div className={styles.leftContent}>
             <div className={styles.logoSection}>
               <div className={styles.logoIconWrapper}>
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                >
-                  <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
-                </svg>
+                <img
+                  src="/logo-svg.svg"
+                  alt="eSanjeevani Logo"
+                  style={{
+                    width: "20px",
+                    height: "20px",
+                    objectFit: "contain",
+                    filter: "brightness(0) invert(1)",
+                  }}
+                />
               </div>
-
-              <span className={styles.logoText}>E-Sanjeevani</span>
+              <span className={styles.logoText}>eSanjeevani</span>
             </div>
 
             <h1 className={styles.headline}>
-              Your health,
+              Clinical intelligence,
               <br />
-              <span className={styles.highlight}>instantly accessible.</span>
+              <span className={styles.highlight}>at your fingertips.</span>
             </h1>
 
             <p className={styles.tagline}>
-              Join thousands of patients getting expert healthcare from the
-              comfort of their homes.
+              Integrate advanced AI symptom triage with secure video consultations. 
+              Get matched with the right healthcare specialist instantly.
             </p>
 
             <ul className={styles.featuresList}>
               <li className={styles.featureItem}>
                 <div className={styles.featureIcon}>✓</div>
-                <span>24/7 availability to top specialists</span>
+                <span>AI symptom analysis with II-Medical-8B</span>
               </li>
               <li className={styles.featureItem}>
                 <div className={styles.featureIcon}>✓</div>
-                <span>AI-powered instant symptom diagnosis</span>
+                <span>Direct, secure WebRTC video sessions</span>
               </li>
               <li className={styles.featureItem}>
                 <div className={styles.featureIcon}>✓</div>
-                <span>Military-grade secure video consultations</span>
+                <span>Automated specialist matching by triage severity</span>
               </li>
             </ul>
 
             <div className={styles.socialProof}>
-              <div className={styles.avatars}>
-                <div className={styles.avatar}></div>
-                <div className={styles.avatar}></div>
-                <div className={styles.avatar}></div>
-              </div>
               <p className={styles.proofText}>
-                Trusted by <strong>50,000+ patients</strong>
+                Verified and secure <strong>HIPAA-aligned architecture</strong>
               </p>
             </div>
           </div>

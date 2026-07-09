@@ -10,8 +10,8 @@
 }
 
 .contentArea {
-  margin-left: 260px;
-  width: calc(100% - 260px);
+  margin-left: 240px;
+  width: calc(100% - 240px);
   min-height: 100vh;
   padding: 48px 40px;
   display: flex;
