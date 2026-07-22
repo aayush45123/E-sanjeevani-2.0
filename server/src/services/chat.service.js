@@ -1,11 +1,28 @@
 import { OpenAI } from "openai";
 import { ChatRepository } from "../repositories/chat.repository.js";
 import { ConsultationRepository } from "../repositories/consultation.repository.js";
+import { TriageService } from "./triage.service.js";
 
 export class ChatService {
-  static async handleChat({ prompt }) {
+  static async handleChat(userId, { prompt, triageSessionId, model }) {
     if (!prompt) {
       throw { status: 400, message: "Prompt is required" };
+    }
+
+    if (userId) {
+      const chatResult = await TriageService.sendChatMessage(userId, {
+        triageSessionId,
+        prompt,
+        model,
+      });
+
+      return {
+        reply: chatResult.aiMessage.content,
+        triageSessionId: chatResult.triageSessionId,
+        userMessage: chatResult.userMessage,
+        aiMessage: chatResult.aiMessage,
+        timestamp: new Date().toISOString(),
+      };
     }
 
     if (!process.env.HF_TOKEN) {
@@ -40,6 +57,7 @@ export class ChatService {
       timestamp: new Date().toISOString(),
     };
   }
+
 
   static async saveConsultationMessage(userId, userRole, { consultationId, text, senderName }) {
     if (!consultationId || !text) {

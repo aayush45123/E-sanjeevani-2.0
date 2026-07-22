@@ -61,8 +61,8 @@ export const getTriageHistory = async (req, res) => {
 export const getTriageSessionDetails = async (req, res) => {
   try {
     const triageSession = await TriageService.getTriageSessionDetails(
-      req.user?.userId,
-      req.params.triageSessionId,
+      req.user?.userId || req.user?.id,
+      req.params.triageSessionId || req.params.sessionId,
     );
     return res.status(200).json({
       message: "Triage session details",
@@ -76,3 +76,39 @@ export const getTriageSessionDetails = async (req, res) => {
     });
   }
 };
+
+export const sendChatMessage = async (req, res) => {
+  try {
+    const result = await TriageService.sendChatMessage(
+      req.user?.userId || req.user?.id,
+      req.body,
+    );
+    return res.status(200).json({
+      message: "Message processed successfully",
+      ...result,
+    });
+  } catch (error) {
+    console.error("Send chat message controller error:", error);
+    return res.status(error.status || 500).json({
+      message: error.message || "Error processing message",
+      error: error.error || error.message,
+    });
+  }
+};
+
+export const deleteTriageSession = async (req, res) => {
+  try {
+    const result = await TriageService.deleteTriageSession(
+      req.user?.userId || req.user?.id,
+      req.params.sessionId || req.params.triageSessionId,
+    );
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error("Delete triage session controller error:", error);
+    return res.status(error.status || 500).json({
+      message: error.message || "Error deleting session",
+      error: error.error || error.message,
+    });
+  }
+};
+

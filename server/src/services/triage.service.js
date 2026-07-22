@@ -297,6 +297,7 @@ export class TriageService {
     }
 
     const aiResponse = await TriageRepository.findResponseBySessionId(triageSessionId);
+    const messages = await TriageRepository.findMessagesBySessionId(triageSessionId);
 
     let assignedDoctor = null;
     if (triageSession.assignedDoctorId) {
@@ -313,8 +314,145 @@ export class TriageService {
 
     return {
       ...triageSession,
+      messages: messages || [],
       aiResponse: aiResponse || null,
       assignedDoctor,
     };
   }
+
+  static async sendChatMessage(userId, { triageSessionId, prompt, model }) {
+    if (!userId) {
+      throw { status: 401, message: "User authentication failed. Please log in again." };
+    }
+
+    if (!prompt || !prompt.trim()) {
+      throw { status: 400, message: "Message content cannot be empty" };
+    }
+
+    let session;
+    if (triageSessionId) {
+      session = await TriageRepository.findSessionById(triageSessionId);
+      if (!session) {
+        throw { status: 404, message: "Triage session not found" };
+      }
+      if (session.patientId !== userId) {
+        throw { status: 403, message: "Unauthorized to access this triage session" };
+      }
+    } else {
+      const summaryTitle = prompt.trim().length > 60
+        ? prompt.trim().substring(0, 57) + "..."
+        : prompt.trim();
+
+      session = await TriageRepository.createSession({
+        patientId: userId,
+        symptoms: [],
+        summaryTitle,
+        summaryDescription: "AI Chat Triage Conversation",
+        status: "pending",
+      });
+      triageSessionId = session.id;
+    }
+
+    // 1. Save user message to PostgreSQL
+    const userMessage = await TriageRepository.createMessage({
+      triageSessionId,
+      patientId: userId,
+      role: "user",
+      content: prompt.trim(),
+    });
+
+    // 2. Fetch recent conversation messages to maintain AI context
+    const previousMessages = await TriageRepository.findMessagesBySessionId(triageSessionId);
+
+    // 3. Generate AI response
+    let aiResponseText = "";
+    if (model === "custom-triage-ai") {
+      try {
+        const { predictTriageDisease } = await import("../ai/aiTriageClient.js");
+        const res = await predictTriageDisease(prompt);
+        const predictionData = res.data?.data || res.data;
+        aiResponseText = `## AI Triage Report\n\n### Predicted Disease\n${predictionData.predictedDisease || "General Evaluation"}\n\n### Urgency Level\n${predictionData.urgency || "Moderate"}\n\n### Recommended Specialist\n${predictionData.doctorType || "General Physician"}\n\nPlease consult a qualified doctor for a complete medical diagnosis.`;
+      } catch (err) {
+        console.error("Custom ML triage model error:", err.message);
+        aiResponseText = "I have recorded your symptoms. Based on current AI analysis, please monitor your condition and consult a healthcare professional if symptoms persist.";
+      }
+    } else {
+      try {
+        const { OpenAI } = await import("openai");
+        if (process.env.HF_TOKEN) {
+          const client = new OpenAI({
+            baseURL: "https://router.huggingface.co/v1",
+            apiKey: process.env.HF_TOKEN,
+          });
+
+          const formattedHistory = previousMessages.map((m) => ({
+            role: m.role === "assistant" ? "assistant" : "user",
+            content: m.content,
+          }));
+
+          const chatCompletion = await client.chat.completions.create({
+            model: "meta-llama/Llama-3.1-8B-Instruct",
+            messages: [
+              {
+                role: "system",
+                content: "You are a professional, empathetic clinical AI assistant for E-Sanjeevani. Provide helpful, accurate medical triage advice, ask relevant follow-up questions, and educate patients. Always advise consulting a doctor for severe symptoms.",
+              },
+              ...formattedHistory,
+            ],
+          });
+
+          aiResponseText = chatCompletion.choices[0]?.message?.content || "Thank you for sharing your symptoms. Please consult a doctor for advice.";
+        } else {
+          aiResponseText = "I have received your message. Please describe any additional symptoms so I can assist you better.";
+        }
+      } catch (err) {
+        console.error("HuggingFace OpenAI chat error:", err.message);
+        aiResponseText = "I received your message. Please share details on symptom duration and severity so I can provide guidance.";
+      }
+    }
+
+    // 4. Save AI response to PostgreSQL
+    const aiMessage = await TriageRepository.createMessage({
+      triageSessionId,
+      patientId: userId,
+      role: "assistant",
+      content: aiResponseText,
+    });
+
+    // 5. Update session title if default
+    if (!session.summaryTitle || session.summaryTitle === "AI Triage Session") {
+      const summaryTitle = prompt.trim().length > 60
+        ? prompt.trim().substring(0, 57) + "..."
+        : prompt.trim();
+
+      await TriageRepository.updateSession(triageSessionId, {
+        summaryTitle,
+        updatedAt: new Date(),
+      });
+    } else {
+      await TriageRepository.updateSession(triageSessionId, {
+        updatedAt: new Date(),
+      });
+    }
+
+    return {
+      triageSessionId,
+      userMessage,
+      aiMessage,
+    };
+  }
+
+  static async deleteTriageSession(userId, triageSessionId) {
+    if (!userId) {
+      throw { status: 401, message: "Unauthorized" };
+    }
+
+    const deleted = await TriageRepository.deleteSession(triageSessionId, userId);
+    if (!deleted) {
+      throw { status: 404, message: "Triage session not found or unauthorized" };
+    }
+
+    return { success: true, message: "Triage session deleted successfully" };
+  }
 }
+

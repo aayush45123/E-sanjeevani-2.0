@@ -215,11 +215,12 @@ export default function PatientDashboard() {
 
   // ── Triage state ────────────────────────────────────────────────────────
   const [selectedTriageId, setSelectedTriageId] = useState(null);
+  const [activeTriageSessionId, setActiveTriageSessionId] = useState(null);
 
   // ── Derived ─────────────────────────────────────────────────────────────
   const hasStartedChat = messages.length > 0;
 
-  // ── Fetch user, then hydrate messages from localStorage ─────────────────
+  // ── Fetch user, then hydrate messages ─────────────────
   useEffect(() => {
     async function init() {
       try {
@@ -227,7 +228,7 @@ export default function PatientDashboard() {
         const fetchedUser = response.data.user || response.data;
         setUser(fetchedUser);
 
-        // Now that we have userId, load persisted messages
+        // Load persisted messages from local storage fallback initially
         const userId = fetchedUser._id || fetchedUser.id;
         const persisted = loadMessagesFromStorage(userId);
         if (persisted.length > 0) {
@@ -281,7 +282,6 @@ export default function PatientDashboard() {
           `⏳ ${roleText} ${waitingUserName} is waiting for you to join the consultation!`,
           "warning",
         );
-        // Play alert sound
         NotificationService.playSound("alert");
       },
     );
@@ -290,6 +290,50 @@ export default function PatientDashboard() {
       socket.disconnect();
     };
   }, []);
+
+  // ── Start a fresh new chat session ───────────────────────────────────────
+  const handleNewChat = () => {
+    setActiveTriageSessionId(null);
+    setMessages([]);
+    if (user) {
+      const userId = user._id || user.id;
+      localStorage.removeItem(getChatStorageKey(userId));
+    }
+  };
+
+  // ── Load a previous triage session from PostgreSQL history ────────────────
+  const handleSelectTriageSession = async (sessionId) => {
+    if (!sessionId) return;
+    try {
+      const response = await fetch(`/api/triage/history/${sessionId}`, {
+        credentials: "include",
+      });
+      const data = await response.json();
+
+      if (response.ok && data.triageSession) {
+        const session = data.triageSession;
+        setActiveTriageSessionId(session.id);
+
+        if (session.messages && session.messages.length > 0) {
+          const loadedMsgs = session.messages.map((m) => ({
+            id: m.id,
+            type: m.role === "assistant" ? "ai" : "user",
+            text: m.content,
+            timestamp: new Date(m.createdAt),
+          }));
+          setMessages(loadedMsgs);
+        } else {
+          // If session has no chat messages (e.g. form submission assessment), clear current chat and open detail modal
+          setMessages([]);
+          setSelectedTriageId(sessionId);
+        }
+      } else {
+        console.error("Failed to load triage session history:", data.message);
+      }
+    } catch (err) {
+      console.error("Error fetching triage session details:", err);
+    }
+  };
 
   // ── Send message ─────────────────────────────────────────────────────────
   const handleSendMessage = async (e) => {
@@ -315,81 +359,41 @@ export default function PatientDashboard() {
     try {
       let response;
       let aiMessageText = "";
+      let returnedSessionId = null;
 
       /*
-      MODEL 1:
-      II-Medical-8B
-      Existing chatbot API
-      → /api/chat
-    */
-      if (selectedModel.id === "ii-medical-8b") {
-        response = await fetch("/api/chat", {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            prompt: currentInput,
-          }),
-        });
+        Send to /api/chat which now delegates to TriageService and persists to triage_sessions + triage_messages
+      */
+      response = await fetch("/api/chat", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt: currentInput,
+          triageSessionId: activeTriageSessionId,
+          model: selectedModel.id,
+        }),
+      });
 
-        if (!response.ok) {
-          throw new Error(`API error: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-
-        aiMessageText = data?.data?.reply
-          ?.replace(/<\/?[Aa]nswer>\s*/g, "")
-          ?.replace(/^[\s]*[Aa]nswer[\s]*:[\s]*/gm, "")
-          ?.replace(/<[^>]*>/g, "")
-          ?.replace(/\n{3,}/g, "\n\n")
-          ?.trim();
-      } else if (selectedModel.id === "custom-triage-ai") {
-        /*
-      MODEL 2:
-      E-Sanjeevani AI Triage
-      Your trained ML model
-      → /api/ai-triage/predict
-    */
-        response = await fetch("/api/ai-triage/predict", {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            userId: user?._id || user?.id,
-            message: currentInput,
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`API error: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        const result = data.data;
-
-        aiMessageText = `
-## AI Triage Report
-
-### Predicted Disease
-${result.predictedDisease}
-
-### Urgency Level
-${result.urgency}
-
-### Recommended Specialist
-${result.doctorType}
-
-### Recommendation
-${result.recommendation}
-
-Please consult the assigned doctor for final diagnosis.
-      `;
+      if (!response.ok) {
+        throw new Error(`API error: ${response.statusText}`);
       }
+
+      const data = await response.json();
+      returnedSessionId = data?.data?.triageSessionId || data?.triageSessionId;
+
+      if (returnedSessionId) {
+        setActiveTriageSessionId(returnedSessionId);
+      }
+
+      aiMessageText = data?.data?.reply
+        ?.replace(/<\/?[Aa]nswer>\s*/g, "")
+        ?.replace(/^[\s]*[Aa]nswer[\s]*:[\s]*/gm, "")
+        ?.replace(/<[^>]*>/g, "")
+        ?.replace(/\n{3,}/g, "\n\n")
+        ?.trim();
 
       const aiMessage = {
         id: Date.now() + 1,
@@ -418,13 +422,9 @@ Please consult the assigned doctor for final diagnosis.
 
   // ── Clear chat ────────────────────────────────────────────────────────────
   const handleClearChat = () => {
-    if (!window.confirm("Clear all chat messages?")) return;
-    setMessages([]);
-    if (user) {
-      const userId = user._id || user.id;
-      localStorage.removeItem(getChatStorageKey(userId));
-    }
+    handleNewChat();
   };
+
 
   // ── File upload ───────────────────────────────────────────────────────────
   const handleFileUpload = (e) => {
@@ -660,16 +660,26 @@ Please consult the assigned doctor for final diagnosis.
                   <span className={styles.pulseDot}></span> Live
                 </span>
               </div>
-              {/* Clear chat button */}
-              <button
-                className={styles.clearChatBtn}
-                onClick={handleClearChat}
-                title="Clear chat history"
-              >
-                <FiTrash2 size={14} />
-                <span>Clear</span>
-              </button>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <button
+                  className={styles.clearChatBtn}
+                  onClick={handleNewChat}
+                  title="Start New Chat Session"
+                  style={{ background: "#2563eb", color: "#ffffff" }}
+                >
+                  <span>+ New Chat</span>
+                </button>
+                <button
+                  className={styles.clearChatBtn}
+                  onClick={handleClearChat}
+                  title="Clear current view"
+                >
+                  <FiTrash2 size={14} />
+                  <span>Clear</span>
+                </button>
+              </div>
             </div>
+
 
             <div className={styles.messagesContainer}>
               {messages.map((message) => (
@@ -871,8 +881,17 @@ Please consult the assigned doctor for final diagnosis.
 
       {/* ── Right panel: Triage History ── */}
       <aside className={styles.rightPanel}>
-        <TriageHistory onSelectTriage={(id) => setSelectedTriageId(id)} />
+        <TriageHistory
+          activeSessionId={activeTriageSessionId}
+          onSelectTriage={handleSelectTriageSession}
+          onDeleteTriage={(id) => {
+            if (id === activeTriageSessionId) {
+              handleNewChat();
+            }
+          }}
+        />
       </aside>
+
 
       {/* ── Triage Detail Modal ── */}
       {selectedTriageId && (

@@ -10,7 +10,7 @@ export const createTriageSessionSchema = z.object({
           duration: z.string().optional(),
         }),
       )
-      .min(1, "At least one symptom is required"),
+      .optional(),
     medicalHistory: z.string().optional(),
     currentMedications: z.string().optional(),
     allergies: z.string().optional(),
@@ -29,3 +29,18 @@ export const triageDetailsSchema = z.object({
     triageSessionId: z.string().uuid("Invalid triage session ID format"),
   }),
 });
+
+export const sendChatMessageSchema = z.object({
+  body: z.object({
+    triageSessionId: z.string().uuid("Invalid session ID format").optional().nullable(),
+    prompt: z.string().min(1, "Message prompt cannot be empty"),
+    model: z.string().optional(),
+  }),
+});
+
+export const deleteSessionSchema = z.object({
+  params: z.object({
+    sessionId: z.string().uuid("Invalid triage session ID format"),
+  }),
+});
+

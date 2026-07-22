@@ -2,7 +2,8 @@ import { ChatService } from "../services/chat.service.js";
 
 export const handleChat = async (req, res) => {
   try {
-    const result = await ChatService.handleChat(req.body);
+    const userId = req.user?.userId || req.user?.id;
+    const result = await ChatService.handleChat(userId, req.body);
     return res.status(200).json({
       success: true,
       message: "AI response generated successfully",
@@ -17,6 +18,7 @@ export const handleChat = async (req, res) => {
     });
   }
 };
+
 
 export const saveConsultationMessage = async (req, res) => {
   try {

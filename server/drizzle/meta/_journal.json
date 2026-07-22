@@ -22,6 +22,13 @@
       "when": 1783596050242,
       "tag": "0002_mixed_lady_bullseye",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1784708058944,
+      "tag": "0003_last_harpoon",
+      "breakpoints": true
     }
   ]
 }

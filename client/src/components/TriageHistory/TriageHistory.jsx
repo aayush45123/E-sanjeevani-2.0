@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from "react";
 import styles from "./TriageHistory.module.css";
 
-const TriageHistory = ({ onSelectTriage }) => {
+const TriageHistory = ({ onSelectTriage, onDeleteTriage, activeSessionId }) => {
   const [triageHistory, setTriageHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedTriageId, setSelectedTriageId] = useState(null);
+  const [selectedTriageId, setSelectedTriageId] = useState(activeSessionId || null);
+
+  useEffect(() => {
+    if (activeSessionId) {
+      setSelectedTriageId(activeSessionId);
+    }
+  }, [activeSessionId]);
 
   useEffect(() => {
     fetchTriageHistory();
@@ -12,8 +18,8 @@ const TriageHistory = ({ onSelectTriage }) => {
     // Refetch when user focuses on window (comes back to tab)
     window.addEventListener("focus", fetchTriageHistory);
 
-    // Also set up interval to check for new triages every 10 seconds
-    const interval = setInterval(fetchTriageHistory, 10000);
+    // Also set up interval to check for new triages every 8 seconds
+    const interval = setInterval(fetchTriageHistory, 8000);
 
     return () => {
       window.removeEventListener("focus", fetchTriageHistory);
@@ -31,7 +37,7 @@ const TriageHistory = ({ onSelectTriage }) => {
       const data = await response.json();
 
       if (response.ok) {
-        setTriageHistory(data.triageHistory);
+        setTriageHistory(data.triageHistory || []);
       } else {
         console.error("Error fetching triage history:", data.message);
       }
@@ -39,6 +45,28 @@ const TriageHistory = ({ onSelectTriage }) => {
       console.error("Error:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDeleteSession = async (e, sessionId) => {
+    e.stopPropagation();
+    if (!window.confirm("Are you sure you want to delete this triage conversation?")) return;
+
+    try {
+      const response = await fetch(`/api/triage/history/${sessionId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        setTriageHistory((prev) => prev.filter((item) => (item._id || item.id) !== sessionId));
+        if (onDeleteTriage) onDeleteTriage(sessionId);
+      } else {
+        const data = await response.json();
+        alert(data.message || "Failed to delete triage session");
+      }
+    } catch (error) {
+      console.error("Error deleting session:", error);
     }
   };
 
@@ -60,6 +88,7 @@ const TriageHistory = ({ onSelectTriage }) => {
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return "";
     const date = new Date(dateString);
     const today = new Date();
     const yesterday = new Date(today);
@@ -106,67 +135,88 @@ const TriageHistory = ({ onSelectTriage }) => {
         </div>
       ) : (
         <div className={styles.historyList}>
-          {triageHistory.map((triage) => (
-            <div
-              key={triage._id}
-              className={`${styles.historyItem} ${selectedTriageId === triage._id ? styles.active : ""}`}
-              onClick={() => {
-                setSelectedTriageId(triage._id);
-                onSelectTriage && onSelectTriage(triage._id);
-              }}
-            >
-              <div className={styles.itemHeader}>
-                <div
-                  className={styles.urgencyBadge}
-                  style={{
-                    backgroundColor: getUrgencyColor(triage.urgencyScore),
-                  }}
-                >
-                  {triage.urgencyScore}
+          {triageHistory.map((triage) => {
+            const sessionId = triage._id || triage.id;
+            const isSelected = selectedTriageId === sessionId;
+
+            return (
+              <div
+                key={sessionId}
+                className={`${styles.historyItem} ${isSelected ? styles.active : ""}`}
+                onClick={() => {
+                  setSelectedTriageId(sessionId);
+                  onSelectTriage && onSelectTriage(sessionId);
+                }}
+              >
+                <div className={styles.itemHeader}>
+                  <div
+                    className={styles.urgencyBadge}
+                    style={{
+                      backgroundColor: getUrgencyColor(triage.urgencyScore || 0),
+                    }}
+                  >
+                    {triage.urgencyScore || 0}
+                  </div>
+                  <div className={styles.itemTitle}>
+                    <h4>{triage.summaryTitle || "Triage Session"}</h4>
+                    <small className={styles.date}>
+                      {formatDate(triage.createdAt)}
+                    </small>
+                  </div>
+                  <button
+                    className={styles.deleteBtn}
+                    onClick={(e) => handleDeleteSession(e, sessionId)}
+                    title="Delete Conversation"
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "#94a3b8",
+                      cursor: "pointer",
+                      padding: "4px",
+                      marginLeft: "auto",
+                    }}
+                  >
+                    ✕
+                  </button>
                 </div>
-                <div className={styles.itemTitle}>
-                  <h4>{triage.summaryTitle || "Triage Assessment"}</h4>
-                  <small className={styles.date}>
-                    {formatDate(triage.createdAt)}
+
+                <div className={styles.itemBody}>
+                  <p className={styles.description}>
+                    {triage.summaryDescription
+                      ? triage.summaryDescription.substring(0, 100) + "..."
+                      : "Triage conversation stored"}
+                  </p>
+
+                  {triage.recommendedSpecialty && (
+                    <div className={styles.specialty}>
+                      <small>Specialty: {triage.recommendedSpecialty}</small>
+                    </div>
+                  )}
+
+                  {triage.status === "assigned_doctor" && (
+                    <div className={styles.badge}>
+                      <small>✓ Doctor Assigned</small>
+                    </div>
+                  )}
+                </div>
+
+                <div className={styles.itemFooter}>
+                  <small className={styles.urgencyLevel}>
+                    {getUrgencyLabel(triage.urgencyLevel || "low")}
                   </small>
                 </div>
               </div>
-
-              <div className={styles.itemBody}>
-                <p className={styles.description}>
-                  {triage.summaryDescription
-                    ? triage.summaryDescription.substring(0, 100) + "..."
-                    : "Assessment completed"}
-                </p>
-
-                {triage.recommendedSpecialty && (
-                  <div className={styles.specialty}>
-                    <small>Specialty: {triage.recommendedSpecialty}</small>
-                  </div>
-                )}
-
-                {triage.status === "assigned_doctor" && (
-                  <div className={styles.badge}>
-                    <small>✓ Doctor Assigned</small>
-                  </div>
-                )}
-              </div>
-
-              <div className={styles.itemFooter}>
-                <small className={styles.urgencyLevel}>
-                  {getUrgencyLabel(triage.urgencyLevel || "unknown")}
-                </small>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
       <div className={styles.footer}>
-        <small>Tip: Click on any assessment to view full details</small>
+        <small>Tip: Click on any assessment to view full conversation history</small>
       </div>
     </div>
   );
 };
 
 export default TriageHistory;
+

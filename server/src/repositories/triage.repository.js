@@ -1,7 +1,13 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { db } from "../config/neonDb.js";
-import { triageSessions, triageResponses, users, doctorProfiles } from "../database/schema/index.js";
+import {
+  triageSessions,
+  triageResponses,
+  triageMessages,
+  users,
+  doctorProfiles,
+} from "../database/schema/index.js";
 
 export class TriageRepository {
   static async createSession(sessionData) {
@@ -53,7 +59,31 @@ export class TriageRepository {
     return result[0] ?? null;
   }
 
-  static async findHistoryByPatientId(patientId, limitCount = 10) {
+  static async createMessage(messageData) {
+    const result = await db
+      .insert(triageMessages)
+      .values(messageData)
+      .returning();
+    return result[0];
+  }
+
+  static async findMessagesBySessionId(triageSessionId) {
+    return db
+      .select()
+      .from(triageMessages)
+      .where(eq(triageMessages.triageSessionId, triageSessionId))
+      .orderBy(asc(triageMessages.createdAt));
+  }
+
+  static async deleteSession(id, patientId) {
+    const result = await db
+      .delete(triageSessions)
+      .where(and(eq(triageSessions.id, id), eq(triageSessions.patientId, patientId)))
+      .returning();
+    return result[0] ?? null;
+  }
+
+  static async findHistoryByPatientId(patientId, limitCount = 50) {
     const assignedDoctorUser = alias(users, "assigned_doctor_user");
     const assignedDoctorProfile = alias(doctorProfiles, "assigned_doctor_profile");
 
@@ -79,3 +109,4 @@ export class TriageRepository {
       .limit(limitCount);
   }
 }
+
