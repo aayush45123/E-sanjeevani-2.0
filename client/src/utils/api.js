@@ -183,6 +183,25 @@ export const doctorAvailabilityApi = {
   deleteAvailability: (id) => apiClient.delete(`/doctor-availability/${id}`),
 };
 
+// Medical Records & Digital Prescription API
+export const medicalRecordApi = {
+  uploadPatientRecord: (formData) =>
+    apiClient.post("/medical-records/patient-upload", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+
+  getMyRecords: () => apiClient.get("/medical-records/my-records"),
+
+  getRecordById: (id) => apiClient.get(`/medical-records/${id}`),
+
+  getRecordByConsultation: (consultationId) =>
+    apiClient.get(`/medical-records/consultation/${consultationId}`),
+
+  issuePrescription: (data) =>
+    apiClient.post("/medical-records/issue-prescription", data),
+};
+
+
 // Analytics API
 export const analyticsApi = {
   getDoctorAnalytics: () => apiClient.get("/analytics/doctor"),

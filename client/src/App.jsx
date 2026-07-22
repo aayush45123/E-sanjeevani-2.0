@@ -26,6 +26,7 @@ import VideoCall from "./pages/VideoCall/VideoCall";
 import AiTriage from "./components/AiTriage/AiTriage";
 import ConsultedDoctors from "./pages/ConsultedDoctors/ConsultedDoctors";
 import AvailableDoctors from "./pages/AvailableDoctors/AvailableDoctors";
+import ClinicalRecords from "./pages/ClinicalRecords/ClinicalRecords";
 
 /*
 IMPORTANT FIX:
@@ -313,6 +314,15 @@ const App = () => {
           path="/consulted-doctors"
           element={
             isLoggedIn ? <ConsultedDoctors /> : <Navigate to="/auth" replace />
+          }
+        />
+
+        {/* CLINICAL RECORDS */}
+
+        <Route
+          path="/clinical-records"
+          element={
+            isLoggedIn ? <ClinicalRecords /> : <Navigate to="/auth" replace />
           }
         />
 

@@ -17,6 +17,7 @@ export * from "./availabilitySlots.js";
 
 export * from "./medicalRecords.js";
 export * from "./medicalRecordAttachments.js";
+export * from "./prescriptionItems.js";
 
 export * from "./chatMessages.js";
 

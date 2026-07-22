@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import io from "socket.io-client";
-import { consultationApi } from "../../utils/api";
+import { consultationApi, medicalRecordApi } from "../../utils/api";
 import NotificationService from "../../utils/notificationService";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
@@ -24,6 +24,21 @@ export default function VideoCall() {
   const [doctorAiQuery, setDoctorAiQuery] = useState("");
   const [doctorAiReply, setDoctorAiReply] = useState("");
   const [doctorAiLoading, setDoctorAiLoading] = useState(false);
+
+  // Doctor Clinical Workspace State
+  const [clinicalTab, setClinicalTab] = useState("info"); // 'info' | 'prescription' | 'ai'
+  const [rxDiagnosis, setRxDiagnosis] = useState("");
+  const [rxMedicines, setRxMedicines] = useState([
+    { medicineName: "", dosage: "", frequency: "", duration: "", instructions: "" },
+  ]);
+  const [rxAdvice, setRxAdvice] = useState("");
+  const [rxTests, setRxTests] = useState("");
+  const [rxFollowUpRequired, setRxFollowUpRequired] = useState(false);
+  const [rxFollowUpDays, setRxFollowUpDays] = useState(7);
+  const [rxDoctorNotes, setRxDoctorNotes] = useState("");
+  const [rxSubmitting, setRxSubmitting] = useState(false);
+  const [rxSuccess, setRxSuccess] = useState(null); // { pdfUrl, message }
+  const [rxError, setRxError] = useState("");
 
   const userRole = localStorage.getItem("userRole");
 
@@ -584,6 +599,63 @@ Give a professional doctor-level response.
 
   /*
   =============================================
+  PRESCRIPTION PANEL HELPERS
+  =============================================
+  */
+  const addMedicineRow = () => {
+    setRxMedicines((prev) => [
+      ...prev,
+      { medicineName: "", dosage: "", frequency: "", duration: "", instructions: "" },
+    ]);
+  };
+
+  const removeMedicineRow = (idx) => {
+    setRxMedicines((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const updateMedicineRow = (idx, field, value) => {
+    setRxMedicines((prev) =>
+      prev.map((row, i) => (i === idx ? { ...row, [field]: value } : row)),
+    );
+  };
+
+  const handleIssuePrescription = async () => {
+    setRxError("");
+    if (!rxDiagnosis.trim()) {
+      setRxError("Diagnosis is required before issuing a prescription.");
+      return;
+    }
+
+    const validMeds = rxMedicines.filter((m) => m.medicineName.trim());
+
+    setRxSubmitting(true);
+    try {
+      const res = await medicalRecordApi.issuePrescription({
+        consultationId,
+        diagnosis: rxDiagnosis.trim(),
+        prescriptionItems: validMeds,
+        advice: rxAdvice.trim(),
+        recommendedTests: rxTests.trim(),
+        followUpRequired: rxFollowUpRequired,
+        followUpDays: rxFollowUpRequired ? Number(rxFollowUpDays) : null,
+        doctorNotes: rxDoctorNotes.trim(),
+      });
+
+      setRxSuccess({
+        message: res.data.message || "Prescription issued successfully!",
+        pdfUrl: res.data.record?.prescriptionPdfUrl || null,
+      });
+      NotificationService.showToast("✅ Digital prescription issued!", "success");
+    } catch (err) {
+      const msg = err.response?.data?.message || "Failed to issue prescription.";
+      setRxError(msg);
+    } finally {
+      setRxSubmitting(false);
+    }
+  };
+
+  /*
+  =============================================
   CONTROLS
   =============================================
   */
@@ -897,72 +969,368 @@ Give a professional doctor-level response.
               <div className={styles.pipLabel}>You</div>
             </div>
 
-            {/* DOCTOR AI ASSISTANT PANEL */}
+            {/* DOCTOR CLINICAL WORKSPACE PANEL */}
             {userRole === "doctor" && (
-              <div className={styles.doctorAssistantPanel}>
-                <h2>Doctor AI Assistant</h2>
-
-                <div className={styles.patientSummaryCard}>
-                  <h3>Patient Summary</h3>
-                  <p>
-                    <strong>Name:</strong>{" "}
-                    {doctorAssistantData?.patientBasicInfo?.name || "-"}
-                  </p>
-                  <p>
-                    <strong>Age:</strong>{" "}
-                    {doctorAssistantData?.patientProfile?.age || "-"}
-                  </p>
-                  <p>
-                    <strong>Gender:</strong>{" "}
-                    {doctorAssistantData?.patientProfile?.gender || "-"}
-                  </p>
-                  <p>
-                    <strong>Medical History:</strong>{" "}
-                    {doctorAssistantData?.patientProfile?.medicalHistory || "-"}
-                  </p>
-                  <p>
-                    <strong>Current Medications:</strong>{" "}
-                    {doctorAssistantData?.patientProfile?.currentMedications ||
-                      "-"}
-                  </p>
-                  <p>
-                    <strong>Allergies:</strong>{" "}
-                    {doctorAssistantData?.patientProfile?.allergies || "-"}
-                  </p>
-                  <p>
-                    <strong>AI Predicted Disease:</strong>{" "}
-                    {doctorAssistantData?.latestAITriage?.predictedDisease ||
-                      "-"}
-                  </p>
-                  <p>
-                    <strong>Urgency:</strong>{" "}
-                    {doctorAssistantData?.latestAITriage?.urgency || "-"}
-                  </p>
-                  <p>
-                    <strong>Recommended Specialist:</strong>{" "}
-                    {doctorAssistantData?.latestAITriage?.doctorType || "-"}
-                  </p>
+              <div className={styles.clinicalPanel}>
+                {/* Panel Header */}
+                <div className={styles.clinicalPanelHeader}>
+                  <span className={styles.clinicalPanelTitle}>Clinical Workspace</span>
+                  <span className={styles.clinicalPanelPatient}>
+                    {doctorAssistantData?.patientBasicInfo?.name || "Patient"}
+                  </span>
                 </div>
 
-                <div className={styles.doctorAiQueryBox}>
-                  <h3>Ask AI Assistant</h3>
-                  <textarea
-                    value={doctorAiQuery}
-                    onChange={(e) => setDoctorAiQuery(e.target.value)}
-                    placeholder="Ask about diagnosis, medicines, tests, severity..."
-                  />
+                {/* Tab Bar */}
+                <div className={styles.clinicalTabs}>
                   <button
-                    onClick={handleDoctorAiQuery}
-                    disabled={doctorAiLoading}
+                    className={`${styles.clinicalTab} ${clinicalTab === "info" ? styles.clinicalTabActive : ""}`}
+                    onClick={() => setClinicalTab("info")}
                   >
-                    {doctorAiLoading ? "Thinking..." : "Ask AI"}
+                    Patient Info
                   </button>
-                  {doctorAiReply && (
-                    <div className={styles.aiReplyCard}>
-                      <h3>AI Recommendation</h3>
-                      <p>{doctorAiReply}</p>
+                  <button
+                    className={`${styles.clinicalTab} ${clinicalTab === "prescription" ? styles.clinicalTabActive : ""}`}
+                    onClick={() => setClinicalTab("prescription")}
+                  >
+                    Prescription
+                  </button>
+                  <button
+                    className={`${styles.clinicalTab} ${clinicalTab === "ai" ? styles.clinicalTabActive : ""}`}
+                    onClick={() => setClinicalTab("ai")}
+                  >
+                    AI Assistant
+                  </button>
+                </div>
+
+                {/* Tab Content */}
+                <div className={styles.clinicalTabContent}>
+
+                  {/* ── PATIENT INFO TAB ── */}
+                  {clinicalTab === "info" && (
+                    <div className={styles.infoTab}>
+                      <div className={styles.infoSection}>
+                        <div className={styles.infoSectionTitle}>Basic Information</div>
+                        <div className={styles.infoGrid}>
+                          <div className={styles.infoItem}>
+                            <span className={styles.infoLabel}>Name</span>
+                            <span className={styles.infoValue}>{doctorAssistantData?.patientBasicInfo?.name || "—"}</span>
+                          </div>
+                          <div className={styles.infoItem}>
+                            <span className={styles.infoLabel}>Age</span>
+                            <span className={styles.infoValue}>{doctorAssistantData?.patientProfile?.age || "—"}</span>
+                          </div>
+                          <div className={styles.infoItem}>
+                            <span className={styles.infoLabel}>Gender</span>
+                            <span className={styles.infoValue}>{doctorAssistantData?.patientProfile?.gender || "—"}</span>
+                          </div>
+                          <div className={styles.infoItem}>
+                            <span className={styles.infoLabel}>Blood Group</span>
+                            <span className={styles.infoValue}>{doctorAssistantData?.patientProfile?.bloodGroup || "—"}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className={styles.infoSection}>
+                        <div className={styles.infoSectionTitle}>Medical History</div>
+                        <div className={styles.infoChipRow}>
+                          {doctorAssistantData?.patientProfile?.medicalHistory ? (
+                            <span className={styles.infoChip}>{doctorAssistantData.patientProfile.medicalHistory}</span>
+                          ) : <span className={styles.infoNone}>None reported</span>}
+                        </div>
+                      </div>
+
+                      <div className={styles.infoSection}>
+                        <div className={styles.infoSectionTitle}>Allergies</div>
+                        <div className={styles.infoChipRow}>
+                          {doctorAssistantData?.patientProfile?.allergies ? (
+                            <span className={`${styles.infoChip} ${styles.infoChipRed}`}>{doctorAssistantData.patientProfile.allergies}</span>
+                          ) : <span className={styles.infoNone}>None reported</span>}
+                        </div>
+                      </div>
+
+                      <div className={styles.infoSection}>
+                        <div className={styles.infoSectionTitle}>Current Medications</div>
+                        <div className={styles.infoChipRow}>
+                          {doctorAssistantData?.patientProfile?.currentMedications ? (
+                            <span className={styles.infoChip}>{doctorAssistantData.patientProfile.currentMedications}</span>
+                          ) : <span className={styles.infoNone}>None reported</span>}
+                        </div>
+                      </div>
+
+                      {doctorAssistantData?.latestAITriage && (
+                        <div className={styles.infoSection}>
+                          <div className={styles.infoSectionTitle}>AI Triage Result</div>
+                          <div className={styles.aiTriageBadge}>
+                            <div className={styles.triageRow}>
+                              <span className={styles.triageLabel}>Predicted Disease</span>
+                              <span className={styles.triageValue}>{doctorAssistantData.latestAITriage.predictedDisease || "—"}</span>
+                            </div>
+                            <div className={styles.triageRow}>
+                              <span className={styles.triageLabel}>Urgency</span>
+                              <span className={`${styles.triageValue} ${styles.urgencyBadge}`} data-urgency={doctorAssistantData.latestAITriage.urgency?.toLowerCase()}>
+                                {doctorAssistantData.latestAITriage.urgency || "—"}
+                              </span>
+                            </div>
+                            <div className={styles.triageRow}>
+                              <span className={styles.triageLabel}>Recommended Specialist</span>
+                              <span className={styles.triageValue}>{doctorAssistantData.latestAITriage.doctorType || "—"}</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {doctorAssistantData?.consultationDetails && (
+                        <div className={styles.infoSection}>
+                          <div className={styles.infoSectionTitle}>Presenting Complaints</div>
+                          <p className={styles.infoText}>
+                            {doctorAssistantData.consultationDetails.symptoms || doctorAssistantData.consultationDetails.problemDescription || "No complaints recorded."}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   )}
+
+                  {/* ── PRESCRIPTION TAB ── */}
+                  {clinicalTab === "prescription" && (
+                    <div className={styles.rxTab}>
+                      {rxSuccess ? (
+                        <div className={styles.rxSuccessCard}>
+                          <div className={styles.rxSuccessIcon}>✅</div>
+                          <h3>Prescription Issued!</h3>
+                          <p>{rxSuccess.message}</p>
+                          {rxSuccess.pdfUrl && (
+                            <a
+                              href={rxSuccess.pdfUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={styles.rxPdfDownload}
+                            >
+                              📄 Download Prescription PDF
+                            </a>
+                          )}
+                          <button
+                            className={styles.rxNewBtn}
+                            onClick={() => {
+                              setRxSuccess(null);
+                              setRxDiagnosis("");
+                              setRxMedicines([{ medicineName: "", dosage: "", frequency: "", duration: "", instructions: "" }]);
+                              setRxAdvice("");
+                              setRxTests("");
+                              setRxFollowUpRequired(false);
+                              setRxFollowUpDays(7);
+                              setRxDoctorNotes("");
+                            }}
+                          >
+                            Write New Prescription
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          {/* Diagnosis */}
+                          <div className={styles.rxField}>
+                            <label className={styles.rxLabel}>Diagnosis *</label>
+                            <input
+                              className={styles.rxInput}
+                              placeholder="e.g. Viral Upper Respiratory Infection"
+                              value={rxDiagnosis}
+                              onChange={(e) => setRxDiagnosis(e.target.value)}
+                            />
+                          </div>
+
+                          {/* Medicines */}
+                          <div className={styles.rxField}>
+                            <label className={styles.rxLabel}>Medicines (Rx)</label>
+                            <div className={styles.rxMedsList}>
+                              {rxMedicines.map((med, idx) => (
+                                <div key={idx} className={styles.rxMedCard}>
+                                  <div className={styles.rxMedHeader}>
+                                    <span className={styles.rxMedNum}>Medicine {idx + 1}</span>
+                                    {rxMedicines.length > 1 && (
+                                      <button
+                                        className={styles.rxMedRemove}
+                                        onClick={() => removeMedicineRow(idx)}
+                                      >
+                                        ✕
+                                      </button>
+                                    )}
+                                  </div>
+                                  <div className={styles.rxMedRow}>
+                                    <div className={styles.rxMedFieldFull}>
+                                      <label className={styles.rxMiniLabel}>Medicine name</label>
+                                      <input
+                                        className={styles.rxInput}
+                                        placeholder="Paracetamol"
+                                        value={med.medicineName}
+                                        onChange={(e) => updateMedicineRow(idx, "medicineName", e.target.value)}
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className={styles.rxMedRow}>
+                                    <div className={styles.rxMedField}>
+                                      <label className={styles.rxMiniLabel}>Dosage</label>
+                                      <input
+                                        className={styles.rxInput}
+                                        placeholder="500mg"
+                                        value={med.dosage}
+                                        onChange={(e) => updateMedicineRow(idx, "dosage", e.target.value)}
+                                      />
+                                    </div>
+                                    <div className={styles.rxMedField}>
+                                      <label className={styles.rxMiniLabel}>Frequency</label>
+                                      <select
+                                        className={styles.rxSelect}
+                                        value={med.frequency}
+                                        onChange={(e) => updateMedicineRow(idx, "frequency", e.target.value)}
+                                      >
+                                        <option value="">Select</option>
+                                        <option value="Once daily">Once daily</option>
+                                        <option value="Twice daily">Twice daily</option>
+                                        <option value="Three times daily">Three times daily</option>
+                                        <option value="Four times daily">Four times daily</option>
+                                        <option value="Every 8 hours">Every 8 hours</option>
+                                        <option value="Every 12 hours">Every 12 hours</option>
+                                        <option value="At night">At night</option>
+                                        <option value="As needed">As needed</option>
+                                      </select>
+                                    </div>
+                                  </div>
+                                  <div className={styles.rxMedRow}>
+                                    <div className={styles.rxMedField}>
+                                      <label className={styles.rxMiniLabel}>Duration</label>
+                                      <input
+                                        className={styles.rxInput}
+                                        placeholder="5 days"
+                                        value={med.duration}
+                                        onChange={(e) => updateMedicineRow(idx, "duration", e.target.value)}
+                                      />
+                                    </div>
+                                    <div className={styles.rxMedField}>
+                                      <label className={styles.rxMiniLabel}>Instructions</label>
+                                      <input
+                                        className={styles.rxInput}
+                                        placeholder="After food"
+                                        value={med.instructions}
+                                        onChange={(e) => updateMedicineRow(idx, "instructions", e.target.value)}
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                              <button className={styles.rxAddMedBtn} onClick={addMedicineRow}>
+                                + Add Medicine
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Advice */}
+                          <div className={styles.rxField}>
+                            <label className={styles.rxLabel}>Advice</label>
+                            <textarea
+                              className={styles.rxTextarea}
+                              placeholder="Rest, adequate hydration..."
+                              value={rxAdvice}
+                              onChange={(e) => setRxAdvice(e.target.value)}
+                              rows={2}
+                            />
+                          </div>
+
+                          {/* Recommended Tests */}
+                          <div className={styles.rxField}>
+                            <label className={styles.rxLabel}>Recommended Tests</label>
+                            <input
+                              className={styles.rxInput}
+                              placeholder="CBC, LFT, X-Ray..."
+                              value={rxTests}
+                              onChange={(e) => setRxTests(e.target.value)}
+                            />
+                          </div>
+
+                          {/* Follow-Up */}
+                          <div className={styles.rxField}>
+                            <label className={styles.rxLabel}>Follow-Up</label>
+                            <div className={styles.rxFollowRow}>
+                              <label className={styles.rxCheckboxLabel}>
+                                <input
+                                  type="checkbox"
+                                  checked={rxFollowUpRequired}
+                                  onChange={(e) => setRxFollowUpRequired(e.target.checked)}
+                                />
+                                Follow-up required
+                              </label>
+                              {rxFollowUpRequired && (
+                                <div className={styles.rxFollowDays}>
+                                  <span>After</span>
+                                  <input
+                                    type="number"
+                                    min={1}
+                                    max={90}
+                                    value={rxFollowUpDays}
+                                    onChange={(e) => setRxFollowUpDays(e.target.value)}
+                                    className={styles.rxDaysInput}
+                                  />
+                                  <span>days</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Doctor Notes */}
+                          <div className={styles.rxField}>
+                            <label className={styles.rxLabel}>Additional Doctor Notes</label>
+                            <textarea
+                              className={styles.rxTextarea}
+                              placeholder="Internal notes (not shown to patient)..."
+                              value={rxDoctorNotes}
+                              onChange={(e) => setRxDoctorNotes(e.target.value)}
+                              rows={2}
+                            />
+                          </div>
+
+                          {rxError && <div className={styles.rxErrorMsg}>{rxError}</div>}
+
+                          <div className={styles.rxActions}>
+                            <button
+                              className={styles.rxIssueBtn}
+                              onClick={handleIssuePrescription}
+                              disabled={rxSubmitting}
+                            >
+                              {rxSubmitting ? "Generating PDF..." : "📄 Issue Final Prescription"}
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  {/* ── AI ASSISTANT TAB ── */}
+                  {clinicalTab === "ai" && (
+                    <div className={styles.aiTab}>
+                      <div className={styles.aiTabHint}>
+                        Ask the AI assistant for diagnosis suggestions, medicine recommendations, or test guidance based on this patient.
+                      </div>
+                      <textarea
+                        className={styles.aiTextarea}
+                        value={doctorAiQuery}
+                        onChange={(e) => setDoctorAiQuery(e.target.value)}
+                        placeholder="Ask about diagnosis, medicines, tests, severity..."
+                        rows={4}
+                      />
+                      <button
+                        className={styles.aiAskBtn}
+                        onClick={handleDoctorAiQuery}
+                        disabled={doctorAiLoading}
+                      >
+                        {doctorAiLoading ? "Thinking..." : "Ask AI"}
+                      </button>
+                      {doctorAiReply && (
+                        <div className={styles.aiReplyCard}>
+                          <h4>AI Recommendation</h4>
+                          <p>{doctorAiReply}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                 </div>
               </div>
             )}

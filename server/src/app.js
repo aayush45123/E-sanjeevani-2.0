@@ -7,17 +7,23 @@ dotenv.config();
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import path from "path";
+import { fileURLToPath } from "url";
 
 import authRoutes from "./routes/authRoutes.js";
 import consultationRoutes from "./routes/consultationRoutes.js";
 import patientProfileRoutes from "./routes/patientProfileRoutes.js";
 import doctorAvailabilityRoutes from "./routes/doctorAvailabilityRoutes.js";
 import doctorProfileRoutes from "./routes/doctorProfileRoutes.js";
+import medicalRecordRoutes from "./routes/medicalRecordRoutes.js";
 import chatRoutes from "./routes/chatRoutes.js";
 import triageRoutes from "./routes/triageRoutes.js";
 import aiTriageRoutes from "./routes/aiTriageRoutes.js";
 import doctorAssistantRoutes from "./routes/doctorAssistantRoutes.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -47,6 +53,7 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 /*
 ==================================================
@@ -95,6 +102,7 @@ app.use("/api/analytics", analyticsRoutes);
 NEW: DOCTOR PROFILE ROUTES
 */
 
+app.use("/api/medical-records", medicalRecordRoutes);
 app.use("/api/doctor-profile", doctorProfileRoutes);
 
 /*aichat*/
