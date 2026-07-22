@@ -25,6 +25,7 @@ import DoctorAnalytics from "./pages/DoctorDashboard/DoctorAnalytics";
 import VideoCall from "./pages/VideoCall/VideoCall";
 import AiTriage from "./components/AiTriage/AiTriage";
 import ConsultedDoctors from "./pages/ConsultedDoctors/ConsultedDoctors";
+import AvailableDoctors from "./pages/AvailableDoctors/AvailableDoctors";
 
 /*
 IMPORTANT FIX:
@@ -294,6 +295,15 @@ const App = () => {
           path="/consultations"
           element={
             isLoggedIn ? <Consultations /> : <Navigate to="/auth" replace />
+          }
+        />
+
+        {/* AVAILABLE DOCTORS */}
+
+        <Route
+          path="/available-doctors"
+          element={
+            isLoggedIn ? <AvailableDoctors /> : <Navigate to="/auth" replace />
           }
         />
 
