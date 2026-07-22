@@ -116,7 +116,7 @@ export class AuthService {
     };
   }
 
-  static async login(reqBody, res) {
+  static async login(reqBody, res, req) {
     const { email, password } = reqBody;
     if (!email || !password) {
       throw { status: 400, message: "Email and password are required" };
@@ -161,17 +161,31 @@ export class AuthService {
       now.getTime() + refreshTtlDays * 24 * 60 * 60 * 1000,
     );
 
+    const accessCookieName = process.env.ACCESS_COOKIE_NAME || "access_token";
+    const refreshCookieName =
+      process.env.REFRESH_COOKIE_NAME || "refresh_token";
+    const cookieSettings = getCookieSettings();
+
+    // Revoke any existing refresh token in the browser cookie (previous session)
+    const existingRefreshToken = req?.cookies?.[refreshCookieName];
+    if (existingRefreshToken) {
+      try {
+        const existingHash = RefreshTokenRepository.hashToken(existingRefreshToken);
+        await RefreshTokenRepository.revokeByHash(existingHash);
+      } catch (e) {
+        // Ignore — old token may already be revoked or not exist
+      }
+    }
+
+    // Revoke all other stored sessions for this user (clean slate on login)
+    await RefreshTokenRepository.revokeAllForUser(user.id);
+
     await RefreshTokenRepository.create({
       userId: user.id,
       tokenHash: refreshTokenHash,
       rotatedFromHash: null,
       expiresAt,
     });
-
-    const accessCookieName = process.env.ACCESS_COOKIE_NAME || "access_token";
-    const refreshCookieName =
-      process.env.REFRESH_COOKIE_NAME || "refresh_token";
-    const cookieSettings = getCookieSettings();
 
     res.cookie(accessCookieName, accessToken, {
       ...cookieSettings,

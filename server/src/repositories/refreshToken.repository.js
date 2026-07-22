@@ -49,5 +49,21 @@ export class RefreshTokenRepository {
       })
       .where(eq(refreshTokens.tokenHash, tokenHash));
   }
+
+  /**
+   * Revoke ALL active refresh tokens for a user.
+   * Called at login to invalidate any previous session (including sessions
+   * from a different account that shared the same browser cookie).
+   */
+  static async revokeAllForUser(userId) {
+    const now = new Date();
+    await db
+      .update(refreshTokens)
+      .set({
+        isRevoked: true,
+        revokedAt: now,
+      })
+      .where(eq(refreshTokens.userId, userId));
+  }
 }
 

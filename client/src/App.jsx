@@ -74,6 +74,12 @@ const App = () => {
       parsedUser = JSON.parse(userJson);
     } catch (e) {}
 
+    // Synchronously populate cached profile completion hint from localStorage
+    if (parsedUser && typeof parsedUser.profileCompleted === "boolean") {
+      if (role === "doctor") setDoctorProfileCompleted(parsedUser.profileCompleted);
+      if (role === "patient") setPatientProfileCompleted(parsedUser.profileCompleted);
+    }
+
     /*
     DOCTOR PROFILE CHECK
     */
@@ -81,13 +87,17 @@ const App = () => {
       try {
         const response = await doctorProfileApi.checkProfileStatus();
         if (response.data && typeof response.data.profileCompleted === "boolean") {
-          setDoctorProfileCompleted(response.data.profileCompleted);
+          const isComplete = response.data.profileCompleted;
+          setDoctorProfileCompleted(isComplete);
+          if (parsedUser) {
+            parsedUser.profileCompleted = isComplete;
+            localStorage.setItem("user", JSON.stringify(parsedUser));
+          }
         }
       } catch (error) {
         if (error?.response?.status !== 401 && error?.response?.status !== 403) {
           console.error("Doctor profile check failed:", error);
         }
-        // Maintain current state on network/auth errors to prevent false redirect loop
       }
     }
 
@@ -101,13 +111,17 @@ const App = () => {
           response.data?.data &&
           typeof response.data.data.isProfileComplete === "boolean"
         ) {
-          setPatientProfileCompleted(response.data.data.isProfileComplete);
+          const isComplete = response.data.data.isProfileComplete;
+          setPatientProfileCompleted(isComplete);
+          if (parsedUser) {
+            parsedUser.profileCompleted = isComplete;
+            localStorage.setItem("user", JSON.stringify(parsedUser));
+          }
         }
       } catch (error) {
         if (error?.response?.status !== 401 && error?.response?.status !== 403) {
           console.error("Patient profile check failed:", error);
         }
-        // Maintain current state on network/auth errors to prevent false redirect loop
       }
     }
 
@@ -188,10 +202,8 @@ const App = () => {
 
   const getDashboardComponent = () => {
     /*
-    Doctor incomplete — only redirect if we're sure the check succeeded
-    (doctorProfileCompleted starts as `true` so a failed check won't redirect)
+    Doctor incomplete — only redirect if we're sure profile is incomplete
     */
-
     if (userRole === "doctor" && doctorProfileCompleted === false) {
       return <Navigate to="/doctor-profile-setup" replace />;
     }
@@ -199,7 +211,6 @@ const App = () => {
     /*
     Patient incomplete
     */
-
     if (userRole === "patient" && patientProfileCompleted === false) {
       return <Navigate to="/profile-setup" replace />;
     }
@@ -251,7 +262,11 @@ const App = () => {
           path="/profile-setup"
           element={
             isLoggedIn && userRole === "patient" ? (
-              <ProfileCompletion />
+              patientProfileCompleted ? (
+                <Navigate to="/dashboard" replace />
+              ) : (
+                <ProfileCompletion />
+              )
             ) : (
               <Navigate to={isLoggedIn ? "/dashboard" : "/auth"} replace />
             )
@@ -264,9 +279,13 @@ const App = () => {
           path="/doctor-profile-setup"
           element={
             isLoggedIn && userRole === "doctor" ? (
-              <DoctorProfileSetup
-                isProfileIncomplete={!doctorProfileCompleted}
-              />
+              doctorProfileCompleted ? (
+                <Navigate to="/dashboard" replace />
+              ) : (
+                <DoctorProfileSetup
+                  isProfileIncomplete={!doctorProfileCompleted}
+                />
+              )
             ) : (
               <Navigate to={isLoggedIn ? "/dashboard" : "/auth"} replace />
             )

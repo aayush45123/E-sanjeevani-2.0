@@ -84,7 +84,7 @@ export default function DoctorProfileSetup({ isProfileIncomplete = true }) {
             superSpecialization: doc.superSpecialization || "",
             qualification: doc.qualification || "",
             medicalRegistrationNumber: doc.medicalRegistrationNumber || "",
-            experience: doc.experience || "",
+            experience: doc.experience !== undefined && doc.experience !== null ? doc.experience : "",
             hospitalName: doc.hospitalName || "",
             consultationFee: doc.consultationFee || "",
             languagesSpoken: Array.isArray(doc.languagesSpoken)
@@ -109,10 +109,13 @@ export default function DoctorProfileSetup({ isProfileIncomplete = true }) {
           });
 
           const isComplete =
-            !!doc.phone &&
-            !!doc.specialization &&
-            !!doc.qualification &&
-            !!doc.experience;
+            doc.profileCompleted === true ||
+            (!!doc.phone &&
+              !!doc.specialization &&
+              !!doc.qualification &&
+              doc.experience !== "" &&
+              doc.experience !== undefined &&
+              doc.experience !== null);
 
           setIsProfileComplete(isComplete);
           setIsEditMode(!isComplete);

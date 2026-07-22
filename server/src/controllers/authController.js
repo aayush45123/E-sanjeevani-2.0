@@ -20,7 +20,7 @@ export const register = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
-    const result = await AuthService.login(req.body, res);
+    const result = await AuthService.login(req.body, res, req);
     return res.status(200).json({
       success: true,
       message: "Login successful",

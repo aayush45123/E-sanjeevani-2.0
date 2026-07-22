@@ -150,7 +150,8 @@ export class ConsultationService {
   }
 
   static async createConsultation(userId, userRole, requestBody) {
-    if (userRole !== "patient") {
+    const normalizedRole = String(userRole || "").trim().toLowerCase();
+    if (normalizedRole !== "patient") {
       throw { status: 403, message: "Only patients can book consultations" };
     }
 

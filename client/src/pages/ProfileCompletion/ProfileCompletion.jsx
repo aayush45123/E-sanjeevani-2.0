@@ -72,6 +72,10 @@ const ProfileCompletion = () => {
           setIsEditMode(true); // NEW — put a new user straight into edit mode
         }
         setIsProfileComplete(complete);
+        if (complete || profile?.isProfileComplete) {
+          navigate("/dashboard", { replace: true });
+          return;
+        }
       } catch (error) {
         console.error("Profile fetch failed:", error);
       } finally {
