@@ -5,12 +5,8 @@ import { UserRepository } from "../repositories/user.repository.js";
 import { AvailabilityRepository } from "../repositories/availability.repository.js";
 import { DoctorProfileRepository } from "../repositories/doctorProfile.repository.js";
 import { ConsultationRepository } from "../repositories/consultation.repository.js";
-import {
-  sendAppointmentEmail,
-} from "../emails/sendAppointmentEmail.js";
-import {
-  sendMeetingWaitingEmail,
-} from "../emails/sendMeetingWaitingEmail.js";
+import { sendAppointmentEmail } from "../emails/sendAppointmentEmail.js";
+import { sendMeetingWaitingEmail } from "../emails/sendMeetingWaitingEmail.js";
 import {
   normalizeDate,
   getDateString,
@@ -23,59 +19,87 @@ import {
 } from "../helpers/responseFormatter.helper.js";
 import { io } from "../server.js";
 
-const getOrCreateAvailability = async (database, doctorId, availableDate) => {
-  let availability = await AvailabilityRepository.findActiveAvailabilityByDate(doctorId, availableDate);
-  if (!availability) {
-    // Generate fallback slots if no exact availability exists
-    const profile = await DoctorProfileRepository.findRawProfileByUserId(doctorId);
-    if (!profile || !Array.isArray(profile.workingDays)) {
-      return null;
-    }
-    const requestedDay = new Date(`${availableDate}T12:00:00`).toLocaleDateString("en-US", {
-      weekday: "long",
-    });
-    if (!profile.workingDays.includes(requestedDay)) {
-      return null;
-    }
-    const buildSlots = (startTime, endTime) => {
-      if (!startTime || !endTime) return [];
-      const [startHour, startMinute] = startTime.split(":").map(Number);
-      const [endHour, endMinute] = endTime.split(":").map(Number);
-      const start = startHour * 60 + startMinute;
-      const end = endHour * 60 + endMinute;
-      if (Number.isNaN(start) || Number.isNaN(end) || start >= end) return [];
-      const slots = [];
-      const formatMinutes = (totalMinutes) => {
-        const hour = Math.floor(totalMinutes / 60);
-        const minute = totalMinutes % 60;
-        return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
-      };
-      for (let minute = start; minute + 30 <= end; minute += 30) {
-        slots.push({
-          startTime: formatMinutes(minute),
-          endTime: formatMinutes(minute + 30),
-        });
-      }
-      return slots;
-    };
-    const generatedSlots = buildSlots(profile.startTime, profile.endTime);
-    if (generatedSlots.length === 0) {
-      return null;
-    }
+// Shared slot-builder used by getDoctorAvailableSlots and createConsultation.
+// (Previously duplicated inline in three places, and a fourth broken/unused
+// copy — getOrCreateAvailability — referenced an undefined `doctorAvailabilities`
+// import. Removed that dead function and centralized this instead.)
+const buildSlots = (startTime, endTime) => {
+  if (!startTime || !endTime) return [];
+  const [startHour, startMinute] = startTime.split(":").map(Number);
+  const [endHour, endMinute] = endTime.split(":").map(Number);
+  const start = startHour * 60 + startMinute;
+  const end = endHour * 60 + endMinute;
+  if (Number.isNaN(start) || Number.isNaN(end) || start >= end) return [];
 
-    const availabilityRows = await database
-      .insert(AvailabilityRepository.createAvailability) // Wait, we can insert directly to table
-      .select() // Wait, let's use AvailabilityRepository
-      .from(doctorAvailabilities) // Let's import the raw tables or write via Repository
-      .limit(1);
-    // Actually, we can use AvailabilityRepository methods:
+  const formatMinutes = (totalMinutes) => {
+    const hour = Math.floor(totalMinutes / 60);
+    const minute = totalMinutes % 60;
+    return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+  };
+
+  const slots = [];
+  for (let minute = start; minute + 30 <= end; minute += 30) {
+    slots.push({
+      startTime: formatMinutes(minute),
+      endTime: formatMinutes(minute + 30),
+    });
   }
+  return slots;
+};
+
+// Ensures an availability record + slots exist for a doctor/date, generating
+// fallback slots from the doctor's working hours if none exist yet.
+const ensureAvailability = async (doctorId, availableDate) => {
+  let availability = await AvailabilityRepository.findActiveAvailabilityByDate(
+    doctorId,
+    availableDate,
+  );
+  if (availability) return availability;
+
+  const profile =
+    await DoctorProfileRepository.findRawProfileByUserId(doctorId);
+  if (!profile || !Array.isArray(profile.workingDays)) {
+    return null;
+  }
+
+  const requestedDay = new Date(`${availableDate}T12:00:00`).toLocaleDateString(
+    "en-US",
+    { weekday: "long" },
+  );
+  if (!profile.workingDays.includes(requestedDay)) {
+    return null;
+  }
+
+  const generatedSlots = buildSlots(profile.startTime, profile.endTime);
+  if (generatedSlots.length === 0) {
+    return null;
+  }
+
+  availability = await AvailabilityRepository.createAvailability(db, {
+    doctorId,
+    availableDate,
+    isActive: true,
+  });
+
+  await AvailabilityRepository.insertSlots(
+    db,
+    generatedSlots.map((slot) => ({
+      availabilityId: availability.id,
+      startTime: slot.startTime,
+      endTime: slot.endTime,
+      isBooked: false,
+    })),
+  );
+
   return availability;
 };
 
 export class ConsultationService {
   static async getAvailableDoctors({ specialization, limit, page }) {
-    const parsedLimit = Math.min(Math.max(Number.parseInt(limit, 10) || 50, 1), 100);
+    const parsedLimit = Math.min(
+      Math.max(Number.parseInt(limit, 10) || 50, 1),
+      100,
+    );
     const parsedPage = Math.max(Number.parseInt(page, 10) || 1, 1);
     const offset = (parsedPage - 1) * parsedLimit;
 
@@ -85,9 +109,13 @@ export class ConsultationService {
       offset,
     });
 
-    const total = await DoctorProfileRepository.countAvailableDoctors({ specialization });
+    const total = await DoctorProfileRepository.countAvailableDoctors({
+      specialization,
+    });
 
-    const doctors = rows.map(({ user, profile }) => formatDoctor(user, profile));
+    const doctors = rows.map(({ user, profile }) =>
+      formatDoctor(user, profile),
+    );
 
     return {
       doctors,
@@ -110,63 +138,14 @@ export class ConsultationService {
       throw { status: 404, message: "Doctor not found" };
     }
 
-    let availability = await AvailabilityRepository.findActiveAvailabilityByDate(doctorId, availableDate);
-    if (!availability) {
-      // Try fallback creation
-      const profile = await DoctorProfileRepository.findRawProfileByUserId(doctorId);
-      if (profile && Array.isArray(profile.workingDays)) {
-        const requestedDay = new Date(`${availableDate}T12:00:00`).toLocaleDateString("en-US", {
-          weekday: "long",
-        });
-        if (profile.workingDays.includes(requestedDay)) {
-          // Create fallback availability
-          const buildSlots = (startTime, endTime) => {
-            if (!startTime || !endTime) return [];
-            const [startHour, startMinute] = startTime.split(":").map(Number);
-            const [endHour, endMinute] = endTime.split(":").map(Number);
-            const start = startHour * 60 + startMinute;
-            const end = endHour * 60 + endMinute;
-            if (Number.isNaN(start) || Number.isNaN(end) || start >= end) return [];
-            const slots = [];
-            const formatMinutes = (totalMinutes) => {
-              const hour = Math.floor(totalMinutes / 60);
-              const minute = totalMinutes % 60;
-              return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
-            };
-            for (let minute = start; minute + 30 <= end; minute += 30) {
-              slots.push({
-                startTime: formatMinutes(minute),
-                endTime: formatMinutes(minute + 30),
-              });
-            }
-            return slots;
-          };
-          const generatedSlots = buildSlots(profile.startTime, profile.endTime);
-          if (generatedSlots.length > 0) {
-            availability = await AvailabilityRepository.createAvailability(db, {
-              doctorId,
-              availableDate,
-              isActive: true,
-            });
-            await AvailabilityRepository.insertSlots(
-              db,
-              generatedSlots.map((slot) => ({
-                availabilityId: availability.id,
-                startTime: slot.startTime,
-                endTime: slot.endTime,
-                isBooked: false,
-              })),
-            );
-          }
-        }
-      }
-    }
-
+    const availability = await ensureAvailability(doctorId, availableDate);
     if (!availability) {
       return [];
     }
 
-    const slots = await AvailabilityRepository.findActiveSlotsForAvailability(availability.id);
+    const slots = await AvailabilityRepository.findActiveSlotsForAvailability(
+      availability.id,
+    );
     return slots.map(formatSlot);
   }
 
@@ -217,71 +196,34 @@ export class ConsultationService {
       throw { status: 404, message: "Doctor not found" };
     }
 
-    let availability = await AvailabilityRepository.findActiveAvailabilityByDate(doctorId, availableDate);
+    const availability = await ensureAvailability(doctorId, availableDate);
     if (!availability) {
-      // Fallback create
-      const profile = await DoctorProfileRepository.findRawProfileByUserId(doctorId);
-      if (profile && Array.isArray(profile.workingDays)) {
-        const requestedDay = new Date(`${availableDate}T12:00:00`).toLocaleDateString("en-US", {
-          weekday: "long",
-        });
-        if (profile.workingDays.includes(requestedDay)) {
-          const buildSlots = (startTime, endTime) => {
-            if (!startTime || !endTime) return [];
-            const [startHour, startMinute] = startTime.split(":").map(Number);
-            const [endHour, endMinute] = endTime.split(":").map(Number);
-            const start = startHour * 60 + startMinute;
-            const end = endHour * 60 + endMinute;
-            if (Number.isNaN(start) || Number.isNaN(end) || start >= end) return [];
-            const slots = [];
-            const formatMinutes = (totalMinutes) => {
-              const hour = Math.floor(totalMinutes / 60);
-              const minute = totalMinutes % 60;
-              return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
-            };
-            for (let minute = start; minute + 30 <= end; minute += 30) {
-              slots.push({
-                startTime: formatMinutes(minute),
-                endTime: formatMinutes(minute + 30),
-              });
-            }
-            return slots;
-          };
-          const generatedSlots = buildSlots(profile.startTime, profile.endTime);
-          if (generatedSlots.length > 0) {
-            availability = await AvailabilityRepository.createAvailability(db, {
-              doctorId,
-              availableDate,
-              isActive: true,
-            });
-            await AvailabilityRepository.insertSlots(
-              db,
-              generatedSlots.map((slot) => ({
-                availabilityId: availability.id,
-                startTime: slot.startTime,
-                endTime: slot.endTime,
-                isBooked: false,
-              })),
-            );
-          }
-        }
-      }
-    }
-
-    if (!availability) {
-      throw { status: 400, message: "Doctor is not available on the selected date" };
+      throw {
+        status: 400,
+        message: "Doctor is not available on the selected date",
+      };
     }
 
     const normStartTime = normalizeTime(startTime);
     const normEndTime = normalizeTime(endTime);
 
     if (!normStartTime || !normEndTime) {
-      throw { status: 400, message: "Invalid startTime or endTime format. Use HH:MM" };
+      throw {
+        status: 400,
+        message: "Invalid startTime or endTime format. Use HH:MM",
+      };
     }
 
-    const slot = await AvailabilityRepository.findSlotForBooking(availability.id, normStartTime, normEndTime);
+    const slot = await AvailabilityRepository.findSlotForBooking(
+      availability.id,
+      normStartTime,
+      normEndTime,
+    );
     if (!slot) {
-      throw { status: 404, message: "Selected slot does not exist for this date" };
+      throw {
+        status: 404,
+        message: "Selected slot does not exist for this date",
+      };
     }
 
     if (slot.isBooked) {
@@ -320,7 +262,11 @@ export class ConsultationService {
         roomId: crypto.randomUUID(),
       });
 
-      await AvailabilityRepository.updateSlotConsultationId(tx, claimedSlot.id, consultation.id);
+      await AvailabilityRepository.updateSlotConsultationId(
+        tx,
+        claimedSlot.id,
+        consultation.id,
+      );
       return consultation;
     });
 
@@ -335,7 +281,10 @@ export class ConsultationService {
         endTime,
         consultationType,
       }).catch((emailError) =>
-        console.error("Appointment email failed (non-critical):", emailError.message),
+        console.error(
+          "Appointment email failed (non-critical):",
+          emailError.message,
+        ),
       );
     }
 
@@ -343,7 +292,11 @@ export class ConsultationService {
   }
 
   static async getDoctorConsultations(userId, userRole) {
-    if (String(userRole || "").trim().toLowerCase() !== "doctor") {
+    if (
+      String(userRole || "")
+        .trim()
+        .toLowerCase() !== "doctor"
+    ) {
       return [];
     }
 
@@ -354,7 +307,11 @@ export class ConsultationService {
   }
 
   static async getPatientConsultations(userId, userRole) {
-    if (String(userRole || "").trim().toLowerCase() !== "patient") {
+    if (
+      String(userRole || "")
+        .trim()
+        .toLowerCase() !== "patient"
+    ) {
       return [];
     }
 
@@ -377,7 +334,10 @@ export class ConsultationService {
       lng < -180 ||
       lng > 180
     ) {
-      throw { status: 400, message: "Valid latitude and longitude are required" };
+      throw {
+        status: 400,
+        message: "Valid latitude and longitude are required",
+      };
     }
 
     const distanceExpression = sql`
@@ -429,12 +389,18 @@ export class ConsultationService {
     }));
   }
 
-  static async updateConsultationStatus(userId, userRole, consultationId, status) {
+  static async updateConsultationStatus(
+    userId,
+    userRole,
+    consultationId,
+    status,
+  ) {
     if (!status) {
       throw { status: 400, message: "Status is required" };
     }
 
-    const existingConsultation = await ConsultationRepository.findById(consultationId);
+    const existingConsultation =
+      await ConsultationRepository.findById(consultationId);
     if (!existingConsultation) {
       throw { status: 404, message: "Consultation not found" };
     }
@@ -460,11 +426,18 @@ export class ConsultationService {
     };
 
     if (!canUpdateStatus(existingConsultation, userRole, status)) {
-      throw { status: 403, message: "You are not authorized to perform this status transition" };
+      throw {
+        status: 403,
+        message: "You are not authorized to perform this status transition",
+      };
     }
 
     const updatedConsultation = await db.transaction(async (tx) => {
-      const lockedConsultation = await ConsultationRepository.lockConsultationForUpdate(tx, consultationId);
+      const lockedConsultation =
+        await ConsultationRepository.lockConsultationForUpdate(
+          tx,
+          consultationId,
+        );
       if (!lockedConsultation) {
         throw { status: 404, message: "Consultation not found" };
       }
@@ -477,13 +450,23 @@ export class ConsultationService {
       };
 
       if (!canUpdateStatus(lockedNormalized, userRole, status)) {
-        throw { status: 409, message: "Consultation status changed or transition is not allowed" };
+        throw {
+          status: 409,
+          message: "Consultation status changed or transition is not allowed",
+        };
       }
 
-      const consultation = await ConsultationRepository.updateStatus(tx, consultationId, status);
+      const consultation = await ConsultationRepository.updateStatus(
+        tx,
+        consultationId,
+        status,
+      );
 
       if (status === "cancelled") {
-        await AvailabilityRepository.releaseSlotsForCancelledConsultation(tx, consultationId);
+        await AvailabilityRepository.releaseSlotsForCancelledConsultation(
+          tx,
+          consultationId,
+        );
       }
 
       return consultation;
@@ -492,9 +475,17 @@ export class ConsultationService {
     return formatConsultation(updatedConsultation);
   }
 
-  static async addDoctorNotes(userId, userRole, consultationId, { doctorNotes, prescription, followUpRequired }) {
+  static async addDoctorNotes(
+    userId,
+    userRole,
+    consultationId,
+    { doctorNotes, prescription, followUpRequired },
+  ) {
     if (userRole !== "doctor") {
-      throw { status: 403, message: "Only doctors can update consultation notes" };
+      throw {
+        status: 403,
+        message: "Only doctors can update consultation notes",
+      };
     }
 
     const consultation = await ConsultationRepository.findById(consultationId);
@@ -503,7 +494,10 @@ export class ConsultationService {
     }
 
     if (consultation.doctorId !== userId) {
-      throw { status: 403, message: "You can update notes only for consultations assigned to you" };
+      throw {
+        status: 403,
+        message: "You can update notes only for consultations assigned to you",
+      };
     }
 
     const updates = {};
@@ -514,14 +508,19 @@ export class ConsultationService {
       updates.prescription = String(prescription);
     }
     if (followUpRequired !== undefined) {
-      updates.followUpRequired = followUpRequired === true || followUpRequired === "true";
+      updates.followUpRequired =
+        followUpRequired === true || followUpRequired === "true";
     }
 
     if (Object.keys(updates).length === 0) {
       throw { status: 400, message: "No consultation note fields provided" };
     }
 
-    const updatedConsultation = await ConsultationRepository.updateNotes(consultationId, userId, updates);
+    const updatedConsultation = await ConsultationRepository.updateNotes(
+      consultationId,
+      userId,
+      updates,
+    );
     if (!updatedConsultation) {
       throw { status: 409, message: "Consultation could not be updated" };
     }
@@ -530,8 +529,18 @@ export class ConsultationService {
   }
 
   static async markUserJoined(userId, userRole, consultationId) {
-    const row = await ConsultationRepository.findPatientDetailsForConsultation(consultationId);
-    if (!row) {
+    const result =
+      await ConsultationRepository.findPatientDetailsForConsultation(
+        consultationId,
+      );
+
+    // Defensive: some Drizzle join helpers return an array of rows rather
+    // than a single { consultation, patient } object. Normalize either shape
+    // here so `!row` actually catches a "not found" case, instead of `row`
+    // being a truthy empty array and blowing up on `row.consultation` below.
+    const row = Array.isArray(result) ? result[0] : result;
+
+    if (!row || !row.consultation) {
       throw { status: 404, message: "Consultation not found" };
     }
 
@@ -557,7 +566,10 @@ export class ConsultationService {
       updates.doctorJoined = true;
     }
 
-    const updatedConsultation = await ConsultationRepository.updateJoinStatus(consultationId, updates);
+    const updatedConsultation = await ConsultationRepository.updateJoinStatus(
+      consultationId,
+      updates,
+    );
 
     if (io) {
       io.to(consultationId).emit("participant-joined", {
@@ -582,11 +594,17 @@ export class ConsultationService {
             consultationDate: consultation.consultationDate,
             startTime: consultation.startTime,
           }).catch((emailError) =>
-            console.error("Meeting waiting email failed (non-critical):", emailError.message),
+            console.error(
+              "Meeting waiting email failed (non-critical):",
+              emailError.message,
+            ),
           );
         }
       } catch (emailError) {
-        console.error("Meeting waiting email failed (non-critical):", emailError.message);
+        console.error(
+          "Meeting waiting email failed (non-critical):",
+          emailError.message,
+        );
       }
     }
 

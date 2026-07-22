@@ -26,7 +26,9 @@ export const createConsultationSchema = z.object({
     doctorId: z.string().uuid("Invalid doctor ID format"),
     consultationType: z.enum(["video", "audio", "chat"]),
     symptoms: z.string().min(1, "Symptoms are required"),
-    currentProblem: z.string().min(1, "Current problem description is required"),
+    currentProblem: z
+      .string()
+      .min(1, "Current problem description is required"),
     currentMedication: z.string().optional(),
     medicalHistory: z.string().optional(),
     allergies: z.string().optional(),
@@ -41,7 +43,23 @@ export const updateConsultationStatusSchema = z.object({
     consultationId: z.string().uuid("Invalid consultation ID format"),
   }),
   body: z.object({
-    status: z.enum(["scheduled", "confirmed", "in_progress", "completed", "cancelled"]),
+    // Normalize casing/hyphenation before validating against the enum, so
+    // "In Progress" / "in-progress" / trailing spaces from the client don't
+    // trip the ZodError you were seeing — while still rejecting truly bogus values.
+    status: z
+      .string({ required_error: "Status is required" })
+      .trim()
+      .toLowerCase()
+      .transform((val) => val.replace(/[\s-]+/g, "_"))
+      .pipe(
+        z.enum([
+          "scheduled",
+          "confirmed",
+          "in_progress",
+          "completed",
+          "cancelled",
+        ]),
+      ),
   }),
 });
 
