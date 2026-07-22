@@ -7,7 +7,14 @@ import { users } from "../database/schema/index.js";
 const authMiddleware = async (req, res, next) => {
   try {
     const accessCookieName = process.env.ACCESS_COOKIE_NAME || "access_token";
-    const token = req.cookies?.[accessCookieName];
+    let token = req.cookies?.[accessCookieName];
+
+    if (!token && req.headers.authorization) {
+      const parts = req.headers.authorization.split(" ");
+      if (parts.length === 2 && parts[0] === "Bearer") {
+        token = parts[1];
+      }
+    }
 
     if (!token) {
       return res.status(401).json({

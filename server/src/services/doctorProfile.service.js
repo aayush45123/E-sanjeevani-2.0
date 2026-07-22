@@ -137,7 +137,7 @@ export class DoctorProfileService {
 
   static async getDoctorProfile(userId, userRole) {
     if (!isDoctorRole(userRole)) {
-      throw { status: 403, message: "Only doctors can access doctor profiles" };
+      return null;
     }
 
     const row = await DoctorProfileRepository.findByUserId(userId);

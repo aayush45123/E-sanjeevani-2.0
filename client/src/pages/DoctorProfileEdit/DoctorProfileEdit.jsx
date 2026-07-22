@@ -264,18 +264,27 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
 
   useEffect(() => {
     (async () => {
+      const role = localStorage.getItem("userRole");
+      if (role !== "doctor") {
+        setFetchLoading(false);
+        return;
+      }
+
       try {
         const res = await doctorProfileApi.getProfile();
-        if (res.data.success) {
+        if (res.data.success && res.data.profile) {
           setProfileData({
             ...res.data.profile,
+            dateOfBirth: res.data.profile.dateOfBirth ? String(res.data.profile.dateOfBirth).slice(0, 10) : "",
             languagesSpoken: Array.isArray(res.data.profile.languagesSpoken)
               ? res.data.profile.languagesSpoken.join(", ")
               : res.data.profile.languagesSpoken,
           });
         }
       } catch (err) {
-        console.error("Failed to fetch profile:", err);
+        if (err?.response?.status !== 403 && err?.response?.status !== 404) {
+          console.error("Failed to fetch profile:", err);
+        }
       } finally {
         setFetchLoading(false);
       }
@@ -283,6 +292,9 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
   }, []);
 
   const fetchAvailability = useCallback(async () => {
+    const role = localStorage.getItem("userRole");
+    if (role !== "doctor") return;
+
     try {
       const res = await doctorAvailabilityApi.getMySlots();
       setExistingAvailability(
@@ -291,13 +303,10 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
           : [],
       );
     } catch (err) {
-      console.error("Failed to fetch availability:", err);
+      if (err?.response?.status !== 403 && err?.response?.status !== 404) {
+        console.error("Failed to fetch availability:", err);
+      }
       setExistingAvailability([]);
-      // Display error to user instead of silently failing
-      const errorMessage =
-        err?.response?.data?.message ||
-        "Failed to load availability. Please complete your profile first.";
-      showError(errorMessage);
     }
   }, []);
 

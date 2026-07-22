@@ -65,6 +65,21 @@ const App = () => {
 
       /*
       ================================================
+      SKIP PROFILE RE-CHECK ON SETUP PAGES
+      (avoids false redirect loop if token is mid-refresh)
+      ================================================
+      */
+      const isSetupPage =
+        location.pathname === "/doctor-profile-setup" ||
+        location.pathname === "/profile-setup";
+
+      if (isSetupPage) {
+        setIsChecking(false);
+        return;
+      }
+
+      /*
+      ================================================
       DOCTOR PROFILE CHECK
       ================================================
       */
@@ -72,21 +87,24 @@ const App = () => {
       if (userJson && role === "doctor") {
         try {
           const response = await doctorProfileApi.checkProfileStatus();
-
           setDoctorProfileCompleted(response.data.profileCompleted || false);
         } catch (error) {
-          console.error("Doctor profile check failed:", error);
-
-          setDoctorProfileCompleted(false);
+          if (error?.response?.status === 401 || error?.response?.status === 403) {
+            // Token may have been expired — interceptor will attempt refresh.
+            // Keep current state (default true) so we don't wrongly redirect.
+            // The interceptor retry will re-run the request automatically.
+            // If refresh truly fails, the interceptor redirects to /auth.
+          } else {
+            console.error("Doctor profile check failed:", error);
+            // For non-auth errors, don't penalise the user — keep as true
+            // so they land on the dashboard rather than the setup page.
+          }
         }
       }
 
       /*
       ================================================
       PATIENT PROFILE CHECK
-      FIXED:
-      use /api/patient/profile/status
-      instead of authApi.me()
       ================================================
       */
 
@@ -98,9 +116,10 @@ const App = () => {
             response.data?.data?.isProfileComplete || false,
           );
         } catch (error) {
-          console.error("Patient profile check failed:", error);
-
-          setPatientProfileCompleted(false);
+          if (error?.response?.status !== 401 && error?.response?.status !== 403) {
+            console.error("Patient profile check failed:", error);
+          }
+          // Same treatment: on auth error don't falsely mark incomplete
         }
       }
 
@@ -122,21 +141,30 @@ const App = () => {
       setUserRole(localStorage.getItem("userRole"));
     };
 
-    /*
-    FIXED:
-    refresh patient profile using
-    /api/patient/profile/status
-    */
-
     const handleProfileUpdated = async () => {
-      try {
-        const response = await apiClient.get("/patient/profile/status");
+      const userJson = localStorage.getItem("user");
+      const role = localStorage.getItem("userRole");
 
-        setPatientProfileCompleted(
-          response.data?.data?.isProfileComplete || false,
-        );
-      } catch (error) {
-        console.error("Error refreshing profile status:", error);
+      if (userJson && role === "doctor") {
+        try {
+          const response = await doctorProfileApi.checkProfileStatus();
+          setDoctorProfileCompleted(response.data?.profileCompleted || false);
+        } catch (error) {
+          if (error?.response?.status !== 401 && error?.response?.status !== 403) {
+            console.error("Error refreshing doctor profile status:", error);
+          }
+        }
+      } else if (userJson && role === "patient") {
+        try {
+          const response = await apiClient.get("/patient/profile/status");
+          setPatientProfileCompleted(
+            response.data?.data?.isProfileComplete || false,
+          );
+        } catch (error) {
+          if (error?.response?.status !== 401 && error?.response?.status !== 403) {
+            console.error("Error refreshing patient profile status:", error);
+          }
+        }
       }
     };
 
@@ -195,10 +223,11 @@ const App = () => {
 
   const getDashboardComponent = () => {
     /*
-    Doctor incomplete
+    Doctor incomplete — only redirect if we're sure the check succeeded
+    (doctorProfileCompleted starts as `true` so a failed check won't redirect)
     */
 
-    if (userRole === "doctor" && !doctorProfileCompleted) {
+    if (userRole === "doctor" && doctorProfileCompleted === false) {
       return <Navigate to="/doctor-profile-setup" replace />;
     }
 
@@ -206,7 +235,7 @@ const App = () => {
     Patient incomplete
     */
 
-    if (userRole === "patient" && !patientProfileCompleted) {
+    if (userRole === "patient" && patientProfileCompleted === false) {
       return <Navigate to="/profile-setup" replace />;
     }
 
@@ -256,7 +285,11 @@ const App = () => {
         <Route
           path="/profile-setup"
           element={
-            isLoggedIn ? <ProfileCompletion /> : <Navigate to="/auth" replace />
+            isLoggedIn && userRole === "patient" ? (
+              <ProfileCompletion />
+            ) : (
+              <Navigate to={isLoggedIn ? "/dashboard" : "/auth"} replace />
+            )
           }
         />
 
@@ -265,12 +298,12 @@ const App = () => {
         <Route
           path="/doctor-profile-setup"
           element={
-            isLoggedIn ? (
+            isLoggedIn && userRole === "doctor" ? (
               <DoctorProfileSetup
                 isProfileIncomplete={!doctorProfileCompleted}
               />
             ) : (
-              <Navigate to="/auth" replace />
+              <Navigate to={isLoggedIn ? "/dashboard" : "/auth"} replace />
             )
           }
         />
@@ -280,12 +313,12 @@ const App = () => {
         <Route
           path="/doctor-profile-edit"
           element={
-            isLoggedIn ? (
+            isLoggedIn && userRole === "doctor" ? (
               <DoctorProfileEdit
                 isProfileIncomplete={!doctorProfileCompleted}
               />
             ) : (
-              <Navigate to="/auth" replace />
+              <Navigate to={isLoggedIn ? "/dashboard" : "/auth"} replace />
             )
           }
         />

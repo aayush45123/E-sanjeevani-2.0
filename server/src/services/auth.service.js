@@ -57,6 +57,7 @@ export class AuthService {
       email: normalizedEmail,
       passwordHash,
       role,
+      isVerified: true,
     });
 
     // Send welcome email in background
@@ -271,8 +272,9 @@ export class AuthService {
     const accessCookieName = process.env.ACCESS_COOKIE_NAME || "access_token";
     const refreshCookieNameOut =
       process.env.REFRESH_COOKIE_NAME || "refresh_token";
-    res.clearCookie(accessCookieName);
-    res.clearCookie(refreshCookieNameOut);
+    const cookieSettings = getCookieSettings();
+    res.clearCookie(accessCookieName, cookieSettings);
+    res.clearCookie(refreshCookieNameOut, cookieSettings);
 
     return { ok: true };
   }

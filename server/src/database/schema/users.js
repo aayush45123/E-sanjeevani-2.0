@@ -38,7 +38,7 @@ export const users = pgTable(
       length: 2048,
     }),
 
-    isVerified: boolean("is_verified").default(false).notNull(),
+    isVerified: boolean("is_verified").default(true).notNull(),
 
     isActive: boolean("is_active").default(true).notNull(),
 

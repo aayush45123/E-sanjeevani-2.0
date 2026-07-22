@@ -14,6 +14,7 @@ export default function DoctorProfileSetup({ isProfileIncomplete = true }) {
 
   const [loading, setLoading] = useState(false);
   const [isProfileComplete, setIsProfileComplete] = useState(false);
+  const [profileChecked, setProfileChecked] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [showAvailabilitySection, setShowAvailabilitySection] = useState(false);
   const [availabilityLoading, setAvailabilityLoading] = useState(false);
@@ -66,16 +67,19 @@ export default function DoctorProfileSetup({ isProfileIncomplete = true }) {
 
   useEffect(() => {
     const fetchProfile = async () => {
+      const role = localStorage.getItem("userRole");
+      if (role !== "doctor") return;
+
       try {
         const response = await doctorProfileApi.getProfile();
 
-        if (response?.data?.doctor) {
-          const doc = response.data.doctor;
+        const doc = response?.data?.profile || response?.data?.doctor;
 
+        if (doc) {
           setFormData({
             phone: doc.phone || "",
             gender: doc.gender || "",
-            dateOfBirth: doc.dateOfBirth || "",
+            dateOfBirth: doc.dateOfBirth ? String(doc.dateOfBirth).slice(0, 10) : "",
             specialization: doc.specialization || "",
             superSpecialization: doc.superSpecialization || "",
             qualification: doc.qualification || "",
@@ -115,13 +119,20 @@ export default function DoctorProfileSetup({ isProfileIncomplete = true }) {
 
           if (isComplete) {
             localStorage.setItem("doctorProfileCompleted", "true");
+            // Redirect doctors who already have a complete profile back to dashboard
+            navigate("/dashboard", { replace: true });
+            return;
           }
         } else {
           setIsEditMode(true);
         }
       } catch (error) {
-        console.error("Fetch profile error:", error);
+        if (error?.response?.status !== 403 && error?.response?.status !== 404) {
+          console.error("Fetch profile error:", error);
+        }
         setIsEditMode(true);
+      } finally {
+        setProfileChecked(true);
       }
     };
 
