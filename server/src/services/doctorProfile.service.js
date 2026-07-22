@@ -11,9 +11,11 @@ import {
   validateTimeRange,
 } from "../helpers/dateTime.helper.js";
 
+const isDoctorRole = (role) => String(role || "").trim().toLowerCase() === "doctor";
+
 export class DoctorProfileService {
   static async createOrUpdateDoctorProfile(userId, userRole, requestBody) {
-    if (userRole !== "doctor") {
+    if (!isDoctorRole(userRole)) {
       throw { status: 403, message: "Only doctors can create profile" };
     }
 
@@ -118,7 +120,7 @@ export class DoctorProfileService {
     };
 
     const user = await UserRepository.findById(userId);
-    if (!user || user.role !== "doctor") {
+    if (!user || !isDoctorRole(user.role)) {
       throw { status: 403, message: "Only doctors can create profile" };
     }
 
@@ -134,7 +136,7 @@ export class DoctorProfileService {
   }
 
   static async getDoctorProfile(userId, userRole) {
-    if (userRole !== "doctor") {
+    if (!isDoctorRole(userRole)) {
       throw { status: 403, message: "Only doctors can access doctor profiles" };
     }
 
@@ -147,7 +149,7 @@ export class DoctorProfileService {
   }
 
   static async checkDoctorProfileStatus(userId, userRole) {
-    if (userRole !== "doctor") {
+    if (!isDoctorRole(userRole)) {
       throw { status: 403, message: "Only doctors have doctor profile status" };
     }
 
@@ -186,3 +188,4 @@ export class DoctorProfileService {
     };
   }
 }
+

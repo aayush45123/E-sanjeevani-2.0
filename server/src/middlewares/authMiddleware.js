@@ -17,7 +17,16 @@ const authMiddleware = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.userId || decoded.id || decoded._id;
 
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid token payload",
+      });
+    }
+
+    // Always fetch fresh user identity and current role directly from PostgreSQL
     const result = await db
       .select({
         id: users.id,
@@ -28,7 +37,7 @@ const authMiddleware = async (req, res, next) => {
         isActive: users.isActive,
       })
       .from(users)
-      .where(eq(users.id, decoded.userId))
+      .where(eq(users.id, userId))
       .limit(1);
 
     const user = result[0];
@@ -40,16 +49,8 @@ const authMiddleware = async (req, res, next) => {
       });
     }
 
-    /*
-      Compatibility shape.
+    const normalizedRole = user.role ? String(user.role).trim().toLowerCase() : "patient";
 
-      Existing controllers may use:
-      req.user._id
-      req.user.id
-      req.user.id
-
-      During migration, all three contain the PostgreSQL UUID.
-    */
     req.user = {
       _id: user.id,
       id: user.id,
@@ -57,7 +58,7 @@ const authMiddleware = async (req, res, next) => {
 
       name: user.name,
       email: user.email,
-      role: user.role,
+      role: normalizedRole,
 
       isVerified: user.isVerified,
       isActive: user.isActive,

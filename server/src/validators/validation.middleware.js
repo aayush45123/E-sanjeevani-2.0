@@ -6,10 +6,32 @@ export const validate = (schema) => (req, res, next) => {
       params: req.params,
     });
     
-    // Assign validated and parsed data back to express req
-    if (parsed.body !== undefined) req.body = parsed.body;
-    if (parsed.query !== undefined) req.query = parsed.query;
-    if (parsed.params !== undefined) req.params = parsed.params;
+    // Assign validated data back safely for Express 5 compatibility
+    if (parsed.body !== undefined) {
+      req.body = parsed.body;
+    }
+    
+    if (parsed.query !== undefined) {
+      req.validatedQuery = parsed.query;
+      if (req.query && typeof req.query === "object") {
+        try {
+          Object.assign(req.query, parsed.query);
+        } catch (_) {
+          // Express 5 getter-only property fallback
+        }
+      }
+    }
+    
+    if (parsed.params !== undefined) {
+      req.validatedParams = parsed.params;
+      if (req.params && typeof req.params === "object") {
+        try {
+          Object.assign(req.params, parsed.params);
+        } catch (_) {
+          // Express 5 getter-only property fallback
+        }
+      }
+    }
     
     return next();
   } catch (error) {
