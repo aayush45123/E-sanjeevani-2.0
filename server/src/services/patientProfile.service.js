@@ -35,9 +35,11 @@ const ALLOWED_FIELDS = [
   "pastSurgeries",
 ];
 
+const isPatientRole = (role) => String(role || "").trim().toLowerCase() === "patient";
+
 export class PatientProfileService {
   static async createProfile(userId, userRole, requestBody) {
-    if (userRole !== "patient") {
+    if (!isPatientRole(userRole)) {
       throw { status: 403, message: "Only patients can create a patient profile" };
     }
 
@@ -91,8 +93,11 @@ export class PatientProfileService {
   }
 
   static async getProfile(userId, userRole) {
-    if (userRole !== "patient") {
-      throw { status: 403, message: "Only patients can access a patient profile" };
+    if (!isPatientRole(userRole)) {
+      return {
+        isProfileComplete: false,
+        profile: null,
+      };
     }
 
     const profile = await PatientProfileRepository.findByUserId(userId);
@@ -110,7 +115,7 @@ export class PatientProfileService {
   }
 
   static async updateProfile(userId, userRole, requestBody) {
-    if (userRole !== "patient") {
+    if (!isPatientRole(userRole)) {
       throw { status: 403, message: "Only patients can update a patient profile" };
     }
 
@@ -148,8 +153,10 @@ export class PatientProfileService {
   }
 
   static async getProfileStatus(userId, userRole) {
-    if (userRole !== "patient") {
-      throw { status: 403, message: "Only patients have a patient profile status" };
+    if (!isPatientRole(userRole)) {
+      return {
+        isProfileComplete: false,
+      };
     }
 
     const profile = await PatientProfileRepository.findByUserId(userId);

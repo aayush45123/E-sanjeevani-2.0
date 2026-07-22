@@ -343,8 +343,8 @@ export class ConsultationService {
   }
 
   static async getDoctorConsultations(userId, userRole) {
-    if (userRole !== "doctor") {
-      throw { status: 403, message: "Only doctors can access doctor dashboard consultations" };
+    if (String(userRole || "").trim().toLowerCase() !== "doctor") {
+      return [];
     }
 
     const rows = await ConsultationRepository.findDoctorConsultations(userId);
@@ -354,8 +354,8 @@ export class ConsultationService {
   }
 
   static async getPatientConsultations(userId, userRole) {
-    if (userRole !== "patient") {
-      throw { status: 403, message: "Only patients can access patient consultations" };
+    if (String(userRole || "").trim().toLowerCase() !== "patient") {
+      return [];
     }
 
     const rows = await ConsultationRepository.findPatientConsultations(userId);

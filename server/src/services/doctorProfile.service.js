@@ -142,7 +142,7 @@ export class DoctorProfileService {
 
     const row = await DoctorProfileRepository.findByUserId(userId);
     if (!row) {
-      throw { status: 404, message: "Doctor profile not found" };
+      return null;
     }
 
     return formatDoctorProfile(row.profile, row.user);
@@ -150,7 +150,14 @@ export class DoctorProfileService {
 
   static async checkDoctorProfileStatus(userId, userRole) {
     if (!isDoctorRole(userRole)) {
-      throw { status: 403, message: "Only doctors have doctor profile status" };
+      return {
+        profileCompleted: false,
+        clinicAddressComplete: false,
+        hasClinic: false,
+        missingItems: ["basic_info"],
+        profile: null,
+        completenessPercentage: 0,
+      };
     }
 
     const profile = await DoctorProfileRepository.findRawProfileByUserId(userId);
