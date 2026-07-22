@@ -24,7 +24,7 @@ export const getDoctorAvailableSlotsSchema = z.object({
 export const createConsultationSchema = z.object({
   body: z.object({
     doctorId: z.string().uuid("Invalid doctor ID format"),
-    consultationType: z.enum(["video", "audio", "chat"]),
+    consultationType: z.enum(["video", "call", "chat"]),
     symptoms: z.string().min(1, "Symptoms are required"),
     currentProblem: z
       .string()
@@ -54,10 +54,10 @@ export const updateConsultationStatusSchema = z.object({
       .pipe(
         z.enum([
           "scheduled",
-          "confirmed",
-          "in_progress",
+          "ongoing",
           "completed",
           "cancelled",
+          "missed",
         ]),
       ),
   }),

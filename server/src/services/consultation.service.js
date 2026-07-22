@@ -406,11 +406,11 @@ export class ConsultationService {
     }
 
     const CONSULTATION_STATUS_TRANSITIONS = {
-      scheduled: ["confirmed", "cancelled"],
-      confirmed: ["in_progress", "cancelled"],
-      in_progress: ["completed", "cancelled"],
+      scheduled: ["ongoing", "cancelled"],
+      ongoing: ["completed", "cancelled"],
       completed: [],
       cancelled: [],
+      missed: [],
     };
 
     const canUpdateStatus = (consult, role, nextStatus) => {

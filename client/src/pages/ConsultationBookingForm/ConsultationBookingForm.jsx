@@ -68,6 +68,12 @@ export default function ConsultationBookingForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!formData.startTime || !formData.endTime) {
+      alert("Please select a time slot before confirming the booking.");
+      return;
+    }
+
     setLoading(true);
 
     try {

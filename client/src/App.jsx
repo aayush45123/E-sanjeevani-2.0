@@ -364,10 +364,10 @@ const App = () => {
         <Route
           path="/consultation-booking"
           element={
-            isLoggedIn ? (
+            isLoggedIn && userRole === "patient" ? (
               <ConsultationBookingForm />
             ) : (
-              <Navigate to="/auth" replace />
+              <Navigate to={isLoggedIn ? "/dashboard" : "/auth"} replace />
             )
           }
         />
