@@ -75,7 +75,7 @@ const getOrCreateAvailability = async (database, doctorId, availableDate) => {
 
 export class ConsultationService {
   static async getAvailableDoctors({ specialization, limit, page }) {
-    const parsedLimit = Math.min(Math.max(Number.parseInt(limit, 10) || 10, 1), 100);
+    const parsedLimit = Math.min(Math.max(Number.parseInt(limit, 10) || 50, 1), 100);
     const parsedPage = Math.max(Number.parseInt(page, 10) || 1, 1);
     const offset = (parsedPage - 1) * parsedLimit;
 

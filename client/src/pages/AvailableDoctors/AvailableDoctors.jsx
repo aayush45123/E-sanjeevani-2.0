@@ -29,6 +29,7 @@ export default function AvailableDoctors() {
       setLoading(true);
       const response = await consultationApi.getAvailableDoctors({
         specialization: specialization !== "all" ? specialization : undefined,
+        limit: 50,
       });
       setDoctors(response.data.doctors || []);
     } catch (error) {
