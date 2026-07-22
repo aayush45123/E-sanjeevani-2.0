@@ -1,46 +1,15 @@
 import React, { useState, useEffect } from "react";
-import {
-  Search,
-  Stethoscope,
-  MapPin,
-  Clock,
-  Calendar,
-  Award,
-  DollarSign,
-  Star,
-  CheckCircle,
-  Video,
-  Phone,
-  Building,
-  Navigation,
-  Sparkles,
-  ArrowRight,
-  Filter,
-  RefreshCw,
-} from "lucide-react";
+import { Search, MapPin, Video, Phone, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import { consultationApi } from "../../utils/api";
 import styles from "./AvailableDoctors.module.css";
 
-const POPULAR_SPECIALTIES = [
-  "All",
-  "General Physician",
-  "Cardiologist",
-  "Dermatologist",
-  "Pediatrician",
-  "Gynecologist",
-  "Orthopedic",
-  "Neurologist",
-  "Psychiatrist",
-  "ENT Specialist",
-];
-
 export default function AvailableDoctors() {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSpecialty, setSelectedSpecialty] = useState("All");
+  const [specialization, setSpecialization] = useState("all");
   const [showNearMe, setShowNearMe] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
   const [locationLoading, setLocationLoading] = useState(false);
@@ -53,17 +22,17 @@ export default function AvailableDoctors() {
     } else {
       fetchDoctors();
     }
-  }, [selectedSpecialty, showNearMe, userLocation]);
+  }, [specialization, showNearMe, userLocation]);
 
   const fetchDoctors = async () => {
     try {
       setLoading(true);
       const response = await consultationApi.getAvailableDoctors({
-        specialization: selectedSpecialty !== "All" ? selectedSpecialty : undefined,
+        specialization: specialization !== "all" ? specialization : undefined,
       });
       setDoctors(response.data.doctors || []);
     } catch (error) {
-      console.error("Failed to fetch available doctors:", error);
+      console.error("Failed to fetch doctors:", error);
     } finally {
       setLoading(false);
     }
@@ -76,7 +45,7 @@ export default function AvailableDoctors() {
         latitude: userLocation.latitude,
         longitude: userLocation.longitude,
         radiusKm: 50,
-        specialization: selectedSpecialty !== "All" ? selectedSpecialty : undefined,
+        specialization: specialization !== "all" ? specialization : undefined,
       });
       setDoctors(response.data.doctors || response.data.data?.doctors || []);
     } catch (error) {
@@ -103,7 +72,7 @@ export default function AvailableDoctors() {
             setLocationLoading(false);
           },
           (error) => {
-            alert("Could not retrieve your location. Showing all doctors.");
+            alert("Could not retrieve your location.");
             setLocationLoading(false);
           }
         );
@@ -115,113 +84,99 @@ export default function AvailableDoctors() {
     }
   };
 
+  // Get unique specializations for filter dropdown
+  const specializationsList = [
+    "all",
+    ...new Set(doctors.map((d) => d.specialization).filter(Boolean)),
+  ];
+
   const filteredDoctors = doctors.filter((doc) => {
     const name = doc.name || "";
     const spec = doc.specialization || "";
-    const hospital = doc.hospitalName || doc.clinicAddress?.city || "";
     const q = searchQuery.toLowerCase();
-
-    return (
-      name.toLowerCase().includes(q) ||
-      spec.toLowerCase().includes(q) ||
-      hospital.toLowerCase().includes(q)
-    );
+    return name.toLowerCase().includes(q) || spec.toLowerCase().includes(q);
   });
 
-  const handleBookDoctor = (doctor) => {
+  const handleBookAppt = (doctor) => {
     navigate("/consultation-booking", {
       state: { doctor },
     });
   };
 
   return (
-    <div className={styles.layoutContainer}>
+    <div className={styles.dashboardLayout}>
       <Sidebar />
 
       <main className={styles.mainContent}>
         <div className={styles.contentWrapper}>
-          {/* Hero Header */}
-          <div className={styles.heroHeader}>
-            <div className={styles.heroText}>
-              <div className={styles.heroBadge}>
-                <Sparkles size={14} /> Verified Medical Professionals
-              </div>
-              <h1 className={styles.heroTitle}>Available Doctors</h1>
-              <p className={styles.heroSubtitle}>
-                Connect instantly with top specialists for video and in-person consultations.
-              </p>
+          {/* Header */}
+          <div className={styles.pageHeader}>
+            <h1 className={styles.pageTitle}>Available Doctors</h1>
+            <p className={styles.pageSubtitle}>
+              Find and book appointments with available doctors.
+            </p>
+          </div>
+
+          {/* Filter Toolbar */}
+          <div className={styles.filterToolbar}>
+            <div className={styles.searchBox}>
+              <Search size={16} className={styles.searchIcon} />
+              <input
+                type="text"
+                placeholder="Search doctor..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className={styles.searchInput}
+              />
             </div>
-            
+
+            <div className={styles.filterDropdownWrapper}>
+              <select
+                value={specialization}
+                onChange={(e) => setSpecialization(e.target.value)}
+                className={styles.selectInput}
+              >
+                <option value="all">All Specializations</option>
+                {specializationsList
+                  .filter((s) => s !== "all")
+                  .map((spec) => (
+                    <option key={spec} value={spec}>
+                      {spec}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
             <button
               className={`${styles.nearMeBtn} ${showNearMe ? styles.nearMeActive : ""}`}
               onClick={handleToggleNearMe}
               disabled={locationLoading}
             >
-              <Navigation size={16} className={locationLoading ? styles.spin : ""} />
+              <MapPin size={15} />
               {locationLoading
                 ? "Locating..."
                 : showNearMe
                 ? "Showing Nearby Doctors"
-                : "Find Doctors Near Me"}
+                : "Doctors Near Me"}
             </button>
           </div>
 
-          {/* Specialty Filter Pills */}
-          <div className={styles.pillsScroll}>
-            {POPULAR_SPECIALTIES.map((spec) => (
-              <button
-                key={spec}
-                className={`${styles.pillBtn} ${
-                  selectedSpecialty === spec ? styles.pillActive : ""
-                }`}
-                onClick={() => setSelectedSpecialty(spec)}
-              >
-                {spec === "All" && <Filter size={13} />}
-                {spec}
-              </button>
-            ))}
-          </div>
-
-          {/* Search Bar */}
-          <div className={styles.searchBarContainer}>
-            <Search size={18} className={styles.searchIcon} />
-            <input
-              type="text"
-              placeholder="Search doctors by name, specialty, or clinic..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className={styles.searchInput}
-            />
-            {searchQuery && (
-              <button className={styles.clearSearch} onClick={() => setSearchQuery("")}>
-                Clear
-              </button>
-            )}
-          </div>
-
-          {/* Doctor Cards Grid */}
+          {/* Doctors Grid */}
           {loading ? (
             <div className={styles.loadingState}>
               <div className={styles.spinner}></div>
-              <p>Fetching available medical specialists...</p>
+              <p>Loading available doctors...</p>
             </div>
           ) : filteredDoctors.length === 0 ? (
             <div className={styles.emptyState}>
-              <div className={styles.emptyIconCircle}>
-                <Stethoscope size={36} />
-              </div>
-              <h3>No Doctors Currently Available</h3>
-              <p>
-                {searchQuery || selectedSpecialty !== "All"
-                  ? "Try resetting your search query or selecting a different specialty filter."
-                  : "Check back shortly or explore alternative medical specialties."}
-              </p>
-              {(searchQuery || selectedSpecialty !== "All") && (
+              <p>No available doctors found.</p>
+              {(searchQuery || specialization !== "all" || showNearMe) && (
                 <button
                   className={styles.resetBtn}
                   onClick={() => {
                     setSearchQuery("");
-                    setSelectedSpecialty("All");
+                    setSpecialization("all");
+                    setShowNearMe(false);
                   }}
                 >
                   <RefreshCw size={14} /> Reset Filters
@@ -231,78 +186,49 @@ export default function AvailableDoctors() {
           ) : (
             <div className={styles.doctorsGrid}>
               {filteredDoctors.map((doc) => {
-                const doctorName = doc.name || "Specialist";
-                const spec = doc.specialization || "General Medicine";
-                const experience = doc.experience ? `${doc.experience} yrs exp` : "10+ yrs exp";
-                const fee = doc.consultationFee ? `₹${doc.consultationFee}` : "₹500";
-                const hospital = doc.hospitalName || "Partner Medical Center";
-                const rating = doc.rating || 4.9;
-                const workingDays = Array.isArray(doc.workingDays)
-                  ? doc.workingDays.slice(0, 3).join(", ")
-                  : "Mon - Sat";
-                const timeSlot = doc.startTime && doc.endTime ? `${doc.startTime} - ${doc.endTime}` : "09:00 AM - 05:00 PM";
+                const doctorName = doc.name || "Doctor";
+                const spec = doc.specialization || "Specialist";
+                const qualification = doc.qualification || "Qualified";
+                const experience =
+                  doc.experience !== undefined
+                    ? `${doc.experience} years exp.`
+                    : "0 years exp.";
+                const initial = doctorName.charAt(0).toUpperCase();
 
                 return (
                   <div key={doc._id || doc.id} className={styles.doctorCard}>
-                    {/* Header Banner & Photo */}
-                    <div className={styles.cardHeaderBanner}>
-                      <div className={styles.verifiedBadge}>
-                        <CheckCircle size={12} /> Verified Specialist
-                      </div>
+                    <div className={styles.cardHeader}>
+                      <div className={styles.avatarCircle}>{initial}</div>
                     </div>
 
-                    <div className={styles.cardMainContent}>
-                      <div className={styles.doctorAvatarBox}>
-                        <div className={styles.avatarCircle}>
-                          {doctorName.charAt(0).toUpperCase()}
-                        </div>
-                        <span className={styles.onlineDot} title="Available for booking"></span>
-                      </div>
+                    <div className={styles.cardBody}>
+                      <h3 className={styles.doctorName}>Dr. {doctorName}</h3>
+                      <p className={styles.specializationText}>{spec}</p>
+                      <p className={styles.qualificationText}>{qualification}</p>
+                      <p className={styles.experienceText}>{experience}</p>
+                    </div>
 
-                      <div className={styles.doctorIdentity}>
-                        <h3 className={styles.docName}>Dr. {doctorName}</h3>
-                        <p className={styles.docSpec}>{spec}</p>
-
-                        <div className={styles.metaRow}>
-                          <span className={styles.metaBadge}>
-                            <Award size={13} /> {experience}
-                          </span>
-                          <span className={styles.ratingBadge}>
-                            <Star size={12} fill="#f59e0b" stroke="#f59e0b" /> {rating}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className={styles.detailsList}>
-                        <div className={styles.detailItem}>
-                          <Building size={14} className={styles.itemIcon} />
-                          <span>{hospital}</span>
-                        </div>
-                        <div className={styles.detailItem}>
-                          <Clock size={14} className={styles.itemIcon} />
-                          <span>{workingDays} ({timeSlot})</span>
-                        </div>
-                        {doc.clinicAddress?.city && (
-                          <div className={styles.detailItem}>
-                            <MapPin size={14} className={styles.itemIcon} />
-                            <span>{doc.clinicAddress.city}, {doc.clinicAddress.state || ""}</span>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className={styles.cardFooterRow}>
-                        <div className={styles.feeBox}>
-                          <span className={styles.feeLabel}>Consultation Fee</span>
-                          <span className={styles.feeAmount}>{fee}</span>
-                        </div>
-
-                        <button
-                          className={styles.bookBtn}
-                          onClick={() => handleBookDoctor(doc)}
-                        >
-                          Book Appointment <ArrowRight size={15} />
-                        </button>
-                      </div>
+                    <div className={styles.cardFooter}>
+                      <button
+                        className={styles.iconBtn}
+                        title="Video Consultation"
+                        onClick={() => handleBookAppt(doc)}
+                      >
+                        <Video size={16} />
+                      </button>
+                      <button
+                        className={styles.iconBtn}
+                        title="Audio Consultation"
+                        onClick={() => handleBookAppt(doc)}
+                      >
+                        <Phone size={16} />
+                      </button>
+                      <button
+                        className={styles.bookApptBtn}
+                        onClick={() => handleBookAppt(doc)}
+                      >
+                        Book Appt
+                      </button>
                     </div>
                   </div>
                 );
