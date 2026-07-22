@@ -52,82 +52,71 @@ const App = () => {
   /*
   ==================================================
   CHECK AUTH + ROLE + PROFILE STATUS
+  Runs on initial mount or when auth/profile events fire,
+  NOT on every route change (location.pathname).
   ==================================================
   */
 
-  useEffect(() => {
-    const checkAccess = async () => {
-      const userJson = localStorage.getItem("user");
-      const role = localStorage.getItem("userRole");
+  const checkAccess = async () => {
+    const userJson = localStorage.getItem("user");
+    const role = localStorage.getItem("userRole");
 
-      setIsLoggedIn(!!userJson);
-      setUserRole(role);
+    setIsLoggedIn(!!userJson);
+    setUserRole(role);
 
-      /*
-      ================================================
-      SKIP PROFILE RE-CHECK ON SETUP PAGES
-      (avoids false redirect loop if token is mid-refresh)
-      ================================================
-      */
-      const isSetupPage =
-        location.pathname === "/doctor-profile-setup" ||
-        location.pathname === "/profile-setup";
-
-      if (isSetupPage) {
-        setIsChecking(false);
-        return;
-      }
-
-      /*
-      ================================================
-      DOCTOR PROFILE CHECK
-      ================================================
-      */
-
-      if (userJson && role === "doctor") {
-        try {
-          const response = await doctorProfileApi.checkProfileStatus();
-          setDoctorProfileCompleted(response.data.profileCompleted || false);
-        } catch (error) {
-          if (error?.response?.status === 401 || error?.response?.status === 403) {
-            // Token may have been expired — interceptor will attempt refresh.
-            // Keep current state (default true) so we don't wrongly redirect.
-            // The interceptor retry will re-run the request automatically.
-            // If refresh truly fails, the interceptor redirects to /auth.
-          } else {
-            console.error("Doctor profile check failed:", error);
-            // For non-auth errors, don't penalise the user — keep as true
-            // so they land on the dashboard rather than the setup page.
-          }
-        }
-      }
-
-      /*
-      ================================================
-      PATIENT PROFILE CHECK
-      ================================================
-      */
-
-      if (userJson && role === "patient") {
-        try {
-          const response = await apiClient.get("/patient/profile/status");
-
-          setPatientProfileCompleted(
-            response.data?.data?.isProfileComplete || false,
-          );
-        } catch (error) {
-          if (error?.response?.status !== 401 && error?.response?.status !== 403) {
-            console.error("Patient profile check failed:", error);
-          }
-          // Same treatment: on auth error don't falsely mark incomplete
-        }
-      }
-
+    if (!userJson) {
       setIsChecking(false);
-    };
+      return;
+    }
 
+    let parsedUser = null;
+    try {
+      parsedUser = JSON.parse(userJson);
+    } catch (e) {}
+
+    /*
+    DOCTOR PROFILE CHECK
+    */
+    if (role === "doctor") {
+      try {
+        const response = await doctorProfileApi.checkProfileStatus();
+        if (response.data && typeof response.data.profileCompleted === "boolean") {
+          setDoctorProfileCompleted(response.data.profileCompleted);
+        }
+      } catch (error) {
+        if (error?.response?.status !== 401 && error?.response?.status !== 403) {
+          console.error("Doctor profile check failed:", error);
+        }
+        // Maintain current state on network/auth errors to prevent false redirect loop
+      }
+    }
+
+    /*
+    PATIENT PROFILE CHECK
+    */
+    if (role === "patient") {
+      try {
+        const response = await apiClient.get("/patient/profile/status");
+        if (
+          response.data?.data &&
+          typeof response.data.data.isProfileComplete === "boolean"
+        ) {
+          setPatientProfileCompleted(response.data.data.isProfileComplete);
+        }
+      } catch (error) {
+        if (error?.response?.status !== 401 && error?.response?.status !== 403) {
+          console.error("Patient profile check failed:", error);
+        }
+        // Maintain current state on network/auth errors to prevent false redirect loop
+      }
+    }
+
+    setIsChecking(false);
+  };
+
+  useEffect(() => {
     checkAccess();
-  }, [location.pathname]);
+  }, []);
 
   /*
   ==================================================
@@ -139,42 +128,18 @@ const App = () => {
     const handleAuthChange = () => {
       setIsLoggedIn(!!localStorage.getItem("user"));
       setUserRole(localStorage.getItem("userRole"));
+      checkAccess();
     };
 
-    const handleProfileUpdated = async () => {
-      const userJson = localStorage.getItem("user");
-      const role = localStorage.getItem("userRole");
-
-      if (userJson && role === "doctor") {
-        try {
-          const response = await doctorProfileApi.checkProfileStatus();
-          setDoctorProfileCompleted(response.data?.profileCompleted || false);
-        } catch (error) {
-          if (error?.response?.status !== 401 && error?.response?.status !== 403) {
-            console.error("Error refreshing doctor profile status:", error);
-          }
-        }
-      } else if (userJson && role === "patient") {
-        try {
-          const response = await apiClient.get("/patient/profile/status");
-          setPatientProfileCompleted(
-            response.data?.data?.isProfileComplete || false,
-          );
-        } catch (error) {
-          if (error?.response?.status !== 401 && error?.response?.status !== 403) {
-            console.error("Error refreshing patient profile status:", error);
-          }
-        }
-      }
+    const handleProfileUpdated = () => {
+      checkAccess();
     };
 
     window.addEventListener("authChange", handleAuthChange);
-
     window.addEventListener("profileUpdated", handleProfileUpdated);
 
     return () => {
       window.removeEventListener("authChange", handleAuthChange);
-
       window.removeEventListener("profileUpdated", handleProfileUpdated);
     };
   }, []);

@@ -144,6 +144,7 @@ const REQUIRED_FIELDS = [
 ];
 
 export const calculateProfileCompletion = (profile) => {
+  if (!profile) return false;
   return REQUIRED_FIELDS.every((field) => {
     const value = profile[field];
     return value !== undefined && value !== null && value !== "";

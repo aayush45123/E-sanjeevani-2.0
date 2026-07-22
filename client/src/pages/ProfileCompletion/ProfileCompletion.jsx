@@ -42,6 +42,7 @@ const initialFormState = {
 };
 
 const ProfileCompletion = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState(initialFormState);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -123,6 +124,7 @@ const ProfileCompletion = () => {
       setIsEditMode(false);
       setIsProfileComplete(true);
       window.dispatchEvent(new Event("profileUpdated"));
+      navigate("/dashboard");
     } catch (error) {
       console.error("Profile save failed:", error);
       alert(error?.response?.data?.message || "Failed to save profile");

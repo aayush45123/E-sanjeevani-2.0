@@ -202,6 +202,7 @@ export default function DoctorProfileSetup({ isProfileIncomplete = true }) {
       setIsProfileComplete(true);
       setIsEditMode(false);
       setShowAvailabilitySection(true);
+      window.dispatchEvent(new Event("profileUpdated"));
     } catch (error) {
       console.error(error);
       alert(error?.response?.data?.message || "Failed to save doctor profile");

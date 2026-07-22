@@ -4,6 +4,7 @@ import crypto from "crypto";
 
 import { UserRepository } from "../repositories/user.repository.js";
 import { PatientProfileRepository } from "../repositories/patientProfile.repository.js";
+import { DoctorProfileRepository } from "../repositories/doctorProfile.repository.js";
 import { sendWelcomeEmail } from "../emails/sendWelcomeEmail.js";
 import { RefreshTokenRepository } from "../repositories/refreshToken.repository.js";
 
@@ -143,6 +144,11 @@ export class AuthService {
         user.id,
       );
       profileCompleted = patientProfile?.isProfileComplete ?? false;
+    } else if (user.role === "doctor") {
+      const doctorProfile = await DoctorProfileRepository.findRawProfileByUserId(
+        user.id,
+      );
+      profileCompleted = doctorProfile?.profileCompleted ?? false;
     }
 
     const accessToken = createAccessToken(user);
@@ -285,6 +291,19 @@ export class AuthService {
       throw { status: 404, message: "User not found" };
     }
 
+    let profileCompleted = false;
+    if (user.role === "patient") {
+      const patientProfile = await PatientProfileRepository.findByUserId(
+        user.id,
+      );
+      profileCompleted = patientProfile?.isProfileComplete ?? false;
+    } else if (user.role === "doctor") {
+      const doctorProfile = await DoctorProfileRepository.findRawProfileByUserId(
+        user.id,
+      );
+      profileCompleted = doctorProfile?.profileCompleted ?? false;
+    }
+
     return {
       id: user.id,
       name: user.name,
@@ -294,6 +313,7 @@ export class AuthService {
       profileImage: user.profileImage,
       isVerified: user.isVerified,
       isActive: user.isActive,
+      profileCompleted,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
