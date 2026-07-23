@@ -105,6 +105,7 @@ export class AuthService {
     });
 
     return {
+      accessToken,
       user: {
         id: user.id,
         name: user.name,
@@ -200,6 +201,7 @@ export class AuthService {
     });
 
     return {
+      accessToken,
       user: {
         id: user.id,
         name: user.name,
@@ -276,7 +278,7 @@ export class AuthService {
       ),
     });
 
-    return { userId: user.id };
+    return { userId: user.id, accessToken: newAccessToken };
   }
 
   static async logout(req, res) {

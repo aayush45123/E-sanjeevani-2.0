@@ -10,6 +10,25 @@ export const apiClient = axios.create({
   withCredentials: true,
 });
 
+// ─── Token helpers (localStorage is port-isolated on localhost) ───────────────
+const TOKEN_KEY = "access_token_local";
+
+export const getLocalToken = () => localStorage.getItem(TOKEN_KEY);
+export const setLocalToken = (token) => {
+  if (token) localStorage.setItem(TOKEN_KEY, token);
+};
+export const clearLocalToken = () => localStorage.removeItem(TOKEN_KEY);
+
+// ─── Request interceptor – attach token as Authorization header ───────────────
+apiClient.interceptors.request.use((config) => {
+  const token = getLocalToken();
+  if (token) {
+    config.headers = config.headers || {};
+    config.headers["Authorization"] = `Bearer ${token}`;
+  }
+  return config;
+});
+
 let isRefreshing = false;
 let failedQueue = [];
 
@@ -52,7 +71,11 @@ apiClient.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        await apiClient.post("/auth/refresh");
+        const refreshRes = await apiClient.post("/auth/refresh");
+        // Save new token from refresh response
+        if (refreshRes.data?.accessToken) {
+          setLocalToken(refreshRes.data.accessToken);
+        }
         isRefreshing = false;
         processQueue(null);
         return apiClient(originalRequest);
@@ -61,6 +84,7 @@ apiClient.interceptors.response.use(
         processQueue(refreshError);
         
         // Full logout state clearing
+        clearLocalToken();
         localStorage.removeItem("userRole");
         localStorage.removeItem("user");
         localStorage.removeItem("userId");
@@ -78,11 +102,33 @@ apiClient.interceptors.response.use(
 
 // Auth API
 export const authApi = {
-  register: (data) => apiClient.post("/auth/register", data),
-  signup: (data) => apiClient.post("/auth/register", data), // ✅ Alias
-  login: (data) => apiClient.post("/auth/login", data),
-  logout: () => apiClient.post("/auth/logout"),
-  refresh: () => apiClient.post("/auth/refresh"),
+  register: async (data) => {
+    const res = await apiClient.post("/auth/register", data);
+    if (res.data?.accessToken) setLocalToken(res.data.accessToken);
+    return res;
+  },
+  signup: async (data) => {
+    const res = await apiClient.post("/auth/register", data);
+    if (res.data?.accessToken) setLocalToken(res.data.accessToken);
+    return res;
+  },
+  login: async (data) => {
+    const res = await apiClient.post("/auth/login", data);
+    if (res.data?.accessToken) setLocalToken(res.data.accessToken);
+    return res;
+  },
+  logout: async () => {
+    try {
+      return await apiClient.post("/auth/logout");
+    } finally {
+      clearLocalToken();
+    }
+  },
+  refresh: async () => {
+    const res = await apiClient.post("/auth/refresh");
+    if (res.data?.accessToken) setLocalToken(res.data.accessToken);
+    return res;
+  },
   me: () => apiClient.get("/auth/me"),
   updateProfile: (data) => apiClient.put("/auth/patient/update", data),
   completePatientProfile: (data) =>

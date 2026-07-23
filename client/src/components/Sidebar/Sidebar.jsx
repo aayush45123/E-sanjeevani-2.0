@@ -62,7 +62,7 @@ const Sidebar = () => {
     { label: "Dashboard",        icon: <LayoutDashboard size={15} />, path: "/dashboard" },
     { label: "Consultations",    icon: <Calendar size={15} />,        path: "/consultations" },
     { label: "Available Doctors",icon: <Stethoscope size={15} />,     path: "/available-doctors" },
-    { label: "AI Triage",        icon: <Brain size={15} />,           path: "/ai-triage" },
+    // { label: "AI Triage",        icon: <Brain size={15} />,           path: "/ai-triage" },
     { label: "Clinical Records", icon: <FileText size={15} />,        path: "/clinical-records" },
   ];
 

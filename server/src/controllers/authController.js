@@ -6,6 +6,7 @@ export const register = async (req, res) => {
     return res.status(201).json({
       success: true,
       message: "User registered successfully",
+      accessToken: result.accessToken,
       user: result.user,
     });
   } catch (error) {
@@ -24,6 +25,7 @@ export const login = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Login successful",
+      accessToken: result.accessToken,
       user: result.user,
     });
   } catch (error) {
@@ -42,6 +44,7 @@ export const refresh = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Token refreshed",
+      accessToken: result.accessToken,
       ...result,
     });
   } catch (error) {

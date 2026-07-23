@@ -370,7 +370,7 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
   ==================================================
   */
 
-  const firstName = user?.name?.split(" ")[0] || "Doctor";
+  const firstName = user?.name?.split(" ")[1] || "Doctor";
 
   const todayFormatted = new Date().toLocaleDateString("en-IN", {
     weekday: "long",
@@ -445,7 +445,7 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
         <header className={styles.pageHeader}>
           <div className={styles.headerLeft}>
             <h1 className={styles.pageTitle}>
-              Good morning, Dr. {firstName} 👋
+              Good morning, Dr.{firstName} 👋
             </h1>
 
             <p className={styles.pageSubtitle}>{todayFormatted}</p>

@@ -49,9 +49,12 @@ const Auth = () => {
       return;
     }
 
-    // Auth is stored in httpOnly cookies.
-    // Keep only minimal UI state in localStorage.
+    // Clear old state but preserve/set token for port-isolated tab auth
+    const token = responseData.accessToken;
     localStorage.clear();
+    if (token) {
+      localStorage.setItem("access_token_local", token);
+    }
     localStorage.setItem("userRole", user.role);
     localStorage.setItem("user", JSON.stringify(user));
     localStorage.setItem("userId", user.id || user._id);
