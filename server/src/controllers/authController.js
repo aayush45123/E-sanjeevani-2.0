@@ -7,6 +7,7 @@ export const register = async (req, res) => {
       success: true,
       message: "User registered successfully",
       accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
       user: result.user,
     });
   } catch (error) {
@@ -26,6 +27,7 @@ export const login = async (req, res) => {
       success: true,
       message: "Login successful",
       accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
       user: result.user,
     });
   } catch (error) {
@@ -45,6 +47,7 @@ export const refresh = async (req, res) => {
       success: true,
       message: "Token refreshed",
       accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
       ...result,
     });
   } catch (error) {

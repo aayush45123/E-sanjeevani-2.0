@@ -28,6 +28,7 @@ export const performLogout = async () => {
   localStorage.removeItem("userId");
   localStorage.removeItem("doctorProfileCompleted");
   localStorage.removeItem("access_token_local");
+  localStorage.removeItem("refresh_token_local");
 
   window.dispatchEvent(new Event("authChange"));
   window.location.href = "/";

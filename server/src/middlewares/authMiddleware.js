@@ -7,13 +7,19 @@ import { users } from "../database/schema/index.js";
 const authMiddleware = async (req, res, next) => {
   try {
     const accessCookieName = process.env.ACCESS_COOKIE_NAME || "access_token";
-    let token = req.cookies?.[accessCookieName];
+    let token;
 
-    if (!token && req.headers.authorization) {
+    // 1. Prioritize Authorization Bearer header over cookies (for port isolation on localhost)
+    if (req.headers.authorization) {
       const parts = req.headers.authorization.split(" ");
       if (parts.length === 2 && parts[0] === "Bearer") {
         token = parts[1];
       }
+    }
+
+    // 2. Fall back to cookie if no Bearer header present
+    if (!token) {
+      token = req.cookies?.[accessCookieName];
     }
 
     if (!token) {

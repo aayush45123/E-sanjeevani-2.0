@@ -51,9 +51,13 @@ const Auth = () => {
 
     // Clear old state but preserve/set token for port-isolated tab auth
     const token = responseData.accessToken;
+    const refreshToken = responseData.refreshToken;
     localStorage.clear();
     if (token) {
       localStorage.setItem("access_token_local", token);
+    }
+    if (refreshToken) {
+      localStorage.setItem("refresh_token_local", refreshToken);
     }
     localStorage.setItem("userRole", user.role);
     localStorage.setItem("user", JSON.stringify(user));

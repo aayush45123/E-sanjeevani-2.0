@@ -12,6 +12,7 @@ export const apiClient = axios.create({
 
 // ─── Token helpers (localStorage is port-isolated on localhost) ───────────────
 const TOKEN_KEY = "access_token_local";
+const REFRESH_TOKEN_KEY = "refresh_token_local";
 
 export const getLocalToken = () => localStorage.getItem(TOKEN_KEY);
 export const setLocalToken = (token) => {
@@ -19,12 +20,23 @@ export const setLocalToken = (token) => {
 };
 export const clearLocalToken = () => localStorage.removeItem(TOKEN_KEY);
 
-// ─── Request interceptor – attach token as Authorization header ───────────────
+export const getRefreshToken = () => localStorage.getItem(REFRESH_TOKEN_KEY);
+export const setRefreshToken = (token) => {
+  if (token) localStorage.setItem(REFRESH_TOKEN_KEY, token);
+};
+export const clearRefreshToken = () => localStorage.removeItem(REFRESH_TOKEN_KEY);
+
+// ─── Request interceptor – attach tokens as Bearer / X-Refresh-Token headers ──
 apiClient.interceptors.request.use((config) => {
   const token = getLocalToken();
   if (token) {
     config.headers = config.headers || {};
     config.headers["Authorization"] = `Bearer ${token}`;
+  }
+  const refreshToken = getRefreshToken();
+  if (refreshToken) {
+    config.headers = config.headers || {};
+    config.headers["x-refresh-token"] = refreshToken;
   }
   return config;
 });
@@ -72,9 +84,12 @@ apiClient.interceptors.response.use(
 
       try {
         const refreshRes = await apiClient.post("/auth/refresh");
-        // Save new token from refresh response
+        // Save new tokens from refresh response
         if (refreshRes.data?.accessToken) {
           setLocalToken(refreshRes.data.accessToken);
+        }
+        if (refreshRes.data?.refreshToken) {
+          setRefreshToken(refreshRes.data.refreshToken);
         }
         isRefreshing = false;
         processQueue(null);
@@ -85,6 +100,7 @@ apiClient.interceptors.response.use(
         
         // Full logout state clearing
         clearLocalToken();
+        clearRefreshToken();
         localStorage.removeItem("userRole");
         localStorage.removeItem("user");
         localStorage.removeItem("userId");
@@ -105,16 +121,19 @@ export const authApi = {
   register: async (data) => {
     const res = await apiClient.post("/auth/register", data);
     if (res.data?.accessToken) setLocalToken(res.data.accessToken);
+    if (res.data?.refreshToken) setRefreshToken(res.data.refreshToken);
     return res;
   },
   signup: async (data) => {
     const res = await apiClient.post("/auth/register", data);
     if (res.data?.accessToken) setLocalToken(res.data.accessToken);
+    if (res.data?.refreshToken) setRefreshToken(res.data.refreshToken);
     return res;
   },
   login: async (data) => {
     const res = await apiClient.post("/auth/login", data);
     if (res.data?.accessToken) setLocalToken(res.data.accessToken);
+    if (res.data?.refreshToken) setRefreshToken(res.data.refreshToken);
     return res;
   },
   logout: async () => {
@@ -122,11 +141,13 @@ export const authApi = {
       return await apiClient.post("/auth/logout");
     } finally {
       clearLocalToken();
+      clearRefreshToken();
     }
   },
   refresh: async () => {
     const res = await apiClient.post("/auth/refresh");
     if (res.data?.accessToken) setLocalToken(res.data.accessToken);
+    if (res.data?.refreshToken) setRefreshToken(res.data.refreshToken);
     return res;
   },
   me: () => apiClient.get("/auth/me"),

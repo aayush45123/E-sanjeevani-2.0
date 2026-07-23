@@ -106,6 +106,7 @@ export class AuthService {
 
     return {
       accessToken,
+      refreshToken: refreshTokenRaw,
       user: {
         id: user.id,
         name: user.name,
@@ -202,6 +203,7 @@ export class AuthService {
 
     return {
       accessToken,
+      refreshToken: refreshTokenRaw,
       user: {
         id: user.id,
         name: user.name,
@@ -216,7 +218,10 @@ export class AuthService {
   static async refresh(req, res) {
     const refreshCookieName =
       process.env.REFRESH_COOKIE_NAME || "refresh_token";
-    const token = req.cookies?.[refreshCookieName];
+    const token =
+      req.headers["x-refresh-token"] ||
+      req.body?.refreshToken ||
+      req.cookies?.[refreshCookieName];
 
     if (!token) {
       throw { status: 401, message: "No refresh token" };
@@ -278,13 +283,16 @@ export class AuthService {
       ),
     });
 
-    return { userId: user.id, accessToken: newAccessToken };
+    return { userId: user.id, accessToken: newAccessToken, refreshToken: newRefreshRaw };
   }
 
   static async logout(req, res) {
     const refreshCookieName =
       process.env.REFRESH_COOKIE_NAME || "refresh_token";
-    const token = req.cookies?.[refreshCookieName];
+    const token =
+      req.headers["x-refresh-token"] ||
+      req.body?.refreshToken ||
+      req.cookies?.[refreshCookieName];
 
     if (token) {
       const tokenHash = RefreshTokenRepository.hashToken(token);
