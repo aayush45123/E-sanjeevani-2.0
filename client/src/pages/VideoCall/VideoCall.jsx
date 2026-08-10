@@ -62,6 +62,8 @@ export default function VideoCall() {
   const peerRef = useRef(null);
   const localStreamRef = useRef(null);
   const dataChannelRef = useRef(null);
+  // Buffer ICE candidates that arrive before setRemoteDescription
+  const iceCandidateQueueRef = useRef([]);
 
   // Mic/camera toggles
   const [isMuted, setIsMuted] = useState(false);
@@ -137,7 +139,13 @@ export default function VideoCall() {
   */
   const createPeerConnection = useCallback(() => {
     const peer = new RTCPeerConnection({
-      iceServers: [{ urls: ["stun:stun.l.google.com:19302"] }],
+      iceServers: [
+        { urls: "stun:stun.l.google.com:19302" },
+        { urls: "stun:stun1.l.google.com:19302" },
+        { urls: "stun:stun2.l.google.com:19302" },
+        { urls: "stun:stun3.l.google.com:19302" },
+        { urls: "stun:stun4.l.google.com:19302" },
+      ],
     });
 
     peer.onicecandidate = (event) => {
@@ -168,6 +176,7 @@ export default function VideoCall() {
     });
 
     peerRef.current = peer;
+    iceCandidateQueueRef.current = []; // reset queue for new peer
     return peer;
   }, [consultationId]);
 
@@ -381,6 +390,19 @@ export default function VideoCall() {
           },
         );
 
+        // Helper: flush queued ICE candidates after remote description is set
+        const flushIceCandidateQueue = async () => {
+          const queue = iceCandidateQueueRef.current;
+          iceCandidateQueueRef.current = [];
+          for (const c of queue) {
+            try {
+              await peerRef.current.addIceCandidate(new RTCIceCandidate(c));
+            } catch (err) {
+              console.warn("[ICE] Failed to flush queued candidate:", err);
+            }
+          }
+        };
+
         // First user — create offer + data channel
         socket.on("other-user", async ({ shouldInitiate, usersInRoom }) => {
           setUsersInRoom(usersInRoom || 2);
@@ -408,6 +430,8 @@ export default function VideoCall() {
         socket.on("incoming-call", async ({ signal, from }) => {
           const peer = createPeerConnection();
           await peer.setRemoteDescription(new RTCSessionDescription(signal));
+          // Flush any ICE candidates that arrived before the remote description
+          await flushIceCandidateQueue();
           const answer = await peer.createAnswer();
           await peer.setLocalDescription(answer);
 
@@ -420,18 +444,30 @@ export default function VideoCall() {
           await peerRef.current.setRemoteDescription(
             new RTCSessionDescription(signal),
           );
+          // Flush any ICE candidates that arrived before the remote description
+          await flushIceCandidateQueue();
         });
 
         // ICE exchange
         socket.on("ice-candidate", async ({ candidate }) => {
-          if (peerRef.current && candidate) {
+          if (!candidate) return;
+          // If peer exists and remote description is set, add immediately
+          if (
+            peerRef.current &&
+            peerRef.current.remoteDescription &&
+            peerRef.current.remoteDescription.type
+          ) {
             try {
               await peerRef.current.addIceCandidate(
                 new RTCIceCandidate(candidate),
               );
             } catch (err) {
-              console.log(err);
+              console.warn("[ICE] addIceCandidate error:", err);
             }
+          } else {
+            // Queue the candidate — remote description not ready yet
+            console.log("[ICE] Queueing candidate (remote description not set)");
+            iceCandidateQueueRef.current.push(candidate);
           }
         });
 
