@@ -84,25 +84,22 @@ except Exception as e:
     print(f"[WARN] Fever model not ready yet — run train_model.py first: {e}")
     FEVER_MODEL_READY = False
 
-# SHAP explainer (lazy-loaded once to avoid startup delay)
+# SHAP / Feature Explainer (lazy-loaded)
 _fever_explainer = None
 
 def get_fever_explainer():
     global _fever_explainer
     if _fever_explainer is None and FEVER_MODEL_READY:
         try:
-            import shap
             if hasattr(fever_model, "estimators_") or hasattr(fever_model, "tree_"):
+                import shap
                 _fever_explainer = shap.TreeExplainer(fever_model)
                 print("[OK] SHAP TreeExplainer initialised")
             elif hasattr(fever_model, "coef_"):
-                _fever_explainer = shap.Explainer(fever_model)
-                print("[OK] SHAP Explainer (Linear) initialised")
-            else:
-                _fever_explainer = shap.Explainer(fever_model)
-                print("[OK] Generic SHAP Explainer initialised")
-        except Exception as e:
-            print(f"[INFO] SHAP explainer note: {e}")
+                _fever_explainer = "linear_coef"
+                print("[OK] Linear Coefficient Explainer initialised")
+        except Exception:
+            pass
     return _fever_explainer
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -204,9 +201,9 @@ def get_shap_explanation(feature_df: pd.DataFrame, symptom_vector: dict, top_cla
     Return plain-English bullet points of symptoms that drove the top-ranked prediction.
     Supports SHAP, Linear Model Coefficients (LogisticRegression), and Tree Feature Importances (RandomForest/XGBoost).
     """
-    # Attempt 1: SHAP Explainer
+    # Attempt 1: Tree SHAP Explainer (Random Forest / XGBoost)
     explainer = get_fever_explainer()
-    if explainer is not None:
+    if explainer is not None and explainer != "linear_coef":
         try:
             import numpy as np
             shap_values = explainer.shap_values(feature_df)
