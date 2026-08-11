@@ -5,12 +5,11 @@
 // ============================================================
 
 import express from "express";
-import fetch from "node-fetch";
 import authMiddleware from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
-const PYTHON_AI_URL = process.env.PYTHON_AI_URL || "http://localhost:8000";
+const PYTHON_AI_URL = process.env.PYTHON_AI_URL || "http://127.0.0.1:8000";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AUTH — all fever routes require login

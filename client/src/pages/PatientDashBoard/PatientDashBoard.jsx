@@ -480,26 +480,18 @@ export default function PatientDashboard() {
           `**Warning signs detected:** ${data.red_flags_detected?.join(", ")}\n\n` +
           `Please call emergency services or go to the nearest hospital immediately.`;
       } else if (data.success && data.top_ranking) {
-        const top = data.top_ranking;
-        const explain = data.primary_explanation || [];
-        const pct = (s) => `${Math.round(s * 100)}%`;
+        const topDiseaseName = (top[0]?.disease || "Fever-like illness").replace(/_/g, " ");
 
         resultText =
-          `## 🌡️ Fever Differential Assessment\n\n` +
-          `**Model ranking based on your symptoms:**\n\n` +
-          `| Rank | Condition | Model Score |\n` +
-          `|------|-----------|-------------|\n` +
-          top.map((r) =>
-            `| #${r.rank} | ${r.label} | ${pct(r.score)} |`
-          ).join("\n") +
-          `\n\n---\n\n` +
-          `**Why ${top[0]?.disease || "this"} was ranked #1:**\n\n` +
+          `## 🌡️ Fever Symptom Assessment\n\n` +
+          `**Predicted Condition:** ${topDiseaseName}\n\n` +
+          `**Why this condition was predicted:**\n` +
           (explain.length > 0
             ? explain.map((b) => `• ${b}`).join("\n")
-            : "• Based on overall symptom pattern") +
+            : "• Based on reported symptom combination") +
           `\n\n---\n\n` +
           `**⚕️ Important:** ${data.disclaimer}\n\n` +
-          `**Next step:** ${data.recommended_action}`;
+          `**Next Step:** ${data.recommended_action}`;
       } else {
         resultText = data.message || "Could not complete the fever assessment. Please ensure the AI server is running.";
       }

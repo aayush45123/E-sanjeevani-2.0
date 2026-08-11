@@ -15,8 +15,12 @@ export let io = null;
 const startServer = async () => {
   try {
 
-    // New PostgreSQL connection
-    await checkPostgresConnection();
+    // Check PostgreSQL connection (non-blocking server start)
+    try {
+      await checkPostgresConnection();
+    } catch (dbErr) {
+      console.warn("⚠️ Neon DB connection warning (will retry automatically):", dbErr.message || dbErr);
+    }
 
     const server = http.createServer(app);
 
