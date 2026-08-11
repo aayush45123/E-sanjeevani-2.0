@@ -21,6 +21,7 @@ import triageRoutes from "./routes/triageRoutes.js";
 import aiTriageRoutes from "./routes/aiTriageRoutes.js";
 import doctorAssistantRoutes from "./routes/doctorAssistantRoutes.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
+import feverRoutes from "./routes/feverRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -97,6 +98,11 @@ app.use("/api/ai-triage", aiTriageRoutes);
 
 app.use("/api/doctor-assistant", doctorAssistantRoutes);
 app.use("/api/analytics", analyticsRoutes);
+
+/*
+FEVER DIFFERENTIAL ASSESSMENT ROUTES
+*/
+app.use("/api/fever", feverRoutes);
 
 /*
 NEW: DOCTOR PROFILE ROUTES

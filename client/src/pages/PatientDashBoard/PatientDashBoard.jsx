@@ -186,7 +186,104 @@ const aiModelsData = [
       "Self-trained disease prediction model (/api/ai-triage/predict)",
     endpoint: "/api/ai-triage/predict",
   },
+  {
+    id: "fever-assessment",
+    name: "Fever Assessment",
+    provider: "E-Sanjeevani ML Model",
+    icon: null,
+    emoji: "🌡️",
+    isPro: false,
+    description: "Explainable fever differential (Dengue · Malaria · Typhoid · Chikungunya · Viral)",
+    endpoint: "/api/fever/assess",
+  },
 ];
+
+// ─── Fever Assessment — conversation steps ───────────────────────────────────
+const FEVER_STEPS = [
+  {
+    key: "red_flags",
+    question:
+      "🚨 **Safety check first.** Do you have any of these warning signs?\n\n" +
+      "• Bleeding from nose, gums, or in vomit/stool\n" +
+      "• Severe abdominal pain\n" +
+      "• Difficulty breathing\n" +
+      "• Confusion or loss of consciousness\n" +
+      "• Fainting\n\n" +
+      "Reply **Yes** or **No**.",
+    type: "yesno",
+    redFlag: true,
+  },
+  {
+    key: "duration",
+    question:
+      "How long have you had the fever?\n\n" +
+      "Reply: **1** = Less than 1 day · **2** = 1–3 days · **3** = 4–7 days · **4** = More than 7 days",
+    type: "choice",
+  },
+  {
+    key: "high_fever",
+    question: "Is the fever **high** (feels very hot / ≥ 39 °C)? Reply **Yes** or **No**.",
+    type: "yesno",
+  },
+  {
+    key: "sudden_onset",
+    question: "Did the fever start **suddenly / abruptly**? Reply **Yes** or **No**.",
+    type: "yesno",
+  },
+  {
+    key: "chills",
+    question: "Do you have **chills or shivering episodes**? Reply **Yes** or **No**.",
+    type: "yesno",
+  },
+  {
+    key: "headache",
+    question: "Do you have a **headache**? Reply **Yes** or **No**.",
+    type: "yesno",
+  },
+  {
+    key: "pain_behind_eyes",
+    question: "Do you have **pain behind the eyes** (retro-orbital pain)? Reply **Yes** or **No**.",
+    type: "yesno",
+  },
+  {
+    key: "joint_pain",
+    question: "Do you have **joint pain**? Reply **Yes** or **No**.",
+    type: "yesno",
+  },
+  {
+    key: "severe_joint_pain",
+    question: "If yes to joint pain — is it **severe / debilitating**? Reply **Yes** or **No**.",
+    type: "yesno",
+  },
+  {
+    key: "rash",
+    question: "Do you have a **skin rash**? Reply **Yes** or **No**.",
+    type: "yesno",
+  },
+  {
+    key: "nausea",
+    question: "Do you have **nausea or vomiting**? Reply **Yes** or **No**.",
+    type: "yesno",
+  },
+  {
+    key: "abdominal_pain",
+    question: "Do you have **abdominal (stomach) pain**? Reply **Yes** or **No**.",
+    type: "yesno",
+  },
+  {
+    key: "cough_throat",
+    question: "Do you have **cough, sore throat, or runny nose**? Reply **Yes** or **No**.",
+    type: "yesno",
+  },
+  {
+    key: "fatigue",
+    question: "Do you have significant **fatigue or weakness**? Reply **Yes** or **No**.",
+    type: "yesno",
+  },
+];
+
+const isYes = (s) => /^y(es)?$/i.test(s.trim());
+const isNo  = (s) => /^n(o)?$/i.test(s.trim());
 
 const mockRecords = [
   "Blood_Test_April2026.pdf",
@@ -216,6 +313,11 @@ export default function PatientDashboard() {
   // ── Triage state ────────────────────────────────────────────────────────
   const [selectedTriageId, setSelectedTriageId] = useState(null);
   const [activeTriageSessionId, setActiveTriageSessionId] = useState(null);
+
+  // ── Fever assessment conversation state ─────────────────────────────────
+  const [feverStep, setFeverStep] = useState(0);          // index into FEVER_STEPS
+  const [feverAnswers, setFeverAnswers] = useState({});   // collected answers
+  const [feverActive, setFeverActive] = useState(false);  // is fever flow running?
 
   // ── Derived ─────────────────────────────────────────────────────────────
   const hasStartedChat = messages.length > 0;
@@ -295,9 +397,184 @@ export default function PatientDashboard() {
   const handleNewChat = () => {
     setActiveTriageSessionId(null);
     setMessages([]);
+    setFeverStep(0);
+    setFeverAnswers({});
+    setFeverActive(false);
     if (user) {
       const userId = user._id || user.id;
       localStorage.removeItem(getChatStorageKey(userId));
+    }
+  };
+
+  // ── Fever: ask next question ────────────────────────────────────────────
+  const askFeverQuestion = (stepIndex, msgs) => {
+    const step = FEVER_STEPS[stepIndex];
+    if (!step) return;
+    const aiMsg = {
+      id: Date.now() + stepIndex,
+      type: "ai",
+      text: step.question,
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...(msgs || prev), aiMsg]);
+  };
+
+  // ── Fever: build symptom vector from answers ─────────────────────────────
+  const buildFeverPayload = (answers) => {
+    const sym = {
+      fever: 1,
+      high_fever:        answers.high_fever   ? 1 : 0,
+      sudden_onset:      answers.sudden_onset ? 1 : 0,
+      headache:          answers.headache      ? 1 : 0,
+      severe_headache:   answers.headache      ? 1 : 0,  // proxy
+      chills:            answers.chills        ? 1 : 0,
+      sweating:          answers.chills        ? 1 : 0,  // often co-occurs
+      body_pain:         answers.joint_pain    ? 1 : 0,
+      muscle_pain:       answers.joint_pain    ? 1 : 0,
+      joint_pain:        answers.joint_pain    ? 1 : 0,
+      severe_joint_pain: answers.severe_joint_pain ? 1 : 0,
+      pain_behind_eyes:  answers.pain_behind_eyes  ? 1 : 0,
+      rash:              answers.rash           ? 1 : 0,
+      nausea:            answers.nausea         ? 1 : 0,
+      vomiting:          answers.nausea         ? 1 : 0,
+      abdominal_pain:    answers.abdominal_pain ? 1 : 0,
+      diarrhea:          0,
+      constipation:      0,
+      cough:             answers.cough_throat   ? 1 : 0,
+      sore_throat:       answers.cough_throat   ? 1 : 0,
+      runny_nose:        answers.cough_throat   ? 1 : 0,
+      fatigue:           answers.fatigue        ? 1 : 0,
+      weakness:          answers.fatigue        ? 1 : 0,
+      swollen_lymph_nodes: 0,
+      loss_of_appetite:  0,
+    };
+    const red = {
+      bleeding:           answers.red_flags || false,
+      severe_abdominal_pain: answers.red_flags || false,
+      confusion:          answers.red_flags || false,
+      breathing_difficulty: answers.red_flags || false,
+      fainting:           answers.red_flags || false,
+    };
+    return { symptoms: sym, red_flags: red };
+  };
+
+  // ── Fever: submit to API and render result ───────────────────────────────
+  const submitFeverAssessment = async (answers) => {
+    setIsTyping(true);
+    try {
+      const payload = buildFeverPayload(answers);
+      const res = await fetch("/api/fever/assess", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+
+      let resultText = "";
+
+      if (data.red_flag_alert) {
+        resultText =
+          `## ⚠️ URGENT WARNING\n\n` +
+          `${data.red_flag_message}\n\n` +
+          `**Warning signs detected:** ${data.red_flags_detected?.join(", ")}\n\n` +
+          `Please call emergency services or go to the nearest hospital immediately.`;
+      } else if (data.success && data.top_ranking) {
+        const top = data.top_ranking;
+        const explain = data.primary_explanation || [];
+        const pct = (s) => `${Math.round(s * 100)}%`;
+
+        resultText =
+          `## 🌡️ Fever Differential Assessment\n\n` +
+          `**Model ranking based on your symptoms:**\n\n` +
+          `| Rank | Condition | Model Score |\n` +
+          `|------|-----------|-------------|\n` +
+          top.map((r) =>
+            `| #${r.rank} | ${r.label} | ${pct(r.score)} |`
+          ).join("\n") +
+          `\n\n---\n\n` +
+          `**Why ${top[0]?.disease || "this"} was ranked #1:**\n\n` +
+          (explain.length > 0
+            ? explain.map((b) => `• ${b}`).join("\n")
+            : "• Based on overall symptom pattern") +
+          `\n\n---\n\n` +
+          `**⚕️ Important:** ${data.disclaimer}\n\n` +
+          `**Next step:** ${data.recommended_action}`;
+      } else {
+        resultText = data.message || "Could not complete the fever assessment. Please ensure the AI server is running.";
+      }
+
+      setMessages((prev) => [
+        ...prev,
+        { id: Date.now() + 99, type: "ai", text: resultText, timestamp: new Date() },
+      ]);
+    } catch (err) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now() + 99,
+          type: "ai",
+          text: "Could not reach the fever assessment service. Please make sure the AI server is running on port 8000.",
+          timestamp: new Date(),
+        },
+      ]);
+    } finally {
+      setIsTyping(false);
+      setFeverActive(false);
+      setFeverStep(0);
+      setFeverAnswers({});
+    }
+  };
+
+  // ── Fever: handle one user reply ─────────────────────────────────────────
+  const handleFeverReply = async (userText) => {
+    const step = FEVER_STEPS[feverStep];
+    if (!step) return;
+
+    // Record answer
+    let answer = false;
+    if (step.type === "yesno") {
+      answer = isYes(userText);
+    } else if (step.type === "choice") {
+      answer = parseInt(userText.trim(), 10) || 1;
+    }
+
+    const newAnswers = { ...feverAnswers, [step.key]: answer };
+    setFeverAnswers(newAnswers);
+
+    // Red-flag short-circuit
+    if (step.redFlag && answer === true) {
+      setIsTyping(true);
+      setTimeout(() => {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now() + 50,
+            type: "ai",
+            text:
+              "## ⚠️ URGENT WARNING\n\n" +
+              "You reported one or more serious warning signs.\n\n" +
+              "**Please seek immediate medical attention or call emergency services.**\n\n" +
+              "Do not delay — some of these symptoms may indicate severe dengue, severe malaria, or another medical emergency.",
+            timestamp: new Date(),
+          },
+        ]);
+        setFeverActive(false);
+        setFeverStep(0);
+        setFeverAnswers({});
+        setIsTyping(false);
+      }, 600);
+      return;
+    }
+
+    const nextStep = feverStep + 1;
+
+    if (nextStep >= FEVER_STEPS.length) {
+      // All questions answered — submit
+      await submitFeverAssessment(newAnswers);
+    } else {
+      setFeverStep(nextStep);
+      setTimeout(() => askFeverQuestion(nextStep), 400);
     }
   };
 
@@ -354,22 +631,39 @@ export default function PatientDashboard() {
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
     setAttachments([]);
+
+    // ── FEVER ASSESSMENT MODEL ───────────────────────────────────────────────
+    if (selectedModel.id === "fever-assessment") {
+      if (!feverActive) {
+        // First message kicks off the flow
+        setFeverActive(true);
+        setFeverStep(0);
+        setFeverAnswers({});
+        // Brief acknowledgement then ask step 0
+        const ackMsg = {
+          id: Date.now() + 1,
+          type: "ai",
+          text:
+            "I'll help assess your fever symptoms through a short questionnaire.\n\n" +
+            "This is a **differential assessment** — not a diagnosis. Please answer each question honestly. Let's begin:",
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, ackMsg]);
+        setTimeout(() => askFeverQuestion(0), 600);
+      } else {
+        // Ongoing fever conversation — process the reply
+        await handleFeverReply(currentInput);
+      }
+      return;
+    }
+
+    // ── STANDARD CHAT MODELS ────────────────────────────────────────────────
     setIsTyping(true);
-
     try {
-      let response;
-      let aiMessageText = "";
-      let returnedSessionId = null;
-
-      /*
-        Send to /api/chat which now delegates to TriageService and persists to triage_sessions + triage_messages
-      */
-      response = await fetch("/api/chat", {
+      const response = await fetch("/api/chat", {
         method: "POST",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           prompt: currentInput,
           triageSessionId: activeTriageSessionId,
@@ -377,43 +671,28 @@ export default function PatientDashboard() {
         }),
       });
 
-      if (!response.ok) {
-        throw new Error(`API error: ${response.statusText}`);
-      }
+      if (!response.ok) throw new Error(`API error: ${response.statusText}`);
 
       const data = await response.json();
-      returnedSessionId = data?.data?.triageSessionId || data?.triageSessionId;
+      const returnedSessionId = data?.data?.triageSessionId || data?.triageSessionId;
+      if (returnedSessionId) setActiveTriageSessionId(returnedSessionId);
 
-      if (returnedSessionId) {
-        setActiveTriageSessionId(returnedSessionId);
-      }
-
-      aiMessageText = data?.data?.reply
+      const aiMessageText = data?.data?.reply
         ?.replace(/<\/?[Aa]nswer>\s*/g, "")
         ?.replace(/^[\s]*[Aa]nswer[\s]*:[\s]*/gm, "")
         ?.replace(/<[^>]*>/g, "")
         ?.replace(/\n{3,}/g, "\n\n")
         ?.trim();
 
-      const aiMessage = {
-        id: Date.now() + 1,
-        type: "ai",
-        text: aiMessageText || "No response generated",
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, aiMessage]);
-    } catch (error) {
-      console.error("AI Chat Error:", error);
-
       setMessages((prev) => [
         ...prev,
-        {
-          id: Date.now() + 1,
-          type: "ai",
-          text: "AI service is currently unavailable. Please try again later.",
-          timestamp: new Date(),
-        },
+        { id: Date.now() + 1, type: "ai", text: aiMessageText || "No response generated", timestamp: new Date() },
+      ]);
+    } catch (error) {
+      console.error("AI Chat Error:", error);
+      setMessages((prev) => [
+        ...prev,
+        { id: Date.now() + 1, type: "ai", text: "AI service is currently unavailable. Please try again later.", timestamp: new Date() },
       ]);
     } finally {
       setIsTyping(false);
@@ -553,11 +832,19 @@ export default function PatientDashboard() {
                                 onClick={() => {
                                   setSelectedModel(model);
                                   setShowModelMenu(false);
+                                  // Reset fever flow when switching models
+                                  if (model.id !== "fever-assessment") {
+                                    setFeverActive(false);
+                                    setFeverStep(0);
+                                    setFeverAnswers({});
+                                  }
                                 }}
                               >
                                 <div className={styles.modelIconWrapper}>
                                   {model.icon ? (
                                     <img src={model.icon} alt={model.name} />
+                                  ) : model.emoji ? (
+                                    <span style={{ fontSize: "18px" }}>{model.emoji}</span>
                                   ) : (
                                     <span>{model.name.charAt(0)}</span>
                                   )}
