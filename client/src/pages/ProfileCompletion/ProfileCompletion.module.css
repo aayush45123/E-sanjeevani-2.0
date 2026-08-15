@@ -19,6 +19,17 @@
   align-items: flex-start;
 }
 
+@media (max-width: 1280px) {
+  .contentArea { margin-left: 220px; width: calc(100% - 220px); }
+}
+@media (max-width: 1024px) {
+  .contentArea { margin-left: 200px; width: calc(100% - 200px); }
+}
+@media (max-width: 768px) {
+  .contentArea { margin-left: 0; width: 100%; padding: 60px 16px 24px; }
+}
+
+
 .pageContainer {
   width: 100%;
   max-width: 768px; /* Narrower for better reading line-length */

@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
+import { FiMenu, FiX } from "react-icons/fi";
 import {
   FiGrid,
   FiCalendar,
@@ -58,7 +59,17 @@ export default function DoctorSidebar({
   isProfileIncomplete = false,
 }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [collapsed, setCollapsed] = useState({});
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => { setIsOpen(false); }, [location.pathname]);
+
+  useEffect(() => {
+    if (isOpen) document.body.style.overflow = "hidden";
+    else document.body.style.overflow = "";
+    return () => { document.body.style.overflow = ""; };
+  }, [isOpen]);
 
   const toggleSection = (label) =>
     setCollapsed((prev) => ({ ...prev, [label]: !prev[label] }));
@@ -97,9 +108,22 @@ export default function DoctorSidebar({
     : "DR";
 
   return (
-    <aside
-      className={`${styles.sidebar} ${isProfileIncomplete ? styles.locked : ""}`}
-    >
+    <>
+      <button
+        className={styles.hamburger}
+        onClick={() => setIsOpen((o) => !o)}
+        aria-label={isOpen ? "Close menu" : "Open menu"}
+      >
+        {isOpen ? <FiX size={18} /> : <FiMenu size={18} />}
+      </button>
+      <div
+        className={`${styles.backdrop} ${isOpen ? styles.visible : ""}`}
+        onClick={() => setIsOpen(false)}
+        aria-hidden="true"
+      />
+      <aside
+        className={`${styles.sidebar} ${isProfileIncomplete ? styles.locked : ""} ${isOpen ? styles.open : ""}`}
+      >
       {/* Profile Incomplete Banner */}
       {isProfileIncomplete && (
         <div className={styles.lockBanner}>
@@ -195,6 +219,7 @@ export default function DoctorSidebar({
           <span>Logout</span>
         </button>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }

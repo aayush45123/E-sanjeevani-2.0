@@ -7,12 +7,23 @@
 .scheduleContainer {
   display: flex;
   min-height: 100vh;
-  width: calc(100% - 230px);
-  margin-left: 230px;
+  width: calc(100% - 240px);
+  margin-left: 240px;
   background: #ffffff;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   color: #111827;
 }
+
+@media (max-width: 1280px) {
+  .scheduleContainer { width: calc(100% - 220px); margin-left: 220px; }
+}
+@media (max-width: 1024px) {
+  .scheduleContainer { width: calc(100% - 200px); margin-left: 200px; }
+}
+@media (max-width: 768px) {
+  .scheduleContainer { width: 100%; margin-left: 0; padding-top: 52px; }
+}
+
 
 .scheduleContent {
   flex: 1;
@@ -379,7 +390,7 @@
 
 @media (max-width: 768px) {
   .scheduleContent {
-    padding: 24px;
+    padding: 16px;
     margin-left: 0;
     width: 100%;
   }
@@ -403,3 +414,13 @@
     overflow-x: auto;
   }
 }
+
+@media (max-width: 480px) {
+  .scheduleContent {
+    padding: 12px;
+  }
+  .ghostStatsContainer {
+    flex-direction: column;
+    gap: 12px;
+  }
+}

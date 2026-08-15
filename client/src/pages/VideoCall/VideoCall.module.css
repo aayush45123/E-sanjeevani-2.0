@@ -1404,12 +1404,20 @@
 }
 
 @media (max-width: 768px) {
+  .callLayout {
+    margin-left: 0 !important;
+    padding-top: 48px;
+  }
   .clinicalPanel {
     width: 100%;
     min-width: 100%;
     max-width: 100%;
   }
+  .topBar {
+    padding: 0 12px;
+  }
 }
+
 
 
 /* ────────────────────────────────────────

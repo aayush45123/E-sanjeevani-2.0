@@ -14,6 +14,16 @@
   color: #111827;
 }
 
+@media (max-width: 1280px) {
+  .dashboardLayout { width: calc(100% - 220px); margin-left: 220px; }
+}
+@media (max-width: 1024px) {
+  .dashboardLayout { width: calc(100% - 200px); margin-left: 200px; }
+}
+@media (max-width: 768px) {
+  .dashboardLayout { width: 100%; margin-left: 0; padding-top: 52px; }
+}
+
 .mainContent {
   flex: 1;
   background: #ffffff;
@@ -553,49 +563,35 @@
 ========================================= */
 
 @media (max-width: 1200px) {
-  .statsRow {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .mainGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .rightCol {
-    grid-template-columns: 1fr;
-  }
+  .pageHeader { padding: 24px 24px 16px; }
+  .statsGrid { grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 24px 24px 0; }
+  .statsRow { grid-template-columns: repeat(2, 1fr); }
+  .mainGrid { grid-template-columns: 1fr; }
+  .rightCol { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 768px) {
   .pageHeader {
     flex-direction: column;
     align-items: flex-start;
-    gap: 16px;
+    gap: 12px;
+    padding: 16px;
   }
-
-  .headerRight {
-    width: 100%;
-  }
-
-  .pageHeader,
-  .contentGrid {
-    padding: 20px;
-  }
-
-  .statsRow {
-    grid-template-columns: 1fr;
-  }
-
-  .appointmentRow,
-  .patientRow {
-    flex-wrap: wrap;
-  }
-
-  .mainGrid {
-    gap: 18px;
-  }
-
-  .pageTitle {
-    font-size: 24px;
-  }
+  .headerRight { width: 100%; }
+  .contentGrid { padding: 16px; }
+  .statsGrid { grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 16px 16px 0; }
+  .statsRow { grid-template-columns: 1fr; }
+  .statCard { padding: 16px; }
+  .tableContainer { overflow-x: auto; }
+  .appointmentRow, .patientRow { flex-wrap: wrap; }
+  .mainGrid { gap: 18px; }
+  .pageTitle { font-size: 24px; }
 }
+
+@media (max-width: 480px) {
+  .statsGrid { grid-template-columns: 1fr; }
+  .statCard { padding: 12px; }
+  .pageHeader { padding: 12px; }
+  .contentGrid { padding: 12px; }
+}
+

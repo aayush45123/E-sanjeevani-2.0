@@ -1,5 +1,38 @@
 /* Sidebar.module.css — Patient sidebar, clean white */
 
+/* ── Hamburger trigger (mobile only) ─────────── */
+.hamburger {
+  display: none;
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 201;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: background var(--duration-fast) var(--ease);
+}
+.hamburger:hover { background: var(--bg-subtle); }
+.hamburger svg { pointer-events: none; }
+
+/* ── Backdrop ─────────────────────────────────── */
+.backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  z-index: 199;
+  backdrop-filter: blur(2px);
+}
+.backdrop.visible { display: block; }
+
+/* ── Core sidebar ─────────────────────────────── */
 .sidebar {
   width: var(--sidebar-width, 240px);
   min-width: var(--sidebar-width, 240px);
@@ -11,10 +44,11 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
-  z-index: 100;
+  z-index: 200;
   font-family: var(--font);
   overflow-y: auto;
   overflow-x: hidden;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* ── Header / Logo ───────────────────────────── */
@@ -212,16 +246,33 @@
 .sidebar::-webkit-scrollbar { width: 0; }
 
 /* ── Responsive ──────────────────────────────── */
+@media (max-width: 1280px) {
+  .sidebar { width: 220px; min-width: 220px; }
+}
+
 @media (max-width: 1024px) {
   .sidebar { width: 200px; min-width: 200px; }
 }
 
 @media (max-width: 768px) {
+  .hamburger { display: flex; }
+
   .sidebar {
+    width: 260px;
+    min-width: 260px;
     transform: translateX(-100%);
-    transition: transform var(--duration-slow) var(--ease-out);
+    z-index: 200;
     box-shadow: var(--shadow-xl);
   }
 
-  .sidebar.open { transform: translateX(0); }
+  .sidebar.open {
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar {
+    width: 100vw;
+    min-width: 0;
+  }
 }

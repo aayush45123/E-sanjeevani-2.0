@@ -14,6 +14,17 @@
   min-width: 0;
 }
 
+@media (max-width: 1280px) {
+  .mainContent { margin-left: 220px; }
+}
+@media (max-width: 1024px) {
+  .mainContent { margin-left: 200px; }
+}
+@media (max-width: 768px) {
+  .mainContent { margin-left: 0; padding: 60px 16px 24px; }
+}
+
+
 .contentWrapper {
   display: flex;
   flex-direction: column;

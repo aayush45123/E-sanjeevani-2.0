@@ -9,6 +9,22 @@
   overflow: hidden;
 }
 
+@media (max-width: 1280px) {
+  .dashboardLayout { width: calc(100vw - 220px); margin-left: 220px; }
+}
+
+@media (max-width: 1024px) {
+  .dashboardLayout { width: calc(100vw - 200px); margin-left: 200px; }
+}
+
+@media (max-width: 768px) {
+  .dashboardLayout {
+    width: 100vw;
+    margin-left: 0;
+    padding-top: 52px; /* space for hamburger */
+  }
+}
+
 .mainContent {
   flex: 1;
   display: flex;
@@ -522,7 +538,7 @@
   }
 
   .greeting {
-    font-size: 24px;
+    font-size: 22px;
   }
 
   .messagesContainer {
@@ -530,12 +546,18 @@
   }
 
   .chatInputWrapper {
-    padding: 16px;
+    padding: 12px;
   }
 
   .messageWrapper {
-    max-width: 90%;
+    max-width: 95%;
   }
+}
+
+@media (max-width: 480px) {
+  .greeting { font-size: 18px; }
+  .chatInputWrapper { padding: 8px; }
+  .messageWrapper { max-width: 100%; }
 }
 
 /* ...existing code... */

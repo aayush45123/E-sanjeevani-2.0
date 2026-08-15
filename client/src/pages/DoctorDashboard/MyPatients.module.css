@@ -7,6 +7,17 @@
   margin-left: 240px;
 }
 
+@media (max-width: 1280px) {
+  .dashboardLayout { margin-left: 220px; }
+}
+@media (max-width: 1024px) {
+  .dashboardLayout { margin-left: 200px; }
+}
+@media (max-width: 768px) {
+  .dashboardLayout { margin-left: 0; padding-top: 52px; }
+}
+
+
 .mainContent {
   flex: 1;
   padding: 40px;

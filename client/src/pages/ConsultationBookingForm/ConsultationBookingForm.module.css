@@ -7,11 +7,23 @@
 .dashboardLayout {
   display: flex;
   min-height: 100vh;
-  width: 100%;
+  width: calc(100% - 240px);
+  margin-left: 240px;
   background: #fafafa;
   font-family: var(--font-primary, system-ui, -apple-system, sans-serif);
   color: #111827;
 }
+
+@media (max-width: 1280px) {
+  .dashboardLayout { width: calc(100% - 220px); margin-left: 220px; }
+}
+@media (max-width: 1024px) {
+  .dashboardLayout { width: calc(100% - 200px); margin-left: 200px; }
+}
+@media (max-width: 768px) {
+  .dashboardLayout { width: 100%; margin-left: 0; padding-top: 52px; }
+}
+
 
 .mainContent {
   flex: 1;
