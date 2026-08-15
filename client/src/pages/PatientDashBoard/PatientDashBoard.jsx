@@ -18,7 +18,7 @@ import TriageHistory from "../../components/TriageHistory/TriageHistory";
 import TriageDetailView from "../../components/TriageDetailView/TriageDetailView";
 import NotificationService from "../../utils/notificationService";
 import styles from "./PatientDashBoard.module.css";
-import { authApi } from "../../utils/api";
+import { authApi, apiClient } from "../../utils/api";
 import { performLogout } from "../../utils/auth";
 
 // ─── Tight Markdown renderer ────────────────────────────────────────────────
@@ -464,13 +464,8 @@ const SOCKET_URL =
     setIsTyping(true);
     try {
       const payload = buildFeverPayload(answers);
-      const res = await fetch("/api/fever/assess", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
+      const res = await apiClient.post("/fever/assess", payload);
+      const data = res.data;
 
       let resultText = "";
 
@@ -481,6 +476,8 @@ const SOCKET_URL =
           `**Warning signs detected:** ${data.red_flags_detected?.join(", ")}\n\n` +
           `Please call emergency services or go to the nearest hospital immediately.`;
       } else if (data.success && data.top_ranking) {
+        const top = data.top_ranking;
+        const explain = data.primary_explanation || [];
         const topDiseaseName = (top[0]?.disease || "Fever-like illness").replace(/_/g, " ");
 
         resultText =
@@ -507,7 +504,7 @@ const SOCKET_URL =
         {
           id: Date.now() + 99,
           type: "ai",
-          text: "Could not reach the fever assessment service. Please make sure the AI server is running on port 8000.",
+          text: err.response?.data?.message || "Could not reach the fever assessment service. Please make sure the AI server is running.",
           timestamp: new Date(),
         },
       ]);
@@ -575,12 +572,10 @@ const SOCKET_URL =
   const handleSelectTriageSession = async (sessionId) => {
     if (!sessionId) return;
     try {
-      const response = await fetch(`/api/triage/history/${sessionId}`, {
-        credentials: "include",
-      });
-      const data = await response.json();
+      const response = await apiClient.get(`/triage/history/${sessionId}`);
+      const data = response.data;
 
-      if (response.ok && data.triageSession) {
+      if (data.triageSession) {
         const session = data.triageSession;
         setActiveTriageSessionId(session.id);
 
@@ -653,20 +648,13 @@ const SOCKET_URL =
     // ── STANDARD CHAT MODELS ────────────────────────────────────────────────
     setIsTyping(true);
     try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          prompt: currentInput,
-          triageSessionId: activeTriageSessionId,
-          model: selectedModel.id,
-        }),
+      const response = await apiClient.post("/chat", {
+        prompt: currentInput,
+        triageSessionId: activeTriageSessionId,
+        model: selectedModel.id,
       });
 
-      if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-
-      const data = await response.json();
+      const data = response.data;
       const returnedSessionId = data?.data?.triageSessionId || data?.triageSessionId;
       if (returnedSessionId) setActiveTriageSessionId(returnedSessionId);
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import styles from "./TriageHistory.module.css";
+import { apiClient } from "../../utils/api";
 
 const TriageHistory = ({ onSelectTriage, onDeleteTriage, activeSessionId }) => {
   const [triageHistory, setTriageHistory] = useState([]);
@@ -29,20 +30,10 @@ const TriageHistory = ({ onSelectTriage, onDeleteTriage, activeSessionId }) => {
 
   const fetchTriageHistory = async () => {
     try {
-      const response = await fetch("/api/triage/history", {
-        credentials: "include",
-        headers: {},
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setTriageHistory(data.triageHistory || []);
-      } else {
-        console.error("Error fetching triage history:", data.message);
-      }
+      const response = await apiClient.get("/triage/history");
+      setTriageHistory(response.data.triageHistory || []);
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error fetching triage history:", error);
     } finally {
       setIsLoading(false);
     }
@@ -53,20 +44,12 @@ const TriageHistory = ({ onSelectTriage, onDeleteTriage, activeSessionId }) => {
     if (!window.confirm("Are you sure you want to delete this triage conversation?")) return;
 
     try {
-      const response = await fetch(`/api/triage/history/${sessionId}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-
-      if (response.ok) {
-        setTriageHistory((prev) => prev.filter((item) => (item._id || item.id) !== sessionId));
-        if (onDeleteTriage) onDeleteTriage(sessionId);
-      } else {
-        const data = await response.json();
-        alert(data.message || "Failed to delete triage session");
-      }
+      await apiClient.delete(`/triage/history/${sessionId}`);
+      setTriageHistory((prev) => prev.filter((item) => (item._id || item.id) !== sessionId));
+      if (onDeleteTriage) onDeleteTriage(sessionId);
     } catch (error) {
       console.error("Error deleting session:", error);
+      alert(error.response?.data?.message || "Failed to delete triage session");
     }
   };
 

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import styles from "./AiTriage.module.css";
+import { apiClient } from "../../utils/api";
 
 const AiTriage = () => {
   const [step, setStep] = useState("symptoms"); // symptoms, medical, review, response
@@ -42,36 +43,21 @@ const AiTriage = () => {
 
     setIsLoading(true);
     try {
-      const response = await fetch("/api/triage/create", {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          symptoms,
-          medicalHistory,
-          currentMedications,
-          allergies,
-          additionalNotes,
-        }),
+      const response = await apiClient.post("/triage/create", {
+        symptoms,
+        medicalHistory,
+        currentMedications,
+        allergies,
+        additionalNotes,
       });
 
-      const data = await response.json();
-      console.log("📥 Response:", response.status, data);
-
-      if (response.ok) {
-        console.log("✅ Triage session created:", data.triageSessionId);
-        setTriageSessionId(data.triageSessionId);
-        setStep("review");
-      } else {
-        const errorMsg = data.message || `Error: ${response.status}`;
-        console.error("❌ Failed:", errorMsg);
-        alert(errorMsg);
-      }
+      console.log("✅ Triage session created:", response.data.triageSessionId);
+      setTriageSessionId(response.data.triageSessionId);
+      setStep("review");
     } catch (error) {
-      console.error("❌ Network error:", error);
-      alert("Error creating triage session: " + error.message);
+      const errorMsg = error.response?.data?.message || error.message;
+      console.error("❌ Failed:", errorMsg);
+      alert("Error creating triage session: " + errorMsg);
     } finally {
       setIsLoading(false);
     }
@@ -80,25 +66,12 @@ const AiTriage = () => {
   const handleProcessTriage = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/triage/process/${triageSessionId}`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setTriageResponse(data);
-        setStep("response");
-      } else {
-        alert(data.message || "Error processing triage");
-      }
+      const response = await apiClient.post(`/triage/process/${triageSessionId}`);
+      setTriageResponse(response.data);
+      setStep("response");
     } catch (error) {
       console.error("Error:", error);
-      alert("Error processing triage");
+      alert(error.response?.data?.message || "Error processing triage");
     } finally {
       setIsLoading(false);
     }

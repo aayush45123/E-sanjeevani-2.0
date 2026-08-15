@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import styles from "./TriageDetailView.module.css";
+import { apiClient } from "../../utils/api";
 
 const TriageDetailView = ({ triageSessionId, onClose }) => {
   const [triageDetails, setTriageDetails] = useState(null);
@@ -15,21 +16,11 @@ const TriageDetailView = ({ triageSessionId, onClose }) => {
   const fetchTriageDetails = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/triage/details/${triageSessionId}`, {
-        credentials: "include",
-        headers: {},
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setTriageDetails(data.triageSession);
-      } else {
-        setError(data.message || "Error fetching details");
-      }
+      const response = await apiClient.get(`/triage/details/${triageSessionId}`);
+      setTriageDetails(response.data.triageSession);
     } catch (error) {
       console.error("Error:", error);
-      setError("Error fetching triage details");
+      setError(error.response?.data?.message || "Error fetching triage details");
     } finally {
       setIsLoading(false);
     }

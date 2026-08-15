@@ -1,14 +1,14 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import io from "socket.io-client";
-import { consultationApi, medicalRecordApi } from "../../utils/api";
+import { consultationApi, medicalRecordApi, apiClient } from "../../utils/api";
 import NotificationService from "../../utils/notificationService";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
 import styles from "./VideoCall.module.css";
 
 const SOCKET_URL =
-    import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "");
+  import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "") || "https://e-sanjeevani-2-0.onrender.com";
 
   
 export default function VideoCall() {
@@ -82,17 +82,13 @@ export default function VideoCall() {
   */
   const loadChatHistory = async () => {
     try {
-      const response = await fetch(
-        `/api/chat/consultation/${consultationId}/messages`,
-        {
-          credentials: "include",
-          headers: {},
-        },
+      const response = await apiClient.get(
+        `/chat/consultation/${consultationId}/messages`
       );
 
-      const data = await response.json();
+      const data = response.data;
 
-      if (response.ok && data.data) {
+      if (data && data.data) {
         const formattedMessages = data.data.map((msg) => ({
           id: msg._id,
           sender:
@@ -117,17 +113,10 @@ export default function VideoCall() {
   */
   const saveMessageToBackend = async (text, senderName) => {
     try {
-      await fetch(`/api/chat/consultation/${consultationId}/save`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          consultationId,
-          text,
-          senderName,
-        }),
+      await apiClient.post(`/chat/consultation/${consultationId}/save`, {
+        consultationId,
+        text,
+        senderName,
       });
     } catch (error) {
       console.error("Error saving message:", error);
@@ -305,18 +294,12 @@ export default function VideoCall() {
       if (userRole !== "doctor") return;
 
       try {
-        const response = await fetch(
-          `/api/doctor-assistant/${consultationId}`,
-          {
-            credentials: "include",
-            headers: {},
-          },
+        const response = await apiClient.get(
+          `/doctor-assistant/${consultationId}`
         );
 
-        const data = await response.json();
-
-        if (data.success) {
-          setDoctorAssistantData(data.data);
+        if (response.data?.success) {
+          setDoctorAssistantData(response.data.data);
         }
       } catch (error) {
         console.error("Doctor Assistant Error:", error);
@@ -373,17 +356,11 @@ export default function VideoCall() {
               `📍 Successfully joined room ${roomId}. Users in room: ${usersInRoom}`,
             );
 
-            fetch(`/api/consultations/${consultationId}/mark-joined`, {
-              method: "POST",
-              credentials: "include",
-              headers: {
-                "Content-Type": "application/json",
-              },
-            })
-              .then((res) => res.json())
-              .then((data) => {
-                if (data.success) {
-                  console.log("✅ User marked as joined:", data.consultation);
+            apiClient
+              .post(`/consultations/${consultationId}/mark-joined`)
+              .then((res) => {
+                if (res.data?.success) {
+                  console.log("✅ User marked as joined:", res.data.consultation);
                 }
               })
               .catch((error) =>
@@ -592,14 +569,8 @@ Urgency: ${doctorAssistantData?.latestAITriage?.urgency || ""}
 Recommended Specialist: ${doctorAssistantData?.latestAITriage?.doctorType || ""}
 `;
 
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          prompt: `
+      const response = await apiClient.post("/chat", {
+        prompt: `
 You are a medical AI assistant helping a doctor during live consultation.
 
 Patient Information:
@@ -616,11 +587,10 @@ Provide:
 5. Next steps
 
 Give a professional doctor-level response.
-          `,
-        }),
+        `,
       });
 
-      const data = await response.json();
+      const data = response.data;
 
       if (data?.data?.reply) {
         setDoctorAiReply(data.data.reply);

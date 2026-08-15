@@ -18,7 +18,7 @@ import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
 import NotificationService from "../../utils/notificationService";
 import { useNavigate } from "react-router-dom";
 import styles from "./DoctorDashboard.module.css";
-import { authApi, consultationApi } from "../../utils/api";
+import { authApi, consultationApi, apiClient } from "../../utils/api";
 import { performLogout } from "../../utils/auth";
 
 export default function DoctorDashboard({ isProfileIncomplete = false }) {
@@ -229,38 +229,24 @@ const SOCKET_URL =
             `📤 Sending request for ${consultation.patient?.name}: "${symptomsText.substring(0, 50)}..."`,
           );
 
-          const response = await fetch(
-            "/api/ai-triage/predict",
+          const response = await apiClient.post(
+            "/ai-triage/predict",
             {
-              method: "POST",
-              credentials: "include",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                userId: consultation.patient?._id,
-                message: symptomsText,
-              }),
-            },
+              userId: consultation.patient?._id,
+              message: symptomsText,
+            }
           );
 
-          if (response.ok) {
-            const data = await response.json();
-            console.log(
-              `✅ Received urgency for ${consultation.patient?.name}:`,
-              data.data?.urgency,
-            );
-            newUrgencyMap[consultation._id] = {
-              urgency: data.data?.urgency || "medium",
-              predictedDisease: data.data?.predictedDisease,
-              doctorType: data.data?.doctorType,
-            };
-          } else {
-            console.error(
-              `❌ API returned ${response.status} for consultation ${consultation._id}`,
-            );
-            newUrgencyMap[consultation._id] = { urgency: "medium" };
-          }
+          const data = response.data;
+          console.log(
+            `✅ Received urgency for ${consultation.patient?.name}:`,
+            data.data?.urgency,
+          );
+          newUrgencyMap[consultation._id] = {
+            urgency: data.data?.urgency || "medium",
+            predictedDisease: data.data?.predictedDisease,
+            doctorType: data.data?.doctorType,
+          };
         } catch (err) {
           console.error(
             `❌ Error fetching urgency for consultation ${consultation._id}:`,
