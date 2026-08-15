@@ -7,8 +7,10 @@ import Sidebar from "../../components/Sidebar/Sidebar";
 import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
 import styles from "./VideoCall.module.css";
 
-const SOCKET_URL = "http://localhost:5000";
+const SOCKET_URL =
+    import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "");
 
+  
 export default function VideoCall() {
   const { consultationId } = useParams();
   const navigate = useNavigate();

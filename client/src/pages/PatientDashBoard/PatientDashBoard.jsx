@@ -372,8 +372,9 @@ export default function PatientDashboard() {
 
   // ── Socket listener for consultation notifications ───────────────────────
   useEffect(() => {
-    const SOCKET_URL = "http://localhost:5000";
-    const socket = io(SOCKET_URL, { transports: ["websocket"] });
+const SOCKET_URL =
+    import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "");
+        const socket = io(SOCKET_URL, { transports: ["websocket"] });
 
     socket.on(
       "participant-waiting",
