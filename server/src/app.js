@@ -34,18 +34,43 @@ MIDDLEWARE
 ==================================================
 */
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:5175",
+  "http://localhost:5176",
+  "http://127.0.0.1:5173",
+  "http://127.0.0.1:5174",
+  "http://127.0.0.1:5175",
+  "http://127.0.0.1:5176",
+  "https://e-sanjeevani-2-0.vercel.app",
+];
+
+if (process.env.CLIENT_URL) {
+  const customClientUrl = process.env.CLIENT_URL.replace(/\/$/, "");
+  if (!allowedOrigins.includes(customClientUrl)) {
+    allowedOrigins.push(customClientUrl);
+  }
+}
+
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "http://localhost:5174",
-      "http://127.0.0.1:5173",
-      "http://127.0.0.1:5174",
-      "http://localhost:5175",
-      "http://localhost:5176",
-      "http://127.0.0.1:5175",
-      "http://127.0.0.1:5176",
-    ],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, Postman, server-to-server)
+      if (!origin) return callback(null, true);
+
+      if (
+        allowedOrigins.includes(origin) ||
+        /\.vercel\.app$/.test(origin) ||
+        origin.startsWith("http://localhost:") ||
+        origin.startsWith("http://127.0.0.1:")
+      ) {
+        return callback(null, true);
+      }
+
+      console.warn(`[CORS Blocked] Origin: ${origin}`);
+      return callback(new Error("CORS Policy Violation: Origin not allowed"), false);
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "x-refresh-token"],
