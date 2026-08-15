@@ -5,6 +5,7 @@ import { consultationApi, medicalRecordApi, apiClient } from "../../utils/api";
 import NotificationService from "../../utils/notificationService";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
+import { VideoCallSkeleton } from "../../components/Skeletons";
 import styles from "./VideoCall.module.css";
 
 const SOCKET_URL =
@@ -725,6 +726,10 @@ Give a professional doctor-level response.
   };
 
   const sidebarWidth = userRole === "doctor" ? 230 : 260;
+
+  if (callStatus === "connecting") {
+    return <VideoCallSkeleton />;
+  }
 
   return (
     <div className={styles.root}>

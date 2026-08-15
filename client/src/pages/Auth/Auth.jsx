@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./Auth.module.css";
 import { authApi } from "../../utils/api";
+import { AuthSkeleton } from "../../components/Skeletons";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -141,6 +142,10 @@ const Auth = () => {
   UI
   ==================================================
   */
+
+  if (loading) {
+    return <AuthSkeleton />;
+  }
 
   return (
     <div className={styles.pageWrapper}>

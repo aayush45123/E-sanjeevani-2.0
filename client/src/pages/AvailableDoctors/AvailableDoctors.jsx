@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { AvailableDoctorsSkeleton } from "../../components/Skeletons";
+
 import { Search, MapPin, Video, Phone, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar/Sidebar";
@@ -103,6 +105,10 @@ export default function AvailableDoctors() {
       state: { doctor },
     });
   };
+
+  if (loading) {
+    return <AvailableDoctorsSkeleton />;
+  }
 
   return (
     <div className={styles.dashboardLayout}>

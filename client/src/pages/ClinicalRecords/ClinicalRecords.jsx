@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { ClinicalRecordsSkeleton } from "../../components/Skeletons";
 import {
   FileText,
   Plus,
@@ -60,6 +61,10 @@ export default function ClinicalRecords() {
       hosp.toLowerCase().includes(q)
     );
   });
+
+  if (loading) {
+    return <ClinicalRecordsSkeleton />;
+  }
 
   return (
     <div className={styles.dashboardLayout}>

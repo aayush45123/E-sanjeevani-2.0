@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { ConsultedDoctorsSkeleton } from "../../components/Skeletons";
+
 import {
   Search,
   Calendar,
@@ -84,6 +86,10 @@ export default function ConsultedDoctors() {
       state: { doctor },
     });
   };
+
+  if (loading) {
+    return <ConsultedDoctorsSkeleton />;
+  }
 
   return (
     <div className={styles.layoutContainer}>

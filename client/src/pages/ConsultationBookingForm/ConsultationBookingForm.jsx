@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { ConsultationBookingSkeleton } from "../../components/Skeletons";
 import { useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import styles from "./ConsultationBookingForm.module.css";
@@ -93,6 +94,10 @@ export default function ConsultationBookingForm() {
   };
 
   if (!doctor) return null;
+
+  if (loading) {
+    return <ConsultationBookingSkeleton />;
+  }
 
   return (
     <div className={styles.dashboardLayout}>

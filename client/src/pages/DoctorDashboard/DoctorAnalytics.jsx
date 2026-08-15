@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { DoctorAnalyticsSkeleton } from "../../components/Skeletons";
+
 import { useNavigate } from "react-router-dom";
 import {
   FiLoader,
@@ -107,18 +109,7 @@ export default function DoctorAnalytics({ isProfileIncomplete = false }) {
   };
 
   if (loading) {
-    return (
-      <div className={styles.analyticsLayout}>
-        <DoctorSidebar
-          user={user}
-          isProfileIncomplete={isProfileIncomplete}
-          onLogout={handleLogout}
-        />
-        <div className={styles.loadingContainer}>
-          <FiLoader className={styles.spinner} size={32} />
-        </div>
-      </div>
-    );
+    return <DoctorAnalyticsSkeleton />;
   }
 
   if (error) {

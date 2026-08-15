@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { PatientDashboardSkeleton } from "../../components/Skeletons";
 import {
   FiSend,
   FiLoader,
@@ -713,11 +714,7 @@ const SOCKET_URL =
 
   // ── Loading screen ────────────────────────────────────────────────────────
   if (loading) {
-    return (
-      <div className={styles.loadingContainer}>
-        <FiLoader className={styles.spinner} size={24} />
-      </div>
-    );
+    return <PatientDashboardSkeleton />;
   }
 
   // ── Render ────────────────────────────────────────────────────────────────

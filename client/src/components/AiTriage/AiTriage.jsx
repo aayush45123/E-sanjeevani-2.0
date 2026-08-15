@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import styles from "./AiTriage.module.css";
 import { apiClient } from "../../utils/api";
+import { AiTriageSkeleton } from "../Skeletons";
 
 const AiTriage = () => {
   const [step, setStep] = useState("symptoms"); // symptoms, medical, review, response
@@ -83,6 +84,10 @@ const AiTriage = () => {
     if (score >= 4) return "#fbc02d"; // yellow
     return "#388e3c"; // green
   };
+
+  if (isLoading) {
+    return <AiTriageSkeleton />;
+  }
 
   return (
     <div className={styles.container}>

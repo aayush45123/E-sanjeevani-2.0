@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiEdit2, FiCheck } from "react-icons/fi";
+import { DoctorProfileSetupSkeleton } from "../../components/Skeletons";
 import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
 import AddressInput from "../../components/AddressInput/AddressInput";
 import styles from "./DoctorProfileSetup.module.css";
@@ -257,6 +258,10 @@ export default function DoctorProfileSetup({ isProfileIncomplete = true }) {
   };
 
   const handleLogout = () => performLogout();
+
+  if (!profileChecked) {
+    return <DoctorProfileSetupSkeleton />;
+  }
 
   return (
     <div className={styles.dashboardLayout}>

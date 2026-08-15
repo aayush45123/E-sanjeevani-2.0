@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { DoctorProfileEditSkeleton } from "../../components/Skeletons";
 import {
   FiClock,
   FiCalendar,
@@ -491,17 +492,7 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
   })();
 
   if (fetchLoading) {
-    return (
-      <div className={styles.dashboardLayout}>
-        <DoctorSidebar onLogout={handleLogout} />
-        <main className={styles.mainContent}>
-          <div className={styles.loadingContainer}>
-            <div className={styles.loadingSpinner} />
-            <p>Loading workspace...</p>
-          </div>
-        </main>
-      </div>
-    );
+    return <DoctorProfileEditSkeleton />;
   }
 
   return (

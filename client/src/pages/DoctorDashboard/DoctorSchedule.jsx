@@ -257,19 +257,7 @@ export default function DoctorSchedule({ isProfileIncomplete = false }) {
   const handleLogout = () => performLogout();
 
   if (loading) {
-    return (
-      <div className={styles.scheduleContainer}>
-        <DoctorSidebar
-          user={user}
-          isProfileIncomplete={isProfileIncomplete}
-          onLogout={handleLogout}
-        />
-        <div className={styles.loadingContainer}>
-          <FiLoader className={styles.spinner} />
-          <p>Loading schedule...</p>
-        </div>
-      </div>
-    );
+    return <DoctorScheduleSkeleton />;
   }
 
   const weekDates = getWeekDates();

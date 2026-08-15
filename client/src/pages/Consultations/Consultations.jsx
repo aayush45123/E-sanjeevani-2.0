@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { ConsultationsSkeleton } from "../../components/Skeletons";
+
 import {
   FiSearch,
   FiFilter,
@@ -205,6 +207,10 @@ export default function Consultations() {
   };
 
   const { upcoming, history } = separateConsultations();
+
+  if (loading) {
+    return <ConsultationsSkeleton />;
+  }
 
   return (
     <div className={styles.dashboardLayout}>

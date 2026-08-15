@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { MyPatientsSkeleton } from "../../components/Skeletons";
+
 import { useNavigate } from "react-router-dom";
 import {
   FiSearch,
@@ -141,17 +143,7 @@ export default function MyPatients() {
   };
 
   if (loading) {
-    return (
-      <div className={styles.dashboardLayout}>
-        <DoctorSidebar onLogout={handleLogout} />
-        <main className={styles.mainContent}>
-          <div className={styles.loadingContainer}>
-            <FiLoader className={styles.spinner} />
-            <p>Loading patients...</p>
-          </div>
-        </main>
-      </div>
-    );
+    return <MyPatientsSkeleton />;
   }
 
   return (

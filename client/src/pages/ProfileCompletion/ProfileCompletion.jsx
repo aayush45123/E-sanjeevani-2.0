@@ -4,6 +4,7 @@
 // Doctors should use DoctorProfileSetup instead
 
 import React, { useEffect, useState } from "react";
+import { ProfileCompletionSkeleton } from "../../components/Skeletons";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import AddressInput from "../../components/AddressInput/AddressInput";
 import styles from "./ProfileCompletion.module.css";
@@ -138,16 +139,7 @@ const ProfileCompletion = () => {
   };
 
   if (loading) {
-    return (
-      <div className={styles.pageLayout}>
-        <Sidebar />
-        <div className={styles.contentArea}>
-          <div className={styles.loadingBox}>
-            <div className={styles.spinner}></div>
-          </div>
-        </div>
-      </div>
-    );
+    return <ProfileCompletionSkeleton />;
   }
 
   return (

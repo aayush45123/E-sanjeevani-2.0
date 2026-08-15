@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { DoctorDashboardSkeleton } from "../../components/Skeletons";
+
 import {
   FiLoader,
   FiUsers,
@@ -406,11 +408,7 @@ const SOCKET_URL =
   */
 
   if (loading) {
-    return (
-      <div className={styles.loadingContainer}>
-        <FiLoader className={styles.spinner} size={24} />
-      </div>
-    );
+    return <DoctorDashboardSkeleton />;
   }
 
   const progressPercent =
