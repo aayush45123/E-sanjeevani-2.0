@@ -66,17 +66,13 @@ const ProfileCompletion = () => {
               profile.patientAddress || initialFormState.patientAddress,
             patientCoordinates: profile.patientCoordinates || {},
           });
-          setHasProfile(true); // NEW — profile exists, use PATCH later
+          setHasProfile(true);
           setIsEditMode(false);
         } else {
-          setHasProfile(false); // NEW — no profile yet, use POST later
-          setIsEditMode(true); // NEW — put a new user straight into edit mode
+          setHasProfile(false);
+          setIsEditMode(true);
         }
         setIsProfileComplete(complete);
-        if (complete || profile?.isProfileComplete) {
-          navigate("/dashboard", { replace: true });
-          return;
-        }
       } catch (error) {
         console.error("Profile fetch failed:", error);
       } finally {
@@ -119,17 +115,25 @@ const ProfileCompletion = () => {
         patientLongitude: formData.patientCoordinates?.longitude,
       };
 
+      const isInitialSetup = !hasProfile;
+
       if (hasProfile) {
         await apiClient.patch("/patient/profile", submitData);
       } else {
         await apiClient.post("/patient/profile", submitData);
-        setHasProfile(true); // NEW — now that it's created, future saves are PATCH
+        setHasProfile(true);
       }
 
       setIsEditMode(false);
       setIsProfileComplete(true);
       window.dispatchEvent(new Event("profileUpdated"));
-      navigate("/dashboard");
+
+      if (isInitialSetup) {
+        navigate("/dashboard");
+      } else {
+        alert("Profile updated successfully!");
+      }
+
     } catch (error) {
       console.error("Profile save failed:", error);
       alert(error?.response?.data?.message || "Failed to save profile");

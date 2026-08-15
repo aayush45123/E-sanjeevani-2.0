@@ -262,16 +262,13 @@ const App = () => {
           path="/profile-setup"
           element={
             isLoggedIn && userRole === "patient" ? (
-              patientProfileCompleted ? (
-                <Navigate to="/dashboard" replace />
-              ) : (
-                <ProfileCompletion />
-              )
+              <ProfileCompletion />
             ) : (
               <Navigate to={isLoggedIn ? "/dashboard" : "/auth"} replace />
             )
           }
         />
+
 
         {/* DOCTOR PROFILE SETUP */}
 
