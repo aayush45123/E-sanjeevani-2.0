@@ -1,39 +1,15 @@
-# ==============================================================================
-# E-Sanjeevani 2.0 — Fever Differential Assessment Model Requirements
-# ==============================================================================
-# Compatible Python Versions: 3.9, 3.10, 3.11, 3.12
-# Standalone Module Directory: ai-model/fever_model
-#
-# Installation:
-#   pip install -r requirements.txt
-# ==============================================================================
+Flask==3.0.3
+Flask-Cors==4.0.1
+gunicorn==22.0.0
 
-# ------------------------------------------------------------------------------
-# 1. Web API Framework
-# ------------------------------------------------------------------------------
-Flask>=3.0.0,<4.0.0             # REST API micro-framework for fever assessment endpoints
-Flask-Cors>=4.0.0,<5.0.0        # Cross-Origin Resource Sharing (CORS) middleware
+numpy==1.26.4
+pandas==2.2.2
 
-# ------------------------------------------------------------------------------
-# 2. Data Processing & Array Handling
-# ------------------------------------------------------------------------------
-numpy>=1.24.0,<2.0.0            # Array operations and binary vector manipulations
-pandas>=2.0.0,<3.0.0             # Clinical dataset processing and symptom matrix management
+scikit-learn==1.6.1
+joblib==1.4.2
 
-# ------------------------------------------------------------------------------
-# 3. Machine Learning & Model Persistence
-# ------------------------------------------------------------------------------
-scikit-learn>=1.3.0,<1.6.0      # ML classifiers (RandomForest, LogisticRegression, metrics)
-joblib>=1.3.0,<1.5.0            # Serializing trained fever models and label encoders
-xgboost>=1.7.0,<2.2.0           # Gradient boosted trees for model comparison benchmarking
-
-# ------------------------------------------------------------------------------
-# 4. Clinical Explainability & Interpretation
-# ------------------------------------------------------------------------------
-shap>=0.43.0,<0.47.0            # SHapley Additive exPlanations and TreeExplainer support
-
-# ------------------------------------------------------------------------------
-# 5. Visualization & Evaluation Tools
-# ------------------------------------------------------------------------------
-matplotlib>=3.7.0,<4.0.0        # Plotting evaluation graphs, ROC curves, and feature importances
-seaborn>=0.12.0,<0.14.0         # Heatmaps for multi-class fever confusion matrices
+xgboost==2.1.4
+shap==0.46.0
+matplotlib==3.9.2
+seaborn==0.13.2
+nltk==3.9.1
