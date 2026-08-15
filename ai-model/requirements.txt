@@ -1,45 +1,15 @@
-# ==============================================================================
-# E-Sanjeevani 2.0 — Unified AI Model Server Requirements
-# ==============================================================================
-# Compatible Python Versions: 3.9, 3.10, 3.11, 3.12
-# Primary Server Entrypoint: app.py
-#
-# Installation:
-#   pip install -r requirements.txt
-# ==============================================================================
+Flask==3.0.3
+Flask-Cors==4.0.1
+gunicorn==22.0.0
 
-# ------------------------------------------------------------------------------
-# 1. Web API Framework & Production Server
-# ------------------------------------------------------------------------------
-Flask>=3.0.0,<4.0.0             # REST API framework for serving AI model endpoints
-Flask-Cors>=4.0.0,<5.0.0        # Cross-Origin Resource Sharing (CORS) support
-gunicorn>=21.2.0,<23.0.0        # Production-grade WSGI HTTP server for Unix/Linux
+numpy==1.26.4
+pandas==2.2.2
 
-# ------------------------------------------------------------------------------
-# 2. Data Processing & Numerical Computation
-# ------------------------------------------------------------------------------
-numpy>=1.24.0,<2.0.0            # High-performance multi-dimensional array operations
-pandas>=2.0.0,<3.0.0             # Tabular data manipulation and feature matrix processing
+scikit-learn==1.6.1
+joblib==1.4.2
 
-# ------------------------------------------------------------------------------
-# 3. Machine Learning & Predictive Modeling
-# ------------------------------------------------------------------------------
-scikit-learn>=1.3.0,<1.6.0      # Core ML algorithms (ExtraTrees, RandomForest, LogisticRegression)
-joblib>=1.3.0,<1.5.0            # Model serialization and artifact persistence (.pkl)
-xgboost>=1.7.0,<2.2.0           # Gradient boosted decision trees for enhanced model accuracy
-
-# ------------------------------------------------------------------------------
-# 4. Clinical Explainability & Interpretation
-# ------------------------------------------------------------------------------
-shap>=0.43.0,<0.47.0            # SHapley Additive exPlanations for clinical feature attribution
-
-# ------------------------------------------------------------------------------
-# 5. Visualization & Model Evaluation
-# ------------------------------------------------------------------------------
-matplotlib>=3.7.0,<4.0.0        # Plotting library for ROC curves and performance metrics
-seaborn>=0.12.0,<0.14.0         # Visualizations for confusion matrices and heatmaps
-
-# ------------------------------------------------------------------------------
-# 6. Natural Language Processing
-# ------------------------------------------------------------------------------
-nltk>=3.8.1,<4.0.0              # Natural Language Toolkit for symptom text processing
+xgboost==2.1.4
+shap==0.46.0
+matplotlib==3.9.2
+seaborn==0.13.2
+nltk==3.9.1

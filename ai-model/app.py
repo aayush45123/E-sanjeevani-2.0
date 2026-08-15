@@ -1,7 +1,7 @@
 # ============================================================
-# E-Sanjeevani — Unified AI Model Server
+# E-Sanjeevani — Unified AI Model Server (Optimized & Lazy-Loaded)
 # ============================================================
-# Serves two AI modules on a SINGLE port (8000):
+# Serves two AI modules on a SINGLE port (8000 / $PORT):
 #
 #   Module 1 — General Disease Predictor
 #     POST /predict          text symptoms -> disease prediction
@@ -39,75 +39,93 @@ BASE_DIR   = os.path.dirname(os.path.abspath(__file__))
 MODELS_DIR = os.path.join(BASE_DIR, "models")
 
 # ─────────────────────────────────────────────────────────────────────────────
-# MODULE 1 — GENERAL DISEASE MODEL
+# LAZY MODEL LOADERS (RAM Optimization for <512MB environments like Render)
 # ─────────────────────────────────────────────────────────────────────────────
 
-print("\n==========================================")
-print("Loading General Disease Predictor...")
-print("==========================================")
+_general_model         = None
+_general_label_encoder = None
+_symptom_columns       = None
+_disease_map           = None
 
-try:
-    general_model         = joblib.load(os.path.join(MODELS_DIR, "disease_model.pkl"))
-    general_label_encoder = joblib.load(os.path.join(MODELS_DIR, "disease_label_encoder.pkl"))
-    symptom_columns       = joblib.load(os.path.join(MODELS_DIR, "symptom_columns.pkl"))
-    print("[OK] disease_model.pkl         loaded")
-    print("[OK] disease_label_encoder.pkl loaded")
-    print("[OK] symptom_columns.pkl       loaded")
-    GENERAL_MODEL_READY = True
-except Exception as e:
-    print(f"[WARN] General disease model failed to load: {e}")
-    GENERAL_MODEL_READY = False
+def get_general_model_artifacts():
+    """Lazily load General Disease Predictor artifacts on first request."""
+    global _general_model, _general_label_encoder, _symptom_columns, _disease_map
+    if _general_model is None:
+        model_path   = os.path.join(MODELS_DIR, "disease_model.pkl")
+        encoder_path = os.path.join(MODELS_DIR, "disease_label_encoder.pkl")
+        columns_path = os.path.join(MODELS_DIR, "symptom_columns.pkl")
+        map_path     = os.path.join(MODELS_DIR, "disease_map.pkl")
 
-try:
-    disease_map = joblib.load(os.path.join(MODELS_DIR, "disease_map.pkl"))
-    print("[OK] disease_map.pkl           loaded")
-except Exception:
-    disease_map = {}
+        if not (os.path.exists(model_path) and os.path.exists(encoder_path) and os.path.exists(columns_path)):
+            return None, None, None, {}
 
-# ─────────────────────────────────────────────────────────────────────────────
-# MODULE 2 — FEVER DIFFERENTIAL ASSESSMENT MODEL
-# ─────────────────────────────────────────────────────────────────────────────
+        try:
+            print("[LAZY LOAD] Loading General Disease Predictor...")
+            _general_model         = joblib.load(model_path)
+            _general_label_encoder = joblib.load(encoder_path)
+            _symptom_columns       = joblib.load(columns_path)
+            try:
+                _disease_map = joblib.load(map_path) if os.path.exists(map_path) else {}
+            except Exception:
+                _disease_map = {}
+            print("[LAZY LOAD] General Disease Predictor loaded successfully.")
+        except Exception as e:
+            print(f"[WARN] Failed to load General Disease Predictor: {e}")
+            return None, None, None, {}
 
-print("\n==========================================")
-print("Loading Fever Differential Assessment Model...")
-print("==========================================")
+    return _general_model, _general_label_encoder, _symptom_columns, _disease_map
 
-try:
-    fever_model         = joblib.load(os.path.join(MODELS_DIR, "fever_model.pkl"))
-    fever_label_encoder = joblib.load(os.path.join(MODELS_DIR, "fever_label_encoder.pkl"))
-    fever_feature_names = joblib.load(os.path.join(MODELS_DIR, "fever_feature_names.pkl"))
-    print("[OK] fever_model.pkl           loaded")
-    print("[OK] fever_label_encoder.pkl   loaded")
-    print("[OK] fever_feature_names.pkl   loaded")
-    FEVER_MODEL_READY = True
-except Exception as e:
-    print(f"[WARN] Fever model not ready yet — run train_model.py first: {e}")
-    FEVER_MODEL_READY = False
 
-# SHAP / Feature Explainer (lazy-loaded)
+_fever_model         = None
+_fever_label_encoder = None
+_fever_feature_names = None
+
+def get_fever_model_artifacts():
+    """Lazily load Fever Differential Model artifacts on first request."""
+    global _fever_model, _fever_label_encoder, _fever_feature_names
+    if _fever_model is None:
+        model_path    = os.path.join(MODELS_DIR, "fever_model.pkl")
+        encoder_path  = os.path.join(MODELS_DIR, "fever_label_encoder.pkl")
+        features_path = os.path.join(MODELS_DIR, "fever_feature_names.pkl")
+
+        if not (os.path.exists(model_path) and os.path.exists(encoder_path) and os.path.exists(features_path)):
+            return None, None, None
+
+        try:
+            print("[LAZY LOAD] Loading Fever Differential Assessment Model...")
+            _fever_model         = joblib.load(model_path)
+            _fever_label_encoder = joblib.load(encoder_path)
+            _fever_feature_names = joblib.load(features_path)
+            print("[LAZY LOAD] Fever Differential Assessment Model loaded successfully.")
+        except Exception as e:
+            print(f"[WARN] Failed to load Fever Differential Assessment Model: {e}")
+            return None, None, None
+
+    return _fever_model, _fever_label_encoder, _fever_feature_names
+
+
 _fever_explainer = None
 
-def get_fever_explainer():
+def get_fever_explainer(fever_model):
+    """Lazily initialize SHAP explainer for Fever Differential Model."""
     global _fever_explainer
-    if _fever_explainer is None and FEVER_MODEL_READY:
+    if _fever_explainer is None and fever_model is not None:
         try:
             if hasattr(fever_model, "estimators_") or hasattr(fever_model, "tree_"):
                 import shap
                 _fever_explainer = shap.TreeExplainer(fever_model)
-                print("[OK] SHAP TreeExplainer initialised")
+                print("[LAZY LOAD] SHAP TreeExplainer initialised")
             elif hasattr(fever_model, "coef_"):
                 _fever_explainer = "linear_coef"
-                print("[OK] Linear Coefficient Explainer initialised")
-        except Exception:
-            pass
+                print("[LAZY LOAD] Linear Coefficient Explainer initialised")
+        except Exception as e:
+            print(f"[WARN] SHAP Explainer note: {e}")
     return _fever_explainer
 
 # ─────────────────────────────────────────────────────────────────────────────
 # FEVER MODEL — CONSTANTS
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Red-flag warning signs that require IMMEDIATE medical attention
-# (WHO: severe dengue, severe malaria, other emergencies)
 RED_FLAGS = [
     "severe_abdominal_pain",
     "persistent_vomiting",
@@ -123,36 +141,34 @@ RED_FLAGS = [
     "severe_weakness",
 ]
 
-# Human-readable labels for features
 FEATURE_LABELS = {
-    "fever":              "Fever",
-    "high_fever":         "High fever",
-    "sudden_onset":       "Sudden onset of fever",
-    "headache":           "Headache",
-    "severe_headache":    "Severe headache",
-    "chills":             "Chills / shivering",
-    "sweating":           "Profuse sweating",
-    "body_pain":          "Body aches",
-    "muscle_pain":        "Muscle pain",
-    "joint_pain":         "Joint pain",
-    "severe_joint_pain":  "Severe joint pain",
-    "pain_behind_eyes":   "Pain behind the eyes",
-    "rash":               "Skin rash",
-    "nausea":             "Nausea",
-    "vomiting":           "Vomiting",
-    "abdominal_pain":     "Abdominal pain",
-    "diarrhea":           "Diarrhoea",
-    "constipation":       "Constipation",
-    "cough":              "Cough",
-    "sore_throat":        "Sore throat",
-    "runny_nose":         "Runny nose",
-    "fatigue":            "Fatigue",
-    "weakness":           "Weakness",
+    "fever":               "Fever",
+    "high_fever":          "High fever",
+    "sudden_onset":        "Sudden onset of fever",
+    "headache":            "Headache",
+    "severe_headache":     "Severe headache",
+    "chills":              "Chills / shivering",
+    "sweating":            "Profuse sweating",
+    "body_pain":           "Body aches",
+    "muscle_pain":         "Muscle pain",
+    "joint_pain":          "Joint pain",
+    "severe_joint_pain":   "Severe joint pain",
+    "pain_behind_eyes":    "Pain behind the eyes",
+    "rash":                "Skin rash",
+    "nausea":              "Nausea",
+    "vomiting":            "Vomiting",
+    "abdominal_pain":      "Abdominal pain",
+    "diarrhea":            "Diarrhoea",
+    "constipation":        "Constipation",
+    "cough":               "Cough",
+    "sore_throat":         "Sore throat",
+    "runny_nose":          "Runny nose",
+    "fatigue":             "Fatigue",
+    "weakness":            "Weakness",
     "swollen_lymph_nodes": "Swollen glands",
-    "loss_of_appetite":   "Loss of appetite",
+    "loss_of_appetite":    "Loss of appetite",
 }
 
-# Specialist recommendation per disease
 DISEASE_SPECIALISTS = {
     "Dengue":       "General Physician / Infectious Disease Specialist",
     "Malaria":      "General Physician / Infectious Disease Specialist",
@@ -172,14 +188,13 @@ MEDICAL_DISCLAIMER = (
 # HELPERS — GENERAL MODEL
 # ─────────────────────────────────────────────────────────────────────────────
 
-def prepare_general_input(symptoms_text):
+def prepare_general_input(symptoms_text, symptom_columns):
     """Convert free-text symptoms into binary symptom vector."""
     user_input = symptoms_text.lower()
     input_data = {}
     for symptom in symptom_columns:
         input_data[symptom] = 1 if symptom.lower() in user_input else 0
     return pd.DataFrame([input_data])
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # HELPERS — FEVER MODEL
@@ -190,19 +205,15 @@ def check_red_flags(red_flag_data: dict) -> list:
     return [flag for flag in RED_FLAGS if red_flag_data.get(flag, False)]
 
 
-def build_feature_df(symptom_vector: dict) -> pd.DataFrame:
+def build_feature_df(symptom_vector: dict, fever_feature_names: list) -> pd.DataFrame:
     """Build feature DataFrame in the correct column order."""
     row = {f: int(symptom_vector.get(f, 0)) for f in fever_feature_names}
     return pd.DataFrame([row])
 
 
-def get_shap_explanation(feature_df: pd.DataFrame, symptom_vector: dict, top_class_idx: int, top_n: int = 5) -> list:
-    """
-    Return plain-English bullet points of symptoms that drove the top-ranked prediction.
-    Supports SHAP, Linear Model Coefficients (LogisticRegression), and Tree Feature Importances (RandomForest/XGBoost).
-    """
-    # Attempt 1: Tree SHAP Explainer (Random Forest / XGBoost)
-    explainer = get_fever_explainer()
+def get_shap_explanation(fever_model, fever_feature_names: list, feature_df: pd.DataFrame, symptom_vector: dict, top_class_idx: int, top_n: int = 5) -> list:
+    """Return plain-English bullet points of symptoms driving top prediction."""
+    explainer = get_fever_explainer(fever_model)
     if explainer is not None and explainer != "linear_coef":
         try:
             import numpy as np
@@ -226,9 +237,8 @@ def get_shap_explanation(feature_df: pd.DataFrame, symptom_vector: dict, top_cla
             if sorted_features:
                 return [FEATURE_LABELS.get(f, f) for f, _ in sorted_features[:top_n]]
         except Exception as shap_err:
-            print(f"[INFO] SHAP explanation note ({shap_err}) — using model weight attribution")
+            print(f"[INFO] SHAP explanation note ({shap_err}) — falling back to model weight attribution")
 
-    # Attempt 2: Linear Model Coefficients (Logistic Regression)
     if hasattr(fever_model, "coef_"):
         try:
             weights = fever_model.coef_[top_class_idx]
@@ -242,7 +252,6 @@ def get_shap_explanation(feature_df: pd.DataFrame, symptom_vector: dict, top_cla
         except Exception as coef_err:
             print(f"[WARN] Coef explanation error: {coef_err}")
 
-    # Attempt 3: Tree Feature Importances (Random Forest / XGBoost)
     if hasattr(fever_model, "feature_importances_"):
         try:
             importances = fever_model.feature_importances_
@@ -258,32 +267,34 @@ def get_shap_explanation(feature_df: pd.DataFrame, symptom_vector: dict, top_cla
 
     return []
 
-
 # ─────────────────────────────────────────────────────────────────────────────
 # ROUTES — HEALTH
 # ─────────────────────────────────────────────────────────────────────────────
 
 @app.route("/", methods=["GET"])
 def home():
+    general_ready = os.path.exists(os.path.join(MODELS_DIR, "disease_model.pkl"))
+    fever_ready   = os.path.exists(os.path.join(MODELS_DIR, "fever_model.pkl"))
     return jsonify({
         "success": True,
         "message": "E-Sanjeevani Unified AI Server",
         "modules": {
-            "general_disease":       GENERAL_MODEL_READY,
-            "fever_differential":    FEVER_MODEL_READY,
+            "general_disease":    general_ready,
+            "fever_differential": fever_ready,
         }
     })
 
 
 @app.route("/fever-health", methods=["GET"])
 def fever_health():
+    fever_model, fever_label_encoder, fever_feature_names = get_fever_model_artifacts()
+    ready = fever_model is not None
     return jsonify({
         "success": True,
-        "fever_model_ready": FEVER_MODEL_READY,
-        "classes": list(fever_label_encoder.classes_) if FEVER_MODEL_READY else [],
-        "features": fever_feature_names if FEVER_MODEL_READY else [],
+        "fever_model_ready": ready,
+        "classes": list(fever_label_encoder.classes_) if ready else [],
+        "features": fever_feature_names if ready else [],
     })
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # ROUTE — GENERAL DISEASE PREDICTION
@@ -291,7 +302,8 @@ def fever_health():
 
 @app.route("/predict", methods=["POST"])
 def predict():
-    if not GENERAL_MODEL_READY:
+    general_model, general_label_encoder, symptom_columns, disease_map = get_general_model_artifacts()
+    if general_model is None:
         return jsonify({"success": False, "message": "General disease model not loaded"}), 503
 
     try:
@@ -306,7 +318,7 @@ def predict():
 
         print(f"\n[/predict] Symptoms: {symptoms[:80]}")
 
-        input_df    = prepare_general_input(symptoms)
+        input_df    = prepare_general_input(symptoms, symptom_columns)
         prediction  = general_model.predict(input_df)[0]
         disease     = general_label_encoder.inverse_transform([prediction])[0]
         proba       = general_model.predict_proba(input_df)[0]
@@ -338,7 +350,7 @@ def predict():
                 doctor_type = val
                 break
 
-        top_indices    = proba.argsort()[-5:][::-1]
+        top_indices     = proba.argsort()[-5:][::-1]
         top_predictions = []
         for idx in top_indices:
             top_predictions.append({
@@ -369,30 +381,14 @@ def predict():
         traceback.print_exc()
         return jsonify({"success": False, "message": "Prediction failed", "error": str(e)}), 500
 
-
 # ─────────────────────────────────────────────────────────────────────────────
 # ROUTE — FEVER DIFFERENTIAL ASSESSMENT
 # ─────────────────────────────────────────────────────────────────────────────
 
 @app.route("/predict-fever", methods=["POST"])
 def predict_fever():
-    """
-    Fever Differential Assessment endpoint.
-
-    Expected JSON body:
-    {
-        "symptoms": {
-            "fever": 1, "high_fever": 1, "headache": 1,
-            "pain_behind_eyes": 1, ...
-        },
-        "red_flags": {
-            "bleeding": false,
-            "confusion": false,
-            ...
-        }
-    }
-    """
-    if not FEVER_MODEL_READY:
+    fever_model, fever_label_encoder, fever_feature_names = get_fever_model_artifacts()
+    if fever_model is None:
         return jsonify({
             "success": False,
             "message": "Fever model not ready. Run fever_model/scripts/train_model.py first."
@@ -406,7 +402,7 @@ def predict_fever():
         symptom_vector  = data.get("symptoms", {})
         red_flag_data   = data.get("red_flags", {})
 
-        # ── Step 1: Red-flag check ────────────────────────────────────────────
+        # Step 1: Red-flag check
         triggered_flags = check_red_flags(red_flag_data)
         if triggered_flags:
             flag_labels = [f.replace("_", " ").title() for f in triggered_flags]
@@ -421,10 +417,10 @@ def predict_fever():
                 "red_flags_detected": flag_labels,
             })
 
-        # ── Step 2: Build feature vector ─────────────────────────────────────
-        feature_df = build_feature_df(symptom_vector)
+        # Step 2: Build feature vector
+        feature_df = build_feature_df(symptom_vector, fever_feature_names)
 
-        # ── Step 3: Predict ───────────────────────────────────────────────────
+        # Step 3: Predict
         import numpy as np
         proba       = fever_model.predict_proba(feature_df)[0]
         class_names = fever_label_encoder.classes_
@@ -440,11 +436,11 @@ def predict_fever():
                 "score":   float(round(proba[idx], 4)),
             })
 
-        # ── Step 4: Explanation ──────────────────────────────────────────────
+        # Step 4: Explanation
         top_class_idx = int(ranked_indices[0])
-        explanation   = get_shap_explanation(feature_df, symptom_vector, top_class_idx)
+        explanation   = get_shap_explanation(fever_model, fever_feature_names, feature_df, symptom_vector, top_class_idx)
 
-        # ── Step 5: Recommended action ───────────────────────────────────────
+        # Step 5: Recommended action
         top_disease = class_names[ranked_indices[0]]
         recommended = DISEASE_SPECIALISTS.get(top_disease, "General Physician")
 
@@ -470,13 +466,10 @@ def predict_fever():
             "error": str(e),
         }), 500
 
-
 # ─────────────────────────────────────────────────────────────────────────────
 # START SERVER
 # ─────────────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
-    import os
-
     print("\n==========================================")
     print("E-Sanjeevani Unified AI Server")
     print("  /predict        - General disease model")
