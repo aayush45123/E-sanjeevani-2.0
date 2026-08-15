@@ -474,14 +474,18 @@ def predict_fever():
 # ─────────────────────────────────────────────────────────────────────────────
 # START SERVER
 # ─────────────────────────────────────────────────────────────────────────────
-
 if __name__ == "__main__":
+    import os
+
     print("\n==========================================")
     print("E-Sanjeevani Unified AI Server")
-    print("Port: 8000")
     print("  /predict        - General disease model")
     print("  /predict-fever  - Fever differential (ML)")
     print("  /fever-health   - Fever model status")
     print("==========================================\n")
 
-    app.run(host="0.0.0.0", port=8000, debug=True)
+    app.run(
+        host="0.0.0.0",
+        port=int(os.environ.get("PORT", 8000)),
+        debug=False
+    )
