@@ -250,11 +250,12 @@ const SOCKET_URL =
             doctorType: data.data?.doctorType,
           };
         } catch (err) {
-          console.error(
-            `❌ Error fetching urgency for consultation ${consultation._id}:`,
-            err,
-          );
-          // Fallback to medium urgency if API fails
+          if (err?.response?.status !== 503) {
+            console.warn(
+              `⚠️ AI triage service unavailable for consultation ${consultation._id}, using default urgency.`,
+            );
+          }
+          // Fallback to medium urgency if API fails or is unavailable (503)
           newUrgencyMap[consultation._id] = { urgency: "medium" };
         }
       }
@@ -737,6 +738,7 @@ APPOINTMENT ROW
 */
 
 function AppointmentRow({ appt, avatarColor, urgency }) {
+  const navigate = useNavigate();
   const handleJoinConsultation = () => {
     if (!appt?._id) {
       console.error("Consultation ID missing");

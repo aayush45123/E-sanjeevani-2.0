@@ -75,16 +75,7 @@ export default function DoctorSidebar({
     setCollapsed((prev) => ({ ...prev, [label]: !prev[label] }));
 
   const handleProfileClick = () => {
-    if (!isProfileIncomplete) {
-      navigate("/doctor-profile-edit");
-    }
-  };
-
-  const handleNavClick = (e, to) => {
-    if (isProfileIncomplete) {
-      e.preventDefault();
-      alert("⚠️ Please complete your profile and availability hours first!");
-    }
+    navigate("/doctor-profile-edit");
   };
 
   const getCachedName = () => {
@@ -122,13 +113,13 @@ export default function DoctorSidebar({
         aria-hidden="true"
       />
       <aside
-        className={`${styles.sidebar} ${isProfileIncomplete ? styles.locked : ""} ${isOpen ? styles.open : ""}`}
+        className={`${styles.sidebar} ${isOpen ? styles.open : ""}`}
       >
       {/* Profile Incomplete Banner */}
       {isProfileIncomplete && (
         <div className={styles.lockBanner}>
-          <div className={styles.lockIcon}>🔒</div>
-          <p>Complete your profile to unlock navigation</p>
+          <div className={styles.lockIcon}>ℹ️</div>
+          <p>Complete your profile details in Settings</p>
         </div>
       )}
 
@@ -143,17 +134,12 @@ export default function DoctorSidebar({
       </div>
 
       {/* Navigation */}
-      <nav
-        className={`${styles.nav} ${isProfileIncomplete ? styles.navDisabled : ""}`}
-      >
+      <nav className={styles.nav}>
         {navSections.map((section) => (
           <div key={section.label} className={styles.navSection}>
             <button
               className={styles.sectionHeader}
-              onClick={() =>
-                !isProfileIncomplete && toggleSection(section.label)
-              }
-              disabled={isProfileIncomplete}
+              onClick={() => toggleSection(section.label)}
             >
               <span className={styles.sectionLabel}>{section.label}</span>
               {collapsed[section.label] ? (
@@ -166,27 +152,16 @@ export default function DoctorSidebar({
             {!collapsed[section.label] && (
               <ul className={styles.navList}>
                 {section.items.map((item) => (
-                  <li
-                    key={item.to}
-                    className={
-                      isProfileIncomplete ? styles.navItemDisabled : ""
-                    }
-                  >
+                  <li key={item.to}>
                     <NavLink
-                      to={isProfileIncomplete ? "#" : item.to}
+                      to={item.to}
                       end={item.to === "/dashboard"}
-                      onClick={(e) => handleNavClick(e, item.to)}
                       className={({ isActive }) =>
-                        `${styles.navItem} ${isActive ? styles.navItemActive : ""} ${
-                          isProfileIncomplete ? styles.navItemLocked : ""
-                        }`
+                        `${styles.navItem} ${isActive ? styles.navItemActive : ""}`
                       }
                     >
                       <item.icon size={16} className={styles.navIcon} />
                       <span>{item.label}</span>
-                      {isProfileIncomplete && (
-                        <span className={styles.lockSymbol}>🔒</span>
-                      )}
                     </NavLink>
                   </li>
                 ))}
@@ -199,13 +174,9 @@ export default function DoctorSidebar({
       {/* Bottom: User Info + Logout */}
       <div className={styles.bottomSection}>
         <div
-          className={`${styles.userCard} ${isProfileIncomplete ? styles.userCardLocked : ""}`}
+          className={styles.userCard}
           onClick={handleProfileClick}
-          title={
-            isProfileIncomplete
-              ? "Profile editing locked until setup is complete"
-              : "Click to edit profile"
-          }
+          title="Click to edit profile & workspace settings"
         >
           <div className={styles.userAvatar}>{initials}</div>
           <div className={styles.userInfo}>
