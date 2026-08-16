@@ -493,7 +493,7 @@ const SOCKET_URL =
               </p>
             </div>
             <button
-              onClick={() => navigate("/profile-setup")}
+              onClick={() => navigate("/doctor-profile-edit")}
               style={{
                 whiteSpace: "nowrap",
                 padding: "8px 16px",

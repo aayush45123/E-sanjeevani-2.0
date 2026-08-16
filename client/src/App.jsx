@@ -22,6 +22,7 @@ import DoctorProfileSetup from "./pages/DoctorProfileSetup/DoctorProfileSetup";
 import DoctorProfileEdit from "./pages/DoctorProfileEdit/DoctorProfileEdit";
 import DoctorSchedule from "./pages/DoctorDashboard/DoctorSchedule";
 import DoctorAnalytics from "./pages/DoctorDashboard/DoctorAnalytics";
+import DoctorHelp from "./pages/DoctorDashboard/DoctorHelp";
 import VideoCall from "./pages/VideoCall/VideoCall";
 import AiTriage from "./components/AiTriage/AiTriage";
 import ConsultedDoctors from "./pages/ConsultedDoctors/ConsultedDoctors";
@@ -173,6 +174,7 @@ const App = () => {
     location.pathname.startsWith("/consultations") ||
     location.pathname.startsWith("/consultation-booking") ||
     location.pathname.startsWith("/video-call") ||
+    location.pathname.startsWith("/clinical-records") ||
     location.pathname.startsWith("/auth");
 
   /*
@@ -402,6 +404,46 @@ const App = () => {
             )
           }
         />
+
+        {/* DOCTOR CLINICAL RECORDS */}
+
+        <Route
+          path="/doctor-dashboard/records"
+          element={
+            isLoggedIn && userRole === "doctor" ? (
+              <ClinicalRecords />
+            ) : (
+              <Navigate to="/auth" replace />
+            )
+          }
+        />
+
+        {/* DOCTOR SETTINGS */}
+
+        <Route
+          path="/doctor-dashboard/settings"
+          element={
+            isLoggedIn && userRole === "doctor" ? (
+              <DoctorProfileEdit isProfileIncomplete={!doctorProfileCompleted} />
+            ) : (
+              <Navigate to="/auth" replace />
+            )
+          }
+        />
+
+        {/* DOCTOR HELP CENTER */}
+
+        <Route
+          path="/doctor-dashboard/help"
+          element={
+            isLoggedIn && userRole === "doctor" ? (
+              <DoctorHelp isProfileIncomplete={!doctorProfileCompleted} />
+            ) : (
+              <Navigate to="/auth" replace />
+            )
+          }
+        />
+
 
         {/* FALLBACK */}
 

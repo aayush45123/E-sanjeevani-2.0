@@ -43,8 +43,11 @@ export const addPatientRecord = async (req, res) => {
 
 export const getMyMedicalRecords = async (req, res) => {
   try {
-    const patientId = req.user.id;
-    const records = await MedicalRecordService.getPatientRecords(patientId);
+    const userId = req.user.id;
+    const isDoctor = String(req.user.role || "").trim().toLowerCase() === "doctor";
+    const records = isDoctor
+      ? await MedicalRecordService.getDoctorRecords(userId)
+      : await MedicalRecordService.getPatientRecords(userId);
 
     return res.status(200).json({
       success: true,
@@ -59,6 +62,7 @@ export const getMyMedicalRecords = async (req, res) => {
     });
   }
 };
+
 
 export const getMedicalRecordById = async (req, res) => {
   try {

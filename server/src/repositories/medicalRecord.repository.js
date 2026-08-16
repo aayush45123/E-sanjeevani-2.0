@@ -140,6 +140,42 @@ export class MedicalRecordRepository {
     return hydratedRecords;
   }
 
+  static async findByDoctorId(doctorId) {
+    const rows = await db
+      .select({
+        record: medicalRecords,
+        patientName: users.name,
+      })
+      .from(medicalRecords)
+      .innerJoin(consultations, eq(medicalRecords.consultationId, consultations.id))
+      .leftJoin(users, eq(medicalRecords.patientId, users.id))
+      .where(eq(consultations.doctorId, doctorId))
+      .orderBy(desc(medicalRecords.recordDate));
+
+    const hydratedRecords = await Promise.all(
+      rows.map(async ({ record, patientName }) => {
+        const attachments = await db
+          .select()
+          .from(medicalRecordAttachments)
+          .where(eq(medicalRecordAttachments.medicalRecordId, record.id));
+
+        const items = await db
+          .select()
+          .from(prescriptionItems)
+          .where(eq(prescriptionItems.medicalRecordId, record.id));
+
+        return {
+          ...record,
+          patientName: patientName || "Patient",
+          attachments,
+          prescriptionItems: items,
+        };
+      })
+    );
+
+    return hydratedRecords;
+  }
+
   static async findById(id) {
     const recordRow = await db
       .select()

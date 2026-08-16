@@ -15,8 +15,10 @@ import {
   Filter,
 } from "lucide-react";
 import Sidebar from "../../components/Sidebar/Sidebar";
+import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
 import AddPreviousRecordModal from "../../components/MedicalRecords/AddPreviousRecordModal";
-import { medicalRecordApi } from "../../utils/api";
+import { medicalRecordApi, authApi } from "../../utils/api";
+import { performLogout } from "../../utils/auth";
 import styles from "./ClinicalRecords.module.css";
 
 export default function ClinicalRecords() {
@@ -25,10 +27,24 @@ export default function ClinicalRecords() {
   const [activeTab, setActiveTab] = useState("all"); // 'all', 'consultation', 'patient_upload'
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const userRole = localStorage.getItem("userRole");
+
+  const handleLogout = () => performLogout();
 
   useEffect(() => {
-    fetchRecords();
+    async function init() {
+      if (userRole === "doctor") {
+        try {
+          const uRes = await authApi.me();
+          setUser(uRes.data.user || uRes.data);
+        } catch (e) {}
+      }
+      fetchRecords();
+    }
+    init();
   }, []);
+
 
   const fetchRecords = async () => {
     try {
@@ -68,26 +84,39 @@ export default function ClinicalRecords() {
 
   return (
     <div className={styles.dashboardLayout}>
-      <Sidebar />
+      {userRole === "doctor" ? (
+        <DoctorSidebar user={user} onLogout={handleLogout} />
+      ) : (
+        <Sidebar />
+      )}
 
       <main className={styles.mainContent}>
         <div className={styles.contentWrapper}>
           {/* Header */}
           <div className={styles.pageHeader}>
             <div>
-              <h1 className={styles.pageTitle}>Medical & Health Records</h1>
+              <h1 className={styles.pageTitle}>
+                {userRole === "doctor"
+                  ? "Clinical Records & Issued Prescriptions"
+                  : "Medical & Health Records"}
+              </h1>
               <p className={styles.pageSubtitle}>
-                Access all your past medical history, hospital prescriptions, and eSanjeevani digital prescriptions.
+                {userRole === "doctor"
+                  ? "Manage and review digital prescriptions and clinical records issued to your patients."
+                  : "Access all your past medical history, hospital prescriptions, and eSanjeevani digital prescriptions."}
               </p>
             </div>
 
-            <button
-              className={styles.addRecordBtn}
-              onClick={() => setIsAddModalOpen(true)}
-            >
-              <Plus size={16} /> Add Previous Medical Record
-            </button>
+            {userRole !== "doctor" && (
+              <button
+                className={styles.addRecordBtn}
+                onClick={() => setIsAddModalOpen(true)}
+              >
+                <Plus size={16} /> Add Previous Medical Record
+              </button>
+            )}
           </div>
+
 
           {/* Filter Bar & Search */}
           <div className={styles.filterToolbar}>

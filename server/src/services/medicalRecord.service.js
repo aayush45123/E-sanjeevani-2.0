@@ -55,6 +55,10 @@ export class MedicalRecordService {
     return MedicalRecordRepository.findByPatientId(patientId);
   }
 
+  static async getDoctorRecords(doctorId) {
+    return MedicalRecordRepository.findByDoctorId(doctorId);
+  }
+
   static async getRecordById(id, userId) {
     const record = await MedicalRecordRepository.findById(id);
     if (!record) {
