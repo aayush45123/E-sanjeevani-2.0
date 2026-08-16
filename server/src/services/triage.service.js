@@ -343,11 +343,18 @@ export class TriageService {
         ? prompt.trim().substring(0, 57) + "..."
         : prompt.trim();
 
+      const modelNameMap = {
+        "ii-medical-8b": "II-Medical-8B Chat",
+        "custom-triage-ai": "E-Sanjeevani ML Triage",
+        "fever-assessment": "Fever Differential Assessment",
+      };
+      const modelLabel = modelNameMap[model] || "AI Medical Triage";
+
       session = await TriageRepository.createSession({
         patientId: userId,
         symptoms: [],
         summaryTitle,
-        summaryDescription: "AI Chat Triage Conversation",
+        summaryDescription: `${modelLabel} Conversation`,
         status: "pending",
       });
       triageSessionId = session.id;

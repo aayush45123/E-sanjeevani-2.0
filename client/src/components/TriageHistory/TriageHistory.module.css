@@ -31,6 +31,47 @@
   font-weight: 600;
 }
 
+.toggleBtn {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.toggleBtn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.containerMinimized {
+  align-items: center;
+  padding: 10px 4px;
+  gap: 16px;
+}
+
+.minimizedBadge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: #1a237e;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.minimizedCount {
+  background: #1a237e;
+  color: white;
+  border-radius: 10px;
+  padding: 2px 6px;
+}
+
 .empty {
   text-align: center;
   padding: 30px 15px;

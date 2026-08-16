@@ -314,6 +314,8 @@ export default function PatientDashboard() {
   // ── Triage state ────────────────────────────────────────────────────────
   const [selectedTriageId, setSelectedTriageId] = useState(null);
   const [activeTriageSessionId, setActiveTriageSessionId] = useState(null);
+  const [isHistoryMinimized, setIsHistoryMinimized] = useState(false);
+  const [historyRefreshTrigger, setHistoryRefreshTrigger] = useState(0);
 
   // ── Fever assessment conversation state ─────────────────────────────────
   const [feverStep, setFeverStep] = useState(0);          // index into FEVER_STEPS
@@ -464,9 +466,14 @@ const SOCKET_URL =
   const submitFeverAssessment = async (answers) => {
     setIsTyping(true);
     try {
-      const payload = buildFeverPayload(answers);
+      const payload = { ...buildFeverPayload(answers), triageSessionId: activeTriageSessionId };
       const res = await apiClient.post("/fever/assess", payload);
       const data = res.data;
+
+      if (data.triageSessionId) {
+        setActiveTriageSessionId(data.triageSessionId);
+      }
+      setHistoryRefreshTrigger((prev) => prev + 1);
 
       let resultText = "";
 
@@ -658,6 +665,7 @@ const SOCKET_URL =
       const data = response.data;
       const returnedSessionId = data?.data?.triageSessionId || data?.triageSessionId;
       if (returnedSessionId) setActiveTriageSessionId(returnedSessionId);
+      setHistoryRefreshTrigger((prev) => prev + 1);
 
       const aiMessageText = data?.data?.reply
         ?.replace(/<\/?[Aa]nswer>\s*/g, "")
@@ -1145,7 +1153,11 @@ const SOCKET_URL =
       </main>
 
       {/* ── Right panel: Triage History ── */}
-      <aside className={styles.rightPanel}>
+      <aside
+        className={`${styles.rightPanel} ${
+          isHistoryMinimized ? styles.rightPanelMinimized : ""
+        }`}
+      >
         <TriageHistory
           activeSessionId={activeTriageSessionId}
           onSelectTriage={handleSelectTriageSession}
@@ -1154,6 +1166,9 @@ const SOCKET_URL =
               handleNewChat();
             }
           }}
+          isMinimized={isHistoryMinimized}
+          onToggleMinimize={() => setIsHistoryMinimized((v) => !v)}
+          refreshTrigger={historyRefreshTrigger}
         />
       </aside>
 

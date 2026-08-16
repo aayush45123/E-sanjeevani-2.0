@@ -970,6 +970,13 @@
   border-left: 1px solid #e8ecf0;
   overflow-y: auto;
   background: #ffffff;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.rightPanelMinimized {
+  width: 54px !important;
+  min-width: 54px !important;
+  overflow: hidden;
 }
 
 /* ── Modal overlay ── */

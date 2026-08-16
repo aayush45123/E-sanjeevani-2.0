@@ -1,8 +1,16 @@
 import React, { useState, useEffect } from "react";
 import styles from "./TriageHistory.module.css";
 import { apiClient } from "../../utils/api";
+import { PanelRightClose, PanelRightOpen, History, Trash2 } from "lucide-react";
 
-const TriageHistory = ({ onSelectTriage, onDeleteTriage, activeSessionId }) => {
+const TriageHistory = ({
+  onSelectTriage,
+  onDeleteTriage,
+  activeSessionId,
+  isMinimized,
+  onToggleMinimize,
+  refreshTrigger,
+}) => {
   const [triageHistory, setTriageHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTriageId, setSelectedTriageId] = useState(activeSessionId || null);
@@ -12,6 +20,10 @@ const TriageHistory = ({ onSelectTriage, onDeleteTriage, activeSessionId }) => {
       setSelectedTriageId(activeSessionId);
     }
   }, [activeSessionId]);
+
+  useEffect(() => {
+    fetchTriageHistory();
+  }, [refreshTrigger, activeSessionId]);
 
   useEffect(() => {
     fetchTriageHistory();
@@ -96,6 +108,24 @@ const TriageHistory = ({ onSelectTriage, onDeleteTriage, activeSessionId }) => {
     }
   };
 
+  if (isMinimized) {
+    return (
+      <div className={`${styles.container} ${styles.containerMinimized}`}>
+        <button
+          className={styles.toggleBtn}
+          onClick={onToggleMinimize}
+          title="Expand Triage History"
+        >
+          <PanelRightOpen size={18} />
+        </button>
+        <div className={styles.minimizedBadge} title={`${triageHistory.length} Sessions`}>
+          <History size={16} />
+          <span className={styles.minimizedCount}>{triageHistory.length}</span>
+        </div>
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className={styles.container}>
@@ -107,8 +137,19 @@ const TriageHistory = ({ onSelectTriage, onDeleteTriage, activeSessionId }) => {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h3>Triage History</h3>
-        <span className={styles.count}>{triageHistory.length}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <h3>Triage History</h3>
+          <span className={styles.count}>{triageHistory.length}</span>
+        </div>
+        {onToggleMinimize && (
+          <button
+            className={styles.toggleBtn}
+            onClick={onToggleMinimize}
+            title="Minimize Triage History"
+          >
+            <PanelRightClose size={18} />
+          </button>
+        )}
       </div>
 
       {triageHistory.length === 0 ? (

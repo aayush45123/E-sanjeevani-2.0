@@ -80,6 +80,55 @@ router.post("/assess", async (req, res) => {
       });
     }
 
+    // Save session in PostgreSQL database so it appears in patient Triage History
+    const userId = req.user?.id || req.user?.userId;
+    if (userId) {
+      try {
+        const { TriageRepository } = await import("../repositories/triage.repository.js");
+        let session;
+        if (triageSessionId) {
+          session = await TriageRepository.findSessionById(triageSessionId);
+        }
+        const topDisease = data.top_ranking?.[0]?.disease?.replace(/_/g, " ");
+        const title = topDisease ? `Fever: ${topDisease}` : "Fever Symptom Assessment";
+        const desc = data.red_flag_alert
+          ? data.red_flag_message
+          : (data.primary_explanation?.join(", ") || "Fever differential analysis completed");
+
+        if (!session) {
+          session = await TriageRepository.createSession({
+            patientId: userId,
+            symptoms: Object.keys(symptoms || {}).filter((k) => symptoms[k] === 1).map((s) => ({ symptom: s })),
+            summaryTitle: title,
+            summaryDescription: desc,
+            urgencyScore: data.red_flag_alert ? 9 : 5,
+            urgencyLevel: data.red_flag_alert ? "critical" : "moderate",
+            status: "completed",
+          });
+        }
+
+        let summaryText = "";
+        if (data.red_flag_alert) {
+          summaryText = `## URGENT WARNING\n\n${data.red_flag_message}\n\nPlease seek immediate medical care.`;
+        } else if (data.top_ranking?.[0]) {
+          summaryText = `## Fever Assessment Report\n\n**Predicted Condition:** ${topDisease}\n\n**Next Step:** ${data.recommended_action || "Consult a physician."}`;
+        } else {
+          summaryText = data.message || "Fever assessment completed.";
+        }
+
+        await TriageRepository.createMessage({
+          triageSessionId: session.id,
+          patientId: userId,
+          role: "assistant",
+          content: summaryText,
+        });
+
+        data.triageSessionId = session.id;
+      } catch (saveErr) {
+        console.error("[FeverRoute] Error saving triage session to PostgreSQL:", saveErr.message);
+      }
+    }
+
     return res.status(200).json(data);
   } catch (error) {
     console.error("[FeverRoute /assess] Error:", error.message);
