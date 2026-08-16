@@ -23,6 +23,7 @@ export default function VideoCall() {
   const [callStatus, setCallStatus] = useState("connecting");
   const [patientJoined, setPatientJoined] = useState(false);
   const [doctorJoined, setDoctorJoined] = useState(false);
+  const [remoteStream, setRemoteStream] = useState(null);
 
   // Doctor AI Assistant State
   const [doctorAssistantData, setDoctorAssistantData] = useState(null);
@@ -132,6 +133,7 @@ export default function VideoCall() {
   =============================================
   */
   const createPeerConnection = useCallback(() => {
+    console.log("🌐 [WebRTC] Creating new RTCPeerConnection");
     const peer = new RTCPeerConnection({
       iceServers: [
         { urls: "stun:stun.l.google.com:19302" },
@@ -139,6 +141,7 @@ export default function VideoCall() {
         { urls: "stun:stun2.l.google.com:19302" },
         { urls: "stun:stun3.l.google.com:19302" },
         { urls: "stun:stun4.l.google.com:19302" },
+        { urls: "stun:global.stun.twilio.com:3478" },
       ],
     });
 
@@ -152,27 +155,47 @@ export default function VideoCall() {
     };
 
     peer.ontrack = (event) => {
-      if (remoteVideo.current) {
-        remoteVideo.current.srcObject = event.streams[0];
+      console.log("🎥 [WebRTC] Remote stream track received:", event.streams);
+      if (event.streams && event.streams[0]) {
+        const stream = event.streams[0];
+        setRemoteStream(stream);
+        if (remoteVideo.current) {
+          remoteVideo.current.srcObject = stream;
+        }
         setCallStatus("active");
         startTimer();
       }
     };
 
     peer.ondatachannel = (event) => {
+      console.log("💬 [DataChannel] Remote data channel received");
       const channel = event.channel;
       setupDataChannel(channel);
       dataChannelRef.current = channel;
     };
 
-    localStreamRef.current.getTracks().forEach((track) => {
-      peer.addTrack(track, localStreamRef.current);
-    });
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach((track) => {
+        try {
+          peer.addTrack(track, localStreamRef.current);
+          console.log(`➕ [WebRTC] Added local track (${track.kind})`);
+        } catch (e) {
+          console.warn("Track addition warning:", e);
+        }
+      });
+    } else {
+      console.warn("⚠️ [WebRTC] localStreamRef.current is empty when creating peer connection!");
+    }
 
     peerRef.current = peer;
-    iceCandidateQueueRef.current = []; // reset queue for new peer
     return peer;
   }, [consultationId]);
+
+  useEffect(() => {
+    if (remoteStream && remoteVideo.current) {
+      remoteVideo.current.srcObject = remoteStream;
+    }
+  }, [remoteStream, callStatus]);
 
   /*
   =============================================
@@ -376,11 +399,16 @@ export default function VideoCall() {
 
         // Helper: flush queued ICE candidates after remote description is set
         const flushIceCandidateQueue = async () => {
-          const queue = iceCandidateQueueRef.current;
+          if (!peerRef.current || !peerRef.current.remoteDescription) return;
+          const queue = [...iceCandidateQueueRef.current];
           iceCandidateQueueRef.current = [];
+          if (queue.length > 0) {
+            console.log(`[ICE] Flushing ${queue.length} queued ICE candidates...`);
+          }
           for (const c of queue) {
             try {
               await peerRef.current.addIceCandidate(new RTCIceCandidate(c));
+              console.log("✅ [ICE] Flushed candidate added successfully");
             } catch (err) {
               console.warn("[ICE] Failed to flush queued candidate:", err);
             }
@@ -389,6 +417,7 @@ export default function VideoCall() {
 
         // First user — create offer + data channel
         socket.on("other-user", async ({ shouldInitiate, usersInRoom }) => {
+          console.log("👥 [WebRTC] other-user event. shouldInitiate:", shouldInitiate);
           setUsersInRoom(usersInRoom || 2);
           loadChatHistory();
 
@@ -400,6 +429,7 @@ export default function VideoCall() {
           setupDataChannel(channel);
           dataChannelRef.current = channel;
 
+          console.log("📤 [WebRTC] Creating offer...");
           const offer = await peer.createOffer();
           await peer.setLocalDescription(offer);
 
@@ -412,10 +442,13 @@ export default function VideoCall() {
 
         // Second user — receive offer
         socket.on("incoming-call", async ({ signal, from }) => {
-          const peer = createPeerConnection();
+          console.log("📞 [WebRTC] incoming-call event from:", from);
+          let peer = peerRef.current || createPeerConnection();
           await peer.setRemoteDescription(new RTCSessionDescription(signal));
-          // Flush any ICE candidates that arrived before the remote description
+          console.log("✅ [WebRTC] Remote description set (Offer)");
           await flushIceCandidateQueue();
+
+          console.log("📤 [WebRTC] Creating answer...");
           const answer = await peer.createAnswer();
           await peer.setLocalDescription(answer);
 
@@ -424,11 +457,12 @@ export default function VideoCall() {
 
         // First user — receive answer
         socket.on("call-accepted", async (signal) => {
+          console.log("✅ [WebRTC] call-accepted answer received");
           if (!peerRef.current) return;
           await peerRef.current.setRemoteDescription(
             new RTCSessionDescription(signal),
           );
-          // Flush any ICE candidates that arrived before the remote description
+          console.log("✅ [WebRTC] Remote description set (Answer)");
           await flushIceCandidateQueue();
         });
 
@@ -445,6 +479,7 @@ export default function VideoCall() {
               await peerRef.current.addIceCandidate(
                 new RTCIceCandidate(candidate),
               );
+              console.log("✅ [ICE] Candidate added directly");
             } catch (err) {
               console.warn("[ICE] addIceCandidate error:", err);
             }
