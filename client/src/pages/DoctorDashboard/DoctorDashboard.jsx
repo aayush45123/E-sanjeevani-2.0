@@ -759,7 +759,7 @@ function AppointmentRow({ appt, avatarColor, urgency }) {
     NOT patient._id
     */
 
-    window.location.href = `/video-call/${appt._id}`;
+    navigate(`/video-call/${appt._id}`);
   };
 
   // Get urgency color and icon based on level

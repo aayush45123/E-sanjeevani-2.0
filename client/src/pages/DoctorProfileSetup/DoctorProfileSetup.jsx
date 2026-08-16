@@ -237,7 +237,7 @@ export default function DoctorProfileSetup({ isProfileIncomplete = true }) {
       window.dispatchEvent(new Event("profileUpdated"));
 
       setTimeout(() => {
-        window.location.href = "/dashboard";
+        navigate("/dashboard", { replace: true });
       }, 500);
     } catch (error) {
       console.error(error);
@@ -661,7 +661,7 @@ function AvailabilitySection({
     ) {
       localStorage.setItem("doctorProfileCompleted", "true");
       window.dispatchEvent(new Event("profileUpdated"));
-      window.location.href = "/dashboard";
+      navigate("/dashboard", { replace: true });
     }
   };
 
