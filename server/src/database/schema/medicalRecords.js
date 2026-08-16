@@ -11,7 +11,30 @@ import {
 
 import { users } from "./users.js";
 import { consultations } from "./consultations.js";
+import { prescriptions } from "./prescriptions.js";
+import { medicalRecordTypeEnum } from "./enums.js";
 
+/**
+ * MEDICAL_RECORDS TABLE
+ *
+ * Stores SUPPORTING clinical documents uploaded by patients or doctors:
+ *   - Lab reports
+ *   - Blood test results
+ *   - Scan / X-ray reports
+ *   - Discharge summaries
+ *   - Medical certificates
+ *   - Previous consultation notes (uploaded externally)
+ *   - Other
+ *
+ * NOT used for prescriptions — prescriptions have their own table.
+ * A record can optionally link back to the consultation or prescription
+ * that generated it (nullable FKs).
+ *
+ * source:
+ *   "consultation"    — created automatically when a consultation ends
+ *   "patient_upload"  — patient uploads historical documents manually
+ *   "doctor_upload"   — doctor attaches supporting documentation
+ */
 export const medicalRecords = pgTable(
   "medical_records",
   {
@@ -19,63 +42,47 @@ export const medicalRecords = pgTable(
 
     patientId: uuid("patient_id")
       .notNull()
-      .references(() => users.id, {
-        onDelete: "cascade",
-      }),
+      .references(() => users.id, { onDelete: "cascade" }),
 
+    /** Optional link to the consultation this record relates to */
     consultationId: uuid("consultation_id").references(() => consultations.id, {
-      onDelete: "cascade",
+      onDelete: "set null",
     }),
 
-    source: varchar("source", {
-      length: 50,
-    })
-      .default("consultation")
-      .notNull(), // 'consultation' or 'patient_upload'
+    /**
+     * Optional link to the prescription this supporting document
+     * (e.g. a lab result ordered in the prescription) relates to.
+     */
+    prescriptionId: uuid("prescription_id").references(() => prescriptions.id, {
+      onDelete: "set null",
+    }),
 
-    recordTitle: varchar("record_title", {
-      length: 255,
-    }).default(""),
+    /** "consultation" | "patient_upload" | "doctor_upload" */
+    source: varchar("source", { length: 50 }).default("patient_upload").notNull(),
 
-    recordDate: timestamp("record_date", {
-      withTimezone: true,
-    }).defaultNow(),
+    recordTitle: varchar("record_title", { length: 255 }).default(""),
 
-    doctorName: varchar("doctor_name", {
-      length: 255,
-    }).default(""),
+    /**
+     * Type of supporting document.
+     * "prescription" is intentionally excluded — use the prescriptions table.
+     */
+    recordType: medicalRecordTypeEnum("record_type").default("other").notNull(),
 
-    hospitalName: varchar("hospital_name", {
-      length: 255,
-    }).default(""),
+    description: text("description").default(""),
 
-    diagnosis: text("diagnosis").default(""),
+    uploadedBy: varchar("uploaded_by", { length: 50 }).default("patient").notNull(),
 
-    prescription: text("prescription").default(""),
+    recordDate: timestamp("record_date", { withTimezone: true }).defaultNow(),
 
-    doctorNotes: text("doctor_notes").default(""),
+    /** Doctor / facility that produced the document */
+    doctorName: varchar("doctor_name", { length: 255 }).default(""),
+    hospitalName: varchar("hospital_name", { length: 255 }).default(""),
 
-    advice: text("advice").default(""),
-
-    recommendedTests: text("recommended_tests").default(""),
-
-    followUpRequired: boolean("follow_up_required").default(false).notNull(),
-
-    followUpDays: integer("follow_up_days"),
-
-    prescriptionPdfUrl: varchar("prescription_pdf_url", {
-      length: 2048,
-    }).default(""),
-
-    createdAt: timestamp("created_at", {
-      withTimezone: true,
-    })
+    createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
 
-    updatedAt: timestamp("updated_at", {
-      withTimezone: true,
-    })
+    updatedAt: timestamp("updated_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
   },
@@ -83,6 +90,7 @@ export const medicalRecords = pgTable(
   (table) => [
     index("medical_records_patient_idx").on(table.patientId),
     index("medical_records_consultation_idx").on(table.consultationId),
+    index("medical_records_prescription_idx").on(table.prescriptionId),
     index("medical_records_source_idx").on(table.source),
   ]
 );

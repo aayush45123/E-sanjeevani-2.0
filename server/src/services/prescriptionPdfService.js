@@ -24,6 +24,7 @@ export class PrescriptionPdfService {
     prescriptionItems = [],
     advice,
     recommendedTests,
+    referralInfo,
     followUpRequired,
     followUpDays,
     doctorNotes,
@@ -175,11 +176,12 @@ export class PrescriptionPdfService {
           .fill("#1e293b");
 
         doc.fillColor("#ffffff").fontSize(8).font("Helvetica-Bold");
-        doc.text("MEDICINE NAME", 50, tableTop + 7);
-        doc.text("DOSAGE", 220, tableTop + 7);
-        doc.text("FREQUENCY", 310, tableTop + 7);
-        doc.text("DURATION", 410, tableTop + 7);
-        doc.text("INSTRUCTIONS", 480, tableTop + 7);
+        doc.text("MEDICINE NAME", 48, tableTop + 7);
+        doc.text("DOSAGE", 195, tableTop + 7);
+        doc.text("ROUTE", 270, tableTop + 7);
+        doc.text("FREQUENCY", 345, tableTop + 7);
+        doc.text("DURATION", 430, tableTop + 7);
+        doc.text("INSTRUCTIONS", 495, tableTop + 7);
 
         let currentY = tableTop + 22;
 
@@ -192,13 +194,14 @@ export class PrescriptionPdfService {
               .stroke("#f1f5f9");
 
             doc.fillColor("#0f172a").fontSize(8.5).font("Helvetica-Bold");
-            doc.text(`${index + 1}. ${item.medicineName}`, 48, currentY + 7, { width: 165 });
+            doc.text(`${index + 1}. ${item.medicineName}`, 45, currentY + 7, { width: 145 });
 
             doc.fillColor("#334155").font("Helvetica");
-            doc.text(item.dosage || "-", 220, currentY + 7);
-            doc.text(item.frequency || "-", 310, currentY + 7);
-            doc.text(item.duration || "-", 410, currentY + 7);
-            doc.text(item.instructions || "After food", 480, currentY + 7, { width: 80 });
+            doc.text(item.dosage || "-", 195, currentY + 7);
+            doc.text(item.route || "Oral", 270, currentY + 7);
+            doc.text(item.frequency || "-", 345, currentY + 7);
+            doc.text(item.duration || "-", 430, currentY + 7);
+            doc.text(item.instructions || "After food", 495, currentY + 7, { width: 65 });
 
             currentY += 24;
           });
@@ -244,6 +247,23 @@ export class PrescriptionPdfService {
             .fontSize(9)
             .font("Helvetica")
             .text(recommendedTests, 40, doc.y + 4, { width: doc.page.width - 80 });
+
+          doc.y = doc.y + 12;
+        }
+
+        if (referralInfo) {
+          doc.moveDown(0.6);
+          doc
+            .fillColor("#0f172a")
+            .fontSize(10)
+            .font("Helvetica-Bold")
+            .text("SPECIALIST REFERRAL INFORMATION");
+
+          doc
+            .fillColor("#334155")
+            .fontSize(9)
+            .font("Helvetica")
+            .text(referralInfo, 40, doc.y + 4, { width: doc.page.width - 80 });
 
           doc.y = doc.y + 12;
         }

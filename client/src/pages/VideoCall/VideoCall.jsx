@@ -35,16 +35,18 @@ export default function VideoCall() {
   const [clinicalTab, setClinicalTab] = useState("info"); // 'info' | 'prescription' | 'ai'
   const [rxDiagnosis, setRxDiagnosis] = useState("");
   const [rxMedicines, setRxMedicines] = useState([
-    { medicineName: "", dosage: "", frequency: "", duration: "", instructions: "" },
+    { medicineName: "", dosage: "", route: "Oral", frequency: "", duration: "", instructions: "" },
   ]);
   const [rxAdvice, setRxAdvice] = useState("");
   const [rxTests, setRxTests] = useState("");
+  const [rxReferralInfo, setRxReferralInfo] = useState("");
   const [rxFollowUpRequired, setRxFollowUpRequired] = useState(false);
   const [rxFollowUpDays, setRxFollowUpDays] = useState(7);
   const [rxDoctorNotes, setRxDoctorNotes] = useState("");
   const [rxSubmitting, setRxSubmitting] = useState(false);
   const [rxSuccess, setRxSuccess] = useState(null); // { pdfUrl, message }
   const [rxError, setRxError] = useState("");
+  const [pipMinimized, setPipMinimized] = useState(false);
 
   const userRole = localStorage.getItem("userRole");
 
@@ -672,7 +674,7 @@ Give a professional doctor-level response.
   const addMedicineRow = () => {
     setRxMedicines((prev) => [
       ...prev,
-      { medicineName: "", dosage: "", frequency: "", duration: "", instructions: "" },
+      { medicineName: "", dosage: "", route: "Oral", frequency: "", duration: "", instructions: "" },
     ]);
   };
 
@@ -703,6 +705,7 @@ Give a professional doctor-level response.
         prescriptionItems: validMeds,
         advice: rxAdvice.trim(),
         recommendedTests: rxTests.trim(),
+        referralInfo: rxReferralInfo.trim(),
         followUpRequired: rxFollowUpRequired,
         followUpDays: rxFollowUpRequired ? Number(rxFollowUpDays) : null,
         doctorNotes: rxDoctorNotes.trim(),
@@ -1013,31 +1016,41 @@ Give a professional doctor-level response.
               </div>
             </div>
 
-            {/* PiP (self) video */}
-            <div className={styles.pipWrapper}>
-              <video
-                ref={myVideo}
-                autoPlay
-                playsInline
-                muted
-                className={`${styles.pipVideo} ${isCameraOff ? styles.videoOff : ""}`}
-              />
-              {isCameraOff && (
-                <div className={styles.cameraOffOverlay}>
-                  <svg
-                    width="28"
-                    height="28"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#94a3b8"
-                    strokeWidth="1.5"
-                  >
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                    <circle cx="9" cy="7" r="4" />
-                  </svg>
-                </div>
+            {/* PiP (self) video — click the toggle to minimize/expand */}
+            <div
+              className={`${styles.pipWrapper} ${pipMinimized ? styles.pipMinimized : ""}`}
+              title={pipMinimized ? "Expand camera" : "Minimize camera"}
+            >
+              {!pipMinimized && (
+                <>
+                  <video
+                    ref={myVideo}
+                    autoPlay
+                    playsInline
+                    muted
+                    className={`${styles.pipVideo} ${isCameraOff ? styles.videoOff : ""}`}
+                  />
+                  {isCameraOff && (
+                    <div className={styles.cameraOffOverlay}>
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                        stroke="#94a3b8" strokeWidth="1.5">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                      </svg>
+                    </div>
+                  )}
+                  <div className={styles.pipLabel}>You</div>
+                </>
               )}
-              <div className={styles.pipLabel}>You</div>
+
+              {/* Minimize / expand toggle */}
+              <button
+                className={styles.pipToggleBtn}
+                onClick={() => setPipMinimized((v) => !v)}
+                title={pipMinimized ? "Expand" : "Minimize"}
+              >
+                {pipMinimized ? "⛶" : "−"}
+              </button>
             </div>
 
             {/* DOCTOR CLINICAL WORKSPACE PANEL */}
@@ -1184,9 +1197,10 @@ Give a professional doctor-level response.
                             onClick={() => {
                               setRxSuccess(null);
                               setRxDiagnosis("");
-                              setRxMedicines([{ medicineName: "", dosage: "", frequency: "", duration: "", instructions: "" }]);
+                              setRxMedicines([{ medicineName: "", dosage: "", route: "Oral", frequency: "", duration: "", instructions: "" }]);
                               setRxAdvice("");
                               setRxTests("");
+                              setRxReferralInfo("");
                               setRxFollowUpRequired(false);
                               setRxFollowUpDays(7);
                               setRxDoctorNotes("");
@@ -1245,6 +1259,27 @@ Give a professional doctor-level response.
                                         value={med.dosage}
                                         onChange={(e) => updateMedicineRow(idx, "dosage", e.target.value)}
                                       />
+                                    </div>
+                                    <div className={styles.rxMedField}>
+                                      <label className={styles.rxMiniLabel}>Route</label>
+                                      <select
+                                        className={styles.rxSelect}
+                                        value={med.route || "Oral"}
+                                        onChange={(e) => updateMedicineRow(idx, "route", e.target.value)}
+                                      >
+                                        <option value="Oral">Oral</option>
+                                        <option value="Sublingual">Sublingual</option>
+                                        <option value="Intravenous">IV (Intravenous)</option>
+                                        <option value="Intramuscular">IM (Intramuscular)</option>
+                                        <option value="Subcutaneous">Subcutaneous</option>
+                                        <option value="Topical">Topical</option>
+                                        <option value="Inhaled">Inhaled</option>
+                                        <option value="Nasal">Nasal</option>
+                                        <option value="Ophthalmic">Ophthalmic</option>
+                                        <option value="Otic">Otic (Ear)</option>
+                                        <option value="Rectal">Rectal</option>
+                                        <option value="Transdermal">Transdermal</option>
+                                      </select>
                                     </div>
                                     <div className={styles.rxMedField}>
                                       <label className={styles.rxMiniLabel}>Frequency</label>
@@ -1313,6 +1348,17 @@ Give a professional doctor-level response.
                               placeholder="CBC, LFT, X-Ray..."
                               value={rxTests}
                               onChange={(e) => setRxTests(e.target.value)}
+                            />
+                          </div>
+
+                          {/* Referral Info */}
+                          <div className={styles.rxField}>
+                            <label className={styles.rxLabel}>Referral Info</label>
+                            <input
+                              className={styles.rxInput}
+                              placeholder="Refer to Cardiologist / AIIMS Neurology Dept..."
+                              value={rxReferralInfo}
+                              onChange={(e) => setRxReferralInfo(e.target.value)}
                             />
                           </div>
 

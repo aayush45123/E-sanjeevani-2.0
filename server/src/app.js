@@ -22,6 +22,8 @@ import aiTriageRoutes from "./routes/aiTriageRoutes.js";
 import doctorAssistantRoutes from "./routes/doctorAssistantRoutes.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
 import feverRoutes from "./routes/feverRoutes.js";
+import prescriptionRoutes from "./routes/prescriptionRoutes.js";
+import patientHistoryRoutes from "./routes/patientHistoryRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -153,6 +155,16 @@ NEW: DOCTOR PROFILE ROUTES
 
 app.use("/api/medical-records", medicalRecordRoutes);
 app.use("/api/doctor-profile", doctorProfileRoutes);
+
+/*
+PRESCRIPTION ROUTES — POST /api/prescriptions, GET /api/prescriptions/:id etc.
+*/
+app.use("/api/prescriptions", prescriptionRoutes);
+
+/*
+PATIENT HISTORY & CLINICAL RECORDS ROUTES
+*/
+app.use("/api/patient-history", patientHistoryRoutes);
 
 /*aichat*/
 app.use("/api/chat", chatRoutes);

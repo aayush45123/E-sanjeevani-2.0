@@ -85,3 +85,29 @@ export const triageStatusEnum = pgEnum("triage_status", [
   "awaiting_doctor",
   "assigned_doctor",
 ]);
+
+// Supporting document types only — prescriptions live in the prescriptions table
+export const medicalRecordTypeEnum = pgEnum("medical_record_type", [
+  "lab_report",
+  "blood_test",
+  "scan_report",
+  "discharge_summary",
+  "medical_certificate",
+  "previous_consultation",
+  "other",
+]);
+
+// Prescription lifecycle: draft → finalized (immutable) → amended (correction)
+export const prescriptionStatusEnum = pgEnum("prescription_status", [
+  "draft",
+  "finalized",
+  "amended",
+]);
+
+// Prescription item active-status
+export const prescriptionItemStatusEnum = pgEnum("prescription_item_status", [
+  "active",
+  "completed",
+  "discontinued",
+]);
+

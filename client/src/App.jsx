@@ -28,6 +28,9 @@ import AiTriage from "./components/AiTriage/AiTriage";
 import ConsultedDoctors from "./pages/ConsultedDoctors/ConsultedDoctors";
 import AvailableDoctors from "./pages/AvailableDoctors/AvailableDoctors";
 import ClinicalRecords from "./pages/ClinicalRecords/ClinicalRecords";
+import PatientHistory from "./pages/PatientHistory/PatientHistory";
+
+
 
 /*
 IMPORTANT FIX:
@@ -341,6 +344,16 @@ const App = () => {
             isLoggedIn ? <ClinicalRecords /> : <Navigate to="/auth" replace />
           }
         />
+
+        {/* PATIENT LONGITUDINAL HISTORY */}
+
+        <Route
+          path="/patient-history"
+          element={
+            isLoggedIn ? <PatientHistory /> : <Navigate to="/auth" replace />
+          }
+        />
+
 
         {/* CONSULTATION BOOKING */}
 

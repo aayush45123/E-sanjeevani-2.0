@@ -3,47 +3,45 @@ import { db } from "../config/neonDb.js";
 import {
   medicalRecords,
   medicalRecordAttachments,
-  prescriptionItems,
   consultations,
   users,
-  doctorProfiles,
 } from "../database/schema/index.js";
 
+/**
+ * MedicalRecordRepository
+ *
+ * Handles SUPPORTING DOCUMENTS only (lab reports, scans, certificates, etc.).
+ * Prescription data lives in PrescriptionRepository.
+ */
 export class MedicalRecordRepository {
-  static async createPatientRecord(data) {
-    const result = await db
+  // ─── CREATE ──────────────────────────────────────────────────────────────────
+
+  /** Patient or doctor uploads a supporting document */
+  static async createRecord(data) {
+    const [record] = await db
       .insert(medicalRecords)
       .values({
         patientId: data.patientId,
-        consultationId: null,
-        source: "patient_upload",
-        recordTitle: data.recordTitle,
+        consultationId: data.consultationId || null,
+        prescriptionId: data.prescriptionId || null,
+        source: data.source || "patient_upload",
+        recordTitle: data.recordTitle || "Medical Record",
+        recordType: data.recordType || "other",
+        description: data.description || "",
+        uploadedBy: data.uploadedBy || "patient",
         recordDate: data.recordDate ? new Date(data.recordDate) : new Date(),
         doctorName: data.doctorName || "",
         hospitalName: data.hospitalName || "",
-        diagnosis: data.diagnosis || "",
-        prescription: data.prescription || "",
-        doctorNotes: data.doctorNotes || "",
+        updatedAt: new Date(),
       })
       .returning();
 
-    return result[0];
+    return record;
   }
 
-  static async createAttachment({ medicalRecordId, fileName, fileUrl }) {
-    const result = await db
-      .insert(medicalRecordAttachments)
-      .values({
-        medicalRecordId,
-        fileName,
-        fileUrl,
-      })
-      .returning();
-
-    return result[0];
-  }
-
-  static async createOrUpdateConsultationRecord(data) {
+  /** Create a consultation-linked document record (e.g. consultation summary) */
+  static async createConsultationRecord(data) {
+    // Check if one already exists for this consultation
     const existing = await db
       .select()
       .from(medicalRecords)
@@ -53,61 +51,41 @@ export class MedicalRecordRepository {
     const values = {
       patientId: data.patientId,
       consultationId: data.consultationId,
+      prescriptionId: data.prescriptionId || null,
       source: "consultation",
+      recordTitle: data.recordTitle || `Consultation Record`,
+      recordType: "other",
+      description: data.description || "",
+      uploadedBy: "doctor",
       doctorName: data.doctorName || "",
       hospitalName: data.hospitalName || "",
-      diagnosis: data.diagnosis || "",
-      prescription: data.prescriptionText || "",
-      doctorNotes: data.doctorNotes || "",
-      advice: data.advice || "",
-      recommendedTests: data.recommendedTests || "",
-      followUpRequired: Boolean(data.followUpRequired),
-      followUpDays: data.followUpDays ? parseInt(data.followUpDays, 10) : null,
-      prescriptionPdfUrl: data.prescriptionPdfUrl || "",
+      recordDate: data.recordDate ? new Date(data.recordDate) : new Date(),
       updatedAt: new Date(),
     };
 
     if (existing.length > 0) {
-      const updated = await db
+      const [updated] = await db
         .update(medicalRecords)
         .set(values)
         .where(eq(medicalRecords.id, existing[0].id))
         .returning();
-
-      return updated[0];
-    } else {
-      const inserted = await db
-        .insert(medicalRecords)
-        .values({
-          ...values,
-          recordTitle: `Consultation Prescription — Dr. ${data.doctorName || "Specialist"}`,
-          recordDate: new Date(),
-        })
-        .returning();
-
-      return inserted[0];
+      return updated;
     }
+
+    const [inserted] = await db.insert(medicalRecords).values(values).returning();
+    return inserted;
   }
 
-  static async savePrescriptionItems(medicalRecordId, items = []) {
-    // Delete existing items for this record
-    await db
-      .delete(prescriptionItems)
-      .where(eq(prescriptionItems.medicalRecordId, medicalRecordId));
-
-    if (!items || items.length === 0) return [];
-
-    const valuesToInsert = items.map((item) => ({
-      medicalRecordId,
-      medicineName: item.medicineName,
-      dosage: item.dosage,
-      frequency: item.frequency,
-      duration: item.duration,
-      instructions: item.instructions || "",
-    }));
-
-    return db.insert(prescriptionItems).values(valuesToInsert).returning();
+  /** Attach a file to a medical record */
+  static async createAttachment({ medicalRecordId, fileName, fileUrl }) {
+    const [attachment] = await db
+      .insert(medicalRecordAttachments)
+      .values({ medicalRecordId, fileName, fileUrl })
+      .returning();
+    return attachment;
   }
+
+  // ─── QUERIES ─────────────────────────────────────────────────────────────────
 
   static async findByPatientId(patientId) {
     const records = await db
@@ -116,117 +94,53 @@ export class MedicalRecordRepository {
       .where(eq(medicalRecords.patientId, patientId))
       .orderBy(desc(medicalRecords.recordDate));
 
-    // Hydrate each record with attachments and items
-    const hydratedRecords = await Promise.all(
-      records.map(async (record) => {
-        const attachments = await db
-          .select()
-          .from(medicalRecordAttachments)
-          .where(eq(medicalRecordAttachments.medicalRecordId, record.id));
-
-        const items = await db
-          .select()
-          .from(prescriptionItems)
-          .where(eq(prescriptionItems.medicalRecordId, record.id));
-
-        return {
-          ...record,
-          attachments,
-          prescriptionItems: items,
-        };
-      })
-    );
-
-    return hydratedRecords;
+    return Promise.all(records.map((r) => this._hydrate(r)));
   }
 
   static async findByDoctorId(doctorId) {
     const rows = await db
-      .select({
-        record: medicalRecords,
-        patientName: users.name,
-      })
+      .select({ record: medicalRecords, patientName: users.name })
       .from(medicalRecords)
       .innerJoin(consultations, eq(medicalRecords.consultationId, consultations.id))
       .leftJoin(users, eq(medicalRecords.patientId, users.id))
       .where(eq(consultations.doctorId, doctorId))
       .orderBy(desc(medicalRecords.recordDate));
 
-    const hydratedRecords = await Promise.all(
-      rows.map(async ({ record, patientName }) => {
-        const attachments = await db
-          .select()
-          .from(medicalRecordAttachments)
-          .where(eq(medicalRecordAttachments.medicalRecordId, record.id));
-
-        const items = await db
-          .select()
-          .from(prescriptionItems)
-          .where(eq(prescriptionItems.medicalRecordId, record.id));
-
-        return {
-          ...record,
-          patientName: patientName || "Patient",
-          attachments,
-          prescriptionItems: items,
-        };
-      })
+    return Promise.all(
+      rows.map(async ({ record, patientName }) => ({
+        ...(await this._hydrate(record)),
+        patientName: patientName || "Patient",
+      }))
     );
-
-    return hydratedRecords;
   }
 
   static async findById(id) {
-    const recordRow = await db
+    const [record] = await db
       .select()
       .from(medicalRecords)
       .where(eq(medicalRecords.id, id))
       .limit(1);
 
-    if (recordRow.length === 0) return null;
-    const record = recordRow[0];
-
-    const attachments = await db
-      .select()
-      .from(medicalRecordAttachments)
-      .where(eq(medicalRecordAttachments.medicalRecordId, record.id));
-
-    const items = await db
-      .select()
-      .from(prescriptionItems)
-      .where(eq(prescriptionItems.medicalRecordId, record.id));
-
-    return {
-      ...record,
-      attachments,
-      prescriptionItems: items,
-    };
+    return record ? this._hydrate(record) : null;
   }
 
   static async findByConsultationId(consultationId) {
-    const recordRow = await db
+    const records = await db
       .select()
       .from(medicalRecords)
-      .where(eq(medicalRecords.consultationId, consultationId))
-      .limit(1);
+      .where(eq(medicalRecords.consultationId, consultationId));
 
-    if (recordRow.length === 0) return null;
-    const record = recordRow[0];
+    return Promise.all(records.map((r) => this._hydrate(r)));
+  }
 
+  // ─── PRIVATE ─────────────────────────────────────────────────────────────────
+
+  static async _hydrate(record) {
     const attachments = await db
       .select()
       .from(medicalRecordAttachments)
       .where(eq(medicalRecordAttachments.medicalRecordId, record.id));
 
-    const items = await db
-      .select()
-      .from(prescriptionItems)
-      .where(eq(prescriptionItems.medicalRecordId, record.id));
-
-    return {
-      ...record,
-      attachments,
-      prescriptionItems: items,
-    };
+    return { ...record, attachments };
   }
 }

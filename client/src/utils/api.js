@@ -271,6 +271,37 @@ export const medicalRecordApi = {
     apiClient.post("/medical-records/issue-prescription", data),
 };
 
+// Prescription API
+export const prescriptionApi = {
+  createPrescription: (data) => apiClient.post("/prescriptions", data),
+  getPrescriptionById: (id) => apiClient.get(`/prescriptions/${id}`),
+  getPatientPrescriptions: (patientId) => apiClient.get(`/prescriptions/patient/${patientId}`),
+  getDoctorPatientPrescriptions: (patientId) => apiClient.get(`/prescriptions/doctor-patient/${patientId}`),
+  finalizePrescription: (id) => apiClient.patch(`/prescriptions/${id}/finalize`),
+  amendPrescription: (id, data) => apiClient.post(`/prescriptions/${id}/amend`, data),
+  discontinueMedication: (prescriptionId, itemId) =>
+    apiClient.patch(`/prescriptions/${prescriptionId}/items/${itemId}/discontinue`),
+};
+
+// Patient History & Analytics API
+export const patientHistoryApi = {
+  getDoctorPatientHistory: (doctorId, patientId) =>
+    apiClient.get(`/patient-history/doctors/${doctorId}/patients/${patientId}/history`),
+
+  getDoctorPatientAnalytics: (doctorId, patientId) =>
+    apiClient.get(`/patient-history/doctors/${doctorId}/patients/${patientId}/analytics`),
+
+  getPatientClinicalRecords: (patientId) =>
+    apiClient.get(`/patient-history/patients/${patientId}/clinical-records`),
+
+  addClinicalRecord: (patientId, formData) =>
+    apiClient.post(`/patient-history/patients/${patientId}/clinical-records`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+
+  getClinicalRecordById: (id) =>
+    apiClient.get(`/patient-history/clinical-records/${id}`),
+};
 
 // Analytics API
 export const analyticsApi = {
@@ -278,3 +309,4 @@ export const analyticsApi = {
 };
 
 export default apiClient;
+
