@@ -10,7 +10,7 @@
   width: calc(100% - 240px);
   margin-left: 240px;
   background: #ffffff;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font);
   color: #111827;
 }
 

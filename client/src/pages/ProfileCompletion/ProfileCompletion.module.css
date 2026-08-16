@@ -6,7 +6,7 @@
   min-height: 100vh;
   display: flex;
   background: #fafafa;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--font);
 }
 
 .contentArea {

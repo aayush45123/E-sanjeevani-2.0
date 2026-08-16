@@ -10,7 +10,7 @@
   width: calc(100% - 240px);
   margin-left: 240px;
   background: #fafafa;
-  font-family: var(--font-primary, system-ui, -apple-system, sans-serif);
+  font-family: var(--font);
   color: #111827;
 }
 

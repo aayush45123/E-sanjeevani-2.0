@@ -10,7 +10,7 @@
   height: 100vh;
   overflow: hidden;
   background: #f0f4f8;
-  font-family: "DM Sans", "Inter", sans-serif;
+  font-family: var(--font);
 }
 
 /* ── FULL CALL LAYOUT ── */

@@ -4,7 +4,7 @@
   width: calc(100vw - 240px);
   margin-left: 240px;
   background-color: var(--bg);
-  font-family: var(--font, system-ui, -apple-system, sans-serif);
+  font-family: var(--font);
   color: var(--text-primary);
   overflow: hidden;
 }

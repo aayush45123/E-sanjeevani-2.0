@@ -5,7 +5,6 @@
    Font Stack: Inter (for absolute clarity) & system sans-serif.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
 /* ── Design Tokens ──────────────────────────────────────────────────────── */
 :root {
@@ -58,11 +57,7 @@
   display: flex;
   min-height: 100vh;
   background: var(--bg-app);
-  font-family:
-    "Inter",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font);
   color: var(--text-primary);
   margin-left: 240px;
   width: calc(100% - 240px);
