@@ -410,17 +410,22 @@ const SOCKET_URL =
     }
   };
 
-  // ── Fever: ask next question ────────────────────────────────────────────
+  // ── Fever: ask next question with typing indicator ───────────────────────
   const askFeverQuestion = (stepIndex, msgs) => {
     const step = FEVER_STEPS[stepIndex];
     if (!step) return;
-    const aiMsg = {
-      id: Date.now() + stepIndex,
-      type: "ai",
-      text: step.question,
-      timestamp: new Date(),
-    };
-    setMessages((prev) => [...(msgs || prev), aiMsg]);
+
+    setIsTyping(true);
+    setTimeout(() => {
+      setIsTyping(false);
+      const aiMsg = {
+        id: Date.now() + stepIndex,
+        type: "ai",
+        text: step.question,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...(msgs || prev), aiMsg]);
+    }, 700);
   };
 
   // ── Fever: build symptom vector from answers ─────────────────────────────
@@ -572,7 +577,7 @@ const SOCKET_URL =
       await submitFeverAssessment(newAnswers);
     } else {
       setFeverStep(nextStep);
-      setTimeout(() => askFeverQuestion(nextStep), 400);
+      askFeverQuestion(nextStep);
     }
   };
 
@@ -635,7 +640,8 @@ const SOCKET_URL =
         setFeverActive(true);
         setFeverStep(0);
         setFeverAnswers({});
-        // Brief acknowledgement then ask step 0
+        setIsTyping(true);
+
         const ackMsg = {
           id: Date.now() + 1,
           type: "ai",
@@ -644,8 +650,12 @@ const SOCKET_URL =
             "This is a **differential assessment** — not a diagnosis. Please answer each question honestly. Let's begin:",
           timestamp: new Date(),
         };
-        setMessages((prev) => [...prev, ackMsg]);
-        setTimeout(() => askFeverQuestion(0), 600);
+
+        setTimeout(() => {
+          setIsTyping(false);
+          setMessages((prev) => [...prev, ackMsg]);
+          askFeverQuestion(0);
+        }, 600);
       } else {
         // Ongoing fever conversation — process the reply
         await handleFeverReply(currentInput);
