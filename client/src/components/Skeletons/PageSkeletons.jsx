@@ -592,9 +592,9 @@ export function DoctorProfileEditSkeleton() {
 /* 16. Video Call Skeleton */
 export function VideoCallSkeleton() {
   return (
-    <div style={{ width: "100vw", height: "100vh", background: "#090d16", display: "flex", flexDirection: "column" }}>
+    <div style={{ width: "100vw", height: "100vh", background: "#f8fafc", display: "flex", flexDirection: "column" }}>
       {/* Top bar */}
-      <div style={{ height: "60px", background: "#0f172a", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 1.5rem", borderBottom: "1px solid #1e293b" }}>
+      <div style={{ height: "60px", background: "#ffffff", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 1.5rem", borderBottom: "1px solid #e2e8f0" }}>
         <SkeletonPill width="140px" height="28px" />
         <SkeletonPill width="180px" height="28px" />
       </div>
@@ -612,7 +612,7 @@ export function VideoCallSkeleton() {
         </div>
 
         {/* Right Chat/Clinical Panel */}
-        <div style={{ width: "340px", background: "#0f172a", borderRadius: "16px", padding: "1rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
+        <div style={{ width: "340px", background: "#ffffff", borderRadius: "16px", padding: "1rem", display: "flex", flexDirection: "column", gap: "1rem", border: "1px solid #e2e8f0" }}>
           <SkeletonPill width="100%" height="36px" />
           <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "0.75rem" }}>
             <SkeletonRect width="70%" height="40px" style={{ borderRadius: "12px" }} />

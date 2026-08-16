@@ -9,7 +9,9 @@ import { VideoCallSkeleton } from "../../components/Skeletons";
 import styles from "./VideoCall.module.css";
 
 const SOCKET_URL =
-  import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "") || "https://e-sanjeevani-2-0.onrender.com";
+  import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "") ||
+  import.meta.env.VITE_API_BASE_URL?.replace(/\/api\/?$/, "") ||
+  "https://e-sanjeevani-2-0.onrender.com";
 
   
 export default function VideoCall() {
@@ -296,14 +298,16 @@ export default function VideoCall() {
 
       try {
         const response = await apiClient.get(
-          `/doctor-assistant/${consultationId}`
+          `/doctor-assistant/data/${consultationId}`
         );
 
         if (response.data?.success) {
           setDoctorAssistantData(response.data.data);
         }
       } catch (error) {
-        console.error("Doctor Assistant Error:", error);
+        if (error?.response?.status !== 404) {
+          console.warn("Doctor Assistant Warning:", error);
+        }
       }
     };
 
@@ -525,11 +529,14 @@ export default function VideoCall() {
             status: "ongoing",
           });
         } catch (err) {
-          console.log(err);
+          // Quietly ignore status permission error if already set
         }
+
+        setCallStatus("connected");
       } catch (err) {
-        console.error(err);
+        console.warn("Media devices / connection notice:", err?.message || err);
         setConnectionError("Camera / microphone permission required");
+        setCallStatus("ready");
       }
     };
 
