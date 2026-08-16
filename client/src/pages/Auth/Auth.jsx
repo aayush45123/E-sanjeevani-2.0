@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./Auth.module.css";
 import { authApi } from "../../utils/api";
+import { Check } from "lucide-react";
 import { AuthSkeleton } from "../../components/Skeletons";
 
 const Auth = () => {
@@ -183,15 +184,15 @@ const Auth = () => {
 
             <ul className={styles.featuresList}>
               <li className={styles.featureItem}>
-                <div className={styles.featureIcon}>✓</div>
+                <div className={styles.featureIcon}><Check size={14} /></div>
                 <span>AI symptom analysis with II-Medical-8B</span>
               </li>
               <li className={styles.featureItem}>
-                <div className={styles.featureIcon}>✓</div>
+                <div className={styles.featureIcon}><Check size={14} /></div>
                 <span>Direct, secure WebRTC video sessions</span>
               </li>
               <li className={styles.featureItem}>
-                <div className={styles.featureIcon}>✓</div>
+                <div className={styles.featureIcon}><Check size={14} /></div>
                 <span>Automated specialist matching by triage severity</span>
               </li>
             </ul>

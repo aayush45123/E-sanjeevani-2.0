@@ -368,7 +368,7 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
         !profileData.hospitalName
       ) {
         showError(
-          "⚠️ Please complete your profile details first before setting availability.",
+          "Please complete your profile details first before setting availability.",
         );
         return;
       }

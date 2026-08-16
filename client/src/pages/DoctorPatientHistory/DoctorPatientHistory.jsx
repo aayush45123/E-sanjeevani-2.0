@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import {
   X, User, Calendar, FileText, Pill, Activity, AlertCircle, Shield,
-  TrendingUp, Download, CheckCircle, Clock, ChevronDown, ChevronUp,
+  TrendingUp, Download, CheckCircle, Clock, ChevronDown, ChevronUp, AlertTriangle, Info,
 } from "lucide-react";
 import { patientHistoryApi } from "../../utils/api";
 import styles from "./DoctorPatientHistory.module.css";
@@ -95,12 +95,12 @@ export default function DoctorPatientHistory({ patientId, doctorId, onClose }) {
                 <div className={styles.allergyRow}>
                   {history.patientOverview.knownAllergies !== "None reported" && (
                     <span className={styles.allergyBadge}>
-                      ⚠️ Allergies: {history.patientOverview.knownAllergies}
+                      <AlertTriangle size={12} /> Allergies: {history.patientOverview.knownAllergies}
                     </span>
                   )}
                   {history.patientOverview.existingConditions !== "None reported" && (
                     <span className={styles.conditionBadge}>
-                      🛡️ Conditions: {history.patientOverview.existingConditions}
+                      <Shield size={12} /> Conditions: {history.patientOverview.existingConditions}
                     </span>
                   )}
                 </div>
@@ -165,7 +165,7 @@ export default function DoctorPatientHistory({ patientId, doctorId, onClose }) {
                     <p className={styles.mutedText}>No previous diagnoses recorded in system.</p>
                   )}
                   <div className={styles.disclaimerNote}>
-                    ℹ️ Counts reflect past recorded consultations. Clinical diagnosis is the attending doctor's decision.
+                    <Info size={12} /> Counts reflect past recorded consultations. Clinical diagnosis is the attending doctor's decision.
                   </div>
                 </div>
 

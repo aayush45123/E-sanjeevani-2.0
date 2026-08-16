@@ -13,6 +13,7 @@ import {
   FiCalendar,
   FiArrowRight,
 } from "react-icons/fi";
+import { MapPin, CheckCircle, Lightbulb } from "lucide-react";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import styles from "./Consultations.module.css";
 import { useNavigate } from "react-router-dom";
@@ -521,7 +522,7 @@ export default function Consultations() {
                   disabled={locationLoading}
                   title="Find doctors near your location"
                 >
-                  📍{" "}
+                  <MapPin size={14} />{" "}
                   {locationLoading ? "Getting Location..." : "Doctors Near Me"}
                 </button>
               </div>
@@ -529,7 +530,7 @@ export default function Consultations() {
               {/* Location Info */}
               {showNearMe && userLocation && (
                 <div className={styles.locationInfo}>
-                  ✅ Showing doctors within 50km of your location
+                  <CheckCircle size={14} /> Showing doctors within 50km of your location
                 </div>
               )}
 
@@ -555,7 +556,7 @@ export default function Consultations() {
                         No doctors with clinic addresses in your area yet.
                       </p>
                       <p style={{ margin: "0" }}>
-                        💡 Encourage doctors to add their clinic location in
+                        <Lightbulb size={14} /> Encourage doctors to add their clinic location in
                         their profile settings.
                       </p>
                     </div>
@@ -568,7 +569,7 @@ export default function Consultations() {
                       {/* Distance Badge */}
                       {showNearMe && doctor.distanceInKm && (
                         <div className={styles.distanceBadge}>
-                          📍 {doctor.distanceInKm.toFixed(1)} km away
+                          <MapPin size={12} /> {doctor.distanceInKm.toFixed(1)} km away
                         </div>
                       )}
 

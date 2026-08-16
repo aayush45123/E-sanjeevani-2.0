@@ -5,7 +5,7 @@ import { consultationApi, medicalRecordApi, apiClient } from "../../utils/api";
 import NotificationService from "../../utils/notificationService";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
-import { VideoCallSkeleton } from "../../components/Skeletons";
+import { CheckCircle, FileText, X } from "lucide-react";
 import styles from "./VideoCall.module.css";
 
 const SOCKET_URL =
@@ -715,7 +715,7 @@ Give a professional doctor-level response.
         message: res.data.message || "Prescription issued successfully!",
         pdfUrl: res.data.record?.prescriptionPdfUrl || null,
       });
-      NotificationService.showToast("✅ Digital prescription issued!", "success");
+      NotificationService.showToast("Digital prescription issued!", "success");
     } catch (err) {
       const msg = err.response?.data?.message || "Failed to issue prescription.";
       setRxError(msg);
@@ -1179,7 +1179,7 @@ Give a professional doctor-level response.
                     <div className={styles.rxTab}>
                       {rxSuccess ? (
                         <div className={styles.rxSuccessCard}>
-                          <div className={styles.rxSuccessIcon}>✅</div>
+                          <div className={styles.rxSuccessIcon}><CheckCircle size={32} color="#16a34a" /></div>
                           <h3>Prescription Issued!</h3>
                           <p>{rxSuccess.message}</p>
                           {rxSuccess.pdfUrl && (
@@ -1189,7 +1189,7 @@ Give a professional doctor-level response.
                               rel="noopener noreferrer"
                               className={styles.rxPdfDownload}
                             >
-                              📄 Download Prescription PDF
+                              <FileText size={16} /> Download Prescription PDF
                             </a>
                           )}
                           <button
@@ -1411,7 +1411,7 @@ Give a professional doctor-level response.
                               onClick={handleIssuePrescription}
                               disabled={rxSubmitting}
                             >
-                              {rxSubmitting ? "Generating PDF..." : "📄 Issue Final Prescription"}
+                              {rxSubmitting ? "Generating PDF..." : <><FileText size={16} /> Issue Final Prescription</>}
                             </button>
                           </div>
                         </>

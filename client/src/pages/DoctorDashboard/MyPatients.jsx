@@ -13,6 +13,7 @@ import {
   FiLoader,
   FiChevronDown,
 } from "react-icons/fi";
+import { FileText, CheckCircle } from "lucide-react";
 import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
 import styles from "./MyPatients.module.css";
 import { performLogout } from "../../utils/auth";
@@ -233,13 +234,13 @@ export default function MyPatients() {
 
                     <div className={styles.quickStats}>
                       <div className={styles.stat}>
-                        <span className={styles.statIcon}>📋</span>
+                        <FileText size={14} className={styles.statIcon} />
                         <span className={styles.statText}>
                           {patient.totalSessions} consultations
                         </span>
                       </div>
                       <div className={styles.stat}>
-                        <span className={styles.statIcon}>✓</span>
+                        <CheckCircle size={14} className={styles.statIcon} />
                         <span className={styles.statText}>
                           {patient.completedSessions} completed
                         </span>

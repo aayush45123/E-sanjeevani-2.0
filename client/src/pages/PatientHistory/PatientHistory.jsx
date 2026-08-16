@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import {
   Calendar, FileText, Pill, Activity, Download, ChevronDown,
-  ChevronUp, Clock, CheckCircle, XCircle, AlertCircle, User, Shield,
+  ChevronUp, Clock, CheckCircle, XCircle, AlertCircle, User, Shield, Stethoscope, ClipboardList,
 } from "lucide-react";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import { patientHistoryApi, prescriptionApi } from "../../utils/api";
@@ -216,13 +216,13 @@ function StatChip({ icon, label, value, color }) {
 
 function TimelineEvent({ event }) {
   const iconMap = {
-    consultation: "🩺",
-    prescription: "💊",
-    document_upload: "📄",
+    consultation: <Stethoscope size={16} />,
+    prescription: <Pill size={16} />,
+    document_upload: <FileText size={16} />,
   };
   return (
     <div className={styles.timelineEvent}>
-      <div className={styles.timelineIcon}>{iconMap[event.type] || "📋"}</div>
+      <div className={styles.timelineIcon}>{iconMap[event.type] || <ClipboardList size={16} />}</div>
       <div className={styles.timelineBody}>
         <div className={styles.timelineTitle}>{event.title}</div>
         <div className={styles.timelineDate}>

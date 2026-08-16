@@ -16,6 +16,7 @@ import {
   FiZap,
 } from "react-icons/fi";
 import io from "socket.io-client";
+import { AlertCircle, AlertTriangle, Info, CheckCircle } from "lucide-react";
 import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
 import NotificationService from "../../utils/notificationService";
 import { useNavigate } from "react-router-dom";
@@ -431,7 +432,7 @@ const SOCKET_URL =
         <header className={styles.pageHeader}>
           <div className={styles.headerLeft}>
             <h1 className={styles.pageTitle}>
-              Good morning, Dr.{firstName} 👋
+              Good morning, Dr.{firstName}
             </h1>
 
             <p className={styles.pageSubtitle}>{todayFormatted}</p>
@@ -773,28 +774,28 @@ function AppointmentRow({ appt, avatarColor, urgency }) {
         bg: "#fee2e2",
         border: "#fecaca",
         text: "#991b1b",
-        icon: "🔴",
+        icon: <AlertCircle size={14} color="#dc2626" />,
         label: "Critical",
       },
       high: {
         bg: "#fed7aa",
         border: "#fdba74",
         text: "#92400e",
-        icon: "🟠",
+        icon: <AlertTriangle size={14} color="#d97706" />,
         label: "High",
       },
       medium: {
         bg: "#fef3c7",
         border: "#fcd34d",
         text: "#92400e",
-        icon: "🟡",
+        icon: <Info size={14} color="#b45309" />,
         label: "Medium",
       },
       low: {
         bg: "#dcfce7",
         border: "#86efac",
         text: "#166534",
-        icon: "🟢",
+        icon: <CheckCircle size={14} color="#16a34a" />,
         label: "Low",
       },
     };

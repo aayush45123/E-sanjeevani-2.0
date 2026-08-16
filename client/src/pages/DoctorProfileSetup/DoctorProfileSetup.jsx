@@ -552,7 +552,7 @@ function EditForm({
             lineHeight: "1.5",
           }}
         >
-          📍 Help patients find you! When you enable clinic location, your
+          Help patients find you! When you enable clinic location, your
           profile will appear in location-based searches. Patients can filter
           doctors by proximity to find nearby medical professionals.
         </p>
@@ -669,7 +669,7 @@ function AvailabilitySection({
     <div className={styles.availabilitySection}>
       <div className={styles.availabilityInfo}>
         <p>
-          📅 <strong>Optional:</strong> Set your first availability to help
+          <strong>Optional:</strong> Set your first availability to help
           patients book consultations faster.
         </p>
       </div>

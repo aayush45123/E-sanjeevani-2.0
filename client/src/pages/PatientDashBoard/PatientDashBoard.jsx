@@ -192,7 +192,7 @@ const aiModelsData = [
     name: "Fever Assessment",
     provider: "E-Sanjeevani ML Model",
     icon: null,
-    emoji: "🌡️",
+    emoji: null,
     isPro: false,
     description: "Explainable fever differential (Dengue · Malaria · Typhoid · Chikungunya · Viral)",
     endpoint: "/api/fever/assess",
@@ -204,7 +204,7 @@ const FEVER_STEPS = [
   {
     key: "red_flags",
     question:
-      "🚨 **Safety check first.** Do you have any of these warning signs?\n\n" +
+      "**Safety check first.** Do you have any of these warning signs?\n\n" +
       "• Bleeding from nose, gums, or in vomit/stool\n" +
       "• Severe abdominal pain\n" +
       "• Difficulty breathing\n" +
@@ -472,7 +472,7 @@ const SOCKET_URL =
 
       if (data.red_flag_alert) {
         resultText =
-          `## ⚠️ URGENT WARNING\n\n` +
+          `## URGENT WARNING\n\n` +
           `${data.red_flag_message}\n\n` +
           `**Warning signs detected:** ${data.red_flags_detected?.join(", ")}\n\n` +
           `Please call emergency services or go to the nearest hospital immediately.`;
@@ -482,14 +482,14 @@ const SOCKET_URL =
         const topDiseaseName = (top[0]?.disease || "Fever-like illness").replace(/_/g, " ");
 
         resultText =
-          `## 🌡️ Fever Symptom Assessment\n\n` +
+          `## Fever Symptom Assessment\n\n` +
           `**Predicted Condition:** ${topDiseaseName}\n\n` +
           `**Why this condition was predicted:**\n` +
           (explain.length > 0
             ? explain.map((b) => `• ${b}`).join("\n")
             : "• Based on reported symptom combination") +
           `\n\n---\n\n` +
-          `**⚕️ Important:** ${data.disclaimer}\n\n` +
+          `**Important:** ${data.disclaimer}\n\n` +
           `**Next Step:** ${data.recommended_action}`;
       } else {
         resultText = data.message || "Could not complete the fever assessment. Please ensure the AI server is running.";
@@ -543,7 +543,7 @@ const SOCKET_URL =
             id: Date.now() + 50,
             type: "ai",
             text:
-              "## ⚠️ URGENT WARNING\n\n" +
+              "## URGENT WARNING\n\n" +
               "You reported one or more serious warning signs.\n\n" +
               "**Please seek immediate medical attention or call emergency services.**\n\n" +
               "Do not delay — some of these symptoms may indicate severe dengue, severe malaria, or another medical emergency.",
