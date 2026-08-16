@@ -532,10 +532,26 @@ export default function VideoCall() {
           // Quietly ignore status permission error if already set
         }
 
-        setCallStatus("connected");
       } catch (err) {
-        console.warn("Media devices / connection notice:", err?.message || err);
-        setConnectionError("Camera / microphone permission required");
+        console.warn("Media devices / connection notice:", err?.name, err?.message || err);
+        
+        // If webcam is in use by another tab or window, try audio-only fallback
+        if (err?.name === "NotReadableError" || err?.name === "TrackStartError" || String(err?.message || "").includes("in use")) {
+          try {
+            console.log("Attempting audio-only stream fallback...");
+            const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+            localStreamRef.current = audioStream;
+            setIsCameraOff(true);
+            setConnectionError("Camera is in use by another tab/app (Audio only active)");
+            setCallStatus("connected");
+            return;
+          } catch (audioErr) {
+            console.warn("Audio fallback also failed:", audioErr);
+          }
+          setConnectionError("Camera/Microphone is in use by another tab. Please close other video call tabs.");
+        } else {
+          setConnectionError("Camera / microphone permission required");
+        }
         setCallStatus("ready");
       }
     };
