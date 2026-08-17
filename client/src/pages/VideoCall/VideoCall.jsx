@@ -5,6 +5,7 @@ import { consultationApi, medicalRecordApi, apiClient } from "../../utils/api";
 import NotificationService from "../../utils/notificationService";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
+import { VideoCallSkeleton } from "../../components/Skeletons";
 import { CheckCircle, FileText, X } from "lucide-react";
 import styles from "./VideoCall.module.css";
 

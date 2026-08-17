@@ -15,6 +15,7 @@ import {
   FiAlertCircle,
 } from "react-icons/fi";
 import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
+import { DoctorScheduleSkeleton } from "../../components/Skeletons";
 import {
   doctorAvailabilityApi,
   consultationApi,
