@@ -57,7 +57,7 @@ export default function Consultations() {
         fetchDoctors();
       }
     }
-  }, [activeTab, specialization, searchQuery, showNearMe, userLocation]);
+  }, [activeTab, specialization, showNearMe, userLocation]);
 
   const fetchConsultations = async () => {
     try {

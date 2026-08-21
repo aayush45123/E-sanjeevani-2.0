@@ -68,27 +68,38 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
   useEffect(() => {
     async function init() {
       try {
-        const userRes = await authApi.me();
-        const doctorData = userRes.data.user || userRes.data;
+        const [userRes, consultationRes, statusRes] = await Promise.all([
+          authApi.me().catch((err) => {
+            if (err.status === 401 || err.response?.status === 401) {
+              performLogout();
+            }
+            return null;
+          }),
+          consultationApi.getDoctorConsultations().catch((err) => {
+            console.error("Failed to fetch doctor consultations:", err);
+            return { data: { consultations: [] } };
+          }),
+          consultationApi.checkDoctorProfileStatus?.().catch(() => null),
+        ]);
 
-        setUser(doctorData);
+        if (userRes?.data) {
+          const doctorData = userRes.data.user || userRes.data;
+          setUser(doctorData);
+        }
 
-        const consultationRes = await consultationApi.getDoctorConsultations();
-
-        const allConsultations = consultationRes.data.consultations || [];
-
+        const allConsultations = consultationRes?.data?.consultations || [];
         setConsultations(allConsultations);
-
         calculateStats(allConsultations);
 
-        // Check profile status
-        await refreshProfileStatus();
+        if (statusRes?.data) {
+          setProfileStatus({
+            clinicAddressComplete: statusRes.data.clinicAddressComplete || false,
+            hasClinic: statusRes.data.hasClinic || false,
+            missingItems: statusRes.data.missingItems || [],
+          });
+        }
       } catch (err) {
         console.error(err);
-
-        if (err.status === 401 || err.response?.status === 401) {
-          performLogout();
-        }
       } finally {
         setLoading(false);
       }

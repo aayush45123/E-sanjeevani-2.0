@@ -59,14 +59,27 @@ export default function DoctorAnalytics({ isProfileIncomplete = false }) {
       try {
         setLoading(true);
 
-        // Fetch user
-        const userRes = await authApi.me();
-        const userData = userRes.data.user || userRes.data;
-        setUser(userData);
+        const [userRes, analyticsRes] = await Promise.all([
+          authApi.me().catch((err) => {
+            if (err.status === 401 || err.response?.status === 401) {
+              performLogout();
+            }
+            return null;
+          }),
+          analyticsApi.getDoctorAnalytics().catch((err) => {
+            console.error("Failed to fetch analytics:", err);
+            return { data: { data: null } };
+          }),
+        ]);
 
-        // Fetch advanced analytics from new backend endpoint
-        const analyticsRes = await analyticsApi.getDoctorAnalytics();
-        setAnalyticsData(analyticsRes.data.data);
+        if (userRes?.data) {
+          const userData = userRes.data.user || userRes.data;
+          setUser(userData);
+        }
+
+        if (analyticsRes?.data?.data) {
+          setAnalyticsData(analyticsRes.data.data);
+        }
       } catch (err) {
         console.error("Error fetching analytics:", err);
         setError("Failed to load analytics data.");

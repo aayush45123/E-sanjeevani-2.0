@@ -95,10 +95,6 @@ export default function ConsultationBookingForm() {
 
   if (!doctor) return null;
 
-  if (loading) {
-    return <ConsultationBookingSkeleton />;
-  }
-
   return (
     <div className={styles.dashboardLayout}>
       <Sidebar />

@@ -144,10 +144,6 @@ const Auth = () => {
   ==================================================
   */
 
-  if (loading) {
-    return <AuthSkeleton />;
-  }
-
   return (
     <div className={styles.pageWrapper}>
       {/* MAIN CONTENT */}

@@ -34,17 +34,28 @@ export default function ClinicalRecords() {
 
   useEffect(() => {
     async function init() {
-      if (userRole === "doctor") {
-        try {
-          const uRes = await authApi.me();
+      try {
+        setLoading(true);
+        const [uRes, recRes] = await Promise.all([
+          userRole === "doctor" ? authApi.me().catch(() => null) : Promise.resolve(null),
+          medicalRecordApi.getMyRecords().catch((err) => {
+            console.error("Failed to fetch medical records:", err);
+            return { data: { records: [] } };
+          }),
+        ]);
+
+        if (uRes?.data) {
           setUser(uRes.data.user || uRes.data);
-        } catch (e) {}
+        }
+        setRecords(recRes?.data?.records || []);
+      } catch (err) {
+        console.error("Failed to load clinical records:", err);
+      } finally {
+        setLoading(false);
       }
-      fetchRecords();
     }
     init();
-  }, []);
-
+  }, [userRole]);
 
   const fetchRecords = async () => {
     try {

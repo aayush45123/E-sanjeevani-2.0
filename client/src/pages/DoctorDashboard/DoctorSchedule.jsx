@@ -56,18 +56,30 @@ export default function DoctorSchedule({ isProfileIncomplete = false }) {
       try {
         setLoading(true);
 
-        // Fetch logged-in user
-        const userRes = await authApi.me();
-        const userData = userRes.data.user || userRes.data;
-        setUser(userData);
+        const [userRes, availRes, consultRes] = await Promise.all([
+          authApi.me().catch((err) => {
+            if (err.status === 401 || err.response?.status === 401) {
+              performLogout();
+            }
+            return null;
+          }),
+          doctorAvailabilityApi.getMySlots().catch((err) => {
+            console.error("Failed to fetch slots:", err);
+            return { data: { availability: [] } };
+          }),
+          consultationApi.getDoctorConsultations().catch((err) => {
+            console.error("Failed to fetch consultations:", err);
+            return { data: { consultations: [] } };
+          }),
+        ]);
 
-        // Fetch doctor's availability
-        const availRes = await doctorAvailabilityApi.getMySlots();
-        setAvailability(availRes.data.availability || []);
+        if (userRes?.data) {
+          const userData = userRes.data.user || userRes.data;
+          setUser(userData);
+        }
 
-        // Fetch doctor's consultations
-        const consultRes = await consultationApi.getDoctorConsultations();
-        setConsultations(consultRes.data.consultations || []);
+        setAvailability(availRes?.data?.availability || []);
+        setConsultations(consultRes?.data?.consultations || []);
 
         // Set initial selected date to today
         setSelectedDate(new Date());
