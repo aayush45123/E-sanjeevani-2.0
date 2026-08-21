@@ -17,6 +17,7 @@ import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
 import styles from "./DoctorProfileEdit.module.css";
 import { doctorProfileApi, doctorAvailabilityApi } from "../../utils/api";
 import { performLogout } from "../../utils/auth";
+import toast from "react-hot-toast";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -318,11 +319,13 @@ export default function DoctorProfileEdit({ isProfileIncomplete = false }) {
   const showSuccess = (msg) => {
     setSuccessMsg(msg);
     setErrorMsg("");
+    toast.success(msg);
     setTimeout(() => setSuccessMsg(""), 4000);
   };
   const showError = (msg) => {
     setErrorMsg(msg);
     setSuccessMsg("");
+    toast.error(msg);
     setTimeout(() => setErrorMsg(""), 5000);
   };
 

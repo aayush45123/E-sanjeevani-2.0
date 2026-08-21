@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import styles from "./TriageHistory.module.css";
 import { apiClient } from "../../utils/api";
 import { PanelRightClose, PanelRightOpen, History, Trash2 } from "lucide-react";
+import toast from "react-hot-toast";
 
 const TriageHistory = ({
   onSelectTriage,
@@ -59,9 +60,10 @@ const TriageHistory = ({
       await apiClient.delete(`/triage/history/${sessionId}`);
       setTriageHistory((prev) => prev.filter((item) => (item._id || item.id) !== sessionId));
       if (onDeleteTriage) onDeleteTriage(sessionId);
+      toast.success("Triage conversation deleted");
     } catch (error) {
       console.error("Error deleting session:", error);
-      alert(error.response?.data?.message || "Failed to delete triage session");
+      toast.error(error.response?.data?.message || "Failed to delete triage session");
     }
   };
 

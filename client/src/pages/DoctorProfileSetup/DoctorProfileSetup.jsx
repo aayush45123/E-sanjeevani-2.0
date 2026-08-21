@@ -9,6 +9,7 @@ import AddressInput from "../../components/AddressInput/AddressInput";
 import styles from "./DoctorProfileSetup.module.css";
 import { doctorProfileApi, doctorAvailabilityApi } from "../../utils/api";
 import { performLogout } from "../../utils/auth";
+import toast from "react-hot-toast";
 
 export default function DoctorProfileSetup({ isProfileIncomplete = true }) {
   const navigate = useNavigate();
@@ -201,7 +202,7 @@ export default function DoctorProfileSetup({ isProfileIncomplete = true }) {
 
       await doctorProfileApi.createProfile(submitData);
 
-      alert("Doctor profile saved successfully!");
+      toast.success("Doctor profile saved successfully!");
 
       setIsProfileComplete(true);
       setIsEditMode(false);
@@ -209,7 +210,7 @@ export default function DoctorProfileSetup({ isProfileIncomplete = true }) {
       window.dispatchEvent(new Event("profileUpdated"));
     } catch (error) {
       console.error(error);
-      alert(error?.response?.data?.message || "Failed to save doctor profile");
+      toast.error(error?.response?.data?.message || "Failed to save doctor profile");
     } finally {
       setLoading(false);
     }
@@ -231,7 +232,7 @@ export default function DoctorProfileSetup({ isProfileIncomplete = true }) {
         slots: availabilityForm.slots,
       });
 
-      alert("Availability set successfully!");
+      toast.success("Availability hours saved successfully!");
 
       localStorage.setItem("doctorProfileCompleted", "true");
       window.dispatchEvent(new Event("profileUpdated"));
@@ -241,7 +242,7 @@ export default function DoctorProfileSetup({ isProfileIncomplete = true }) {
       }, 500);
     } catch (error) {
       console.error(error);
-      alert(
+      toast.error(
         error?.response?.data?.message || "Failed to set availability hours",
       );
     } finally {

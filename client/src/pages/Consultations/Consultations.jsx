@@ -18,6 +18,7 @@ import Sidebar from "../../components/Sidebar/Sidebar";
 import styles from "./Consultations.module.css";
 import { useNavigate } from "react-router-dom";
 import { consultationApi } from "../../utils/api";
+import toast from "react-hot-toast";
 
 export default function Consultations() {
   const [activeTab, setActiveTab] = useState("upcoming");
@@ -112,7 +113,7 @@ export default function Consultations() {
     setLocationLoading(true);
 
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser");
+      toast.error("Geolocation is not supported by your browser");
       setLocationLoading(false);
       return;
     }
@@ -123,15 +124,16 @@ export default function Consultations() {
         setUserLocation({ latitude, longitude });
         setShowNearMe(true);
         setLocationLoading(false);
+        toast.success("Location acquired. Showing nearby doctors.");
       },
       (error) => {
         let message = "Unable to get your location";
         if (error.code === error.PERMISSION_DENIED) {
-          message = "Location permission denied. Please enable it in settings.";
+          message = "Location permission denied. Please enable it in browser settings.";
         } else if (error.code === error.POSITION_UNAVAILABLE) {
           message = "Location unavailable. Please try again.";
         }
-        alert(message);
+        toast.error(message);
         setLocationLoading(false);
       },
     );

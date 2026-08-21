@@ -538,7 +538,7 @@ export default function VideoCall() {
             console.log(`⏳ ${message}`);
             const roleText = waitingUserRole === "doctor" ? "Dr." : "Patient";
             NotificationService.showToast(
-              `⏳ ${roleText} ${waitingUserName} is waiting for you to join the consultation!`,
+              `${roleText} ${waitingUserName} is waiting for you to join the consultation!`,
               "warning",
             );
             // Also play a sound alert to get attention

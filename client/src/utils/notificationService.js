@@ -1,3 +1,7 @@
+import React from "react";
+import toast from "react-hot-toast";
+import { CheckCircle2, AlertCircle, AlertTriangle, Info } from "lucide-react";
+
 // Notification Service with Sound Alerts and Vibration
 // This service handles desktop notifications, sound alerts, and vibration
 
@@ -158,24 +162,40 @@ export class NotificationService {
   }
 
   // In-app toast-style notification (for UI display)
-  static showToast(message, type = "info", duration = 3000) {
-    const toastContainer = document.getElementById("toast-container");
+  static showToast(message, type = "info", duration = 3500) {
+    if (!message) return;
 
-    if (!toastContainer) {
-      console.warn("Toast container not found");
-      return;
+    // Strip leading emojis from message text if present (e.g. "⏳ " or "✅ ")
+    const cleanMessage =
+      typeof message === "string"
+        ? message.replace(/^[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F600}-\u{1F64F}⏳✅🔴🔔📢]+\s*/u, "")
+        : message;
+
+    const opts = { duration };
+    if (type === "success") {
+      toast.success(cleanMessage, {
+        ...opts,
+        icon: React.createElement(CheckCircle2, { size: 18, color: "#0ea5a4" }),
+      });
+    } else if (type === "error") {
+      toast.error(cleanMessage, {
+        ...opts,
+        icon: React.createElement(AlertCircle, { size: 18, color: "#ef4444" }),
+      });
+    } else if (type === "warning") {
+      toast(cleanMessage, {
+        ...opts,
+        icon: React.createElement(AlertTriangle, { size: 18, color: "#f59e0b" }),
+        style: {
+          borderLeft: "4px solid #f59e0b",
+        },
+      });
+    } else {
+      toast(cleanMessage, {
+        ...opts,
+        icon: React.createElement(Info, { size: 18, color: "#0ea5a4" }),
+      });
     }
-
-    const toast = document.createElement("div");
-    toast.className = `toast toast-${type}`;
-    toast.textContent = message;
-
-    toastContainer.appendChild(toast);
-
-    setTimeout(() => {
-      toast.classList.add("fade-out");
-      setTimeout(() => toast.remove(), 300);
-    }, duration);
   }
 }
 

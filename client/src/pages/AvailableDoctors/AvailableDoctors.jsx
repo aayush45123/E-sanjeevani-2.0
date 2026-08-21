@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import { consultationApi } from "../../utils/api";
 import styles from "./AvailableDoctors.module.css";
+import toast from "react-hot-toast";
 
 export default function AvailableDoctors() {
   const [doctors, setDoctors] = useState([]);
@@ -63,7 +64,7 @@ export default function AvailableDoctors() {
       if (!userLocation) {
         setLocationLoading(true);
         if (!navigator.geolocation) {
-          alert("Geolocation is not supported by your browser");
+          toast.error("Geolocation is not supported by your browser");
           setLocationLoading(false);
           return;
         }
@@ -73,9 +74,10 @@ export default function AvailableDoctors() {
             setUserLocation({ latitude, longitude });
             setShowNearMe(true);
             setLocationLoading(false);
+            toast.success("Location acquired. Showing nearby doctors.");
           },
           (error) => {
-            alert("Could not retrieve your location.");
+            toast.error("Could not retrieve your location. Please check browser permissions.");
             setLocationLoading(false);
           }
         );

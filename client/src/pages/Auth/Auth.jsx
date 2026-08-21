@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import styles from "./Auth.module.css";
 import { authApi } from "../../utils/api";
 import { Check } from "lucide-react";
-import { AuthSkeleton } from "../../components/Skeletons";
+import toast from "react-hot-toast";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -95,20 +95,19 @@ const Auth = () => {
         });
 
         if (response.data.success && response.data.user) {
-          setMessage("✓ Login successful!");
+          toast.success(`Welcome back, ${response.data.user.name || "User"}!`);
           handleAuthSuccess(response.data);
         } else {
-          setMessage(
-            response.data.message ||
-              "✕ Login failed. Please check credentials.",
-          );
+          const errMsg = response.data.message || "Login failed. Please check credentials.";
+          setMessage(errMsg);
+          toast.error(errMsg);
         }
       } else {
         /*
-      ==============================================
-      SIGNUP
-      ==============================================
-      */
+        ==============================================
+        SIGNUP
+        ==============================================
+        */
         const signupResponse = await authApi.signup({
           name: form.name,
           email: form.email,
@@ -117,22 +116,23 @@ const Auth = () => {
         });
 
         if (signupResponse.data.success && signupResponse.data.user) {
-          setMessage("✓ Account created successfully!");
+          toast.success("Account created successfully! Welcome to eSanjeevani.");
           handleAuthSuccess(signupResponse.data);
         } else {
-          setMessage(
-            signupResponse.data.message || "✕ Signup failed. Please try again.",
-          );
+          const errMsg = signupResponse.data.message || "Signup failed. Please try again.";
+          setMessage(errMsg);
+          toast.error(errMsg);
         }
       }
     } catch (err) {
       console.error("Auth error:", err);
 
-      setMessage(
+      const errMsg =
         err.response?.data?.message ||
-          err.message ||
-          "✕ Something went wrong. Please try again.",
-      );
+        err.message ||
+        "Something went wrong. Please try again.";
+      setMessage(errMsg);
+      toast.error(errMsg);
     } finally {
       setLoading(false);
     }

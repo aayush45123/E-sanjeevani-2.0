@@ -10,6 +10,7 @@ import AddressInput from "../../components/AddressInput/AddressInput";
 import styles from "./ProfileCompletion.module.css";
 import { apiClient, authApi } from "../../utils/api";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const initialFormState = {
   age: "",
@@ -129,14 +130,15 @@ const ProfileCompletion = () => {
       window.dispatchEvent(new Event("profileUpdated"));
 
       if (isInitialSetup) {
+        toast.success("Profile completed successfully! Welcome to your dashboard.");
         navigate("/dashboard");
       } else {
-        alert("Profile updated successfully!");
+        toast.success("Profile updated successfully!");
       }
 
     } catch (error) {
       console.error("Profile save failed:", error);
-      alert(error?.response?.data?.message || "Failed to save profile");
+      toast.error(error?.response?.data?.message || "Failed to save profile");
     } finally {
       setSaving(false);
     }

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { X, UploadCloud, FileText, Calendar, Building, User, Plus, Trash2 } from "lucide-react";
 import { medicalRecordApi } from "../../utils/api";
 import styles from "./AddPreviousRecordModal.module.css";
+import toast from "react-hot-toast";
 
 export default function AddPreviousRecordModal({ isOpen, onClose, onSuccess }) {
   const [recordTitle, setRecordTitle] = useState("");
@@ -55,11 +56,14 @@ export default function AddPreviousRecordModal({ isOpen, onClose, onSuccess }) {
       await medicalRecordApi.uploadPatientRecord(formData);
       
       setSubmitting(false);
+      toast.success("Medical record uploaded successfully!");
       onSuccess?.();
       onClose?.();
     } catch (err) {
       console.error("Failed to upload medical record:", err);
-      setErrorMsg(err.response?.data?.message || "Failed to save medical record");
+      const msg = err.response?.data?.message || "Failed to save medical record";
+      setErrorMsg(msg);
+      toast.error(msg);
       setSubmitting(false);
     }
   };

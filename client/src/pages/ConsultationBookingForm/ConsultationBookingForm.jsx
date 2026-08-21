@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import styles from "./ConsultationBookingForm.module.css";
 import { consultationApi, doctorAvailabilityApi } from "../../utils/api";
+import toast from "react-hot-toast";
 
 export default function ConsultationBookingForm() {
   const navigate = useNavigate();
@@ -71,7 +72,7 @@ export default function ConsultationBookingForm() {
     e.preventDefault();
 
     if (!formData.startTime || !formData.endTime) {
-      alert("Please select a time slot before confirming the booking.");
+      toast.error("Please select a time slot before confirming the booking.");
       return;
     }
 
@@ -83,11 +84,11 @@ export default function ConsultationBookingForm() {
         ...formData,
       });
 
-      alert("Consultation booked successfully");
+      toast.success(`Consultation booked successfully with Dr. ${doctor.name}!`);
       navigate("/consultations");
     } catch (error) {
       console.error(error);
-      alert(error?.response?.data?.message || "Failed to book consultation");
+      toast.error(error?.response?.data?.message || "Failed to book consultation");
     } finally {
       setLoading(false);
     }

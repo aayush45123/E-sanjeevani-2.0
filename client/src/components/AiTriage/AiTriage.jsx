@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import styles from "./AiTriage.module.css";
 import { apiClient } from "../../utils/api";
 import { AiTriageSkeleton } from "../Skeletons";
+import toast from "react-hot-toast";
 
 const AiTriage = () => {
   const [step, setStep] = useState("symptoms"); // symptoms, medical, review, response
@@ -38,7 +39,7 @@ const AiTriage = () => {
 
   const handleCreateSession = async () => {
     if (symptoms.length === 0) {
-      alert("Please add at least one symptom");
+      toast.error("Please add at least one symptom before proceeding.");
       return;
     }
 
@@ -55,10 +56,11 @@ const AiTriage = () => {
       console.log("✅ Triage session created:", response.data.triageSessionId);
       setTriageSessionId(response.data.triageSessionId);
       setStep("review");
+      toast.success("Symptoms recorded. Review and confirm to process.");
     } catch (error) {
       const errorMsg = error.response?.data?.message || error.message;
       console.error("❌ Failed:", errorMsg);
-      alert("Error creating triage session: " + errorMsg);
+      toast.error("Error creating triage session: " + errorMsg);
     } finally {
       setIsLoading(false);
     }
@@ -70,9 +72,10 @@ const AiTriage = () => {
       const response = await apiClient.post(`/triage/process/${triageSessionId}`);
       setTriageResponse(response.data);
       setStep("response");
+      toast.success("AI Triage assessment complete!");
     } catch (error) {
       console.error("Error:", error);
-      alert(error.response?.data?.message || "Error processing triage");
+      toast.error(error.response?.data?.message || "Error processing triage assessment");
     } finally {
       setIsLoading(false);
     }

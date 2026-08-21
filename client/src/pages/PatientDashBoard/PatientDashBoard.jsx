@@ -1,17 +1,23 @@
 import React, { useState, useEffect, useRef } from "react";
 import { PatientDashboardSkeleton } from "../../components/Skeletons";
 import {
-  FiSend,
-  FiLoader,
-  FiPaperclip,
-  FiActivity,
-  FiFileText,
-  FiClock,
-  FiChevronDown,
-  FiArrowRight,
-  FiX,
-  FiTrash2,
-} from "react-icons/fi";
+  Sparkles,
+  Command,
+  Paperclip,
+  ArrowUp,
+  X,
+  FileText,
+  ChevronDown,
+  Plus,
+  Trash2,
+  Stethoscope,
+  Thermometer,
+  Calendar,
+  Pill,
+  Check,
+  Bot,
+  Activity,
+} from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import io from "socket.io-client";
 import Sidebar from "../../components/Sidebar/Sidebar";
@@ -21,125 +27,7 @@ import NotificationService from "../../utils/notificationService";
 import styles from "./PatientDashBoard.module.css";
 import { authApi, apiClient } from "../../utils/api";
 import { performLogout } from "../../utils/auth";
-
-// ─── Tight Markdown renderer ────────────────────────────────────────────────
-const TightMarkdown = ({ children }) => (
-  <ReactMarkdown
-    components={{
-      p: ({ children }) => (
-        <p style={{ margin: "0 0 6px 0", lineHeight: "1.6" }}>{children}</p>
-      ),
-      ul: ({ children }) => (
-        <ul style={{ margin: "4px 0 6px 0", paddingLeft: "20px" }}>
-          {children}
-        </ul>
-      ),
-      ol: ({ children }) => (
-        <ol style={{ margin: "4px 0 6px 0", paddingLeft: "20px" }}>
-          {children}
-        </ol>
-      ),
-      li: ({ children }) => (
-        <li style={{ margin: "2px 0", lineHeight: "1.55" }}>
-          {React.Children.map(children, (child) =>
-            child?.type === "p" ? child.props.children : child,
-          )}
-        </li>
-      ),
-      strong: ({ children }) => (
-        <strong style={{ fontWeight: 600 }}>{children}</strong>
-      ),
-      em: ({ children }) => <em style={{ fontStyle: "italic" }}>{children}</em>,
-      h1: ({ children }) => (
-        <h1
-          style={{
-            fontSize: "1.1rem",
-            fontWeight: 700,
-            margin: "8px 0 4px 0",
-            lineHeight: "1.3",
-          }}
-        >
-          {children}
-        </h1>
-      ),
-      h2: ({ children }) => (
-        <h2
-          style={{
-            fontSize: "1rem",
-            fontWeight: 700,
-            margin: "8px 0 4px 0",
-            lineHeight: "1.3",
-          }}
-        >
-          {children}
-        </h2>
-      ),
-      h3: ({ children }) => (
-        <h3
-          style={{
-            fontSize: "0.95rem",
-            fontWeight: 600,
-            margin: "6px 0 3px 0",
-            lineHeight: "1.3",
-          }}
-        >
-          {children}
-        </h3>
-      ),
-      code: ({ inline, children }) =>
-        inline ? (
-          <code
-            style={{
-              background: "#f1f5f9",
-              padding: "1px 5px",
-              borderRadius: "4px",
-              fontSize: "0.88em",
-              fontFamily: "monospace",
-            }}
-          >
-            {children}
-          </code>
-        ) : (
-          <pre
-            style={{
-              background: "#f1f5f9",
-              padding: "10px 14px",
-              borderRadius: "8px",
-              overflowX: "auto",
-              margin: "6px 0",
-            }}
-          >
-            <code style={{ fontSize: "0.88em", fontFamily: "monospace" }}>
-              {children}
-            </code>
-          </pre>
-        ),
-      blockquote: ({ children }) => (
-        <blockquote
-          style={{
-            borderLeft: "3px solid #94a3b8",
-            paddingLeft: "12px",
-            margin: "6px 0",
-            color: "#64748b",
-          }}
-        >
-          {children}
-        </blockquote>
-      ),
-      hr: () => (
-        <hr
-          style={{
-            border: "none",
-            borderTop: "1px solid #e2e8f0",
-            margin: "8px 0",
-          }}
-        />
-      ),
-    }}
-  >
-    {children}
-  </ReactMarkdown>
-);
+import toast from "react-hot-toast";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 const getChatStorageKey = (userId) =>
@@ -150,7 +38,6 @@ const loadMessagesFromStorage = (userId) => {
     const raw = localStorage.getItem(getChatStorageKey(userId));
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    // Re-hydrate timestamps as Date objects
     return parsed.map((m) => ({ ...m, timestamp: new Date(m.timestamp) }));
   } catch {
     return [];
@@ -159,7 +46,6 @@ const loadMessagesFromStorage = (userId) => {
 
 const saveMessagesToStorage = (userId, messages) => {
   try {
-    // Keep only last 100 messages to avoid quota issues
     const toSave = messages.slice(-100);
     localStorage.setItem(getChatStorageKey(userId), JSON.stringify(toSave));
   } catch (e) {
@@ -182,9 +68,9 @@ const aiModelsData = [
     id: "custom-triage-ai",
     name: "E-Sanjeevani AI Triage",
     provider: "Custom Medical Model",
+    icon: null,
     isPro: false,
-    description:
-      "Self-trained disease prediction model (/api/ai-triage/predict)",
+    description: "Self-trained disease prediction model (/api/ai-triage/predict)",
     endpoint: "/api/ai-triage/predict",
   },
   {
@@ -192,9 +78,8 @@ const aiModelsData = [
     name: "Fever Assessment",
     provider: "E-Sanjeevani ML Model",
     icon: null,
-    emoji: null,
     isPro: false,
-    description: "Explainable fever differential (Dengue · Malaria · Typhoid · Chikungunya · Viral)",
+    description: "Explainable fever differential (Dengue, Malaria, Typhoid)",
     endpoint: "/api/fever/assess",
   },
 ];
@@ -248,32 +133,27 @@ const FEVER_STEPS = [
   },
   {
     key: "joint_pain",
-    question: "Do you have **joint pain**? Reply **Yes** or **No**.",
-    type: "yesno",
-  },
-  {
-    key: "severe_joint_pain",
-    question: "If yes to joint pain — is it **severe / debilitating**? Reply **Yes** or **No**.",
+    question: "Do you have **joint pain or severe body aches**? Reply **Yes** or **No**.",
     type: "yesno",
   },
   {
     key: "rash",
-    question: "Do you have a **skin rash**? Reply **Yes** or **No**.",
+    question: "Do you have a **skin rash or red spots**? Reply **Yes** or **No**.",
     type: "yesno",
   },
   {
-    key: "nausea",
+    key: "nausea_vomiting",
     question: "Do you have **nausea or vomiting**? Reply **Yes** or **No**.",
     type: "yesno",
   },
   {
-    key: "abdominal_pain",
-    question: "Do you have **abdominal (stomach) pain**? Reply **Yes** or **No**.",
+    key: "diarrhea_constipation",
+    question: "Do you have **diarrhea, abdominal discomfort, or constipation**? Reply **Yes** or **No**.",
     type: "yesno",
   },
   {
-    key: "cough_throat",
-    question: "Do you have **cough, sore throat, or runny nose**? Reply **Yes** or **No**.",
+    key: "cough_sore_throat",
+    question: "Do you have a **cough, runny nose, or sore throat**? Reply **Yes** or **No**.",
     type: "yesno",
   },
   {
@@ -284,7 +164,6 @@ const FEVER_STEPS = [
 ];
 
 const isYes = (s) => /^y(es)?$/i.test(s.trim());
-const isNo  = (s) => /^n(o)?$/i.test(s.trim());
 
 const mockRecords = [
   "Blood_Test_April2026.pdf",
@@ -292,40 +171,92 @@ const mockRecords = [
   "DrSmith_Prescription.docx",
 ];
 
-// ─── Component ───────────────────────────────────────────────────────────────
+// ─── Healthcare Command Palette Suggestions ─────────────────────────────────
+const commandSuggestions = [
+  {
+    icon: <Stethoscope size={14} />,
+    label: "Symptom Triage",
+    description: "Start clinical assessment",
+    prefix: "/triage",
+    prompt: "I want to describe my symptoms for a clinical assessment: ",
+  },
+  {
+    icon: <Thermometer size={14} />,
+    label: "Fever Differential",
+    description: "Multi-disease fever check",
+    prefix: "/fever",
+    prompt: "Start fever assessment",
+    modelId: "fever-assessment",
+  },
+  {
+    icon: <FileText size={14} />,
+    label: "Clinical Records",
+    description: "Attach past medical records",
+    prefix: "/records",
+    action: "records",
+  },
+  {
+    icon: <Calendar size={14} />,
+    label: "Find Specialist",
+    description: "Connect with available doctors",
+    prefix: "/doctor",
+    prompt: "Help me find and consult an available doctor for ",
+  },
+  {
+    icon: <Pill size={14} />,
+    label: "Medication Info",
+    description: "Dosage & precautions",
+    prefix: "/meds",
+    prompt: "What are the common dosage guidelines and precautions for: ",
+  },
+];
+
+// ─── Main Component ─────────────────────────────────────────────────────────
 export default function PatientDashboard() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ── Chat state ──────────────────────────────────────────────────────────
-  // Messages start empty; once user loads we pull from localStorage
+  // Chat state
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [attachments, setAttachments] = useState([]);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
+  const textareaRef = useRef(null);
 
-  // ── Model / dropdown state ───────────────────────────────────────────────
+  // Command palette state
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [activeSuggestion, setActiveSuggestion] = useState(0);
+
+  // Model & dropdown state
   const [selectedModel, setSelectedModel] = useState(aiModelsData[0]);
   const [showModelMenu, setShowModelMenu] = useState(false);
   const [showRecordMenu, setShowRecordMenu] = useState(false);
 
-  // ── Triage state ────────────────────────────────────────────────────────
+  // Triage state
   const [selectedTriageId, setSelectedTriageId] = useState(null);
   const [activeTriageSessionId, setActiveTriageSessionId] = useState(null);
   const [isHistoryMinimized, setIsHistoryMinimized] = useState(false);
   const [historyRefreshTrigger, setHistoryRefreshTrigger] = useState(0);
 
-  // ── Fever assessment conversation state ─────────────────────────────────
-  const [feverStep, setFeverStep] = useState(0);          // index into FEVER_STEPS
-  const [feverAnswers, setFeverAnswers] = useState({});   // collected answers
-  const [feverActive, setFeverActive] = useState(false);  // is fever flow running?
+  // Fever assessment state
+  const [feverStep, setFeverStep] = useState(0);
+  const [feverAnswers, setFeverAnswers] = useState({});
+  const [feverActive, setFeverActive] = useState(false);
 
-  // ── Derived ─────────────────────────────────────────────────────────────
   const hasStartedChat = messages.length > 0;
 
-  // ── Fetch user, then hydrate messages ─────────────────
+  // Auto-resize textarea handler
+  const adjustTextareaHeight = () => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      const scrollHeight = textareaRef.current.scrollHeight;
+      textareaRef.current.style.height = `${Math.min(Math.max(scrollHeight, 52), 160)}px`;
+    }
+  };
+
+  // ── Fetch user & hydrate messages ──────────────────────────────────────────
   useEffect(() => {
     async function init() {
       try {
@@ -333,7 +264,6 @@ export default function PatientDashboard() {
         const fetchedUser = response.data.user || response.data;
         setUser(fetchedUser);
 
-        // Load persisted messages from local storage fallback initially
         const userId = fetchedUser._id || fetchedUser.id;
         const persisted = loadMessagesFromStorage(userId);
         if (persisted.length > 0) {
@@ -350,7 +280,7 @@ export default function PatientDashboard() {
     init();
   }, []);
 
-  // ── Persist messages to localStorage whenever they change ────────────────
+  // Persist messages
   useEffect(() => {
     if (user) {
       const userId = user._id || user.id;
@@ -358,38 +288,51 @@ export default function PatientDashboard() {
     }
   }, [messages, user]);
 
-  // ── Auto-scroll to latest message ────────────────────────────────────────
+  // Auto-scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, isTyping]);
 
-  // ── Close dropdowns on outside click ────────────────────────────────────
+  // Command palette detection
+  useEffect(() => {
+    if (inputValue.startsWith("/") && !inputValue.includes(" ")) {
+      setShowCommandPalette(true);
+      const matchIdx = commandSuggestions.findIndex((cmd) =>
+        cmd.prefix.toLowerCase().startsWith(inputValue.toLowerCase())
+      );
+      if (matchIdx >= 0) setActiveSuggestion(matchIdx);
+    } else {
+      setShowCommandPalette(false);
+    }
+    adjustTextareaHeight();
+  }, [inputValue]);
+
+  // Close dropdowns on outside click
   useEffect(() => {
     const handleClickOutside = () => {
       setShowModelMenu(false);
       setShowRecordMenu(false);
+      setShowCommandPalette(false);
     };
     document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
-  // ── Socket listener for consultation notifications ───────────────────────
+  // Socket listener
   useEffect(() => {
-const SOCKET_URL =
-    import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "");
-        const socket = io(SOCKET_URL, { transports: ["websocket"] });
+    const SOCKET_URL = import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "");
+    const socket = io(SOCKET_URL, { transports: ["websocket"] });
 
     socket.on(
       "participant-waiting",
       ({ waitingUserRole, waitingUserName, message }) => {
-        console.log(`⏳ ${message}`);
         const roleText = waitingUserRole === "doctor" ? "Dr." : "Patient";
         NotificationService.showToast(
-          `⏳ ${roleText} ${waitingUserName} is waiting for you to join the consultation!`,
-          "warning",
+          `${roleText} ${waitingUserName} is waiting for you to join the consultation!`,
+          "warning"
         );
         NotificationService.playSound("alert");
-      },
+      }
     );
 
     return () => {
@@ -397,127 +340,171 @@ const SOCKET_URL =
     };
   }, []);
 
-  // ── Start a fresh new chat session ───────────────────────────────────────
+  // ── Select Command Suggestion ──────────────────────────────────────────────
+  const handleSelectCommand = (cmd) => {
+    if (cmd.modelId) {
+      const targetModel = aiModelsData.find((m) => m.id === cmd.modelId);
+      if (targetModel) setSelectedModel(targetModel);
+    }
+    if (cmd.action === "records") {
+      setShowRecordMenu(true);
+      setInputValue("");
+    } else if (cmd.prompt) {
+      setInputValue(cmd.prompt);
+    } else {
+      setInputValue(cmd.prefix + " ");
+    }
+    setShowCommandPalette(false);
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  };
+
+  // ── Keyboard Navigation in Command Palette ─────────────────────────────────
+  const handleKeyDown = (e) => {
+    if (showCommandPalette) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setActiveSuggestion((prev) =>
+          prev < commandSuggestions.length - 1 ? prev + 1 : 0
+        );
+        return;
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setActiveSuggestion((prev) =>
+          prev > 0 ? prev - 1 : commandSuggestions.length - 1
+        );
+        return;
+      } else if (e.key === "Tab" || e.key === "Enter") {
+        e.preventDefault();
+        if (activeSuggestion >= 0 && activeSuggestion < commandSuggestions.length) {
+          handleSelectCommand(commandSuggestions[activeSuggestion]);
+        }
+        return;
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        setShowCommandPalette(false);
+        return;
+      }
+    }
+
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  // ── Start New Chat Session ────────────────────────────────────────────────
   const handleNewChat = () => {
-    setActiveTriageSessionId(null);
     setMessages([]);
+    setActiveTriageSessionId(null);
+    setFeverActive(false);
     setFeverStep(0);
     setFeverAnswers({});
-    setFeverActive(false);
+    setAttachments([]);
+    setInputValue("");
     if (user) {
       const userId = user._id || user.id;
       localStorage.removeItem(getChatStorageKey(userId));
     }
+    toast.success("Started a new chat session");
   };
 
-  // ── Fever: ask next question with typing indicator ───────────────────────
-  const askFeverQuestion = (stepIndex, msgs) => {
+  // ── Ask Fever Step Question ───────────────────────────────────────────────
+  const askFeverQuestion = (stepIndex) => {
     const step = FEVER_STEPS[stepIndex];
     if (!step) return;
 
     setIsTyping(true);
     setTimeout(() => {
       setIsTyping(false);
-      const aiMsg = {
-        id: Date.now() + stepIndex,
-        type: "ai",
-        text: step.question,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...(msgs || prev), aiMsg]);
-    }, 700);
-  };
-
-  // ── Fever: build symptom vector from answers ─────────────────────────────
-  const buildFeverPayload = (answers) => {
-    const sym = {
-      fever: 1,
-      high_fever:        answers.high_fever   ? 1 : 0,
-      sudden_onset:      answers.sudden_onset ? 1 : 0,
-      headache:          answers.headache      ? 1 : 0,
-      severe_headache:   answers.headache      ? 1 : 0,  // proxy
-      chills:            answers.chills        ? 1 : 0,
-      sweating:          answers.chills        ? 1 : 0,  // often co-occurs
-      body_pain:         answers.joint_pain    ? 1 : 0,
-      muscle_pain:       answers.joint_pain    ? 1 : 0,
-      joint_pain:        answers.joint_pain    ? 1 : 0,
-      severe_joint_pain: answers.severe_joint_pain ? 1 : 0,
-      pain_behind_eyes:  answers.pain_behind_eyes  ? 1 : 0,
-      rash:              answers.rash           ? 1 : 0,
-      nausea:            answers.nausea         ? 1 : 0,
-      vomiting:          answers.nausea         ? 1 : 0,
-      abdominal_pain:    answers.abdominal_pain ? 1 : 0,
-      diarrhea:          0,
-      constipation:      0,
-      cough:             answers.cough_throat   ? 1 : 0,
-      sore_throat:       answers.cough_throat   ? 1 : 0,
-      runny_nose:        answers.cough_throat   ? 1 : 0,
-      fatigue:           answers.fatigue        ? 1 : 0,
-      weakness:          answers.fatigue        ? 1 : 0,
-      swollen_lymph_nodes: 0,
-      loss_of_appetite:  0,
-    };
-    const red = {
-      bleeding:           answers.red_flags || false,
-      severe_abdominal_pain: answers.red_flags || false,
-      confusion:          answers.red_flags || false,
-      breathing_difficulty: answers.red_flags || false,
-      fainting:           answers.red_flags || false,
-    };
-    return { symptoms: sym, red_flags: red };
-  };
-
-  // ── Fever: submit to API and render result ───────────────────────────────
-  const submitFeverAssessment = async (answers) => {
-    setIsTyping(true);
-    try {
-      const payload = { ...buildFeverPayload(answers), triageSessionId: activeTriageSessionId };
-      const res = await apiClient.post("/fever/assess", payload);
-      const data = res.data;
-
-      if (data.triageSessionId) {
-        setActiveTriageSessionId(data.triageSessionId);
-      }
-      setHistoryRefreshTrigger((prev) => prev + 1);
-
-      let resultText = "";
-
-      if (data.red_flag_alert) {
-        resultText =
-          `## URGENT WARNING\n\n` +
-          `${data.red_flag_message}\n\n` +
-          `**Warning signs detected:** ${data.red_flags_detected?.join(", ")}\n\n` +
-          `Please call emergency services or go to the nearest hospital immediately.`;
-      } else if (data.success && data.top_ranking) {
-        const top = data.top_ranking;
-        const explain = data.primary_explanation || [];
-        const topDiseaseName = (top[0]?.disease || "Fever-like illness").replace(/_/g, " ");
-
-        resultText =
-          `## Fever Symptom Assessment\n\n` +
-          `**Predicted Condition:** ${topDiseaseName}\n\n` +
-          `**Why this condition was predicted:**\n` +
-          (explain.length > 0
-            ? explain.map((b) => `• ${b}`).join("\n")
-            : "• Based on reported symptom combination") +
-          `\n\n---\n\n` +
-          `**Important:** ${data.disclaimer}\n\n` +
-          `**Next Step:** ${data.recommended_action}`;
-      } else {
-        resultText = data.message || "Could not complete the fever assessment. Please ensure the AI server is running.";
-      }
-
-      setMessages((prev) => [
-        ...prev,
-        { id: Date.now() + 99, type: "ai", text: resultText, timestamp: new Date() },
-      ]);
-    } catch (err) {
       setMessages((prev) => [
         ...prev,
         {
-          id: Date.now() + 99,
+          id: Date.now(),
           type: "ai",
-          text: err.response?.data?.message || "Could not reach the fever assessment service. Please make sure the AI server is running.",
+          text: step.question,
+          timestamp: new Date(),
+        },
+      ]);
+    }, 400);
+  };
+
+  // ── Submit Fever Assessment ───────────────────────────────────────────────
+  const submitFeverAssessment = async (answers) => {
+    setIsTyping(true);
+    try {
+      const durationScore =
+        typeof answers.duration === "number" ? answers.duration : 1;
+
+      const payload = {
+        high_fever: answers.high_fever ? 1 : 0,
+        sudden_onset: answers.sudden_onset ? 1 : 0,
+        chills: answers.chills ? 1 : 0,
+        headache: answers.headache ? 1 : 0,
+        pain_behind_eyes: answers.pain_behind_eyes ? 1 : 0,
+        joint_pain: answers.joint_pain ? 1 : 0,
+        rash: answers.rash ? 1 : 0,
+        nausea_vomiting: answers.nausea_vomiting ? 1 : 0,
+        diarrhea_constipation: answers.diarrhea_constipation ? 1 : 0,
+        cough_sore_throat: answers.cough_sore_throat ? 1 : 0,
+        fatigue: answers.fatigue ? 1 : 0,
+        duration_days: durationScore,
+      };
+
+      const response = await apiClient.post("/fever/assess", payload);
+      const data = response.data;
+
+      if (data.success && data.assessment) {
+        const a = data.assessment;
+        let md = `## Fever Assessment Report\n\n`;
+        md += `**Primary Suspect:** ${a.prediction} (${a.confidence}% confidence)\n`;
+        md += `**Risk Level:** ${a.riskLevel}\n\n`;
+        md += `### Clinical Summary\n${a.summary}\n\n`;
+
+        if (a.topMatches && a.topMatches.length > 1) {
+          md += `### Differential Probabilities\n`;
+          a.topMatches.forEach((m) => {
+            md += `• **${m.disease}**: ${m.probability}%\n`;
+          });
+          md += `\n`;
+        }
+
+        if (a.recommendations && a.recommendations.length > 0) {
+          md += `### Recommended Next Steps\n`;
+          a.recommendations.forEach((r) => {
+            md += `• ${r}\n`;
+          });
+          md += `\n`;
+        }
+
+        if (a.suggestedSpecialist) {
+          md += `**Suggested Specialist:** ${a.suggestedSpecialist}\n\n`;
+        }
+
+        md += `*${a.disclaimer}*`;
+
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            type: "ai",
+            text: md,
+            timestamp: new Date(),
+          },
+        ]);
+      } else {
+        throw new Error(data.message || "Failed to get assessment");
+      }
+    } catch (err) {
+      console.error("Fever assessment submission error:", err);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now() + 1,
+          type: "ai",
+          text:
+            "I encountered an error submitting your answers to the fever assessment model. Please try again or consult a doctor directly.",
           timestamp: new Date(),
         },
       ]);
@@ -529,12 +516,11 @@ const SOCKET_URL =
     }
   };
 
-  // ── Fever: handle one user reply ─────────────────────────────────────────
+  // ── Handle Fever Flow Reply ───────────────────────────────────────────────
   const handleFeverReply = async (userText) => {
     const step = FEVER_STEPS[feverStep];
     if (!step) return;
 
-    // Record answer
     let answer = false;
     if (step.type === "yesno") {
       answer = isYes(userText);
@@ -545,7 +531,6 @@ const SOCKET_URL =
     const newAnswers = { ...feverAnswers, [step.key]: answer };
     setFeverAnswers(newAnswers);
 
-    // Red-flag short-circuit
     if (step.redFlag && answer === true) {
       setIsTyping(true);
       setTimeout(() => {
@@ -558,7 +543,7 @@ const SOCKET_URL =
               "## URGENT WARNING\n\n" +
               "You reported one or more serious warning signs.\n\n" +
               "**Please seek immediate medical attention or call emergency services.**\n\n" +
-              "Do not delay — some of these symptoms may indicate severe dengue, severe malaria, or another medical emergency.",
+              "Do not delay — some of these symptoms may indicate severe dengue, severe malaria, or another critical emergency.",
             timestamp: new Date(),
           },
         ]);
@@ -571,9 +556,7 @@ const SOCKET_URL =
     }
 
     const nextStep = feverStep + 1;
-
     if (nextStep >= FEVER_STEPS.length) {
-      // All questions answered — submit
       await submitFeverAssessment(newAnswers);
     } else {
       setFeverStep(nextStep);
@@ -581,7 +564,7 @@ const SOCKET_URL =
     }
   };
 
-  // ── Load a previous triage session from PostgreSQL history ────────────────
+  // ── Load History Session ──────────────────────────────────────────────────
   const handleSelectTriageSession = async (sessionId) => {
     if (!sessionId) return;
     try {
@@ -601,26 +584,22 @@ const SOCKET_URL =
           }));
           setMessages(loadedMsgs);
         } else {
-          // If session has no chat messages (e.g. form submission assessment), clear current chat and open detail modal
           setMessages([]);
           setSelectedTriageId(sessionId);
         }
-      } else {
-        console.error("Failed to load triage session history:", data.message);
       }
     } catch (err) {
       console.error("Error fetching triage session details:", err);
     }
   };
 
-  // ── Send message ─────────────────────────────────────────────────────────
+  // ── Send Message ─────────────────────────────────────────────────────────
   const handleSendMessage = async (e) => {
     if (e) e.preventDefault();
 
     if (!inputValue.trim() && attachments.length === 0) return;
 
     const currentInput = inputValue;
-
     const userMessage = {
       id: Date.now(),
       type: "user",
@@ -632,11 +611,13 @@ const SOCKET_URL =
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
     setAttachments([]);
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
 
-    // ── FEVER ASSESSMENT MODEL ───────────────────────────────────────────────
+    // Fever Assessment Flow
     if (selectedModel.id === "fever-assessment") {
       if (!feverActive) {
-        // First message kicks off the flow
         setFeverActive(true);
         setFeverStep(0);
         setFeverAnswers({});
@@ -646,8 +627,8 @@ const SOCKET_URL =
           id: Date.now() + 1,
           type: "ai",
           text:
-            "I'll help assess your fever symptoms through a short questionnaire.\n\n" +
-            "This is a **differential assessment** — not a diagnosis. Please answer each question honestly. Let's begin:",
+            "I'll help assess your fever symptoms through a structured questionnaire.\n\n" +
+            "This is an **explainable differential assessment** — not a definitive diagnosis. Please answer each question honestly. Let's begin:",
           timestamp: new Date(),
         };
 
@@ -655,15 +636,14 @@ const SOCKET_URL =
           setIsTyping(false);
           setMessages((prev) => [...prev, ackMsg]);
           askFeverQuestion(0);
-        }, 600);
+        }, 500);
       } else {
-        // Ongoing fever conversation — process the reply
         await handleFeverReply(currentInput);
       }
       return;
     }
 
-    // ── STANDARD CHAT MODELS ────────────────────────────────────────────────
+    // Standard Chat Models
     setIsTyping(true);
     try {
       const response = await apiClient.post("/chat", {
@@ -673,7 +653,8 @@ const SOCKET_URL =
       });
 
       const data = response.data;
-      const returnedSessionId = data?.data?.triageSessionId || data?.triageSessionId;
+      const returnedSessionId =
+        data?.data?.triageSessionId || data?.triageSessionId;
       if (returnedSessionId) setActiveTriageSessionId(returnedSessionId);
       setHistoryRefreshTrigger((prev) => prev + 1);
 
@@ -686,30 +667,40 @@ const SOCKET_URL =
 
       setMessages((prev) => [
         ...prev,
-        { id: Date.now() + 1, type: "ai", text: aiMessageText || "No response generated", timestamp: new Date() },
+        {
+          id: Date.now() + 1,
+          type: "ai",
+          text: aiMessageText || "No response generated",
+          timestamp: new Date(),
+        },
       ]);
     } catch (error) {
       console.error("AI Chat Error:", error);
       setMessages((prev) => [
         ...prev,
-        { id: Date.now() + 1, type: "ai", text: "AI service is currently unavailable. Please try again later.", timestamp: new Date() },
+        {
+          id: Date.now() + 1,
+          type: "ai",
+          text: "AI service is currently unavailable. Please check back shortly.",
+          timestamp: new Date(),
+        },
       ]);
     } finally {
       setIsTyping(false);
     }
   };
 
-  // ── Clear chat ────────────────────────────────────────────────────────────
+  // ── Clear Chat ────────────────────────────────────────────────────────────
   const handleClearChat = () => {
     handleNewChat();
   };
 
-
-  // ── File upload ───────────────────────────────────────────────────────────
+  // ── File Upload ───────────────────────────────────────────────────────────
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files);
     if (files.length > 0) {
       setAttachments((prev) => [...prev, ...files]);
+      toast.success(`Attached ${files.length} file(s)`);
     }
   };
 
@@ -717,28 +708,25 @@ const SOCKET_URL =
     setAttachments((prev) => prev.filter((_, idx) => idx !== indexToRemove));
   };
 
-  // ── Record select ─────────────────────────────────────────────────────────
+  // ── Record Select ─────────────────────────────────────────────────────────
   const handleRecordSelect = (record) => {
     setInputValue(
-      (prev) => prev + (prev.trim() ? " " : "") + `[Referencing: ${record}] `,
+      (prev) => prev + (prev.trim() ? " " : "") + `[Referencing: ${record}] `
     );
     setShowRecordMenu(false);
+    toast.success(`Referenced ${record}`);
   };
 
-  // ── Logout ────────────────────────────────────────────────────────────────
   const handleLogout = () => performLogout();
-
   const firstName = user?.name?.split(" ")[0] || "Patient";
 
-  // ── Loading screen ────────────────────────────────────────────────────────
   if (loading) {
     return <PatientDashboardSkeleton />;
   }
 
-  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className={styles.dashboardLayout}>
-      {/* Hidden file input */}
+      {/* Hidden File Input */}
       <input
         type="file"
         ref={fileInputRef}
@@ -748,118 +736,175 @@ const SOCKET_URL =
         onChange={handleFileUpload}
       />
 
-      {/* Left sidebar */}
+      {/* Sidebar */}
       <Sidebar user={user} onLogout={handleLogout} />
 
-      {/* Main chat area */}
+      {/* Main Chat Area */}
       <main className={styles.mainContent}>
         {!hasStartedChat ? (
-          /* ── Idle / landing state ── */
+          /* ── Idle / Landing Hero State ── */
           <div className={styles.idleState}>
-            <h1 className={styles.greeting}>
-              Hello {firstName}, How can we help you today?
-            </h1>
+            <div className={styles.heroSection}>
+              <h1 className={styles.greeting}>
+                How can we help today, {firstName}?
+              </h1>
+              <p className={styles.subtitle}>
+                Ask symptom questions, clinical insights, or type{" "}
+                <strong>/</strong> for commands.
+              </p>
+            </div>
 
+            {/* Center Input Card */}
             <div className={styles.searchContainer}>
               <div className={styles.searchInputWrapper}>
-                {/* Attachment chips */}
+                {/* Attachment Chips */}
                 {attachments.length > 0 && (
                   <div className={styles.attachmentChips}>
                     {attachments.map((file, idx) => (
                       <div key={idx} className={styles.chip}>
-                        <FiFileText size={12} />
+                        <FileText size={12} />
                         <span className={styles.chipText}>{file.name}</span>
-                        <button onClick={() => removeAttachment(idx)}>
-                          <FiX size={12} />
+                        <button
+                          type="button"
+                          onClick={() => removeAttachment(idx)}
+                          title="Remove attachment"
+                        >
+                          <X size={12} />
                         </button>
                       </div>
                     ))}
                   </div>
                 )}
 
+                {/* Command Palette Dropdown */}
+                {showCommandPalette && (
+                  <div
+                    className={styles.commandPaletteWrapper}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className={styles.commandPaletteHeader}>
+                      <span className={styles.commandPaletteTitle}>Commands</span>
+                      <span className={styles.commandPaletteShortcut}>↑↓ · Enter</span>
+                    </div>
+                    <div className={styles.commandList}>
+                      {commandSuggestions.map((cmd, idx) => (
+                        <div
+                          key={cmd.prefix}
+                          className={`${styles.commandItem} ${
+                            activeSuggestion === idx ? styles.commandItemActive : ""
+                          }`}
+                          onClick={() => handleSelectCommand(cmd)}
+                        >
+                          {cmd.icon}
+                          <span className={styles.commandItemLabel}>{cmd.label}</span>
+                          <span className={styles.commandItemDesc}>{cmd.description}</span>
+                          <span className={styles.commandItemPrefix}>{cmd.prefix}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Auto-resizing Textarea */}
                 <textarea
+                  ref={textareaRef}
                   className={styles.largeInput}
-                  placeholder="Describe your symptoms, or assign a task to the AI..."
+                  placeholder="Ask about symptoms, health records, or type / for commands..."
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSendMessage();
-                    }
-                  }}
+                  onKeyDown={handleKeyDown}
                   rows={2}
                 />
 
+                {/* Input Bottom Tools Row */}
                 <div className={styles.inputBottomRow}>
                   <div className={styles.leftTools}>
-                    {/* Models dropdown */}
+                    {/* Attach File Button */}
+                    <button
+                      type="button"
+                      className={styles.iconButton}
+                      title="Attach Records"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Paperclip size={15} />
+                    </button>
+
+                    {/* Toggle Command Palette */}
+                    <button
+                      type="button"
+                      className={`${styles.iconButton} ${showCommandPalette ? styles.iconButtonActive : ""}`}
+                      title="Commands (/)"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowCommandPalette((prev) => !prev);
+                        if (!inputValue.startsWith("/")) {
+                          setInputValue("/");
+                        }
+                      }}
+                    >
+                      <Command size={14} />
+                    </button>
+
+                    {/* Model Picker Pill */}
                     <div
                       className={styles.relativeContainer}
                       onClick={(e) => e.stopPropagation()}
                     >
                       <button
-                        className={`${styles.dropdownBtn} ${styles.bluePill}`}
+                        type="button"
+                        className={styles.pillButton}
                         onClick={() => {
                           setShowModelMenu((v) => !v);
                           setShowRecordMenu(false);
                         }}
                       >
-                        <FiActivity size={14} />
+                        <Bot size={13} />
                         <span>{selectedModel.name}</span>
-                        <FiChevronDown size={14} />
+                        <ChevronDown size={12} />
                       </button>
+
                       {showModelMenu && (
-                        <div
-                          className={`${styles.popoverMenu} ${styles.modelMenuWide}`}
-                        >
-                          <div className={styles.popoverHeader}>
-                            Select AI Model
-                          </div>
+                        <div className={`${styles.popoverMenu} ${styles.modelMenuWide}`}>
+                          <div className={styles.popoverHeader}>Select AI Model</div>
                           <div className={styles.modelList}>
                             {aiModelsData.map((model) => (
                               <div
                                 key={model.id}
                                 className={`${styles.modelItem} ${
-                                  selectedModel.id === model.id
-                                    ? styles.selectedModelItem
-                                    : ""
+                                  selectedModel.id === model.id ? styles.selectedModelItem : ""
                                 }`}
                                 onClick={() => {
                                   setSelectedModel(model);
                                   setShowModelMenu(false);
-                                  // Reset fever flow when switching models
                                   if (model.id !== "fever-assessment") {
                                     setFeverActive(false);
                                     setFeverStep(0);
                                     setFeverAnswers({});
                                   }
+                                  toast.success(`Switched model to ${model.name}`);
                                 }}
                               >
                                 <div className={styles.modelIconWrapper}>
                                   {model.icon ? (
                                     <img src={model.icon} alt={model.name} />
-                                  ) : model.emoji ? (
-                                    <span style={{ fontSize: "18px" }}>{model.emoji}</span>
                                   ) : (
-                                    <span>{model.name.charAt(0)}</span>
+                                    <Activity size={16} />
                                   )}
                                 </div>
                                 <div className={styles.modelItemContent}>
                                   <div className={styles.modelItemHeader}>
-                                    <span className={styles.modelItemTitle}>
-                                      {model.name}
-                                    </span>
-                                    {model.isPro && (
-                                      <span className={styles.proBadge}>
-                                        PRO
-                                      </span>
-                                    )}
+                                    <span className={styles.modelItemTitle}>{model.name}</span>
+                                    {model.isPro && <span className={styles.proBadge}>PRO</span>}
                                   </div>
                                   <span className={styles.modelItemProvider}>
                                     {model.provider} · {model.description}
                                   </span>
                                 </div>
+                                {selectedModel.id === model.id && (
+                                  <div className={styles.modelItemCheck}>
+                                    <Check size={15} />
+                                  </div>
+                                )}
                               </div>
                             ))}
                           </div>
@@ -867,29 +912,27 @@ const SOCKET_URL =
                       )}
                     </div>
 
-                    {/* Records dropdown */}
+                    {/* Records Dropdown */}
                     <div
                       className={styles.relativeContainer}
                       onClick={(e) => e.stopPropagation()}
                     >
                       <button
-                        className={styles.dropdownBtn}
+                        type="button"
+                        className={styles.pillButton}
                         onClick={() => {
                           setShowRecordMenu((v) => !v);
                           setShowModelMenu(false);
                         }}
                       >
-                        <FiFileText size={14} />
-                        <span>
-                          {showRecordMenu ? "Select Record" : "All Records"}
-                        </span>
-                        <FiChevronDown size={14} />
+                        <FileText size={13} />
+                        <span>Records</span>
+                        <ChevronDown size={12} />
                       </button>
+
                       {showRecordMenu && (
                         <div className={styles.popoverMenu}>
-                          <div className={styles.popoverHeader}>
-                            Your Clinical Records
-                          </div>
+                          <div className={styles.popoverHeader}>Clinical Records</div>
                           {mockRecords.map((record) => (
                             <div
                               key={record}
@@ -904,179 +947,281 @@ const SOCKET_URL =
                     </div>
                   </div>
 
+                  {/* Send Button */}
                   <div className={styles.rightTools}>
                     <button
-                      className={styles.iconBtn}
-                      title="Attach Files"
-                      onClick={() => fileInputRef.current.click()}
-                    >
-                      <FiPaperclip size={18} />
-                    </button>
-                    <button
-                      className={`${styles.submitActionBtn} ${
+                      type="button"
+                      className={`${styles.submitBtn} ${
                         inputValue.trim() || attachments.length > 0
-                          ? styles.activeSubmit
+                          ? styles.submitBtnActive
                           : ""
                       }`}
                       onClick={() => handleSendMessage()}
                       disabled={!inputValue.trim() && attachments.length === 0}
+                      title="Send Message"
                     >
-                      <FiArrowRight size={18} />
+                      <ArrowUp size={16} />
                     </button>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Quick prompts */}
-            <div className={styles.quickPromptsSection}>
-              {/* Keep your existing quick prompts here */}
+            {/* Minimalist Quick Suggestion Pills */}
+            <div className={styles.suggestionsRow}>
+              {[
+                {
+                  icon: <Stethoscope size={14} />,
+                  label: "Check symptoms",
+                  prompt: "I want to describe my symptoms for a medical assessment: ",
+                },
+                {
+                  icon: <Thermometer size={14} />,
+                  label: "Assess fever",
+                  prompt: "Start fever assessment",
+                  modelId: "fever-assessment",
+                },
+                {
+                  icon: <Calendar size={14} />,
+                  label: "Find doctor",
+                  prompt: "Help me find and consult an available specialist doctor for ",
+                },
+                {
+                  icon: <FileText size={14} />,
+                  label: "Explain lab report",
+                  prompt: "Please analyze and explain this medical report in plain language: ",
+                },
+              ].map((pill) => (
+                <button
+                  key={pill.label}
+                  type="button"
+                  className={styles.suggestionPill}
+                  onClick={() => {
+                    if (pill.modelId) {
+                      const targetModel = aiModelsData.find(
+                        (m) => m.id === pill.modelId
+                      );
+                      if (targetModel) setSelectedModel(targetModel);
+                    }
+                    setInputValue(pill.prompt);
+                    if (textareaRef.current) {
+                      textareaRef.current.focus();
+                    }
+                  }}
+                >
+                  {pill.icon}
+                  <span>{pill.label}</span>
+                </button>
+              ))}
             </div>
           </div>
         ) : (
-          /* ── Active chat state ── */
+          /* ── Active Chat State ── */
           <div className={styles.chatView}>
+            {/* Header */}
             <div className={styles.chatHeader}>
               <div className={styles.chatHeaderLeft}>
-                <h2 className={styles.chatHeaderTitle}>AI Triage Session</h2>
+                <h2 className={styles.chatHeaderTitle}>Clinical Consultation</h2>
                 <span className={styles.liveTag}>
-                  <span className={styles.pulseDot}></span> Live
+                  <span className={styles.liveDot} />
+                  Live
                 </span>
+
+                {/* Clickable Model Badge in Header */}
+                <div
+                  className={styles.relativeContainer}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    type="button"
+                    className={styles.headerModelBadge}
+                    onClick={() => {
+                      setShowModelMenu((v) => !v);
+                      setShowRecordMenu(false);
+                    }}
+                  >
+                    <Bot size={13} />
+                    <span>{selectedModel.name}</span>
+                    <ChevronDown size={11} />
+                  </button>
+
+                  {showModelMenu && (
+                    <div
+                      className={`${styles.popoverMenu} ${styles.modelMenuWide}`}
+                      style={{ top: "calc(100% + 6px)", bottom: "auto" }}
+                    >
+                      <div className={styles.popoverHeader}>Switch Model</div>
+                      <div className={styles.modelList}>
+                        {aiModelsData.map((model) => (
+                          <div
+                            key={model.id}
+                            className={`${styles.modelItem} ${
+                              selectedModel.id === model.id
+                                ? styles.selectedModelItem
+                                : ""
+                            }`}
+                            onClick={() => {
+                              setSelectedModel(model);
+                              setShowModelMenu(false);
+                              if (model.id !== "fever-assessment") {
+                                setFeverActive(false);
+                                setFeverStep(0);
+                                setFeverAnswers({});
+                              }
+                              toast.success(`Switched model to ${model.name}`);
+                            }}
+                          >
+                            <div className={styles.modelIconWrapper}>
+                              {model.icon ? (
+                                <img src={model.icon} alt={model.name} />
+                              ) : (
+                                <Activity size={16} />
+                              )}
+                            </div>
+                            <div className={styles.modelItemContent}>
+                              <div className={styles.modelItemHeader}>
+                                <span className={styles.modelItemTitle}>
+                                  {model.name}
+                                </span>
+                                {model.isPro && (
+                                  <span className={styles.proBadge}>PRO</span>
+                                )}
+                              </div>
+                              <span className={styles.modelItemProvider}>
+                                {model.provider} · {model.description}
+                              </span>
+                            </div>
+                            {selectedModel.id === model.id && (
+                              <div className={styles.modelItemCheck}>
+                                <Check size={14} />
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div style={{ display: "flex", gap: "8px" }}>
+
+              {/* Header Right Actions */}
+              <div className={styles.chatHeaderRight}>
                 <button
-                  className={styles.clearChatBtn}
+                  type="button"
+                  className={`${styles.headerActionBtn} ${styles.headerActionBtnPrimary}`}
                   onClick={handleNewChat}
-                  title="Start New Chat Session"
-                  style={{ background: "#2563eb", color: "#ffffff" }}
+                  title="New Session"
                 >
-                  <span>+ New Chat</span>
+                  <Plus size={13} />
+                  <span>New</span>
                 </button>
+
                 <button
-                  className={styles.clearChatBtn}
+                  type="button"
+                  className={styles.headerActionBtn}
                   onClick={handleClearChat}
-                  title="Clear current view"
+                  title="Clear View"
                 >
-                  <FiTrash2 size={14} />
+                  <Trash2 size={13} />
                   <span>Clear</span>
                 </button>
               </div>
             </div>
 
-
+            {/* Message Thread Stream */}
             <div className={styles.messagesContainer}>
               {messages.map((message) => (
                 <div
                   key={message.id}
                   className={`${styles.messageWrapper} ${
-                    message.type === "user"
-                      ? styles.userMessage
-                      : styles.aiMessage
+                    message.type === "user" ? styles.userMessage : styles.aiMessage
                   }`}
                 >
-                  {message.type === "ai" && (
-                    <div className={styles.avatar}>E</div>
+                  {message.type === "ai" ? (
+                    <div className={`${styles.avatar} ${styles.aiAvatar}`}>
+                      <Bot size={15} />
+                    </div>
+                  ) : (
+                    <div className={`${styles.avatar} ${styles.userAvatar}`}>
+                      {firstName.charAt(0)}
+                    </div>
                   )}
+
                   <div className={styles.messageContent}>
                     <div className={styles.messageAuthor}>
                       {message.type === "user" ? "You" : selectedModel.name}
                     </div>
+
                     <div className={styles.messageBubble}>
                       {message.type === "ai" ? (
-                        <div className={styles.markdownRender}>
-                          <ReactMarkdown
-                            components={{
-                              h1: ({ children }) => (
-                                <h1 className={styles.mdH1}>{children}</h1>
-                              ),
-                              h2: ({ children }) => (
-                                <h2 className={styles.mdH2}>{children}</h2>
-                              ),
-                              h3: ({ children }) => (
-                                <h3 className={styles.mdH3}>{children}</h3>
-                              ),
-                              h4: ({ children }) => (
-                                <h4 className={styles.mdH4}>{children}</h4>
-                              ),
-                              h5: ({ children }) => (
-                                <h5 className={styles.mdH5}>{children}</h5>
-                              ),
-                              h6: ({ children }) => (
-                                <h6 className={styles.mdH6}>{children}</h6>
-                              ),
-                              p: ({ children }) => (
-                                <p className={styles.mdP}>{children}</p>
-                              ),
-                              ul: ({ children }) => (
-                                <ul className={styles.mdUl}>{children}</ul>
-                              ),
-                              ol: ({ children }) => (
-                                <ol className={styles.mdOl}>{children}</ol>
-                              ),
-                              li: ({ children }) => (
-                                <li className={styles.mdLi}>{children}</li>
-                              ),
-                              code: ({ inline, className, children }) =>
-                                inline ? (
-                                  <code className={styles.mdInlineCode}>
-                                    {children}
-                                  </code>
-                                ) : (
-                                  <pre className={styles.mdPre}>
-                                    <code className={className}>
-                                      {children}
-                                    </code>
-                                  </pre>
-                                ),
-                              a: ({ href, children }) => (
-                                <a
-                                  className={styles.mdLink}
-                                  href={href}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                >
+                        <ReactMarkdown
+                          components={{
+                            h1: ({ children }) => (
+                              <h1 className={styles.mdH1}>{children}</h1>
+                            ),
+                            h2: ({ children }) => (
+                              <h2 className={styles.mdH2}>{children}</h2>
+                            ),
+                            h3: ({ children }) => (
+                              <h3 className={styles.mdH3}>{children}</h3>
+                            ),
+                            p: ({ children }) => (
+                              <p className={styles.mdP}>{children}</p>
+                            ),
+                            ul: ({ children }) => (
+                              <ul className={styles.mdUl}>{children}</ul>
+                            ),
+                            ol: ({ children }) => (
+                              <ol className={styles.mdOl}>{children}</ol>
+                            ),
+                            li: ({ children }) => (
+                              <li className={styles.mdLi}>{children}</li>
+                            ),
+                            code: ({ inline, className, children }) =>
+                              inline ? (
+                                <code className={styles.mdInlineCode}>
                                   {children}
-                                </a>
+                                </code>
+                              ) : (
+                                <pre className={styles.mdPre}>
+                                  <code className={className}>{children}</code>
+                                </pre>
                               ),
-                              blockquote: ({ children }) => (
-                                <blockquote className={styles.mdBlockquote}>
-                                  {children}
-                                </blockquote>
-                              ),
-                              strong: ({ children }) => (
-                                <strong className={styles.mdStrong}>
-                                  {children}
-                                </strong>
-                              ),
-                              em: ({ children }) => (
-                                <em className={styles.mdEm}>{children}</em>
-                              ),
-                              hr: () => <hr className={styles.mdHr} />,
-                            }}
-                          >
-                            {message.text}
-                          </ReactMarkdown>
-                        </div>
+                            blockquote: ({ children }) => (
+                              <blockquote className={styles.mdBlockquote}>
+                                {children}
+                              </blockquote>
+                            ),
+                            strong: ({ children }) => (
+                              <strong className={styles.mdStrong}>
+                                {children}
+                              </strong>
+                            ),
+                            em: ({ children }) => (
+                              <em className={styles.mdEm}>{children}</em>
+                            ),
+                            hr: () => <hr className={styles.mdHr} />,
+                          }}
+                        >
+                          {message.text}
+                        </ReactMarkdown>
                       ) : (
                         <div>
                           <span>{message.text}</span>
-                          {/* Show attachment names if any were sent */}
-                          {message.attachments &&
-                            message.attachments.length > 0 && (
-                              <div className={styles.messageAttachments}>
-                                {message.attachments.map((name, i) => (
-                                  <span
-                                    key={i}
-                                    className={styles.attachmentTag}
-                                  >
-                                    <FiFileText size={11} /> {name}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
+                          {message.attachments && message.attachments.length > 0 && (
+                            <div className={styles.messageAttachments}>
+                              {message.attachments.map((name, i) => (
+                                <span key={i} className={styles.attachmentTag}>
+                                  <FileText size={11} />
+                                  <span>{name}</span>
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
+
                     <div className={styles.messageTimestamp}>
                       {message.timestamp instanceof Date
                         ? message.timestamp.toLocaleTimeString([], {
@@ -1092,69 +1237,117 @@ const SOCKET_URL =
                 </div>
               ))}
 
-              {/* Typing indicator */}
+              {/* Typing Indicator */}
               {isTyping && (
-                <div className={`${styles.messageWrapper} ${styles.aiMessage}`}>
-                  <div className={styles.avatar}>E</div>
-                  <div className={styles.messageContent}>
-                    <div className={styles.messageAuthor}>
-                      {selectedModel.name}
-                    </div>
-                    <div className={styles.messageBubble}>
-                      <div className={styles.typingIndicator}>
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                      </div>
-                    </div>
+                <div className={styles.typingWrapper}>
+                  <div className={`${styles.avatar} ${styles.aiAvatar}`}>
+                    <Bot size={15} />
+                  </div>
+                  <div className={styles.typingDots}>
+                    <span />
+                    <span />
+                    <span />
                   </div>
                 </div>
               )}
+
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Chat input bar */}
+            {/* Bottom Floating Input Bar in Chat Mode */}
             <div className={styles.chatInputWrapper}>
-              {/* Attachment chips in chat mode */}
               {attachments.length > 0 && (
                 <div className={styles.chatAttachmentChips}>
                   {attachments.map((file, idx) => (
                     <div key={idx} className={styles.chip}>
-                      <FiFileText size={12} />
+                      <FileText size={12} />
                       <span className={styles.chipText}>{file.name}</span>
-                      <button onClick={() => removeAttachment(idx)}>
-                        <FiX size={12} />
+                      <button
+                        type="button"
+                        onClick={() => removeAttachment(idx)}
+                        title="Remove attachment"
+                      >
+                        <X size={12} />
                       </button>
                     </div>
                   ))}
                 </div>
               )}
+
+              {/* Command Palette Dropdown in Chat Mode */}
+              {showCommandPalette && (
+                <div
+                  className={styles.commandPaletteWrapper}
+                  style={{ maxWidth: "720px", margin: "0 auto 6px" }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className={styles.commandPaletteHeader}>
+                    <span className={styles.commandPaletteTitle}>Commands</span>
+                    <span className={styles.commandPaletteShortcut}>↑↓ · Enter</span>
+                  </div>
+                  <div className={styles.commandList}>
+                    {commandSuggestions.map((cmd, idx) => (
+                      <div
+                        key={cmd.prefix}
+                        className={`${styles.commandItem} ${
+                          activeSuggestion === idx ? styles.commandItemActive : ""
+                        }`}
+                        onClick={() => handleSelectCommand(cmd)}
+                      >
+                        {cmd.icon}
+                        <span className={styles.commandItemLabel}>{cmd.label}</span>
+                        <span className={styles.commandItemDesc}>{cmd.description}</span>
+                        <span className={styles.commandItemPrefix}>{cmd.prefix}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <form
                 onSubmit={handleSendMessage}
                 className={styles.chatFormContainer}
               >
                 <button
                   type="button"
-                  className={styles.attachBtn}
-                  onClick={() => fileInputRef.current.click()}
+                  className={styles.iconButton}
+                  onClick={() => fileInputRef.current?.click()}
+                  title="Attach Files"
                 >
-                  <FiPaperclip size={18} />
+                  <Paperclip size={15} />
                 </button>
+
+                <button
+                  type="button"
+                  className={styles.iconButton}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowCommandPalette((prev) => !prev);
+                    if (!inputValue.startsWith("/")) setInputValue("/");
+                  }}
+                  title="Commands (/)"
+                >
+                  <Command size={14} />
+                </button>
+
                 <input
                   type="text"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  placeholder={`Message ${selectedModel.name}...`}
+                  onKeyDown={handleKeyDown}
+                  placeholder={`Ask ${selectedModel.name} or type / for commands...`}
                   className={styles.chatInput}
                 />
+
                 <button
                   type="submit"
                   disabled={
                     (!inputValue.trim() && attachments.length === 0) || isTyping
                   }
                   className={styles.chatSubmitBtn}
+                  title="Send Message"
                 >
-                  <FiSend size={18} />
+                  <ArrowUp size={15} />
                 </button>
               </form>
             </div>
@@ -1162,7 +1355,7 @@ const SOCKET_URL =
         )}
       </main>
 
-      {/* ── Right panel: Triage History ── */}
+      {/* ── Right Panel: Triage History ── */}
       <aside
         className={`${styles.rightPanel} ${
           isHistoryMinimized ? styles.rightPanelMinimized : ""
@@ -1181,7 +1374,6 @@ const SOCKET_URL =
           refreshTrigger={historyRefreshTrigger}
         />
       </aside>
-
 
       {/* ── Triage Detail Modal ── */}
       {selectedTriageId && (

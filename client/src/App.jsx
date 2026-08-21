@@ -6,6 +6,7 @@
 import React, { useEffect, useState } from "react";
 import "./App.css";
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 
 import Home from "./pages/Home/Home";
 import Navbar from "./components/Navbar/Navbar";
@@ -229,6 +230,41 @@ const App = () => {
 
   return (
     <>
+      <Toaster
+        position="top-right"
+        reverseOrder={false}
+        gutter={10}
+        toastOptions={{
+          duration: 3500,
+          style: {
+            background: "#ffffff",
+            color: "#0f172a",
+            fontSize: "13.5px",
+            fontWeight: 500,
+            fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            borderRadius: "10px",
+            padding: "11px 16px",
+            boxShadow: "0 10px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.05)",
+            border: "1px solid #e2e8f0",
+            maxWidth: "380px",
+          },
+          success: {
+            duration: 3200,
+            iconTheme: {
+              primary: "#0ea5a4",
+              secondary: "#ffffff",
+            },
+          },
+          error: {
+            duration: 4500,
+            iconTheme: {
+              primary: "#ef4444",
+              secondary: "#ffffff",
+            },
+          },
+        }}
+      />
+
       {/* Navbar only on landing page */}
 
       {showNavbar && <Navbar />}
