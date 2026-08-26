@@ -96,31 +96,6 @@ app.use((req, res, next) => {
   next();
 });
 
-/*
-==================================================
-HEALTH CHECK
-Keep these lightweight — no DB, no ML, no external calls.
-UptimeRobot pings /api/health every 5 min to keep the
-Render free-tier service awake.
-==================================================
-*/
-
-app.get("/health", (req, res) => {
-  res.status(200).json({
-    status: "ok",
-    service: "E-Sanjeevani API",
-    timestamp: new Date().toISOString(),
-  });
-});
-
-// /api/health — matches Render Health Check path and UptimeRobot monitor
-app.get("/api/health", (req, res) => {
-  res.status(200).json({
-    status: "ok",
-    service: "E-Sanjeevani API",
-    timestamp: new Date().toISOString(),
-  });
-});
 
 
 /*

@@ -267,18 +267,6 @@ def get_shap_explanation(fever_model, fever_feature_names: list, feature_df: pd.
 
     return []
 
-# ─────────────────────────────────────────────────────────────────────────────
-# ROUTES — HEALTH
-# ─────────────────────────────────────────────────────────────────────────────
-
-@app.route("/api/health", methods=["GET"])
-@app.route("/health", methods=["GET"])
-def health():
-    """Lightweight health check endpoint for UptimeRobot & monitoring (no model loading)."""
-    return jsonify({
-        "status": "ok",
-        "service": "E-Sanjeevani AI Model"
-    }), 200
 
 
 @app.route("/", methods=["GET"])
