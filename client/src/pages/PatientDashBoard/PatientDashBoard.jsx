@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { PatientDashboardSkeleton } from "../../components/Skeletons";
 import {
   Sparkles,
   Command,
   Paperclip,
   ArrowUp,
+  ArrowRight,
   X,
   FileText,
   ChevronDown,
@@ -13,10 +15,13 @@ import {
   Stethoscope,
   Thermometer,
   Calendar,
+  Clock,
   Pill,
   Check,
   Bot,
   Activity,
+  ShieldCheck,
+  Video,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import io from "socket.io-client";
@@ -25,7 +30,7 @@ import TriageHistory from "../../components/TriageHistory/TriageHistory";
 import TriageDetailView from "../../components/TriageDetailView/TriageDetailView";
 import NotificationService from "../../utils/notificationService";
 import styles from "./PatientDashBoard.module.css";
-import { authApi, apiClient } from "../../utils/api";
+import { authApi, consultationApi, medicalRecordApi, apiClient } from "../../utils/api";
 import { performLogout } from "../../utils/auth";
 import toast from "react-hot-toast";
 
@@ -213,8 +218,11 @@ const commandSuggestions = [
 
 // ─── Main Component ─────────────────────────────────────────────────────────
 export default function PatientDashboard() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [consultations, setConsultations] = useState([]);
+  const [records, setRecords] = useState([]);
 
   // Chat state
   const [messages, setMessages] = useState([]);
@@ -256,23 +264,42 @@ export default function PatientDashboard() {
     }
   };
 
-  // ── Fetch user & hydrate messages ──────────────────────────────────────────
+  // ── Fetch user, consultations, records & hydrate messages ───────────────────
   useEffect(() => {
     async function init() {
       try {
-        const response = await authApi.me();
-        const fetchedUser = response.data.user || response.data;
-        setUser(fetchedUser);
+        const [userRes, consultRes, recRes] = await Promise.all([
+          authApi.me().catch((err) => {
+            if (err.status === 401 || err.response?.status === 401) {
+              performLogout();
+            }
+            return null;
+          }),
+          consultationApi.getMyConsultations().catch((err) => {
+            console.error("Failed to load consultations:", err);
+            return { data: { consultations: [] } };
+          }),
+          medicalRecordApi.getMyRecords().catch((err) => {
+            console.error("Failed to load medical records:", err);
+            return { data: { records: [] } };
+          }),
+        ]);
 
-        const userId = fetchedUser._id || fetchedUser.id;
-        const persisted = loadMessagesFromStorage(userId);
-        if (persisted.length > 0) {
-          setMessages(persisted);
+        if (userRes?.data) {
+          const fetchedUser = userRes.data.user || userRes.data;
+          setUser(fetchedUser);
+
+          const userId = fetchedUser._id || fetchedUser.id;
+          const persisted = loadMessagesFromStorage(userId);
+          if (persisted.length > 0) {
+            setMessages(persisted);
+          }
         }
+
+        setConsultations(consultRes?.data?.consultations || []);
+        setRecords(recRes?.data?.records || []);
       } catch (err) {
-        if (err.status === 401 || err.response?.status === 401) {
-          performLogout();
-        }
+        console.error("Dashboard init error:", err);
       } finally {
         setLoading(false);
       }
@@ -720,6 +747,29 @@ export default function PatientDashboard() {
   const handleLogout = () => performLogout();
   const firstName = user?.name?.split(" ")[0] || "Patient";
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 17) return "Good afternoon";
+    return "Good evening";
+  };
+
+  const now = new Date();
+  const upcomingConsultations = consultations
+    .filter((c) => c.status === "scheduled" || new Date(c.consultationDate) > now)
+    .sort((a, b) => new Date(a.consultationDate) - new Date(b.consultationDate));
+  const nextAppt = upcomingConsultations[0] || null;
+
+  const recentConsultations = consultations.slice(0, 3);
+  const recentRecords = records.slice(0, 3);
+
+  const formattedDate = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
   if (loading) {
     return <PatientDashboardSkeleton />;
   }
@@ -739,23 +789,168 @@ export default function PatientDashboard() {
       {/* Sidebar */}
       <Sidebar user={user} onLogout={handleLogout} />
 
-      {/* Main Chat Area */}
+      {/* Main Chat & Dashboard Area */}
       <main className={styles.mainContent}>
         {!hasStartedChat ? (
           /* ── Idle / Landing Hero State ── */
           <div className={styles.idleState}>
+            {/* Header Greeting & Date */}
             <div className={styles.heroSection}>
+              <div className={styles.dateBadge}>
+                <Calendar size={13} /> {formattedDate}
+              </div>
               <h1 className={styles.greeting}>
-                How can we help today, {firstName}?
+                {getGreeting()}, {firstName}
               </h1>
               <p className={styles.subtitle}>
-                Ask symptom questions, clinical insights, or type{" "}
-                <strong>/</strong> for commands.
+                Your trusted healthcare dashboard. Book consultations, check symptoms, or review records.
               </p>
             </div>
 
-            {/* Center Input Card */}
+            {/* ── Upcoming Appointment Feature Card ── */}
+            {nextAppt ? (
+              <div className={styles.upcomingApptCard}>
+                <div className={styles.upcomingApptHeader}>
+                  <div className={styles.upcomingTag}>
+                    <span className={styles.pulseDot} /> Next Scheduled Consultation
+                  </div>
+                  <span className={styles.statusPillBadge}>
+                    {nextAppt.status?.toUpperCase() || "SCHEDULED"}
+                  </span>
+                </div>
+                <div className={styles.upcomingApptBody}>
+                  <div className={styles.doctorAvatar}>
+                    {nextAppt.doctor?.name?.charAt(0) || "D"}
+                  </div>
+                  <div className={styles.doctorDetails}>
+                    <h3 className={styles.doctorNameText}>
+                      Dr. {nextAppt.doctor?.name || "Specialist Doctor"}
+                    </h3>
+                    <p className={styles.doctorSpecText}>
+                      {nextAppt.doctor?.specialization || "General Medicine"}
+                    </p>
+                    <div className={styles.apptTimeMeta}>
+                      <span>
+                        <Calendar size={13} />{" "}
+                        {new Date(nextAppt.consultationDate).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                      </span>
+                      <span>
+                        <Clock size={13} /> {nextAppt.startTime} - {nextAppt.endTime}
+                      </span>
+                      <span className={styles.typeBadge}>
+                        {nextAppt.consultationType?.toUpperCase() || "VIDEO"}
+                      </span>
+                    </div>
+                  </div>
+                  <div className={styles.upcomingActions}>
+                    <button
+                      className={styles.joinConsultationBtn}
+                      onClick={() => navigate(`/video-call/${nextAppt._id}`)}
+                    >
+                      <Video size={14} /> Join Consultation
+                    </button>
+                    <button
+                      className={styles.viewDetailsBtn}
+                      onClick={() => navigate("/consultations")}
+                    >
+                      View Details
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className={styles.emptyApptBanner}>
+                <div className={styles.emptyApptLeft}>
+                  <div className={styles.emptyApptIcon}>
+                    <Calendar size={18} />
+                  </div>
+                  <div>
+                    <h4 className={styles.emptyApptTitle}>No upcoming consultations</h4>
+                    <p className={styles.emptyApptSub}>
+                      Connect with qualified specialists online from anywhere.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  className={styles.bookNowBannerBtn}
+                  onClick={() => navigate("/available-doctors")}
+                >
+                  <Plus size={14} /> Book Consultation
+                </button>
+              </div>
+            )}
+
+            {/* ── Quick Action Cards ── */}
+            <div className={styles.quickActionsGrid}>
+              <div
+                className={styles.quickActionCard}
+                onClick={() => navigate("/available-doctors")}
+              >
+                <div className={`${styles.quickActionIcon} ${styles.actionBlue}`}>
+                  <Stethoscope size={18} />
+                </div>
+                <div className={styles.quickActionText}>
+                  <h4>Find Specialist</h4>
+                  <p>Search doctors near you</p>
+                </div>
+                <ArrowRight size={14} className={styles.quickActionArrow} />
+              </div>
+
+              <div
+                className={styles.quickActionCard}
+                onClick={() => navigate("/consultations")}
+              >
+                <div className={`${styles.quickActionIcon} ${styles.actionGreen}`}>
+                  <Calendar size={18} />
+                </div>
+                <div className={styles.quickActionText}>
+                  <h4>My Consultations</h4>
+                  <p>{consultations.length} total sessions</p>
+                </div>
+                <ArrowRight size={14} className={styles.quickActionArrow} />
+              </div>
+
+              <div
+                className={styles.quickActionCard}
+                onClick={() => navigate("/clinical-records")}
+              >
+                <div className={`${styles.quickActionIcon} ${styles.actionPurple}`}>
+                  <FileText size={18} />
+                </div>
+                <div className={styles.quickActionText}>
+                  <h4>Clinical Records</h4>
+                  <p>{records.length} digital records</p>
+                </div>
+                <ArrowRight size={14} className={styles.quickActionArrow} />
+              </div>
+
+              <div
+                className={styles.quickActionCard}
+                onClick={() => {
+                  setInputValue("I want to describe my symptoms for a medical assessment: ");
+                  if (textareaRef.current) textareaRef.current.focus();
+                }}
+              >
+                <div className={`${styles.quickActionIcon} ${styles.actionTeal}`}>
+                  <Bot size={18} />
+                </div>
+                <div className={styles.quickActionText}>
+                  <h4>AI Symptom Check</h4>
+                  <p>Smart health guidance</p>
+                </div>
+                <ArrowRight size={14} className={styles.quickActionArrow} />
+              </div>
+            </div>
+
+            {/* ── AI Symptom & Query Input Card ── */}
             <div className={styles.searchContainer}>
+              <div className={styles.searchHeaderLabel}>
+                <Sparkles size={14} /> AI Health Assistant & Symptom Checker
+              </div>
               <div className={styles.searchInputWrapper}>
                 {/* Attachment Chips */}
                 {attachments.length > 0 && (
@@ -809,7 +1004,7 @@ export default function PatientDashboard() {
                 <textarea
                   ref={textareaRef}
                   className={styles.largeInput}
-                  placeholder="Ask about symptoms, health records, or type / for commands..."
+                  placeholder="Describe your symptoms, ask health questions, or type / for commands..."
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyDown={handleKeyDown}
@@ -967,7 +1162,7 @@ export default function PatientDashboard() {
               </div>
             </div>
 
-            {/* Minimalist Quick Suggestion Pills */}
+            {/* Quick Suggestion Pills */}
             <div className={styles.suggestionsRow}>
               {[
                 {
@@ -1013,6 +1208,89 @@ export default function PatientDashboard() {
                   <span>{pill.label}</span>
                 </button>
               ))}
+            </div>
+
+            {/* ── Recent Activity Section ── */}
+            <div className={styles.recentActivitySection}>
+              {/* Recent Consultations */}
+              <div className={styles.activityCardBlock}>
+                <div className={styles.activityBlockHeader}>
+                  <div className={styles.activityBlockTitle}>
+                    <Calendar size={16} /> Recent Consultations
+                  </div>
+                  <button
+                    className={styles.viewAllLinkBtn}
+                    onClick={() => navigate("/consultations")}
+                  >
+                    View all ({consultations.length})
+                  </button>
+                </div>
+                <div className={styles.activityList}>
+                  {recentConsultations.length === 0 ? (
+                    <div className={styles.emptyListNote}>
+                      No past consultations recorded yet.
+                    </div>
+                  ) : (
+                    recentConsultations.map((c) => (
+                      <div key={c._id} className={styles.activityItemRow}>
+                        <div className={styles.activityItemAvatar}>
+                          {c.doctor?.name?.charAt(0) || "D"}
+                        </div>
+                        <div className={styles.activityItemInfo}>
+                          <div className={styles.activityItemName}>
+                            Dr. {c.doctor?.name || "Specialist"}
+                          </div>
+                          <div className={styles.activityItemSub}>
+                            {c.symptoms || c.currentProblem || "Online Consultation"}
+                          </div>
+                        </div>
+                        <span className={styles.activityStatusTag}>
+                          {c.status}
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Recent Medical Records */}
+              <div className={styles.activityCardBlock}>
+                <div className={styles.activityBlockHeader}>
+                  <div className={styles.activityBlockTitle}>
+                    <FileText size={16} /> Clinical Records & Rx
+                  </div>
+                  <button
+                    className={styles.viewAllLinkBtn}
+                    onClick={() => navigate("/clinical-records")}
+                  >
+                    View all ({records.length})
+                  </button>
+                </div>
+                <div className={styles.activityList}>
+                  {recentRecords.length === 0 ? (
+                    <div className={styles.emptyListNote}>
+                      No clinical records or prescriptions uploaded yet.
+                    </div>
+                  ) : (
+                    recentRecords.map((r) => (
+                      <div key={r.id} className={styles.activityItemRow}>
+                        <div className={`${styles.activityItemAvatar} ${styles.recordAvatarBg}`}>
+                          <ShieldCheck size={14} />
+                        </div>
+                        <div className={styles.activityItemInfo}>
+                          <div className={styles.activityItemName}>
+                            {r.recordTitle || r.diagnosis || "Medical Record"}
+                          </div>
+                          <div className={styles.activityItemSub}>
+                            {r.doctorName ? `Dr. ${r.doctorName}` : "Patient Record"} •{" "}
+                            {r.recordDate ? new Date(r.recordDate).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : ""}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         ) : (

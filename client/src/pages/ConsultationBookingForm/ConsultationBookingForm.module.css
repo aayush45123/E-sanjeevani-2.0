@@ -107,7 +107,8 @@
 .formGroup input:focus,
 .formGroup select:focus,
 .formGroup textarea:focus {
-  border-color: #111827;
+  border-color: var(--accent, #0ea5a4);
+  box-shadow: 0 0 0 3px rgba(14, 165, 164, 0.15);
 }
 
 /* =========================================
@@ -121,7 +122,7 @@
 }
 
 .slotSection h3 {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   color: #111827;
   margin: 0;
@@ -130,36 +131,37 @@
 .slotGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 14px;
+  gap: 12px;
 }
 
 .slotBtn {
-  padding: 14px 16px;
-  border: 1px solid #e5e7eb;
+  padding: 12px 14px;
+  border: 1px solid #e2e8f0;
   background: #ffffff;
   border-radius: 8px;
   cursor: pointer;
   font-size: 13px;
   font-weight: 500;
-  color: #52525b;
-  transition: all 0.2s ease;
+  color: #334155;
+  transition: all 0.15s ease;
 }
 
 .slotBtn:hover {
-  border-color: #111827;
-  color: #111827;
-  background: #fafafa;
+  border-color: var(--accent, #0ea5a4);
+  color: var(--accent, #0ea5a4);
+  background: #f8fafc;
 }
 
 .activeSlot {
-  background: #111827;
-  color: #ffffff;
-  border-color: #111827;
+  background: var(--accent, #0ea5a4) !important;
+  color: #ffffff !important;
+  border-color: var(--accent, #0ea5a4) !important;
+  box-shadow: 0 2px 6px rgba(14, 165, 164, 0.25);
 }
 
 .activeSlot:hover {
-  background: #000000;
-  color: #ffffff;
+  background: var(--accent-dark, #0d9190) !important;
+  color: #ffffff !important;
 }
 
 /* =========================================
@@ -168,19 +170,20 @@
 
 .submitBtn {
   margin-top: 8px;
-  height: 50px;
+  height: 48px;
   border: none;
   border-radius: 8px;
-  background: #111827;
+  background: var(--accent, #0ea5a4);
   color: #ffffff;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 
 .submitBtn:hover:not(:disabled) {
-  background: #000000;
+  background: var(--accent-dark, #0d9190);
+  box-shadow: 0 4px 12px rgba(14, 165, 164, 0.25);
 }
 
 .submitBtn:disabled {

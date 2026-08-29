@@ -208,6 +208,11 @@ export default function AvailableDoctors() {
                   <div key={doc._id || doc.id} className={styles.doctorCard}>
                     <div className={styles.cardHeader}>
                       <div className={styles.avatarCircle}>{initial}</div>
+                      {doc.distanceInKm && (
+                        <span className={styles.distanceBadge}>
+                          <MapPin size={12} /> {doc.distanceInKm.toFixed(1)} km away
+                        </span>
+                      )}
                     </div>
 
                     <div className={styles.cardBody}>
@@ -215,6 +220,12 @@ export default function AvailableDoctors() {
                       <p className={styles.specializationText}>{spec}</p>
                       <p className={styles.qualificationText}>{qualification}</p>
                       <p className={styles.experienceText}>{experience}</p>
+                      {doc.hospitalName && (
+                        <p className={styles.hospitalText}>{doc.hospitalName}</p>
+                      )}
+                      {doc.consultationFee !== undefined && doc.consultationFee !== null && doc.consultationFee > 0 && (
+                        <p className={styles.feeText}>₹{doc.consultationFee} Consultation Fee</p>
+                      )}
                     </div>
 
                     <div className={styles.cardFooter}>

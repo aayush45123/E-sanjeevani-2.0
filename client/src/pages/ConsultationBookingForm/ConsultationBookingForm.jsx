@@ -94,6 +94,8 @@ export default function ConsultationBookingForm() {
     }
   };
 
+  const todayStr = new Date().toISOString().split("T")[0];
+
   if (!doctor) return null;
 
   return (
@@ -102,8 +104,12 @@ export default function ConsultationBookingForm() {
 
       <main className={styles.mainContent}>
         <div className={styles.wrapper}>
-          <h1 className={styles.title}>Book Consultation</h1>
-          <p className={styles.subtitle}>with Dr. {doctor.name}</p>
+          <div className={styles.headerBlock}>
+            <h1 className={styles.title}>Book Consultation</h1>
+            <p className={styles.subtitle}>
+              Schedule a secure consultation with <strong>Dr. {doctor.name}</strong> ({doctor.specialization || "Specialist"})
+            </p>
+          </div>
 
           <form className={styles.form} onSubmit={handleSubmit}>
             <div className={styles.grid}>
@@ -114,7 +120,7 @@ export default function ConsultationBookingForm() {
                   value={formData.consultationType}
                   onChange={handleChange}
                 >
-                  <option value="video">Video Call</option>
+                  <option value="video">Video Call (Recommended)</option>
                   <option value="call">Phone Call</option>
                   <option value="chat">Chat</option>
                 </select>
@@ -125,6 +131,7 @@ export default function ConsultationBookingForm() {
                 <input
                   type="date"
                   name="consultationDate"
+                  min={todayStr}
                   value={formData.consultationDate}
                   onChange={handleChange}
                   required

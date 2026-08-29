@@ -75,9 +75,10 @@ const Sidebar = () => {
 
   const patientMenu = [
     { label: "Dashboard",         icon: <LayoutDashboard size={15} />, path: "/dashboard" },
+    { label: "Find Doctors",      icon: <Stethoscope size={15} />,     path: "/available-doctors" },
     { label: "Consultations",     icon: <Calendar size={15} />,        path: "/consultations" },
-    { label: "Available Doctors", icon: <Stethoscope size={15} />,     path: "/available-doctors" },
     { label: "Clinical Records",  icon: <FileText size={15} />,        path: "/clinical-records" },
+    { label: "AI Symptom Triage", icon: <ClipboardList size={15} />,   path: "/ai-triage" },
   ];
 
   const doctorMenu = [
@@ -89,9 +90,8 @@ const Sidebar = () => {
   ];
 
   const supportMenu = [
-    { label: "Settings",    icon: <Settings size={15} />,   path: "/settings" },
-    { label: "Help Center", icon: <HelpCircle size={15} />, path: "/help-center" },
-    { label: "Profile",     icon: <User size={15} />,       onClick: handleProfileClick },
+    { label: "Health Profile", icon: <User size={15} />, path: user.role === "doctor" ? "/doctor-profile-edit" : "/profile-setup" },
+    { label: "Help Center",    icon: <HelpCircle size={15} />, path: user.role === "doctor" ? "/doctor-dashboard/help" : "/dashboard" },
   ];
 
   const activeMenu = user.role === "doctor" ? doctorMenu : patientMenu;

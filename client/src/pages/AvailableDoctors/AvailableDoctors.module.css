@@ -119,61 +119,95 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 20px;
-  background: #6366f1;
+  padding: 10px 18px;
+  background: var(--accent, #0ea5a4);
   color: #ffffff;
   border: none;
   border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 0.875rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.15s ease;
 }
 
 .nearMeBtn:hover {
-  background: #4f46e5;
+  background: var(--accent-dark, #0d9190);
 }
 
 .nearMeActive {
-  background: #4338ca !important;
+  background: var(--accent-dark, #0d9190) !important;
+  box-shadow: 0 0 0 3px rgba(14, 165, 164, 0.2);
 }
 
 /* Doctors Grid (2 Column layout) */
 .doctorsGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 24px;
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .doctorsGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .doctorCard {
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  padding: 28px 24px 24px 24px;
+  padding: 24px 20px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .doctorCard:hover {
   border-color: #cbd5e1;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
 }
 
 .cardHeader {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   margin-bottom: 16px;
 }
 
+.distanceBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #059669;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  padding: 3px 8px;
+  border-radius: 9999px;
+}
+
+.hospitalText {
+  font-size: 0.8125rem;
+  color: #64748b;
+  margin: 4px 0 0 0;
+}
+
+.feeText {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #0ea5a4;
+  margin: 4px 0 0 0;
+}
+
 .avatarCircle {
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
-  background: #f1f5f9;
-  color: #334155;
+  background: #0f172a;
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
