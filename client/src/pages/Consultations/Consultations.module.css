@@ -304,6 +304,34 @@
   background: var(--accent-dark, #0d9190);
 }
 
+.viewPrescriptionBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  color: var(--accent, #0ea5a4);
+  border: 1px solid var(--accent, #0ea5a4);
+  padding: 7px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.viewPrescriptionBtn:hover {
+  background: rgba(14, 165, 164, 0.08);
+}
+
+.cancelledNote {
+  font-size: 12px;
+  font-weight: 500;
+  color: #94a3b8;
+  padding: 4px 8px;
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
 /* =========================================
    DOCTOR SECTION
 ========================================= */

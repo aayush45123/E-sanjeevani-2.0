@@ -69,22 +69,28 @@ export default function ClinicalRecords() {
     }
   };
 
+  const isDoctor = userRole === "doctor";
+
   const filteredRecords = records.filter((rec) => {
-    // Tab filter
-    if (activeTab === "consultation" && rec.source !== "consultation") return false;
-    if (activeTab === "patient_upload" && rec.source !== "patient_upload") return false;
+    // Tab filter for patient
+    if (!isDoctor) {
+      if (activeTab === "consultation" && rec.source !== "consultation") return false;
+      if (activeTab === "patient_upload" && rec.source !== "patient_upload") return false;
+    }
 
     // Search query
     const q = searchQuery.toLowerCase();
     const title = rec.recordTitle || "";
     const diag = rec.diagnosis || "";
     const doc = rec.doctorName || "";
+    const patient = rec.patientName || "";
     const hosp = rec.hospitalName || "";
 
     return (
       title.toLowerCase().includes(q) ||
       diag.toLowerCase().includes(q) ||
       doc.toLowerCase().includes(q) ||
+      patient.toLowerCase().includes(q) ||
       hosp.toLowerCase().includes(q)
     );
   });
@@ -95,7 +101,7 @@ export default function ClinicalRecords() {
 
   return (
     <div className={styles.dashboardLayout}>
-      {userRole === "doctor" ? (
+      {isDoctor ? (
         <DoctorSidebar user={user} onLogout={handleLogout} />
       ) : (
         <Sidebar />
@@ -107,18 +113,18 @@ export default function ClinicalRecords() {
           <div className={styles.pageHeader}>
             <div>
               <h1 className={styles.pageTitle}>
-                {userRole === "doctor"
-                  ? "Clinical Records & Issued Prescriptions"
+                {isDoctor
+                  ? "Issued Prescriptions & Consultations"
                   : "Medical & Health Records"}
               </h1>
               <p className={styles.pageSubtitle}>
-                {userRole === "doctor"
-                  ? "Manage and review digital prescriptions and clinical records issued to your patients."
+                {isDoctor
+                  ? "Manage and review all digital prescriptions and clinical summaries you have prescribed to your patients."
                   : "Access all your past medical history, hospital prescriptions, and eSanjeevani digital prescriptions."}
               </p>
             </div>
 
-            {userRole !== "doctor" && (
+            {!isDoctor && (
               <button
                 className={styles.addRecordBtn}
                 onClick={() => setIsAddModalOpen(true)}
@@ -128,36 +134,47 @@ export default function ClinicalRecords() {
             )}
           </div>
 
-
           {/* Filter Bar & Search */}
           <div className={styles.filterToolbar}>
-            <div className={styles.tabGroup}>
-              <button
-                className={`${styles.tabBtn} ${activeTab === "all" ? styles.tabActive : ""}`}
-                onClick={() => setActiveTab("all")}
-              >
-                All Records ({records.length})
-              </button>
-              <button
-                className={`${styles.tabBtn} ${activeTab === "consultation" ? styles.tabActive : ""}`}
-                onClick={() => setActiveTab("consultation")}
-              >
-                eSanjeevani Prescriptions (
-                {records.filter((r) => r.source === "consultation").length})
-              </button>
-              <button
-                className={`${styles.tabBtn} ${activeTab === "patient_upload" ? styles.tabActive : ""}`}
-                onClick={() => setActiveTab("patient_upload")}
-              >
-                My Uploads ({records.filter((r) => r.source === "patient_upload").length})
-              </button>
-            </div>
+            {!isDoctor ? (
+              <div className={styles.tabGroup}>
+                <button
+                  className={`${styles.tabBtn} ${activeTab === "all" ? styles.tabActive : ""}`}
+                  onClick={() => setActiveTab("all")}
+                >
+                  All Records ({records.length})
+                </button>
+                <button
+                  className={`${styles.tabBtn} ${activeTab === "consultation" ? styles.tabActive : ""}`}
+                  onClick={() => setActiveTab("consultation")}
+                >
+                  eSanjeevani Prescriptions (
+                  {records.filter((r) => r.source === "consultation").length})
+                </button>
+                <button
+                  className={`${styles.tabBtn} ${activeTab === "patient_upload" ? styles.tabActive : ""}`}
+                  onClick={() => setActiveTab("patient_upload")}
+                >
+                  My Uploads ({records.filter((r) => r.source === "patient_upload").length})
+                </button>
+              </div>
+            ) : (
+              <div className={styles.tabGroup}>
+                <button className={`${styles.tabBtn} ${styles.tabActive}`}>
+                  All Prescriptions Issued ({records.length})
+                </button>
+              </div>
+            )}
 
             <div className={styles.searchBox}>
               <Search size={16} className={styles.searchIcon} />
               <input
                 type="text"
-                placeholder="Search by title, diagnosis, doctor..."
+                placeholder={
+                  isDoctor
+                    ? "Search by patient name, diagnosis, medication..."
+                    : "Search by title, diagnosis, doctor..."
+                }
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className={styles.searchInput}
@@ -169,25 +186,33 @@ export default function ClinicalRecords() {
           {loading ? (
             <div className={styles.loadingState}>
               <div className={styles.spinner}></div>
-              <p>Loading medical records...</p>
+              <p>Loading records...</p>
             </div>
           ) : filteredRecords.length === 0 ? (
             <div className={styles.emptyState}>
               <div className={styles.emptyIconCircle}>
                 <FileText size={36} />
               </div>
-              <h3>No Medical Records Found</h3>
+              <h3>
+                {isDoctor
+                  ? "No Prescriptions Issued Yet"
+                  : "No Medical Records Found"}
+              </h3>
               <p>
                 {searchQuery || activeTab !== "all"
-                  ? "No medical records match your selected filter criteria."
+                  ? "No records match your selected search criteria."
+                  : isDoctor
+                  ? "When you conduct telemedicine consultations and generate digital prescriptions, they will be archived here."
                   : "Upload your historical medical records or complete an eSanjeevani consultation to view digital prescriptions."}
               </p>
-              <button
-                className={styles.emptyAddBtn}
-                onClick={() => setIsAddModalOpen(true)}
-              >
-                <Plus size={15} /> Upload First Medical Record
-              </button>
+              {!isDoctor && (
+                <button
+                  className={styles.emptyAddBtn}
+                  onClick={() => setIsAddModalOpen(true)}
+                >
+                  <Plus size={15} /> Upload First Medical Record
+                </button>
+              )}
             </div>
           ) : (
             <div className={styles.recordsList}>
@@ -224,7 +249,7 @@ export default function ClinicalRecords() {
                       >
                         {isConsultation ? (
                           <>
-                            <ShieldCheck size={13} /> eSanjeevani Digital
+                            <ShieldCheck size={13} /> {isDoctor ? "Prescription Issued" : "eSanjeevani Digital"}
                           </>
                         ) : (
                           "Patient Uploaded"
@@ -234,11 +259,20 @@ export default function ClinicalRecords() {
 
                     <div className={styles.cardBody}>
                       <div className={styles.metaRow}>
-                        {rec.doctorName && (
+                        {isDoctor ? (
                           <div className={styles.metaItem}>
                             <User size={14} className={styles.metaIcon} />
-                            <span>Dr. {rec.doctorName.replace(/^Dr\.\s*/i, "")}</span>
+                            <span>
+                              <strong>Patient:</strong> {rec.patientName || "Patient"}
+                            </span>
                           </div>
+                        ) : (
+                          rec.doctorName && (
+                            <div className={styles.metaItem}>
+                              <User size={14} className={styles.metaIcon} />
+                              <span>Dr. {rec.doctorName.replace(/^Dr\.\s*/i, "")}</span>
+                            </div>
+                          )
                         )}
                         {rec.hospitalName && (
                           <div className={styles.metaItem}>

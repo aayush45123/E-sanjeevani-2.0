@@ -467,7 +467,14 @@ export default function Consultations() {
                           </div>
                         </div>
 
-                        {consultation.status !== "completed" && (
+                        {consultation.status === "completed" ? (
+                          <button
+                            className={styles.viewPrescriptionBtn || styles.joinBtn}
+                            onClick={() => navigate("/clinical-records")}
+                          >
+                            <FiFileText size={13} /> View Prescription
+                          </button>
+                        ) : consultation.status !== "cancelled" ? (
                           <button
                             className={styles.joinBtn}
                             onClick={() =>
@@ -476,6 +483,8 @@ export default function Consultations() {
                           >
                             Join Call <FiArrowRight />
                           </button>
+                        ) : (
+                          <span className={styles.cancelledNote}>Cancelled</span>
                         )}
                       </div>
                     </div>
