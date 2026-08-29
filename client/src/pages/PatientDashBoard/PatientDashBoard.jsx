@@ -22,6 +22,7 @@ import {
   Activity,
   ShieldCheck,
   Video,
+  ClipboardList,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import io from "socket.io-client";
@@ -948,8 +949,18 @@ export default function PatientDashboard() {
 
             {/* ── AI Symptom & Query Input Card ── */}
             <div className={styles.searchContainer}>
-              <div className={styles.searchHeaderLabel}>
-                <Sparkles size={14} /> AI Health Assistant & Symptom Checker
+              <div className={styles.searchHeaderWrapper}>
+                <div className={styles.searchHeaderLabel}>
+                  <Sparkles size={14} /> AI Health Assistant & Symptom Checker
+                </div>
+                <button
+                  type="button"
+                  className={styles.openFullAssessmentBtn}
+                  onClick={() => navigate("/ai-triage")}
+                  title="Open Dedicated Full AI Symptom Assessment Form"
+                >
+                  <ClipboardList size={13} /> Open Full Assessment
+                </button>
               </div>
               <div className={styles.searchInputWrapper}>
                 {/* Attachment Chips */}
@@ -1186,12 +1197,21 @@ export default function PatientDashboard() {
                   label: "Explain lab report",
                   prompt: "Please analyze and explain this medical report in plain language: ",
                 },
+                {
+                  icon: <ClipboardList size={14} />,
+                  label: "Full Assessment",
+                  action: () => navigate("/ai-triage"),
+                },
               ].map((pill) => (
                 <button
                   key={pill.label}
                   type="button"
                   className={styles.suggestionPill}
                   onClick={() => {
+                    if (pill.action) {
+                      pill.action();
+                      return;
+                    }
                     if (pill.modelId) {
                       const targetModel = aiModelsData.find(
                         (m) => m.id === pill.modelId

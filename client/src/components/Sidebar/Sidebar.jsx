@@ -78,7 +78,6 @@ const Sidebar = () => {
     { label: "Find Doctors",      icon: <Stethoscope size={15} />,     path: "/available-doctors" },
     { label: "Consultations",     icon: <Calendar size={15} />,        path: "/consultations" },
     { label: "Clinical Records",  icon: <FileText size={15} />,        path: "/clinical-records" },
-    { label: "AI Symptom Triage", icon: <ClipboardList size={15} />,   path: "/ai-triage" },
   ];
 
   const doctorMenu = [
