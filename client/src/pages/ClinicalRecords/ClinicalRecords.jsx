@@ -13,10 +13,14 @@ import {
   Paperclip,
   Clock,
   Filter,
+  FilePen,
+  GitBranch,
+  Ban,
 } from "lucide-react";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
 import AddPreviousRecordModal from "../../components/MedicalRecords/AddPreviousRecordModal";
+import AmendPrescriptionModal from "./AmendPrescriptionModal";
 import { medicalRecordApi, authApi } from "../../utils/api";
 import { performLogout } from "../../utils/auth";
 import styles from "./ClinicalRecords.module.css";
@@ -27,6 +31,7 @@ export default function ClinicalRecords() {
   const [activeTab, setActiveTab] = useState("all"); // 'all', 'consultation', 'patient_upload'
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [amendTarget, setAmendTarget] = useState(null); // prescription object to amend
   const [user, setUser] = useState(null);
   const userRole = localStorage.getItem("userRole");
 
@@ -354,19 +359,48 @@ export default function ClinicalRecords() {
                       )}
                     </div>
 
-                    {/* PDF Download Footer */}
-                    {rec.prescriptionPdfUrl && (
-                      <div className={styles.cardFooter}>
-                        <a
-                          href={rec.prescriptionPdfUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={styles.pdfDownloadBtn}
-                        >
-                          <Download size={15} /> Download Prescription PDF
-                        </a>
+                    {/* PDF Download + Amend Footer */}
+                    <div className={styles.cardFooter}>
+                      {/* Amendment chain link — shown when this record was amended FROM another */}
+                      {rec.amendedFromId && (
+                        <div className={styles.amendChainBadge}>
+                          <GitBranch size={13} />
+                          <span>Amendment — corrects prescription issued on {rec.originalDate || "a prior date"}</span>
+                        </div>
+                      )}
+
+                      {/* Superseded badge — shown when this record has been superseded by an amendment */}
+                      {rec.status === "amended" && (
+                        <div className={styles.supersededBadge}>
+                          <Ban size={13} />
+                          <span>Superseded — a corrected prescription has replaced this record</span>
+                        </div>
+                      )}
+
+                      <div className={styles.cardFooterActions}>
+                        {rec.prescriptionPdfUrl && (
+                          <a
+                            href={rec.prescriptionPdfUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={styles.pdfDownloadBtn}
+                          >
+                            <Download size={15} /> Download PDF
+                          </a>
+                        )}
+
+                        {/* Amend button — Doctor only, for finalized prescriptions that haven't been superseded */}
+                        {isDoctor && rec.source === "consultation" && rec.status !== "amended" && (
+                          <button
+                            className={styles.amendBtn}
+                            onClick={() => setAmendTarget(rec)}
+                            title="Create a correction for this finalized prescription"
+                          >
+                            <FilePen size={14} /> Amend
+                          </button>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
                 );
               })}
@@ -379,6 +413,16 @@ export default function ClinicalRecords() {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onSuccess={fetchRecords}
+      />
+
+      <AmendPrescriptionModal
+        isOpen={!!amendTarget}
+        prescription={amendTarget}
+        onClose={() => setAmendTarget(null)}
+        onSuccess={() => {
+          setAmendTarget(null);
+          fetchRecords();
+        }}
       />
     </div>
   );

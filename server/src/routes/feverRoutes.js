@@ -54,7 +54,7 @@ router.get("/health", async (req, res) => {
 // ─────────────────────────────────────────────────────────────────────────────
 router.post("/assess", async (req, res) => {
   try {
-    const { symptoms, red_flags } = req.body;
+    const { symptoms, red_flags, triageSessionId } = req.body;
 
     if (!symptoms || typeof symptoms !== "object") {
       return res.status(400).json({

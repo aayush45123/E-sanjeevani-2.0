@@ -104,6 +104,7 @@ const initializeSocket = (server) => {
       socket.to(consultationId).emit("user-joined", {
         userRole: userRole,
         userName: userName,
+        videoEnabled: data.videoEnabled !== false,
         usersInRoom: room.length,
         joinedAt: new Date(),
       });
@@ -205,6 +206,22 @@ const initializeSocket = (server) => {
       socket.to(consultationId).emit("ice-candidate", {
         candidate,
       });
+    });
+
+    /*
+    ==================================================
+    TOGGLE VIDEO (AUDIO-ONLY MODE)
+    ==================================================
+    */
+
+    socket.on("toggle-video", ({ consultationId, videoEnabled }) => {
+      const room = consultationId || socketRoomMap[socket.id];
+      if (room) {
+        socket.to(room).emit("peer-video-toggle", {
+          videoEnabled,
+          from: socket.id,
+        });
+      }
     });
 
     /*

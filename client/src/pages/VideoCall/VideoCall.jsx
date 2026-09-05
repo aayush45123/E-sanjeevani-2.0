@@ -6,7 +6,19 @@ import NotificationService from "../../utils/notificationService";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
 import { VideoCallSkeleton } from "../../components/Skeletons";
-import { CheckCircle, FileText, X } from "lucide-react";
+import {
+  CheckCircle,
+  FileText,
+  X,
+  Mic,
+  MicOff,
+  Video,
+  VideoOff,
+  Volume2,
+  ShieldCheck,
+  PhoneCall,
+  ArrowLeft,
+} from "lucide-react";
 import styles from "./VideoCall.module.css";
 
 const SOCKET_URL =
@@ -14,7 +26,15 @@ const SOCKET_URL =
   import.meta.env.VITE_API_BASE_URL?.replace(/\/api\/?$/, "") ||
   "https://e-sanjeevani-2-0.onrender.com";
 
-  
+const getInitials = (name) => {
+  if (!name) return "U";
+  const cleaned = name.replace(/^(Dr\.|Mr\.|Mrs\.|Ms\.)\s+/i, "").trim();
+  const parts = cleaned.split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "U";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};
+
 export default function VideoCall() {
   const { consultationId } = useParams();
   const navigate = useNavigate();
@@ -25,6 +45,12 @@ export default function VideoCall() {
   const [patientJoined, setPatientJoined] = useState(false);
   const [doctorJoined, setDoctorJoined] = useState(false);
   const [remoteStream, setRemoteStream] = useState(null);
+  const [remoteVideoEnabled, setRemoteVideoEnabled] = useState(true);
+
+  // Pre-join audio-only state
+  const [isPreJoin, setIsPreJoin] = useState(true);
+  const [joinWithVideoOff, setJoinWithVideoOff] = useState(false);
+  const [joinWithMicMuted, setJoinWithMicMuted] = useState(false);
 
   // Doctor AI Assistant State
   const [doctorAssistantData, setDoctorAssistantData] = useState(null);
@@ -165,6 +191,17 @@ export default function VideoCall() {
         if (remoteVideo.current) {
           remoteVideo.current.srcObject = stream;
         }
+        const hasVideo =
+          stream.getVideoTracks().length > 0 &&
+          stream.getVideoTracks().some((t) => t.enabled);
+        setRemoteVideoEnabled(hasVideo);
+
+        stream.getVideoTracks().forEach((track) => {
+          track.onmute = () => setRemoteVideoEnabled(false);
+          track.onunmute = () => setRemoteVideoEnabled(true);
+          track.onended = () => setRemoteVideoEnabled(false);
+        });
+
         setCallStatus("active");
         startTimer();
       }
@@ -192,7 +229,7 @@ export default function VideoCall() {
 
     peerRef.current = peer;
     return peer;
-  }, [consultationId]);
+  }, [consultationId, isCameraOff]);
 
   useEffect(() => {
     if (remoteStream && remoteVideo.current) {
@@ -208,11 +245,27 @@ export default function VideoCall() {
   const setupDataChannel = (channel) => {
     channel.onopen = () => {
       console.log("[DataChannel] Chat channel open");
+      try {
+        channel.send(
+          JSON.stringify({
+            type: "video-status",
+            videoEnabled: !isCameraOff,
+          })
+        );
+      } catch (e) {
+        console.warn("Initial video-status emit error:", e);
+      }
     };
 
     channel.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
+
+        if (data.type === "video-status") {
+          console.log("🎥 [DataChannel] Remote peer video status:", data.videoEnabled);
+          setRemoteVideoEnabled(data.videoEnabled);
+          return;
+        }
 
         if (data.type === "typing") {
           setIsTyping(true);
@@ -352,19 +405,30 @@ export default function VideoCall() {
   }, []);
 
   useEffect(() => {
+    if (isPreJoin) return;
     let mounted = true;
 
     const init = async () => {
       try {
+        console.log(
+          `[Media] Requesting getUserMedia — video: ${!joinWithVideoOff}, audio: true`
+        );
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
+          video: !joinWithVideoOff,
           audio: true,
         });
 
         if (!mounted) return;
         localStreamRef.current = stream;
 
-        if (myVideo.current) {
+        if (joinWithMicMuted) {
+          stream.getAudioTracks().forEach((t) => (t.enabled = false));
+          setIsMuted(true);
+        }
+
+        if (joinWithVideoOff) {
+          setIsCameraOff(true);
+        } else if (myVideo.current) {
           myVideo.current.srcObject = stream;
         }
 
@@ -377,6 +441,7 @@ export default function VideoCall() {
             consultationId,
             userRole,
             userName,
+            videoEnabled: !joinWithVideoOff,
           });
         });
 
@@ -472,7 +537,6 @@ export default function VideoCall() {
         // ICE exchange
         socket.on("ice-candidate", async ({ candidate }) => {
           if (!candidate) return;
-          // If peer exists and remote description is set, add immediately
           if (
             peerRef.current &&
             peerRef.current.remoteDescription &&
@@ -487,7 +551,6 @@ export default function VideoCall() {
               console.warn("[ICE] addIceCandidate error:", err);
             }
           } else {
-            // Queue the candidate — remote description not ready yet
             console.log("[ICE] Queueing candidate (remote description not set)");
             iceCandidateQueueRef.current.push(candidate);
           }
@@ -497,14 +560,22 @@ export default function VideoCall() {
           setUsersInRoom(usersInRoom || 2);
         });
 
-        socket.on("user-joined", async ({ userRole, userName }) => {
-          console.log(`✅ ${userRole} ${userName} has joined!`);
+        socket.on("user-joined", async ({ userRole, userName, videoEnabled }) => {
+          console.log(`✅ ${userRole} ${userName} has joined! Video enabled: ${videoEnabled}`);
+          if (videoEnabled !== undefined) {
+            setRemoteVideoEnabled(videoEnabled);
+          }
           await NotificationService.userJoinedNotification(userName, userRole);
           const roleText = userRole === "doctor" ? "Dr." : "Patient";
           NotificationService.showToast(
             `${roleText} ${userName} has joined the consultation!`,
             "success",
           );
+        });
+
+        socket.on("peer-video-toggle", ({ videoEnabled }) => {
+          console.log("🎥 [Socket] peer-video-toggle:", videoEnabled);
+          setRemoteVideoEnabled(videoEnabled);
         });
 
         socket.on(
@@ -531,34 +602,25 @@ export default function VideoCall() {
           },
         );
 
-        // 🔔 PARTICIPANT WAITING - Other user has joined but this user hasn't
         socket.on(
           "participant-waiting",
-          ({ waitingUserRole, waitingUserName, message, timestamp }) => {
+          ({ waitingUserRole, waitingUserName, message }) => {
             console.log(`⏳ ${message}`);
             const roleText = waitingUserRole === "doctor" ? "Dr." : "Patient";
             NotificationService.showToast(
               `${roleText} ${waitingUserName} is waiting for you to join the consultation!`,
               "warning",
             );
-            // Also play a sound alert to get attention
             NotificationService.playSound("alert");
           },
         );
 
-        /*
-        =============================================
-        FIX: call-ended now navigates AND does NOT
-        re-emit end-call (prevents infinite loop)
-        =============================================
-        */
-        socket.on("call-ended", ({ message, endedAt }) => {
+        socket.on("call-ended", ({ message }) => {
           console.log("🔴 Call ended by the other participant");
           NotificationService.showToast(
             message || "Consultation has ended",
             "warning",
           );
-          // shouldNavigate = true, shouldEmit = false (avoid loop)
           leaveCall(true, false);
         });
 
@@ -573,23 +635,36 @@ export default function VideoCall() {
       } catch (err) {
         console.warn("Media devices / connection notice:", err?.name, err?.message || err);
         
-        // If webcam is in use by another tab or window, try audio-only fallback
-        if (err?.name === "NotReadableError" || err?.name === "TrackStartError" || String(err?.message || "").includes("in use")) {
+        // If camera failed or was blocked, attempt audio-only fallback automatically
+        if (!joinWithVideoOff) {
           try {
             console.log("Attempting audio-only stream fallback...");
             const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+            if (!mounted) return;
             localStreamRef.current = audioStream;
             setIsCameraOff(true);
-            setConnectionError("Camera is in use by another tab/app (Audio only active)");
+            setConnectionError("Camera is unavailable or in use (Audio-only consultation active).");
+            NotificationService.showToast("Camera unavailable: switched to audio-only", "warning");
             setCallStatus("connected");
+
+            const socket = io(SOCKET_URL, { transports: ["websocket"] });
+            socketRef.current = socket;
+
+            socket.on("connect", () => {
+              socket.emit("join-room", {
+                consultationId,
+                userRole,
+                userName,
+                videoEnabled: false,
+              });
+            });
+
             return;
           } catch (audioErr) {
             console.warn("Audio fallback also failed:", audioErr);
           }
-          setConnectionError("Camera/Microphone is in use by another tab. Please close other video call tabs.");
-        } else {
-          setConnectionError("Camera / microphone permission required");
         }
+        setConnectionError("Camera or microphone permission required. Please allow access in your browser.");
         setCallStatus("ready");
       }
     };
@@ -604,7 +679,7 @@ export default function VideoCall() {
       peerRef.current?.close();
       socketRef.current?.disconnect();
     };
-  }, [consultationId]);
+  }, [isPreJoin, consultationId]);
 
   /*
   =============================================
@@ -735,14 +810,72 @@ Give a professional doctor-level response.
     if (audioTrack) {
       audioTrack.enabled = !audioTrack.enabled;
       setIsMuted(!audioTrack.enabled);
+      NotificationService.showToast(
+        !audioTrack.enabled ? "Microphone muted" : "Microphone active",
+        "info",
+      );
     }
   };
 
-  const toggleCamera = () => {
-    const videoTrack = localStreamRef.current?.getVideoTracks()[0];
-    if (videoTrack) {
-      videoTrack.enabled = !videoTrack.enabled;
-      setIsCameraOff(!videoTrack.enabled);
+  const toggleCamera = async () => {
+    const localStream = localStreamRef.current;
+    if (!localStream) return;
+
+    const existingVideoTrack = localStream.getVideoTracks()[0];
+
+    if (existingVideoTrack) {
+      const nextState = !existingVideoTrack.enabled;
+      existingVideoTrack.enabled = nextState;
+      setIsCameraOff(!nextState);
+
+      socketRef.current?.emit("toggle-video", {
+        consultationId,
+        videoEnabled: nextState,
+      });
+      if (dataChannelRef.current?.readyState === "open") {
+        dataChannelRef.current.send(
+          JSON.stringify({ type: "video-status", videoEnabled: nextState }),
+        );
+      }
+      NotificationService.showToast(
+        nextState ? "Camera enabled" : "Camera disabled (Audio only)",
+        "info",
+      );
+    } else {
+      // User joined in audio-only mode and now wants video enabled
+      try {
+        const videoStream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+        });
+        const newTrack = videoStream.getVideoTracks()[0];
+        localStream.addTrack(newTrack);
+
+        if (myVideo.current) {
+          myVideo.current.srcObject = localStream;
+        }
+
+        if (peerRef.current) {
+          peerRef.current.addTrack(newTrack, localStream);
+        }
+
+        setIsCameraOff(false);
+        socketRef.current?.emit("toggle-video", {
+          consultationId,
+          videoEnabled: true,
+        });
+        if (dataChannelRef.current?.readyState === "open") {
+          dataChannelRef.current.send(
+            JSON.stringify({ type: "video-status", videoEnabled: true }),
+          );
+        }
+        NotificationService.showToast("Camera enabled", "success");
+      } catch (camErr) {
+        console.warn("Could not activate camera:", camErr);
+        NotificationService.showToast(
+          "Could not access camera: " + (camErr.message || "Permission denied"),
+          "error",
+        );
+      }
     }
   };
 
@@ -788,6 +921,123 @@ Give a professional doctor-level response.
   };
 
   const sidebarWidth = userRole === "doctor" ? 230 : 260;
+
+  if (isPreJoin) {
+    return (
+      <div className={styles.root}>
+        {userRole === "doctor" ? <DoctorSidebar /> : <Sidebar />}
+
+        <div className={styles.callLayout} style={{ marginLeft: sidebarWidth }}>
+          <div className={styles.prejoinContainer}>
+            <div className={styles.prejoinCard}>
+              <div className={styles.prejoinHeader}>
+                <div className={styles.prejoinBadge}>
+                  <ShieldCheck size={14} /> Consultation Room Check-In
+                </div>
+                <h2 className={styles.prejoinTitle}>Ready for your consultation?</h2>
+                <p className={styles.prejoinSubtitle}>
+                  Room {consultationId?.slice(-6)?.toUpperCase()} · Joining as{" "}
+                  <strong>{userRole === "doctor" ? "Dr. " : ""}{userName}</strong>
+                </p>
+              </div>
+
+              {/* Preview Area */}
+              <div className={styles.prejoinPreviewArea}>
+                {joinWithVideoOff ? (
+                  <div className={styles.prejoinAudioOnlyPlaceholder}>
+                    <div className={styles.prejoinAvatarCircle}>
+                      {getInitials(userName)}
+                    </div>
+                    <div className={styles.prejoinPreviewName}>{userName}</div>
+                    <div className={styles.prejoinModeTag}>
+                      <Volume2 size={14} /> Audio-Only Mode Selected
+                    </div>
+                    <p className={styles.prejoinPreviewNote}>
+                      Camera permission will not be requested. You will join with voice only.
+                    </p>
+                  </div>
+                ) : (
+                  <div className={styles.prejoinVideoPlaceholder}>
+                    <div className={styles.prejoinCamPlaceholder}>
+                      <Video size={36} className={styles.prejoinCamIcon} />
+                      <p>Video Mode Active (Camera will start upon joining)</p>
+                    </div>
+                    <div className={styles.prejoinPreviewBadge}>HD Video Enabled</div>
+                  </div>
+                )}
+              </div>
+
+              {/* Settings & Toggles */}
+              <div className={styles.prejoinControlsArea}>
+                <label className={styles.prejoinToggleCard} htmlFor="join-with-video-off-toggle">
+                  <input
+                    id="join-with-video-off-toggle"
+                    type="checkbox"
+                    checked={joinWithVideoOff}
+                    onChange={(e) => setJoinWithVideoOff(e.target.checked)}
+                    className={styles.prejoinCheckboxInput}
+                  />
+                  <div className={styles.prejoinToggleContent}>
+                    <div className={styles.prejoinToggleTitleRow}>
+                      {joinWithVideoOff ? (
+                        <VideoOff size={18} color="#ef4444" />
+                      ) : (
+                        <Video size={18} color="#059669" />
+                      )}
+                      <span className={styles.prejoinToggleHeading}>Join with video off</span>
+                    </div>
+                    <p className={styles.prejoinToggleSubtext}>
+                      Consultation will start in audio-only mode. Saves bandwidth and keeps your camera disabled.
+                    </p>
+                  </div>
+                </label>
+
+                <div className={styles.prejoinQuickRow}>
+                  <button
+                    type="button"
+                    className={`${styles.prejoinQuickBtn} ${joinWithMicMuted ? styles.prejoinQuickBtnMuted : ""}`}
+                    onClick={() => setJoinWithMicMuted(!joinWithMicMuted)}
+                  >
+                    {joinWithMicMuted ? <MicOff size={16} /> : <Mic size={16} />}
+                    <span>{joinWithMicMuted ? "Mute Microphone on Join" : "Microphone Active"}</span>
+                  </button>
+
+                  <div className={styles.prejoinBandwidthNote}>
+                    <ShieldCheck size={14} color="#059669" />
+                    <span>WebRTC Encrypted</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className={styles.prejoinActionRow}>
+                <button
+                  type="button"
+                  className={styles.prejoinBackBtn}
+                  onClick={() => navigate("/dashboard")}
+                >
+                  <ArrowLeft size={16} /> Dashboard
+                </button>
+
+                <button
+                  type="button"
+                  id="prejoin-join-btn"
+                  className={styles.prejoinJoinBtn}
+                  onClick={() => {
+                    setIsPreJoin(false);
+                    setCallStatus("connecting");
+                  }}
+                >
+                  <PhoneCall size={18} />
+                  <span>Join Consultation</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (callStatus === "connecting") {
     return <VideoCallSkeleton />;
@@ -970,8 +1220,31 @@ Give a professional doctor-level response.
                 ref={remoteVideo}
                 autoPlay
                 playsInline
-                className={styles.mainVideo}
+                className={`${styles.mainVideo} ${(!remoteVideoEnabled || callStatus !== "active") ? styles.videoHidden : ""}`}
               />
+
+              {callStatus === "active" && !remoteVideoEnabled && (
+                <div className={styles.remoteAudioOnlyOverlay}>
+                  <div className={styles.remoteAvatarCircle}>
+                    {getInitials(
+                      userRole === "doctor"
+                        ? (doctorAssistantData?.patientBasicInfo?.name || "Patient")
+                        : (doctorAssistantData?.doctorInfo?.name || "Doctor")
+                    )}
+                  </div>
+                  <h3 className={styles.remoteAudioOnlyName}>
+                    {userRole === "doctor"
+                      ? (doctorAssistantData?.patientBasicInfo?.name || "Patient")
+                      : (doctorAssistantData?.doctorInfo?.name ? `Dr. ${doctorAssistantData?.doctorInfo?.name}` : "Doctor")}
+                  </h3>
+                  <div className={styles.remoteAudioOnlyBadge}>
+                    <Volume2 size={16} />
+                    <span>Audio-Only Consultation</span>
+                  </div>
+                  <p className={styles.remoteAudioOnlySub}>Participant is speaking with camera off</p>
+                </div>
+              )}
+
               {callStatus !== "active" && (
                 <div className={styles.waitingOverlay}>
                   <div className={styles.waitingSpinner} />
@@ -1013,7 +1286,8 @@ Give a professional doctor-level response.
                 </div>
               )}
               <div className={styles.mainVideoLabel}>
-                {userRole === "doctor" ? "Patient" : "Doctor"}
+                {userRole === "doctor" ? "Patient" : "Doctor"}{" "}
+                {!remoteVideoEnabled && callStatus === "active" ? "(Audio Only)" : ""}
               </div>
             </div>
 
@@ -1033,14 +1307,14 @@ Give a professional doctor-level response.
                   />
                   {isCameraOff && (
                     <div className={styles.cameraOffOverlay}>
-                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
-                        stroke="#94a3b8" strokeWidth="1.5">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                        <circle cx="9" cy="7" r="4" />
-                      </svg>
+                      <div className={styles.selfAvatarCircle}>{getInitials(userName)}</div>
+                      <div className={styles.selfAvatarText}>
+                        <span className={styles.selfAvatarName}>{userName}</span>
+                        <span className={styles.selfAvatarBadge}>Audio Only</span>
+                      </div>
                     </div>
                   )}
-                  <div className={styles.pipLabel}>You</div>
+                  {!isCameraOff && <div className={styles.pipLabel}>You</div>}
                 </>
               )}
 

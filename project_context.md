@@ -120,21 +120,21 @@ timeline
 | **Appointment Booking Workflow** | Patient | ✅ Fully Implemented | `ConsultationBookingForm.jsx` | `consultationController.js`, `consultation.service.js` | `consultations` | Optional triage auto-match |
 | **Patient Dashboard** | Patient | ✅ Fully Implemented | `PatientDashBoard.jsx` | `consultationController.js`, `patientProfileController.js` | `consultations`, `patientProfiles` | Triage card integration |
 | **Doctor Dashboard** | Doctor | ✅ Fully Implemented | `DoctorDashboard.jsx` | `consultationController.js`, `doctorProfileController.js` | `consultations`, `doctorProfiles` | Urgent consultation badges |
-| **WebRTC Video Consultation** | Patient, Doctor | ✅ Fully Implemented | `VideoCall.jsx` (WebRTC + Canvas/Media) | `socketServer.js` (Signaling), `consultationController.js` | `consultations`, `chatMessages` | In-call AI Assistant |
+| **WebRTC Video Consultation** | Patient, Doctor | ✅ Fully Implemented | `VideoCall.jsx` (WebRTC + Pre-Join Audio-Only Toggle + Avatar Fallback) | `socketServer.js` (Signaling + Video Toggle Relay), `consultationController.js` | `consultations`, `chatMessages` | In-call AI Assistant |
 | **In-Consultation Text Chat** | Patient, Doctor | ✅ Fully Implemented | `VideoCall.jsx` | `chatController.js`, `chat.service.js` | `chatMessages` | N/A |
 | **Consultation Email Reminders** | System | ✅ Fully Implemented | UI Notification Service | `cron/consultationReminderJob.js`, `emails/` | `consultations` | N/A |
 | **General Disease Predictor** | Patient | ✅ Fully Implemented | `AiTriage.jsx` | `aiTriageController.js`, `aiTriageClient.js` | `aiTriageChats` | `ai-model/app.py` (`/predict`, ExtraTrees) |
-| **Fever Differential Assessment** | Patient, Doctor | ✅ Fully Implemented | `AiTriage.jsx` (API proxy ready) | `routes/feverRoutes.js` | `triageSessions`, `triageMessages` | `ai-model/app.py` (`/predict-fever`, RF/XGBoost + SHAP) |
+| **Fever Differential Assessment** | Patient, Doctor | ✅ Fully Implemented | `AiTriage.jsx` (25-symptom selector) + `ShapContributionChart.jsx` + `RedFlagEmergencyModal.jsx` | `routes/feverRoutes.js` (`POST /api/fever/assess`) | `triageSessions`, `triageMessages` | `ai-model/app.py` (`/predict-fever`, RF/XGBoost + SHAP) |
 | **Rule-Based Triage & Urgency** | Patient | ✅ Fully Implemented | `AiTriage.jsx`, `TriageHistory.jsx`, `TriageDetailView.jsx` | `triageController.js`, `triage.service.js`, `urgencyScoring.js` | `triageSessions`, `triageResponses`, `triageMessages` | Heuristic scoring (1-10) |
 | **Smart Doctor Match Algorithm** | System | ✅ Fully Implemented | `AiTriage.jsx` | `doctorMatching.js` | `doctorProfiles`, `availabilitySlots` | 5-Factor weighted formula |
 | **Conversational AI Chatbot** | Patient | ✅ Fully Implemented | Integrated via `/api/chat` | `chatController.js`, `chat.service.js` | `triageMessages` | `Llama-3.1-8B-Instruct` via HuggingFace API |
 | **In-Call Doctor AI Assistant** | Doctor | ✅ Fully Implemented | `VideoCall.jsx` (Clinical Workspace) | `doctorAssistantController.js`, `doctorAssistant.service.js` | `consultations`, `patientProfiles`, `aiTriageChats` | Summary extraction |
-| **Prescription Issuance & Amendment** | Doctor | ✅ Fully Implemented | `VideoCall.jsx` (Clinical Tab) | `prescriptionController.js`, `prescriptionLifecycle.service.js` | `prescriptions`, `prescriptionItems` | N/A |
+| **Prescription Issuance & Amendment** | Doctor | ✅ Fully Implemented | `VideoCall.jsx` (Issuance), `ClinicalRecords.jsx` + `AmendPrescriptionModal.jsx` (Amendment UI & Linked History Chains) | `prescriptionController.js`, `prescriptionLifecycle.service.js` (`POST /api/prescriptions/:id/amend`) | `prescriptions` (`amendedFromId`, `status: amended`), `prescriptionItems` | N/A |
 | **Prescription PDF Generation** | Patient, Doctor | ✅ Fully Implemented | View/Download in `ClinicalRecords.jsx`, `VideoCall.jsx` | `prescriptionPdfService.js` (PDFKit) | `prescriptions` (`pdfUrl`) | N/A |
 | **Longitudinal Patient History** | Patient, Doctor | ✅ Fully Implemented | `PatientHistory.jsx`, `DoctorPatientHistory.jsx` | `patientHistoryController.js`, `patientHistory.service.js` | `consultations`, `prescriptions`, `medicalRecords` | Factual consultation metrics |
 | **Patient Document Uploads** | Patient | ✅ Fully Implemented | `ClinicalRecords.jsx`, `AddPreviousRecordModal.jsx` | `medicalRecordController.js`, `medicalRecord.service.js` | `medicalRecords`, `medicalRecordAttachments` | Multipart file upload |
 | **Doctor Practice Analytics** | Doctor | ✅ Fully Implemented | `DoctorAnalytics.jsx` | `analytics.controller.js`, `analytics.service.js` | `consultations`, `patientProfiles` | Demographics & trends |
-| **Emergency Real-Time Banner** | Patient | 🟡 Partially Implemented | Alert banners in `AiTriage.jsx` & `VideoCall.jsx` | Critical keywords in `urgencyScoring.js` | `triageSessions` (`urgencyScore: 9-10`) | Red-flag alerts |
+| **Emergency Real-Time Banner & Red-Flag Modal** | Patient | ✅ Fully Implemented | Hard-blocking `RedFlagEmergencyModal.jsx` in `AiTriage.jsx`, alert banners in `VideoCall.jsx` | `check_red_flags()` in `ai-model/app.py`, `feverRoutes.js`, `urgencyScoring.js` | `triageSessions` (`urgencyScore: 9-10`) | Red-flag alerts |
 | **Hospital / Ambulance Referral**| Patient | 🔵 Planned | UI placeholder buttons | Not implemented | N/A | N/A |
 
 ---
@@ -896,10 +896,29 @@ npm run dev        # Starts Vite dev server
 - ✅ Longitudinal Patient History & Clinical Records viewer.
 - ✅ Unified Python AI server running General Disease Predictor and WHO-Curated Fever Differential with SHAP explanations.
 - ✅ Automated Nodemailer email reminders via background cron job.
+- ✅ **Fever SHAP Explainability & Red-Flag Emergency Modal** (`IMPLEMENTED`):
+  - **Symptom Selector**: 25-symptom interactive grid with category tags in `AiTriage.jsx`.
+  - **API Integration**: Direct `POST /api/fever/assess` wired to Flask ML microservice (`/predict-fever`).
+  - **SHAP Response Structure**: Normalized `{ label, feature, value, direction }` objects with quantitative contribution scores.
+  - **Visual Explanation**: Recharts horizontal bar chart (`ShapContributionChart.jsx`) color-coded green (positive push toward disease) and red (negative push away), sorted by absolute contribution strength.
+  - **Red-Flag Interruption**: Hard-blocking modal (`RedFlagEmergencyModal.jsx`) triggered when `check_red_flags()` evaluates to true, intercepting the triage flow.
+  - **Verification**: Verified on all 5 disease classes (Dengue, Malaria, Typhoid, Chikungunya, Viral Fever), red-flag cases, and empty input.
+- ✅ **Prescription Amendment Workflow** (`IMPLEMENTED`):
+  - **Amendment UI**: Doctor-only "Amend" button on finalized clinical records in `ClinicalRecords.jsx`.
+  - **Modal**: Pre-populated `AmendPrescriptionModal.jsx` seeded with existing diagnosis, medications, instructions, and advice.
+  - **API Integration**: `POST /api/prescriptions/:id/amend` creating new revision record while preserving the original.
+  - **Immutability Model**: Original marked as superseded (`status: 'amended'`), new record linked via `amendedFromId`.
+  - **History UI**: Visual amendment chain threads with timestamps and badges in patient/doctor records.
+- ✅ **Audio-Only Consultation Mode** (`IMPLEMENTED`):
+  - **Pre-Join Screen**: Check-in screen with "Join with video off" toggle, microphone check, and WebRTC room info.
+  - **Media Constraints**: Respects `{ video: false, audio: true }` without requesting camera permissions when audio-only is selected.
+  - **WebRTC & Socket Sync**: Communicated via `join-room` payload (`videoEnabled`) and relayed via `peer-video-toggle` socket events + WebRTC data channel (`video-status`).
+  - **Avatar UI**: Displays initials avatar tiles (`getInitials`) and "Audio Only" badges on self PiP and remote video tiles instead of black frozen frames.
+  - **Runtime Camera Toggle**: Dynamically acquires video track if camera is toggled on during call.
 
 ### 22.2 Minor Known Bugs & Technical Debt
-1. **`feverRoutes.js` Variable Scope**: In `server/src/routes/feverRoutes.js` (line 89), `triageSessionId` was referenced without being destructured from `req.body` (fixed in recent patch).
-2. **Duplicate Placeholder Files**: Redundant 0-byte files exist in `ai-model/` and `client/src/` (`predict.py`, `utils.py`, `Home.module.css`, `Features.jsx`) which should be cleaned up.
+1. **`feverRoutes.js` Variable Scope**: In `server/src/routes/feverRoutes.js` (line 89), `triageSessionId` was referenced without being destructured from `req.body` (fixed and verified).
+2. **Repository Cleanup & Technical Debt Resolution** (`RESOLVED`): All 0-byte placeholder files (`ai-model/predict.py`, `ai-model/utils.py`, `client/src/pages/Home/Home.module.css`, `Features.jsx`, `Features.module.css`, `client/README_UI.md`, etc.), dead unimported components (`DualPath.jsx`), and obsolete/redundant root `.pkl` model dumps (~50.5 MB) have been removed. Active models are preserved in `ai-model/models/`, and both client build (`npm run build`) and AI service routes are 100% verified.
 3. **Model Memory Footprint**: Loading both SHAP and ExtraTrees concurrently requires ~350MB RAM; lazy loading in `app.py` mitigates this for low-tier hosting (Render free tier).
 
 ---
@@ -907,9 +926,9 @@ npm run dev        # Starts Vite dev server
 ## 23. Future Project Roadmap
 
 ### Short-Term (Immediate Enhancements)
-- [ ] Connect frontend `AiTriage.jsx` fever selector directly to `POST /api/fever/assess` to display visual SHAP contribution charts.
-- [ ] Add explicit medication amendment UI button in `ClinicalRecords.jsx` for doctors to amend past prescriptions.
-- [ ] Implement audio-only consultation mode toggle in `VideoCall.jsx`.
+- [x] Connect frontend `AiTriage.jsx` fever selector directly to `POST /api/fever/assess` to display visual SHAP contribution charts.
+- [x] Add explicit medication amendment UI button in `ClinicalRecords.jsx` for doctors to amend past prescriptions.
+- [x] Implement audio-only consultation mode toggle in `VideoCall.jsx`.
 
 ### Medium-Term (Clinical & Academic Improvements)
 - [ ] Replace keyword-based symptom extraction with a fine-tuned BioBERT transformer for free-text consultation notes.

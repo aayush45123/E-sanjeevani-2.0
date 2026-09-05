@@ -1531,3 +1531,429 @@
     opacity: 0;
   }
 }
+
+/* =========================================
+   AUDIO-ONLY CONSULTATION & PRE-JOIN STYLES
+   ========================================= */
+
+.videoHidden {
+  display: none !important;
+}
+
+/* Remote Audio-Only Avatar Overlay */
+.remoteAudioOnlyOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+  color: #ffffff;
+  z-index: 5;
+  padding: 24px;
+  text-align: center;
+}
+
+.remoteAvatarCircle {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
+  color: #ffffff;
+  font-size: 34px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 8px rgba(99, 102, 241, 0.25), 0 8px 24px rgba(0, 0, 0, 0.35);
+  margin-bottom: 16px;
+  letter-spacing: 1px;
+}
+
+.remoteAudioOnlyName {
+  font-size: 20px;
+  font-weight: 600;
+  color: #f8fafc;
+  margin: 0 0 10px 0;
+}
+
+.remoteAudioOnlyBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(99, 102, 241, 0.18);
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  color: #a5b4fc;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.remoteAudioOnlySub {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+/* Self (PiP) Audio-Only Overlay */
+.selfAvatarCircle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.selfAvatarText {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.selfAvatarName {
+  font-size: 11px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.selfAvatarBadge {
+  font-size: 9px;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+/* Pre-Join Screen Layout */
+.prejoinContainer {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  overflow-y: auto;
+}
+
+.prejoinCard {
+  width: 100%;
+  max-width: 540px;
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 20px 40px -12px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(226, 232, 240, 0.8);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  animation: fadeInPrejoin 0.3s ease-out;
+}
+
+@keyframes fadeInPrejoin {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.prejoinBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #2563eb;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  padding: 4px 10px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+  width: fit-content;
+}
+
+.prejoinTitle {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.02em;
+}
+
+.prejoinSubtitle {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+}
+
+.prejoinPreviewArea {
+  width: 100%;
+  height: 200px;
+  border-radius: 14px;
+  background: #0f172a;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.prejoinAudioOnlyPlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+  color: #ffffff;
+}
+
+.prejoinAvatarCircle {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: #ffffff;
+  font-size: 26px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.25);
+  margin-bottom: 10px;
+}
+
+.prejoinPreviewName {
+  font-size: 15px;
+  font-weight: 600;
+  color: #f8fafc;
+  margin: 0 0 6px 0;
+}
+
+.prejoinModeTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 3px 10px;
+  border-radius: 14px;
+  margin-bottom: 6px;
+}
+
+.prejoinPreviewNote {
+  font-size: 11px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.prejoinVideoPlaceholder {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1e293b;
+}
+
+.prejoinCamPlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.prejoinCamIcon {
+  color: #64748b;
+}
+
+.prejoinPreviewBadge {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+/* Controls Area */
+.prejoinControlsArea {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.prejoinToggleCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 16px;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.prejoinToggleCard:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.prejoinCheckboxInput {
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  accent-color: #2563eb;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.prejoinToggleContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.prejoinToggleTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.prejoinToggleHeading {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.prejoinToggleSubtext {
+  font-size: 12px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.prejoinQuickRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 2px;
+}
+
+.prejoinQuickBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.prejoinQuickBtn:hover {
+  background: #e2e8f0;
+}
+
+.prejoinQuickBtnMuted {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+.prejoinBandwidthNote {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #059669;
+  font-weight: 500;
+}
+
+/* Action Buttons */
+.prejoinActionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.prejoinBackBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.prejoinBackBtn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.prejoinJoinBtn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border: none;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 12px 22px;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+  transition: all 0.2s ease;
+}
+
+.prejoinJoinBtn:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+.prejoinJoinBtn:active {
+  transform: translateY(0);
+}
+

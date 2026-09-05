@@ -1,37 +1,111 @@
+/* ====================================================
+   AiTriage.module.css — E-Sanjeevani 2.0
+   Covers: Tab Nav, General Triage (existing), 
+           Fever SHAP Tab (new)
+==================================================== */
+
+/* ─── Container ─── */
 .container {
   padding: 20px;
-  max-width: 900px;
+  max-width: 1000px;
   margin: 0 auto;
 }
 
+/* ─── Header ─── */
 .header {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 32px;
 }
 
 .header h1 {
-  font-size: 2.5rem;
+  font-size: 2.4rem;
   color: #1a237e;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .header p {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   color: #666;
+  margin-bottom: 20px;
 }
 
+.badgeAi {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #e8f0fe, #dbeafe);
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+  border-radius: 999px;
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+/* ─── Tab Navigation ─── */
+.tabNav {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.tabBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: 1.5px solid #e2e8f0;
+  background: #ffffff;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tabBtn:hover {
+  border-color: #1a237e;
+  color: #1a237e;
+  background: #f0f4ff;
+}
+
+.tabBtnActive {
+  border-color: #1a237e;
+  background: #1a237e;
+  color: #ffffff;
+}
+
+.pillHighlight {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.tabBtnActive .pillHighlight {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* ─── Base Card ─── */
 .card {
   background: white;
-  border-radius: 8px;
-  padding: 30px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
   margin-bottom: 20px;
+  border: 1px solid #f1f5f9;
 }
 
 .card h2 {
   color: #1a237e;
   margin-bottom: 20px;
-  font-size: 1.8rem;
+  font-size: 1.6rem;
 }
 
 .card h3 {
@@ -40,6 +114,712 @@
   margin-bottom: 15px;
 }
 
+/* ─── Fever: Section Heading ─── */
+.sectionHeadingRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  gap: 16px;
+}
+
+.sectionTitle {
+  font-size: 1.4rem;
+  color: #1a237e;
+  margin: 0 0 4px;
+}
+
+.sectionSubtitle {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+}
+
+.countBadge {
+  flex-shrink: 0;
+  background: #1a237e;
+  color: #fff;
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  margin-top: 4px;
+}
+
+/* ─── Fever: Presets ─── */
+.presetsSection {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 24px;
+}
+
+.presetsHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  margin-bottom: 10px;
+}
+
+.presetIcon {
+  color: #94a3b8;
+}
+
+.presetsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.presetChip {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1.5px solid #c7d2fe;
+  background: #eef2ff;
+  color: #3730a3;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.presetChip:hover {
+  background: #1a237e;
+  color: #fff;
+  border-color: #1a237e;
+}
+
+.presetChipEmergency {
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.presetChipEmergency:hover {
+  background: #dc2626;
+  color: #fff;
+  border-color: #dc2626;
+}
+
+.presetChipClear {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.presetChipClear:hover {
+  background: #ef4444;
+  color: #fff;
+  border-color: #ef4444;
+}
+
+/* ─── Fever: Symptom Category Cards Grid ─── */
+.categoriesGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 700px) {
+  .categoriesGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.categoryCard {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.categoryTitle {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #1a237e;
+  margin: 0 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+/* ─── Fever: Symptom Toggles ─── */
+.symptomsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.symptomToggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+}
+
+.symptomToggle:hover {
+  border-color: #1a237e;
+  background: #f0f4ff;
+}
+
+.symptomToggleActive {
+  border-color: #1a237e;
+  background: #eef2ff;
+}
+
+.hiddenCheckbox {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+}
+
+.customCheck {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  border: 1.5px solid #c7d2fe;
+  border-radius: 4px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1a237e;
+  transition: all 0.15s;
+}
+
+.symptomToggleActive .customCheck {
+  background: #1a237e;
+  border-color: #1a237e;
+  color: #fff;
+}
+
+.symptomLabel {
+  font-size: 13px;
+  color: #334155;
+  line-height: 1.35;
+}
+
+.symptomToggleActive .symptomLabel {
+  color: #1a237e;
+  font-weight: 500;
+}
+
+/* ─── Fever: Red Flags Section ─── */
+.redFlagsCard {
+  background: #fff5f5;
+  border: 1.5px solid #fecaca;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.redFlagsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 18px;
+  cursor: pointer;
+  gap: 12px;
+}
+
+.redFlagsHeader:hover {
+  background: #fef2f2;
+}
+
+.redFlagsHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.redFlagsHeaderLeft h4 {
+  font-size: 14px;
+  font-weight: 700;
+  color: #991b1b;
+  margin: 0 0 3px;
+}
+
+.redFlagsHeaderLeft p {
+  font-size: 12px;
+  color: #b91c1c;
+  margin: 0;
+  opacity: 0.8;
+}
+
+.redFlagsIcon {
+  color: #dc2626;
+  flex-shrink: 0;
+}
+
+.redFlagsBadge {
+  font-size: 12px;
+  font-weight: 600;
+  color: #991b1b;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.redFlagAlertCount {
+  background: #dc2626;
+  color: #fff;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+.redFlagsContent {
+  padding: 0 18px 16px;
+  border-top: 1px solid #fecaca;
+  background: #fff5f5;
+}
+
+.redFlagsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding-top: 14px;
+}
+
+@media (max-width: 600px) {
+  .redFlagsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.redFlagToggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #fecaca;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+}
+
+.redFlagToggle:hover {
+  border-color: #ef4444;
+  background: #fef2f2;
+}
+
+.redFlagToggleActive {
+  border-color: #dc2626;
+  background: #fee2e2;
+}
+
+.customCheckRed {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  border: 1.5px solid #fca5a5;
+  border-radius: 4px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #dc2626;
+  transition: all 0.15s;
+}
+
+.redFlagToggleActive .customCheckRed {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #fff;
+}
+
+.redFlagLabel {
+  font-size: 12.5px;
+  color: #7f1d1d;
+  line-height: 1.35;
+}
+
+.redFlagToggleActive .redFlagLabel {
+  font-weight: 600;
+}
+
+/* ─── Fever: Action Buttons ─── */
+.feverActions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btnPrimaryLg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 28px;
+  background: linear-gradient(135deg, #1a237e, #3949ab);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 14px rgba(26, 35, 126, 0.3);
+}
+
+.btnPrimaryLg:hover:not(:disabled) {
+  background: linear-gradient(135deg, #0d1b7e, #283593);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(26, 35, 126, 0.4);
+}
+
+.btnPrimaryLg:disabled {
+  background: linear-gradient(135deg, #94a3b8, #cbd5e1);
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spinnerIcon {
+  animation: spin 1s linear infinite;
+}
+
+/* ─── Fever: Result Container ─── */
+.resultContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ─── Fever: Critical Banner ─── */
+.criticalBanner {
+  background: linear-gradient(135deg, #7f1d1d, #991b1b);
+  border: 1px solid #dc2626;
+  border-radius: 12px;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  color: #fff;
+  animation: pulseBanner 2s infinite;
+  flex-wrap: wrap;
+}
+
+@keyframes pulseBanner {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(220, 38, 38, 0); }
+}
+
+.criticalBannerLeft {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  flex: 1;
+}
+
+.criticalBannerLeft h3 {
+  font-size: 15px;
+  font-weight: 800;
+  margin: 0 0 5px;
+  letter-spacing: 0.01em;
+}
+
+.criticalBannerLeft p {
+  font-size: 13px;
+  opacity: 0.9;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.criticalIcon {
+  flex-shrink: 0;
+  color: #fca5a5;
+}
+
+.btnEmergencyDetails {
+  padding: 9px 18px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.btnEmergencyDetails:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* ─── Fever: Prediction Hero Card ─── */
+.predictionCard {
+  background: linear-gradient(160deg, #0f172a, #1a237e);
+  color: #fff;
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 8px 24px rgba(26, 35, 126, 0.3);
+}
+
+.predictionTopRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.predictionTag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #93c5fd;
+  margin-bottom: 8px;
+}
+
+.predictedDiseaseTitle {
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin: 0 0 6px;
+  color: #ffffff;
+}
+
+.diseaseCategory {
+  font-size: 13px;
+  color: #93c5fd;
+  margin: 0;
+}
+
+.confidenceBadgeBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 14px;
+  padding: 14px 20px;
+  text-align: center;
+}
+
+.confidenceVal {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #34d399;
+  line-height: 1;
+}
+
+.confidenceLabel {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+.actionRecommendationBox {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.actionRecommendationHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #7dd3fc;
+  margin-bottom: 6px;
+}
+
+.actionRecommendationText {
+  font-size: 14px;
+  color: #e2e8f0;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ─── Fever: Section Title in Card ─── */
+.cardSectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a237e;
+  margin-top: 0;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+/* ─── Fever: Differential Table ─── */
+.differentialTable {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.diffRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.diffInfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 180px;
+}
+
+.diffRank {
+  font-size: 13px;
+  font-weight: 700;
+  color: #94a3b8;
+  width: 26px;
+  text-align: center;
+}
+
+.diffDisease {
+  display: block;
+  font-size: 14px;
+  color: #0f172a;
+}
+
+.diffSpecialist {
+  display: block;
+  font-size: 11.5px;
+  color: #64748b;
+}
+
+.diffBarCol {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 160px;
+}
+
+.diffBarTrack {
+  flex: 1;
+  height: 10px;
+  background: #f1f5f9;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.diffBarFill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.6s ease;
+}
+
+.diffPct {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  min-width: 48px;
+  text-align: right;
+}
+
+/* ─── Fever: Clinical Reasoning ─── */
+.reasoningList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reasoningItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13.5px;
+  color: #334155;
+  line-height: 1.5;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border-left: 3px solid #1a237e;
+}
+
+.reasoningItem::before {
+  content: "•";
+  color: #1a237e;
+  font-weight: 900;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ─── Fever: Disclaimer Box ─── */
+.disclaimerBox {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 12.5px;
+  color: #92400e;
+  line-height: 1.5;
+}
+
+.disclaimerIcon {
+  flex-shrink: 0;
+  color: #f59e0b;
+  margin-top: 2px;
+}
+
+/* ─── Fever: Result Actions ─── */
+.resultActions {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.resultActions > * {
+  flex: 1;
+  min-width: 180px;
+}
+
+/* ─── Shared: General Triage Form Fields ─── */
 .formGroup {
   margin-bottom: 20px;
 }
@@ -61,6 +841,7 @@
   font-size: 1rem;
   font-family: inherit;
   transition: border-color 0.3s;
+  box-sizing: border-box;
 }
 
 .input:focus,
@@ -82,12 +863,13 @@
   gap: 20px;
 }
 
+/* ─── Shared: Buttons ─── */
 .btnPrimary,
 .btnSecondary,
 .btnRemove {
   padding: 12px 24px;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   font-size: 1rem;
   cursor: pointer;
   transition: all 0.3s;
@@ -118,6 +900,7 @@
   color: #333;
   border: 1px solid #ddd;
   margin-top: 10px;
+  width: 100%;
 }
 
 .btnSecondary:hover {
@@ -135,6 +918,7 @@
   background: #b71c1c;
 }
 
+/* ─── General Triage: Symptom List ─── */
 .symptomsList {
   margin-top: 20px;
   padding: 15px;
@@ -191,7 +975,7 @@
   flex: 1;
 }
 
-/* Review Section */
+/* ─── General Triage: Review Section ─── */
 .reviewSection {
   background: #f9f9f9;
   padding: 15px;
@@ -219,7 +1003,7 @@
   margin: 5px 0 0 0;
 }
 
-/* Urgency Box */
+/* ─── General Triage: Urgency Box ─── */
 .urgencyBox {
   background: #f5f5f5;
   border-left: 5px solid;
@@ -239,7 +1023,7 @@
   color: #333;
 }
 
-/* Auto-Matched Box */
+/* ─── General Triage: Auto-Match Box ─── */
 .autoMatchedBox {
   background: #c8e6c9;
   border: 2px solid #388e3c;
@@ -270,7 +1054,7 @@
   color: #333;
 }
 
-/* Assessment Sections */
+/* ─── General Triage: Assessment Sections ─── */
 .assessmentSection {
   background: #f9f9f9;
   padding: 15px;
@@ -323,7 +1107,7 @@
   font-size: 0.9rem;
 }
 
-/* Responsive */
+/* ─── Responsive ─── */
 @media (max-width: 768px) {
   .container {
     padding: 15px;
@@ -334,7 +1118,7 @@
   }
 
   .card {
-    padding: 20px;
+    padding: 18px;
   }
 
   .rowInputs {
@@ -357,5 +1141,18 @@
   .btnRemove {
     align-self: flex-end;
     margin-top: 10px;
+  }
+
+  .sectionHeadingRow {
+    flex-direction: column;
+  }
+
+  .predictionTopRow {
+    flex-direction: column;
+  }
+
+  .criticalBanner {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

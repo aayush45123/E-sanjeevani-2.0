@@ -1,0 +1,149 @@
+.chartWrapper {
+  background: #ffffff;
+  border: 1px solid var(--slate-200, #e2e8f0);
+  border-radius: var(--radius-xl, 16px);
+  padding: 20px 24px;
+  margin-top: 20px;
+  box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+}
+
+.chartHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.chartTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--slate-900, #0f172a);
+  margin: 0 0 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chartSubtitle {
+  font-size: 12.5px;
+  color: var(--slate-600, #475569);
+  margin: 0;
+}
+
+.legendRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--slate-600, #475569);
+  font-weight: 500;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dotPos {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background-color: #0ea5a4;
+  display: inline-block;
+}
+
+.dotNeg {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background-color: #f43f5e;
+  display: inline-block;
+}
+
+.chartContainer {
+  width: 100%;
+  margin: 8px 0;
+}
+
+.tooltipCard {
+  background: #0f172a;
+  color: #ffffff;
+  padding: 10px 14px;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+  font-size: 12px;
+  max-width: 240px;
+}
+
+.tooltipHeader {
+  font-weight: 600;
+  margin-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  padding-bottom: 4px;
+  color: #f8fafc;
+}
+
+.tooltipRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.tooltipDesc {
+  margin: 0;
+  font-size: 11px;
+  color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  line-height: 1.35;
+}
+
+.iconPos {
+  color: #2dd4bf;
+  flex-shrink: 0;
+}
+
+.iconNeg {
+  color: #fb7185;
+  flex-shrink: 0;
+}
+
+.explainerFooter {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 11.5px;
+  color: #475569;
+  line-height: 1.45;
+  margin-top: 14px;
+}
+
+.infoIcon {
+  color: #0ea5a4;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.emptyState {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 10px;
+  color: #64748b;
+  font-size: 13px;
+  margin-top: 16px;
+}

@@ -200,20 +200,40 @@ def prepare_general_input(symptoms_text, symptom_columns):
 # HELPERS — FEVER MODEL
 # ─────────────────────────────────────────────────────────────────────────────
 
-def check_red_flags(red_flag_data: dict) -> list:
-    """Return list of triggered red-flag keys."""
-    return [flag for flag in RED_FLAGS if red_flag_data.get(flag, False)]
+def check_red_flags(red_flag_data) -> list:
+    """Return list of triggered red-flag keys. Accepts dict or list."""
+    if isinstance(red_flag_data, list):
+        return [flag for flag in RED_FLAGS if flag in red_flag_data]
+    elif isinstance(red_flag_data, dict):
+        return [flag for flag in RED_FLAGS if red_flag_data.get(flag, False)]
+    return []
 
 
-def build_feature_df(symptom_vector: dict, fever_feature_names: list) -> pd.DataFrame:
-    """Build feature DataFrame in the correct column order."""
-    row = {f: int(symptom_vector.get(f, 0)) for f in fever_feature_names}
+def build_feature_df(symptom_vector, fever_feature_names: list) -> pd.DataFrame:
+    """Build feature DataFrame in the correct column order. Supports dict and list."""
+    if isinstance(symptom_vector, list):
+        s_set = set(symptom_vector)
+        row = {f: (1 if f in s_set else 0) for f in fever_feature_names}
+    elif isinstance(symptom_vector, dict):
+        row = {f: int(symptom_vector.get(f, 0)) for f in fever_feature_names}
+    else:
+        row = {f: 0 for f in fever_feature_names}
     return pd.DataFrame([row])
 
 
-def get_shap_explanation(fever_model, fever_feature_names: list, feature_df: pd.DataFrame, symptom_vector: dict, top_class_idx: int, top_n: int = 5) -> list:
-    """Return plain-English bullet points of symptoms driving top prediction."""
+def get_shap_explanation(fever_model, fever_feature_names: list, feature_df: pd.DataFrame, symptom_vector, top_class_idx: int, top_n: int = 8):
+    """Return plain-English bullet points and structured SHAP contributions."""
+    if isinstance(symptom_vector, list):
+        symptom_dict = {s: 1 for s in symptom_vector}
+    elif isinstance(symptom_vector, dict):
+        symptom_dict = symptom_vector
+    else:
+        symptom_dict = {}
+
     explainer = get_fever_explainer(fever_model)
+    contributions = []
+    bullets = []
+
     if explainer is not None and explainer != "linear_coef":
         try:
             import numpy as np
@@ -230,12 +250,26 @@ def get_shap_explanation(fever_model, fever_feature_names: list, feature_df: pd.
 
             shap_map = dict(zip(fever_feature_names, shap_for_top))
             active = {
-                f: v for f, v in shap_map.items()
-                if symptom_vector.get(f, 0) == 1 and v > 0
+                f: float(v) for f, v in shap_map.items()
+                if symptom_dict.get(f, 0) == 1 and abs(float(v)) > 0.0001
             }
+            # If few active features, include all features with non-zero impact
+            if len(active) < 3:
+                for f, v in shap_map.items():
+                    if abs(float(v)) > 0.0001 and f not in active:
+                        active[f] = float(v)
+
             sorted_features = sorted(active.items(), key=lambda x: abs(x[1]), reverse=True)
-            if sorted_features:
-                return [FEATURE_LABELS.get(f, f) for f, _ in sorted_features[:top_n]]
+            for f, v in sorted_features[:top_n]:
+                contributions.append({
+                    "feature": f,
+                    "label": FEATURE_LABELS.get(f, f.replace("_", " ").title()),
+                    "value": round(float(v), 4),
+                    "direction": "positive" if v >= 0 else "negative",
+                })
+            positive_features = [f for f, v in sorted_features if v > 0]
+            bullets = [FEATURE_LABELS.get(f, f.replace("_", " ").title()) for f in positive_features[:5]]
+            return bullets, contributions
         except Exception as shap_err:
             print(f"[INFO] SHAP explanation note ({shap_err}) — falling back to model weight attribution")
 
@@ -244,11 +278,24 @@ def get_shap_explanation(fever_model, fever_feature_names: list, feature_df: pd.
             weights = fever_model.coef_[top_class_idx]
             weight_map = dict(zip(fever_feature_names, weights))
             active = {
-                f: w for f, w in weight_map.items()
-                if symptom_vector.get(f, 0) == 1 and w > 0
+                f: float(w) for f, w in weight_map.items()
+                if symptom_dict.get(f, 0) == 1
             }
-            sorted_features = sorted(active.items(), key=lambda x: x[1], reverse=True)
-            return [FEATURE_LABELS.get(f, f) for f, _ in sorted_features[:top_n]]
+            if len(active) < 3:
+                for f, w in weight_map.items():
+                    if f not in active:
+                        active[f] = float(w)
+            sorted_features = sorted(active.items(), key=lambda x: abs(x[1]), reverse=True)
+            for f, v in sorted_features[:top_n]:
+                contributions.append({
+                    "feature": f,
+                    "label": FEATURE_LABELS.get(f, f.replace("_", " ").title()),
+                    "value": round(float(v), 4),
+                    "direction": "positive" if v >= 0 else "negative",
+                })
+            positive_features = [f for f, v in sorted_features if v > 0]
+            bullets = [FEATURE_LABELS.get(f, f.replace("_", " ").title()) for f in positive_features[:5]]
+            return bullets, contributions
         except Exception as coef_err:
             print(f"[WARN] Coef explanation error: {coef_err}")
 
@@ -257,15 +304,27 @@ def get_shap_explanation(fever_model, fever_feature_names: list, feature_df: pd.
             importances = fever_model.feature_importances_
             imp_map = dict(zip(fever_feature_names, importances))
             active = {
-                f: v for f, v in imp_map.items()
-                if symptom_vector.get(f, 0) == 1
+                f: float(v) for f, v in imp_map.items()
+                if symptom_dict.get(f, 0) == 1
             }
-            sorted_features = sorted(active.items(), key=lambda x: x[1], reverse=True)
-            return [FEATURE_LABELS.get(f, f) for f, _ in sorted_features[:top_n]]
+            if len(active) < 3:
+                for f, v in imp_map.items():
+                    if f not in active:
+                        active[f] = float(v)
+            sorted_features = sorted(active.items(), key=lambda x: abs(x[1]), reverse=True)
+            for f, v in sorted_features[:top_n]:
+                contributions.append({
+                    "feature": f,
+                    "label": FEATURE_LABELS.get(f, f.replace("_", " ").title()),
+                    "value": round(float(v), 4),
+                    "direction": "positive",
+                })
+            bullets = [FEATURE_LABELS.get(f, f.replace("_", " ").title()) for f, _ in sorted_features[:5]]
+            return bullets, contributions
         except Exception as imp_err:
             print(f"[WARN] Importance explanation error: {imp_err}")
 
-    return []
+    return [], []
 
 
 
@@ -436,7 +495,7 @@ def predict_fever():
 
         # Step 4: Explanation
         top_class_idx = int(ranked_indices[0])
-        explanation   = get_shap_explanation(fever_model, fever_feature_names, feature_df, symptom_vector, top_class_idx)
+        explanation, shap_contributions = get_shap_explanation(fever_model, fever_feature_names, feature_df, symptom_vector, top_class_idx)
 
         # Step 5: Recommended action
         top_disease = class_names[ranked_indices[0]]
@@ -445,11 +504,12 @@ def predict_fever():
         print(f"[/predict-fever] Top result: {top_disease} ({proba[ranked_indices[0]]:.3f})")
 
         return jsonify({
-            "success":           True,
-            "red_flag_alert":    False,
-            "top_ranking":       top_3,
-            "primary_explanation": explanation,
-            "disclaimer":        MEDICAL_DISCLAIMER,
+            "success":              True,
+            "red_flag_alert":       False,
+            "top_ranking":          top_3,
+            "primary_explanation":  explanation,
+            "shap_contributions":   shap_contributions,
+            "disclaimer":           MEDICAL_DISCLAIMER,
             "recommended_action": (
                 f"Consult a {recommended} for clinical evaluation and "
                 f"appropriate laboratory testing to confirm any diagnosis."
