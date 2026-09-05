@@ -789,7 +789,7 @@ Give a professional doctor-level response.
 
       setRxSuccess({
         message: res.data.message || "Prescription issued successfully!",
-        pdfUrl: res.data.record?.prescriptionPdfUrl || null,
+        pdfUrl: res.data.record?.pdfUrl || res.data.record?.prescriptionPdfUrl || null,
       });
       NotificationService.showToast("Digital prescription issued!", "success");
     } catch (err) {
@@ -1459,7 +1459,11 @@ Give a professional doctor-level response.
                           <p>{rxSuccess.message}</p>
                           {rxSuccess.pdfUrl && (
                             <a
-                              href={rxSuccess.pdfUrl}
+                              href={
+                                rxSuccess.pdfUrl.startsWith("http")
+                                  ? rxSuccess.pdfUrl
+                                  : `${(import.meta.env.VITE_API_URL || "http://localhost:5000/api").replace(/\/api\/?$/, "")}${rxSuccess.pdfUrl.startsWith("/") ? "" : "/"}${rxSuccess.pdfUrl}`
+                              }
                               target="_blank"
                               rel="noopener noreferrer"
                               className={styles.rxPdfDownload}

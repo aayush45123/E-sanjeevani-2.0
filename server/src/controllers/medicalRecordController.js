@@ -128,7 +128,10 @@ export const issuePrescription = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Prescription issued and PDF generated successfully",
-      record: prescription, // kept as "record" for VideoCall.jsx backward compat
+      record: {
+        ...prescription,
+        prescriptionPdfUrl: prescription.pdfUrl,
+      },
     });
   } catch (error) {
     console.error("issuePrescription error:", error);
