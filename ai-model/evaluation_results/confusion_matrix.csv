@@ -1,0 +1,6 @@
+,Dengue,Malaria,Typhoid,Chikungunya,Viral_Fever
+Dengue,48,0,1,10,1
+Malaria,0,51,3,2,4
+Typhoid,2,7,50,0,1
+Chikungunya,5,1,0,54,0
+Viral_Fever,2,3,0,0,55

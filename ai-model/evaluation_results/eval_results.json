@@ -1,0 +1,391 @@
+{
+  "model": {
+    "model_type": "LogisticRegression",
+    "model_repr": "LogisticRegression(class_weight='balanced', max_iter=1000,\n                   multi_class='multinomial', random_state=42)",
+    "model_path": "C:\\Users\\aayush\\OneDrive\\Desktop\\E-sanjeevani 2.0\\ai-model\\models\\fever_model.pkl",
+    "feature_count": 25,
+    "feature_names": [
+      "fever",
+      "high_fever",
+      "sudden_onset",
+      "headache",
+      "severe_headache",
+      "chills",
+      "sweating",
+      "body_pain",
+      "muscle_pain",
+      "joint_pain",
+      "severe_joint_pain",
+      "pain_behind_eyes",
+      "rash",
+      "nausea",
+      "vomiting",
+      "abdominal_pain",
+      "diarrhea",
+      "constipation",
+      "cough",
+      "sore_throat",
+      "runny_nose",
+      "fatigue",
+      "weakness",
+      "swollen_lymph_nodes",
+      "loss_of_appetite"
+    ],
+    "class_count": 5,
+    "classes_encoder_order": [
+      "Chikungunya",
+      "Dengue",
+      "Malaria",
+      "Typhoid",
+      "Viral_Fever"
+    ]
+  },
+  "dataset": {
+    "path": "C:\\Users\\aayush\\OneDrive\\Desktop\\E-sanjeevani 2.0\\ai-model\\fever_model\\data\\fever_dataset.csv",
+    "total_rows": 1500,
+    "test_samples": 300,
+    "class_distribution": {
+      "Chikungunya": {
+        "count": 60,
+        "percent": 20.0
+      },
+      "Dengue": {
+        "count": 60,
+        "percent": 20.0
+      },
+      "Malaria": {
+        "count": 60,
+        "percent": 20.0
+      },
+      "Typhoid": {
+        "count": 60,
+        "percent": 20.0
+      },
+      "Viral_Fever": {
+        "count": 60,
+        "percent": 20.0
+      }
+    },
+    "split": "train_test_split(test_size=0.20, random_state=42, stratify=y)",
+    "genuinely_held_out": false,
+    "dataset_type": "Synthetic/Curated from WHO clinical guidelines"
+  },
+  "metrics": {
+    "accuracy": 0.86,
+    "top1_accuracy": 0.86,
+    "top3_accuracy": 0.996667,
+    "macro_precision": 0.862087,
+    "macro_recall": 0.86,
+    "macro_f1": 0.860001,
+    "weighted_precision": 0.862087,
+    "weighted_recall": 0.86,
+    "weighted_f1": 0.860001,
+    "per_class": {
+      "Chikungunya": {
+        "precision": 0.818182,
+        "recall": 0.9,
+        "f1": 0.857143,
+        "support": 60
+      },
+      "Dengue": {
+        "precision": 0.842105,
+        "recall": 0.8,
+        "f1": 0.820513,
+        "support": 60
+      },
+      "Malaria": {
+        "precision": 0.822581,
+        "recall": 0.85,
+        "f1": 0.836066,
+        "support": 60
+      },
+      "Typhoid": {
+        "precision": 0.925926,
+        "recall": 0.833333,
+        "f1": 0.877193,
+        "support": 60
+      },
+      "Viral_Fever": {
+        "precision": 0.901639,
+        "recall": 0.916667,
+        "f1": 0.909091,
+        "support": 60
+      }
+    }
+  },
+  "confusion_matrix": {
+    "class_order_encoder": [
+      "Chikungunya",
+      "Dengue",
+      "Malaria",
+      "Typhoid",
+      "Viral_Fever"
+    ],
+    "class_order_paper": [
+      "Dengue",
+      "Malaria",
+      "Typhoid",
+      "Chikungunya",
+      "Viral_Fever"
+    ],
+    "matrix_paper_order": [
+      [
+        48,
+        0,
+        1,
+        10,
+        1
+      ],
+      [
+        0,
+        51,
+        3,
+        2,
+        4
+      ],
+      [
+        2,
+        7,
+        50,
+        0,
+        1
+      ],
+      [
+        5,
+        1,
+        0,
+        54,
+        0
+      ],
+      [
+        2,
+        3,
+        0,
+        0,
+        55
+      ]
+    ]
+  },
+  "shap": {
+    "global_feature_importance": {
+      "joint_pain": 0.65022,
+      "chills": 0.542098,
+      "severe_joint_pain": 0.480234,
+      "sudden_onset": 0.473579,
+      "cough": 0.465736,
+      "rash": 0.425585,
+      "abdominal_pain": 0.395605,
+      "muscle_pain": 0.384479,
+      "high_fever": 0.349695,
+      "pain_behind_eyes": 0.344511,
+      "sweating": 0.322875,
+      "sore_throat": 0.318193,
+      "runny_nose": 0.299878,
+      "constipation": 0.289275,
+      "vomiting": 0.283384,
+      "loss_of_appetite": 0.273446,
+      "severe_headache": 0.260947,
+      "body_pain": 0.175681,
+      "swollen_lymph_nodes": 0.153007,
+      "diarrhea": 0.150775,
+      "weakness": 0.128562,
+      "nausea": 0.104764,
+      "headache": 0.104692,
+      "fatigue": 0.104503,
+      "fever": 0.0
+    },
+    "per_class_feature_importance": {
+      "Chikungunya": {
+        "severe_joint_pain": 1.200584,
+        "joint_pain": 1.10573,
+        "sudden_onset": 0.802226,
+        "cough": 0.569374,
+        "rash": 0.541071,
+        "muscle_pain": 0.454283,
+        "abdominal_pain": 0.452704,
+        "sore_throat": 0.394182,
+        "chills": 0.34679,
+        "high_fever": 0.289002,
+        "runny_nose": 0.264636,
+        "constipation": 0.263132,
+        "sweating": 0.241898,
+        "weakness": 0.234049,
+        "loss_of_appetite": 0.207085,
+        "vomiting": 0.169457,
+        "diarrhea": 0.160409,
+        "headache": 0.142865,
+        "severe_headache": 0.116394,
+        "fatigue": 0.106322,
+        "pain_behind_eyes": 0.075575,
+        "body_pain": 0.067339,
+        "nausea": 0.010511,
+        "swollen_lymph_nodes": 0.001435,
+        "fever": 0.0
+      },
+      "Dengue": {
+        "pain_behind_eyes": 0.861279,
+        "severe_headache": 0.652367,
+        "chills": 0.554871,
+        "high_fever": 0.533143,
+        "rash": 0.52289,
+        "joint_pain": 0.51982,
+        "muscle_pain": 0.506914,
+        "sweating": 0.432612,
+        "sudden_onset": 0.381722,
+        "body_pain": 0.315314,
+        "cough": 0.27737,
+        "vomiting": 0.238967,
+        "headache": 0.230321,
+        "sore_throat": 0.194822,
+        "swollen_lymph_nodes": 0.17421,
+        "diarrhea": 0.158586,
+        "severe_joint_pain": 0.130194,
+        "nausea": 0.092579,
+        "abdominal_pain": 0.082763,
+        "fatigue": 0.080696,
+        "runny_nose": 0.07166,
+        "weakness": 0.034808,
+        "constipation": 0.026397,
+        "loss_of_appetite": 0.01726,
+        "fever": 0.0
+      },
+      "Malaria": {
+        "chills": 1.215391,
+        "sweating": 0.785907,
+        "joint_pain": 0.711063,
+        "rash": 0.604072,
+        "severe_joint_pain": 0.396388,
+        "swollen_lymph_nodes": 0.374764,
+        "vomiting": 0.355268,
+        "muscle_pain": 0.316299,
+        "cough": 0.261752,
+        "runny_nose": 0.250763,
+        "sudden_onset": 0.239434,
+        "constipation": 0.198364,
+        "sore_throat": 0.178895,
+        "weakness": 0.158794,
+        "fatigue": 0.154936,
+        "pain_behind_eyes": 0.142747,
+        "loss_of_appetite": 0.111585,
+        "body_pain": 0.103292,
+        "severe_headache": 0.100311,
+        "nausea": 0.057702,
+        "high_fever": 0.052093,
+        "abdominal_pain": 0.039478,
+        "diarrhea": 0.033751,
+        "headache": 0.031409,
+        "fever": 0.0
+      },
+      "Typhoid": {
+        "abdominal_pain": 0.989013,
+        "constipation": 0.696791,
+        "loss_of_appetite": 0.666355,
+        "muscle_pain": 0.581975,
+        "joint_pain": 0.579642,
+        "sudden_onset": 0.513975,
+        "pain_behind_eyes": 0.508426,
+        "chills": 0.453583,
+        "body_pain": 0.371862,
+        "diarrhea": 0.343186,
+        "severe_headache": 0.202744,
+        "high_fever": 0.201612,
+        "rash": 0.174351,
+        "runny_nose": 0.162636,
+        "weakness": 0.16261,
+        "nausea": 0.15882,
+        "severe_joint_pain": 0.147425,
+        "vomiting": 0.114225,
+        "cough": 0.055845,
+        "headache": 0.037296,
+        "sore_throat": 0.027583,
+        "sweating": 0.02128,
+        "swollen_lymph_nodes": 0.007753,
+        "fatigue": 0.002596,
+        "fever": 0.0
+      },
+      "Viral_Fever": {
+        "cough": 1.164341,
+        "sore_throat": 0.795482,
+        "runny_nose": 0.749695,
+        "high_fever": 0.672625,
+        "vomiting": 0.539003,
+        "severe_joint_pain": 0.526578,
+        "sudden_onset": 0.430539,
+        "abdominal_pain": 0.414067,
+        "loss_of_appetite": 0.364945,
+        "joint_pain": 0.334844,
+        "rash": 0.285539,
+        "constipation": 0.261692,
+        "severe_headache": 0.232918,
+        "swollen_lymph_nodes": 0.206873,
+        "nausea": 0.204208,
+        "fatigue": 0.177965,
+        "chills": 0.139854,
+        "pain_behind_eyes": 0.13453,
+        "sweating": 0.132677,
+        "headache": 0.081568,
+        "muscle_pain": 0.062922,
+        "diarrhea": 0.057943,
+        "weakness": 0.052548,
+        "body_pain": 0.020596,
+        "fever": 0.0
+      }
+    },
+    "top_10_features": [
+      {
+        "feature": "joint_pain",
+        "mean_abs_shap": 0.65022
+      },
+      {
+        "feature": "chills",
+        "mean_abs_shap": 0.542098
+      },
+      {
+        "feature": "severe_joint_pain",
+        "mean_abs_shap": 0.480234
+      },
+      {
+        "feature": "sudden_onset",
+        "mean_abs_shap": 0.473579
+      },
+      {
+        "feature": "cough",
+        "mean_abs_shap": 0.465736
+      },
+      {
+        "feature": "rash",
+        "mean_abs_shap": 0.425585
+      },
+      {
+        "feature": "abdominal_pain",
+        "mean_abs_shap": 0.395605
+      },
+      {
+        "feature": "muscle_pain",
+        "mean_abs_shap": 0.384479
+      },
+      {
+        "feature": "high_fever",
+        "mean_abs_shap": 0.349695
+      },
+      {
+        "feature": "pain_behind_eyes",
+        "mean_abs_shap": 0.344511
+      }
+    ],
+    "shap_bar_chart": "C:\\Users\\aayush\\OneDrive\\Desktop\\E-sanjeevani 2.0\\ai-model\\evaluation_results\\shap_summary_bar.png",
+    "shap_class_plots": [
+      "C:\\Users\\aayush\\OneDrive\\Desktop\\E-sanjeevani 2.0\\ai-model\\evaluation_results\\shap_beeswarm_Chikungunya.png",
+      "C:\\Users\\aayush\\OneDrive\\Desktop\\E-sanjeevani 2.0\\ai-model\\evaluation_results\\shap_beeswarm_Dengue.png",
+      "C:\\Users\\aayush\\OneDrive\\Desktop\\E-sanjeevani 2.0\\ai-model\\evaluation_results\\shap_beeswarm_Malaria.png",
+      "C:\\Users\\aayush\\OneDrive\\Desktop\\E-sanjeevani 2.0\\ai-model\\evaluation_results\\shap_beeswarm_Typhoid.png",
+      "C:\\Users\\aayush\\OneDrive\\Desktop\\E-sanjeevani 2.0\\ai-model\\evaluation_results\\shap_beeswarm_Viral_Fever.png"
+    ]
+  },
+  "latency": {
+    "n_samples": 300,
+    "total_ms": 1.3924,
+    "per_sample_ms": 0.004641
+  },
+  "sanity_checks": "ALL PASSED"
+}
