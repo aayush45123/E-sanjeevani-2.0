@@ -611,6 +611,51 @@
   color: inherit;
 }
 
+.messageOptionsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.optionPillBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 550;
+  background: #ffffff;
+  color: #0ea5a4;
+  border: 1px solid rgba(14, 165, 164, 0.35);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.optionPillBtn:hover {
+  background: #0ea5a4;
+  color: #ffffff;
+  border-color: #0ea5a4;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(14, 165, 164, 0.2);
+}
+
+.optionPillBtnSecondary {
+  color: #64748b;
+  border-color: #e2e8f0;
+  background: #f8fafc;
+}
+
+.optionPillBtnSecondary:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
 /* ─── Typing Indicator ────────────────────────────────────────────────────── */
 .typingWrapper {
   display: flex;

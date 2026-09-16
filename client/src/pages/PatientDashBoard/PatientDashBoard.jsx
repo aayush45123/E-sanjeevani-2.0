@@ -103,69 +103,126 @@ const FEVER_STEPS = [
       "• Fainting\n\n" +
       "Reply **Yes** or **No**.",
     type: "yesno",
+    options: [
+      { label: "Yes", value: "Yes" },
+      { label: "No", value: "No" },
+    ],
     redFlag: true,
   },
   {
     key: "duration",
     question:
       "How long have you had the fever?\n\n" +
-      "Reply: **1** = Less than 1 day · **2** = 1–3 days · **3** = 4–7 days · **4** = More than 7 days",
+      "• **1** = Less than 1 day\n" +
+      "• **2** = 1–3 days\n" +
+      "• **3** = 4–7 days\n" +
+      "• **4** = More than 7 days",
     type: "choice",
+    options: [
+      { label: "< 1 day", value: "1" },
+      { label: "1–3 days", value: "2" },
+      { label: "4–7 days", value: "3" },
+      { label: "> 7 days", value: "4" },
+    ],
   },
   {
     key: "high_fever",
     question: "Is the fever **high** (feels very hot / ≥ 39 °C)? Reply **Yes** or **No**.",
     type: "yesno",
+    options: [
+      { label: "Yes", value: "Yes" },
+      { label: "No", value: "No" },
+    ],
   },
   {
     key: "sudden_onset",
     question: "Did the fever start **suddenly / abruptly**? Reply **Yes** or **No**.",
     type: "yesno",
+    options: [
+      { label: "Yes", value: "Yes" },
+      { label: "No", value: "No" },
+    ],
   },
   {
     key: "chills",
     question: "Do you have **chills or shivering episodes**? Reply **Yes** or **No**.",
     type: "yesno",
+    options: [
+      { label: "Yes", value: "Yes" },
+      { label: "No", value: "No" },
+    ],
   },
   {
     key: "headache",
     question: "Do you have a **headache**? Reply **Yes** or **No**.",
     type: "yesno",
+    options: [
+      { label: "Yes", value: "Yes" },
+      { label: "No", value: "No" },
+    ],
   },
   {
     key: "pain_behind_eyes",
     question: "Do you have **pain behind the eyes** (retro-orbital pain)? Reply **Yes** or **No**.",
     type: "yesno",
+    options: [
+      { label: "Yes", value: "Yes" },
+      { label: "No", value: "No" },
+    ],
   },
   {
     key: "joint_pain",
     question: "Do you have **joint pain or severe body aches**? Reply **Yes** or **No**.",
     type: "yesno",
+    options: [
+      { label: "Yes", value: "Yes" },
+      { label: "No", value: "No" },
+    ],
   },
   {
     key: "rash",
     question: "Do you have a **skin rash or red spots**? Reply **Yes** or **No**.",
     type: "yesno",
+    options: [
+      { label: "Yes", value: "Yes" },
+      { label: "No", value: "No" },
+    ],
   },
   {
     key: "nausea_vomiting",
     question: "Do you have **nausea or vomiting**? Reply **Yes** or **No**.",
     type: "yesno",
+    options: [
+      { label: "Yes", value: "Yes" },
+      { label: "No", value: "No" },
+    ],
   },
   {
     key: "diarrhea_constipation",
     question: "Do you have **diarrhea, abdominal discomfort, or constipation**? Reply **Yes** or **No**.",
     type: "yesno",
+    options: [
+      { label: "Yes", value: "Yes" },
+      { label: "No", value: "No" },
+    ],
   },
   {
     key: "cough_sore_throat",
     question: "Do you have a **cough, runny nose, or sore throat**? Reply **Yes** or **No**.",
     type: "yesno",
+    options: [
+      { label: "Yes", value: "Yes" },
+      { label: "No", value: "No" },
+    ],
   },
   {
     key: "fatigue",
     question: "Do you have significant **fatigue or weakness**? Reply **Yes** or **No**.",
     type: "yesno",
+    options: [
+      { label: "Yes", value: "Yes" },
+      { label: "No", value: "No" },
+    ],
   },
 ];
 
@@ -452,6 +509,7 @@ export default function PatientDashboard() {
           id: Date.now(),
           type: "ai",
           text: step.question,
+          options: step.options || [],
           timestamp: new Date(),
         },
       ]);
@@ -518,6 +576,10 @@ export default function PatientDashboard() {
             id: Date.now() + 1,
             type: "ai",
             text: md,
+            options: [
+              { label: "⚡ Retake Assessment", value: "start" },
+              { label: "🩺 Consult a Doctor", value: "Help me find a doctor for fever" },
+            ],
             timestamp: new Date(),
           },
         ]);
@@ -533,6 +595,7 @@ export default function PatientDashboard() {
           type: "ai",
           text:
             "I encountered an error submitting your answers to the fever assessment model. Please try again or consult a doctor directly.",
+          options: [{ label: "⚡ Try Again", value: "start" }],
           timestamp: new Date(),
         },
       ]);
@@ -551,9 +614,51 @@ export default function PatientDashboard() {
 
     let answer = false;
     if (step.type === "yesno") {
-      answer = isYes(userText);
+      const trimmed = userText.trim().toLowerCase();
+      if (/^y(es)?$/i.test(trimmed)) {
+        answer = true;
+      } else if (/^n(o)?$/i.test(trimmed)) {
+        answer = false;
+      } else {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            type: "ai",
+            text: "Please select **Yes** or **No** below, or type **\"cancel\"** to stop the assessment.",
+            options: [
+              { label: "Yes", value: "Yes" },
+              { label: "No", value: "No" },
+              { label: "Cancel Assessment", value: "cancel", isSecondary: true },
+            ],
+            timestamp: new Date(),
+          },
+        ]);
+        return;
+      }
     } else if (step.type === "choice") {
-      answer = parseInt(userText.trim(), 10) || 1;
+      const val = parseInt(userText.trim(), 10);
+      if (val >= 1 && val <= 4) {
+        answer = val;
+      } else {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            type: "ai",
+            text: "Please select one of the duration options (1 to 4):",
+            options: [
+              { label: "< 1 day", value: "1" },
+              { label: "1–3 days", value: "2" },
+              { label: "4–7 days", value: "3" },
+              { label: "> 7 days", value: "4" },
+              { label: "Cancel", value: "cancel", isSecondary: true },
+            ],
+            timestamp: new Date(),
+          },
+        ]);
+        return;
+      }
     }
 
     const newAnswers = { ...feverAnswers, [step.key]: answer };
@@ -568,10 +673,16 @@ export default function PatientDashboard() {
             id: Date.now() + 50,
             type: "ai",
             text:
-              "## URGENT WARNING\n\n" +
-              "You reported one or more serious warning signs.\n\n" +
-              "**Please seek immediate medical attention or call emergency services.**\n\n" +
-              "Do not delay — some of these symptoms may indicate severe dengue, severe malaria, or another critical emergency.",
+              "## ⚠️ URGENT MEDICAL WARNING\n\n" +
+              "You reported one or more serious warning signs:\n\n" +
+              "• Bleeding from nose/gums/stool or severe abdominal pain\n" +
+              "• Difficulty breathing, fainting, or loss of consciousness\n\n" +
+              "**Please seek immediate emergency medical attention or call an ambulance.**\n\n" +
+              "Do not delay — these symptoms may indicate severe Dengue, complicated Malaria, or another critical medical condition.",
+            options: [
+              { label: "🩺 Consult a Doctor Now", value: "Help me find an emergency doctor" },
+              { label: "Restart Assessment", value: "start", isSecondary: true },
+            ],
             timestamp: new Date(),
           },
         ]);
@@ -622,12 +733,12 @@ export default function PatientDashboard() {
   };
 
   // ── Send Message ─────────────────────────────────────────────────────────
-  const handleSendMessage = async (e) => {
-    if (e) e.preventDefault();
+  const handleSendMessage = async (e, textOverride = null) => {
+    if (e && typeof e.preventDefault === "function") e.preventDefault();
 
-    if (!inputValue.trim() && attachments.length === 0) return;
+    const currentInput = (typeof textOverride === "string" ? textOverride : inputValue).trim();
+    if (!currentInput && attachments.length === 0) return;
 
-    const currentInput = inputValue;
     const userMessage = {
       id: Date.now(),
       type: "user",
@@ -645,7 +756,64 @@ export default function PatientDashboard() {
 
     // Fever Assessment Flow
     if (selectedModel.id === "fever-assessment") {
-      if (!feverActive) {
+      const lower = currentInput.toLowerCase().trim();
+
+      if (feverActive) {
+        if (["cancel", "stop", "exit", "quit", "reset", "restart"].includes(lower)) {
+          setFeverActive(false);
+          setFeverStep(0);
+          setFeverAnswers({});
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: Date.now() + 1,
+              type: "ai",
+              text: "Fever assessment has been cancelled. Your previous answers have been cleared.\n\nYou can type **\"start\"** whenever you'd like to begin again, or ask any other health question!",
+              options: [{ label: "⚡ Start Fever Assessment", value: "start" }],
+              timestamp: new Date(),
+            },
+          ]);
+          return;
+        }
+
+        await handleFeverReply(currentInput);
+        return;
+      }
+
+      // If NOT active: check greetings vs start vs general query
+      const isGreeting = /^(hi|hello|hey|greetings|good\s*(morning|afternoon|evening)|yo|namaste|help|who\s*are\s*you|what\s*(can\s*you\s*do|is\s*this|model)|how\s*(does\s*this\s*work|to\s*use)|info)[\s!.]*$/i.test(lower);
+      const isStartCommand = /^(start|begin|assess|check|test|start\s*(fever|assessment)|yes|ready)[\s!.]*$/i.test(lower);
+      const hasSymptomClues = /fever|temperature|temp|chills|shiver|headache|body\s*ache|dengue|malaria|typhoid|vomit/i.test(lower);
+
+      if (isGreeting) {
+        setIsTyping(true);
+        setTimeout(() => {
+          setIsTyping(false);
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: Date.now() + 1,
+              type: "ai",
+              text:
+                "Hello! 👋 I'm your **Fever Assessment Assistant**.\n\n" +
+                "I evaluate fever symptoms and analyze differential patterns for conditions like **Dengue**, **Malaria**, **Typhoid**, and **Viral Illness**.\n\n" +
+                "**How would you like to proceed?**\n" +
+                "• Tap **Start Assessment** below to begin the guided questionnaire.\n" +
+                "• Or tell me about your symptoms (e.g. *\"I've had a fever with chills for 2 days\"*).\n" +
+                "• You can also ask me general questions about fever care anytime!",
+              options: [
+                { label: "⚡ Start Fever Assessment", value: "start" },
+                { label: "🌡️ What are fever danger signs?", value: "What are the emergency danger signs of fever?" },
+                { label: "🩺 Consult a Doctor", value: "Help me find a doctor for fever" },
+              ],
+              timestamp: new Date(),
+            },
+          ]);
+        }, 400);
+        return;
+      }
+
+      if (isStartCommand || hasSymptomClues) {
         setFeverActive(true);
         setFeverStep(0);
         setFeverAnswers({});
@@ -665,8 +833,63 @@ export default function PatientDashboard() {
           setMessages((prev) => [...prev, ackMsg]);
           askFeverQuestion(0);
         }, 500);
-      } else {
-        await handleFeverReply(currentInput);
+        return;
+      }
+
+      // General query using fever model context
+      setIsTyping(true);
+      try {
+        const response = await apiClient.post("/chat", {
+          prompt: currentInput,
+          triageSessionId: activeTriageSessionId,
+          model: "fever-assessment",
+        });
+
+        const data = response.data;
+        const returnedSessionId =
+          data?.data?.triageSessionId || data?.triageSessionId;
+        if (returnedSessionId) setActiveTriageSessionId(returnedSessionId);
+        setHistoryRefreshTrigger((prev) => prev + 1);
+
+        let aiMessageText = data?.data?.reply
+          ?.replace(/<\/?[Aa]nswer>\s*/g, "")
+          ?.replace(/^[\s]*[Aa]nswer[\s]*:[\s]*/gm, "")
+          ?.replace(/<[^>]*>/g, "")
+          ?.replace(/\n{3,}/g, "\n\n")
+          ?.trim();
+
+        if (!aiMessageText) {
+          aiMessageText = "I'm here to assist with your fever symptoms and differential assessment.";
+        }
+
+        aiMessageText += "\n\n---\n💡 *Ready to check your symptoms? Click below to start the differential fever questionnaire.*";
+
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            type: "ai",
+            text: aiMessageText,
+            options: [{ label: "⚡ Start Fever Assessment", value: "start" }],
+            timestamp: new Date(),
+          },
+        ]);
+      } catch (error) {
+        console.error("Fever chat query error:", error);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            type: "ai",
+            text:
+              "I'm your **Fever Assessment Assistant**.\n\n" +
+              "Whenever you'd like to evaluate your fever symptoms for conditions like Dengue, Malaria, or Typhoid, click **Start Assessment** below.",
+            options: [{ label: "⚡ Start Fever Assessment", value: "start" }],
+            timestamp: new Date(),
+          },
+        ]);
+      } finally {
+        setIsTyping(false);
       }
       return;
     }
@@ -1452,7 +1675,8 @@ export default function PatientDashboard() {
 
                     <div className={styles.messageBubble}>
                       {message.type === "ai" ? (
-                        <ReactMarkdown
+                        <>
+                          <ReactMarkdown
                           components={{
                             h1: ({ children }) => (
                               <h1 className={styles.mdH1}>{children}</h1>
@@ -1503,7 +1727,31 @@ export default function PatientDashboard() {
                         >
                           {message.text}
                         </ReactMarkdown>
-                      ) : (
+
+                        {/* Interactive Option Pills */}
+                        {message.options && message.options.length > 0 && (
+                          <div className={styles.messageOptionsRow}>
+                            {message.options.map((opt, optIdx) => {
+                              const label = typeof opt === "string" ? opt : opt.label;
+                              const val = typeof opt === "string" ? opt : opt.value;
+                              const isSec = typeof opt === "object" && opt.isSecondary;
+                              return (
+                                <button
+                                  key={optIdx}
+                                  type="button"
+                                  className={`${styles.optionPillBtn} ${
+                                    isSec ? styles.optionPillBtnSecondary : ""
+                                  }`}
+                                  onClick={() => handleSendMessage(null, val)}
+                                >
+                                  {label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </>
+                    ) : (
                         <div>
                           <span>{message.text}</span>
                           {message.attachments && message.attachments.length > 0 && (

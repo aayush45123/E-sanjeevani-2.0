@@ -10,7 +10,107 @@
     <title>E-Sanjeevani</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- ── Instant skeleton shown before React hydrates ── -->
+      <style>
+        @keyframes _sk_shimmer {
+          0%   { background-position: -200% 0; }
+          100% { background-position:  200% 0; }
+        }
+        .sk-wrap   { display:flex; width:100%; min-height:100vh; background:#fcfcfd; font-family:Inter,-apple-system,sans-serif; }
+        .sk-sidebar{ width:240px; min-width:240px; height:100vh; background:#fff; border-right:1px solid #e2e8f0; padding:1.5rem 1rem; display:flex; flex-direction:column; gap:1.5rem; box-sizing:border-box; }
+        .sk-main   { flex:1; padding:2rem 2.5rem; display:flex; flex-direction:column; gap:1.75rem; box-sizing:border-box; }
+        .sk-b      { background:linear-gradient(90deg,#e2e8f0 0%,#f8fafc 20%,#f1f5f9 40%,#e2e8f0 100%); background-size:200% 100%; animation:_sk_shimmer 1.8s ease-in-out infinite; border-radius:8px; }
+        .sk-pill   { border-radius:9999px; }
+        .sk-circ   { border-radius:50%; }
+        .sk-nav-list{ display:flex; flex-direction:column; gap:0.75rem; margin-top:1rem; }
+        .sk-nav-item{ height:40px; width:100%; border-radius:8px; }
+        .sk-sf     { margin-top:auto; display:flex; align-items:center; gap:0.75rem; padding-top:1rem; border-top:1px solid #e2e8f0; }
+        .sk-header { display:flex; justify-content:space-between; align-items:center; padding-bottom:1rem; border-bottom:1px solid #e2e8f0; }
+        .sk-stats  { display:grid; grid-template-columns:repeat(4,1fr); gap:1.25rem; }
+        .sk-stat   { background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:1.25rem; display:flex; flex-direction:column; gap:0.75rem; }
+        .sk-cards  { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:1.5rem; }
+        .sk-card   { background:#fff; border:1px solid #e2e8f0; border-radius:14px; padding:1.5rem; display:flex; flex-direction:column; gap:1rem; }
+        @media(max-width:768px){
+          .sk-sidebar{display:none;}
+          .sk-main{padding:1rem;}
+          .sk-stats{grid-template-columns:1fr 1fr;}
+        }
+      </style>
+      <div class="sk-wrap">
+        <aside class="sk-sidebar">
+          <div class="sk-b" style="width:140px;height:32px;border-radius:8px"></div>
+          <div class="sk-nav-list">
+            <div class="sk-b sk-nav-item"></div>
+            <div class="sk-b sk-nav-item"></div>
+            <div class="sk-b sk-nav-item"></div>
+            <div class="sk-b sk-nav-item"></div>
+            <div class="sk-b sk-nav-item"></div>
+            <div class="sk-b sk-nav-item"></div>
+          </div>
+          <div class="sk-sf">
+            <div class="sk-b sk-circ" style="width:36px;height:36px;flex-shrink:0"></div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:0.4rem">
+              <div class="sk-b" style="width:80%;height:12px"></div>
+              <div class="sk-b" style="width:50%;height:10px"></div>
+            </div>
+          </div>
+        </aside>
+        <main class="sk-main">
+          <div class="sk-header">
+            <div style="display:flex;flex-direction:column;gap:0.5rem">
+              <div class="sk-b" style="width:220px;height:1.8rem"></div>
+              <div class="sk-b" style="width:320px;height:0.9rem"></div>
+            </div>
+            <div style="display:flex;gap:0.75rem">
+              <div class="sk-b" style="width:140px;height:38px"></div>
+              <div class="sk-b sk-circ" style="width:40px;height:40px"></div>
+            </div>
+          </div>
+          <div class="sk-stats">
+            <div class="sk-stat"><div class="sk-b" style="width:60%;height:0.85rem"></div><div class="sk-b" style="width:45%;height:2rem"></div><div class="sk-b" style="width:80%;height:0.75rem"></div></div>
+            <div class="sk-stat"><div class="sk-b" style="width:60%;height:0.85rem"></div><div class="sk-b" style="width:45%;height:2rem"></div><div class="sk-b" style="width:80%;height:0.75rem"></div></div>
+            <div class="sk-stat"><div class="sk-b" style="width:60%;height:0.85rem"></div><div class="sk-b" style="width:45%;height:2rem"></div><div class="sk-b" style="width:80%;height:0.75rem"></div></div>
+            <div class="sk-stat"><div class="sk-b" style="width:60%;height:0.85rem"></div><div class="sk-b" style="width:45%;height:2rem"></div><div class="sk-b" style="width:80%;height:0.75rem"></div></div>
+          </div>
+          <div class="sk-cards">
+            <div class="sk-card">
+              <div style="display:flex;gap:1rem;align-items:center">
+                <div class="sk-b sk-circ" style="width:44px;height:44px;flex-shrink:0"></div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:0.4rem">
+                  <div class="sk-b" style="width:70%;height:1rem"></div>
+                  <div class="sk-b" style="width:40%;height:0.8rem"></div>
+                </div>
+              </div>
+              <div class="sk-b" style="width:100%;height:60px"></div>
+              <div class="sk-b" style="width:100%;height:36px;border-radius:8px"></div>
+            </div>
+            <div class="sk-card">
+              <div style="display:flex;gap:1rem;align-items:center">
+                <div class="sk-b sk-circ" style="width:44px;height:44px;flex-shrink:0"></div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:0.4rem">
+                  <div class="sk-b" style="width:70%;height:1rem"></div>
+                  <div class="sk-b" style="width:40%;height:0.8rem"></div>
+                </div>
+              </div>
+              <div class="sk-b" style="width:100%;height:60px"></div>
+              <div class="sk-b" style="width:100%;height:36px;border-radius:8px"></div>
+            </div>
+            <div class="sk-card">
+              <div style="display:flex;gap:1rem;align-items:center">
+                <div class="sk-b sk-circ" style="width:44px;height:44px;flex-shrink:0"></div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:0.4rem">
+                  <div class="sk-b" style="width:70%;height:1rem"></div>
+                  <div class="sk-b" style="width:40%;height:0.8rem"></div>
+                </div>
+              </div>
+              <div class="sk-b" style="width:100%;height:60px"></div>
+              <div class="sk-b" style="width:100%;height:36px;border-radius:8px"></div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

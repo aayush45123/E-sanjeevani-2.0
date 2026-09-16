@@ -3,33 +3,62 @@
 // No existing functionality removed
 // Professional industry-level fix
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense, lazy } from "react";
 import "./App.css";
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 
-import Home from "./pages/Home/Home";
+/*
+  Skeleton placeholders — imported eagerly (tiny, no async cost)
+  so they're available immediately for Suspense fallbacks.
+*/
+import {
+  HomeSkeleton,
+  AuthSkeleton,
+  PatientDashboardSkeleton,
+  DoctorDashboardSkeleton,
+  MyPatientsSkeleton,
+  DoctorScheduleSkeleton,
+  DoctorAnalyticsSkeleton,
+  DoctorProfileEditSkeleton,
+  ConsultationsSkeleton,
+  ConsultationBookingSkeleton,
+  AvailableDoctorsSkeleton,
+  ConsultedDoctorsSkeleton,
+  ClinicalRecordsSkeleton,
+  ProfileCompletionSkeleton,
+  DoctorProfileSetupSkeleton,
+  VideoCallSkeleton,
+  AiTriageSkeleton,
+} from "./components/Skeletons";
+
 import Navbar from "./components/Navbar/Navbar";
 import Footer from "./components/Footer/Footer";
-import Auth from "./pages/Auth/Auth";
 
-import PatientDashboard from "./pages/PatientDashBoard/PatientDashBoard";
-import DoctorDashboard from "./pages/DoctorDashboard/DoctorDashboard";
-import MyPatients from "./pages/DoctorDashboard/MyPatients";
-import ProfileCompletion from "./pages/ProfileCompletion/ProfileCompletion";
-import Consultations from "./pages/Consultations/Consultations";
-import ConsultationBookingForm from "./pages/ConsultationBookingForm/ConsultationBookingForm";
-import DoctorProfileSetup from "./pages/DoctorProfileSetup/DoctorProfileSetup";
-import DoctorProfileEdit from "./pages/DoctorProfileEdit/DoctorProfileEdit";
-import DoctorSchedule from "./pages/DoctorDashboard/DoctorSchedule";
-import DoctorAnalytics from "./pages/DoctorDashboard/DoctorAnalytics";
-import DoctorHelp from "./pages/DoctorDashboard/DoctorHelp";
-import VideoCall from "./pages/VideoCall/VideoCall";
-import AiTriage from "./components/AiTriage/AiTriage";
-import ConsultedDoctors from "./pages/ConsultedDoctors/ConsultedDoctors";
-import AvailableDoctors from "./pages/AvailableDoctors/AvailableDoctors";
-import ClinicalRecords from "./pages/ClinicalRecords/ClinicalRecords";
-import PatientHistory from "./pages/PatientHistory/PatientHistory";
+/*
+  Lazy-load every page so Vite code-splits them into separate chunks.
+  Each route's Suspense fallback shows the matching skeleton while the
+  chunk downloads — eliminating blank screens on navigation too.
+*/
+const Home                    = lazy(() => import("./pages/Home/Home"));
+const Auth                    = lazy(() => import("./pages/Auth/Auth"));
+const PatientDashboard        = lazy(() => import("./pages/PatientDashBoard/PatientDashBoard"));
+const DoctorDashboard         = lazy(() => import("./pages/DoctorDashboard/DoctorDashboard"));
+const MyPatients              = lazy(() => import("./pages/DoctorDashboard/MyPatients"));
+const DoctorSchedule          = lazy(() => import("./pages/DoctorDashboard/DoctorSchedule"));
+const DoctorAnalytics         = lazy(() => import("./pages/DoctorDashboard/DoctorAnalytics"));
+const DoctorHelp              = lazy(() => import("./pages/DoctorDashboard/DoctorHelp"));
+const ProfileCompletion       = lazy(() => import("./pages/ProfileCompletion/ProfileCompletion"));
+const Consultations           = lazy(() => import("./pages/Consultations/Consultations"));
+const ConsultationBookingForm = lazy(() => import("./pages/ConsultationBookingForm/ConsultationBookingForm"));
+const DoctorProfileSetup      = lazy(() => import("./pages/DoctorProfileSetup/DoctorProfileSetup"));
+const DoctorProfileEdit       = lazy(() => import("./pages/DoctorProfileEdit/DoctorProfileEdit"));
+const VideoCall               = lazy(() => import("./pages/VideoCall/VideoCall"));
+const AiTriage                = lazy(() => import("./components/AiTriage/AiTriage"));
+const ConsultedDoctors        = lazy(() => import("./pages/ConsultedDoctors/ConsultedDoctors"));
+const AvailableDoctors        = lazy(() => import("./pages/AvailableDoctors/AvailableDoctors"));
+const ClinicalRecords         = lazy(() => import("./pages/ClinicalRecords/ClinicalRecords"));
+const PatientHistory          = lazy(() => import("./pages/PatientHistory/PatientHistory"));
 
 
 
@@ -197,7 +226,30 @@ const App = () => {
   */
 
   if (isChecking) {
-    return null;
+    const role = localStorage.getItem("userRole");
+    const path = location.pathname;
+
+    // Show the contextually-correct skeleton while auth/profile API resolves
+    if (path.startsWith("/doctor-dashboard/patients")) return <MyPatientsSkeleton />;
+    if (path.startsWith("/doctor-dashboard/schedule")) return <DoctorScheduleSkeleton />;
+    if (path.startsWith("/doctor-dashboard/analytics")) return <DoctorAnalyticsSkeleton />;
+    if (path.startsWith("/doctor-dashboard")) return <DoctorDashboardSkeleton />;
+    if (path.startsWith("/consultations")) return <ConsultationsSkeleton />;
+    if (path.startsWith("/consultation-booking")) return <ConsultationBookingSkeleton />;
+    if (path.startsWith("/available-doctors")) return <AvailableDoctorsSkeleton />;
+    if (path.startsWith("/consulted-doctors")) return <ConsultedDoctorsSkeleton />;
+    if (path.startsWith("/clinical-records") || path.startsWith("/doctor-dashboard/records")) return <ClinicalRecordsSkeleton />;
+    if (path.startsWith("/profile-setup")) return <ProfileCompletionSkeleton />;
+    if (path.startsWith("/doctor-profile-setup")) return <DoctorProfileSetupSkeleton />;
+    if (path.startsWith("/doctor-profile-edit") || path.startsWith("/doctor-dashboard/settings")) return <DoctorProfileEditSkeleton />;
+    if (path.startsWith("/video-call")) return <VideoCallSkeleton />;
+    if (path.startsWith("/ai-triage")) return <AiTriageSkeleton />;
+    if (path.startsWith("/auth")) return <AuthSkeleton />;
+    if (path === "/" || path === "") return <HomeSkeleton />;
+    if (path.startsWith("/dashboard")) {
+      return role === "doctor" ? <DoctorDashboardSkeleton /> : <PatientDashboardSkeleton />;
+    }
+    return role === "doctor" ? <DoctorDashboardSkeleton /> : <PatientDashboardSkeleton />;
   }
 
   /*
@@ -274,14 +326,30 @@ const App = () => {
 
         <Route
           path="/"
-          element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <Home />}
+          element={
+            isLoggedIn ? (
+              <Navigate to="/dashboard" replace />
+            ) : (
+              <Suspense fallback={<HomeSkeleton />}>
+                <Home />
+              </Suspense>
+            )
+          }
         />
 
         {/* AUTH */}
 
         <Route
           path="/auth"
-          element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <Auth />}
+          element={
+            isLoggedIn ? (
+              <Navigate to="/dashboard" replace />
+            ) : (
+              <Suspense fallback={<AuthSkeleton />}>
+                <Auth />
+              </Suspense>
+            )
+          }
         />
 
         {/* DASHBOARD */}
@@ -290,7 +358,17 @@ const App = () => {
           path="/dashboard"
           element={
             isLoggedIn ? (
-              getDashboardComponent()
+              <Suspense
+                fallback={
+                  userRole === "doctor" ? (
+                    <DoctorDashboardSkeleton />
+                  ) : (
+                    <PatientDashboardSkeleton />
+                  )
+                }
+              >
+                {getDashboardComponent()}
+              </Suspense>
             ) : (
               <Navigate to="/auth" replace />
             )
@@ -303,7 +381,9 @@ const App = () => {
           path="/profile-setup"
           element={
             isLoggedIn && userRole === "patient" ? (
-              <ProfileCompletion />
+              <Suspense fallback={<ProfileCompletionSkeleton />}>
+                <ProfileCompletion />
+              </Suspense>
             ) : (
               <Navigate to={isLoggedIn ? "/dashboard" : "/auth"} replace />
             )
@@ -320,9 +400,11 @@ const App = () => {
               doctorProfileCompleted ? (
                 <Navigate to="/dashboard" replace />
               ) : (
-                <DoctorProfileSetup
-                  isProfileIncomplete={!doctorProfileCompleted}
-                />
+                <Suspense fallback={<DoctorProfileSetupSkeleton />}>
+                  <DoctorProfileSetup
+                    isProfileIncomplete={!doctorProfileCompleted}
+                  />
+                </Suspense>
               )
             ) : (
               <Navigate to={isLoggedIn ? "/dashboard" : "/auth"} replace />
@@ -336,9 +418,11 @@ const App = () => {
           path="/doctor-profile-edit"
           element={
             isLoggedIn && userRole === "doctor" ? (
-              <DoctorProfileEdit
-                isProfileIncomplete={!doctorProfileCompleted}
-              />
+              <Suspense fallback={<DoctorProfileEditSkeleton />}>
+                <DoctorProfileEdit
+                  isProfileIncomplete={!doctorProfileCompleted}
+                />
+              </Suspense>
             ) : (
               <Navigate to={isLoggedIn ? "/dashboard" : "/auth"} replace />
             )
@@ -350,7 +434,13 @@ const App = () => {
         <Route
           path="/consultations"
           element={
-            isLoggedIn ? <Consultations /> : <Navigate to="/auth" replace />
+            isLoggedIn ? (
+              <Suspense fallback={<ConsultationsSkeleton />}>
+                <Consultations />
+              </Suspense>
+            ) : (
+              <Navigate to="/auth" replace />
+            )
           }
         />
 
@@ -359,7 +449,13 @@ const App = () => {
         <Route
           path="/available-doctors"
           element={
-            isLoggedIn ? <AvailableDoctors /> : <Navigate to="/auth" replace />
+            isLoggedIn ? (
+              <Suspense fallback={<AvailableDoctorsSkeleton />}>
+                <AvailableDoctors />
+              </Suspense>
+            ) : (
+              <Navigate to="/auth" replace />
+            )
           }
         />
 
@@ -368,7 +464,13 @@ const App = () => {
         <Route
           path="/consulted-doctors"
           element={
-            isLoggedIn ? <ConsultedDoctors /> : <Navigate to="/auth" replace />
+            isLoggedIn ? (
+              <Suspense fallback={<ConsultedDoctorsSkeleton />}>
+                <ConsultedDoctors />
+              </Suspense>
+            ) : (
+              <Navigate to="/auth" replace />
+            )
           }
         />
 
@@ -377,7 +479,13 @@ const App = () => {
         <Route
           path="/clinical-records"
           element={
-            isLoggedIn ? <ClinicalRecords /> : <Navigate to="/auth" replace />
+            isLoggedIn ? (
+              <Suspense fallback={<ClinicalRecordsSkeleton />}>
+                <ClinicalRecords />
+              </Suspense>
+            ) : (
+              <Navigate to="/auth" replace />
+            )
           }
         />
 
@@ -386,7 +494,13 @@ const App = () => {
         <Route
           path="/patient-history"
           element={
-            isLoggedIn ? <PatientHistory /> : <Navigate to="/auth" replace />
+            isLoggedIn ? (
+              <Suspense fallback={<PatientDashboardSkeleton />}>
+                <PatientHistory />
+              </Suspense>
+            ) : (
+              <Navigate to="/auth" replace />
+            )
           }
         />
 
@@ -397,7 +511,9 @@ const App = () => {
           path="/consultation-booking"
           element={
             isLoggedIn && userRole === "patient" ? (
-              <ConsultationBookingForm />
+              <Suspense fallback={<ConsultationBookingSkeleton />}>
+                <ConsultationBookingForm />
+              </Suspense>
             ) : (
               <Navigate to={isLoggedIn ? "/dashboard" : "/auth"} replace />
             )
@@ -408,12 +524,27 @@ const App = () => {
 
         <Route
           path="/video-call/:consultationId"
-          element={isLoggedIn ? <VideoCall /> : <Navigate to="/auth" replace />}
+          element={
+            isLoggedIn ? (
+              <Suspense fallback={<VideoCallSkeleton />}>
+                <VideoCall />
+              </Suspense>
+            ) : (
+              <Navigate to="/auth" replace />
+            )
+          }
         />
 
         {/* AI TRIAGE */}
 
-        <Route path="/ai-triage" element={<AiTriage />} />
+        <Route
+          path="/ai-triage"
+          element={
+            <Suspense fallback={<AiTriageSkeleton />}>
+              <AiTriage />
+            </Suspense>
+          }
+        />
 
         {/* DOCTOR PATIENTS */}
 
@@ -421,7 +552,9 @@ const App = () => {
           path="/doctor-dashboard/patients"
           element={
             isLoggedIn && userRole === "doctor" ? (
-              <MyPatients />
+              <Suspense fallback={<MyPatientsSkeleton />}>
+                <MyPatients />
+              </Suspense>
             ) : (
               <Navigate to="/auth" replace />
             )
@@ -434,7 +567,9 @@ const App = () => {
           path="/doctor-dashboard/schedule"
           element={
             isLoggedIn && userRole === "doctor" ? (
-              <DoctorSchedule isProfileIncomplete={!doctorProfileCompleted} />
+              <Suspense fallback={<DoctorScheduleSkeleton />}>
+                <DoctorSchedule isProfileIncomplete={!doctorProfileCompleted} />
+              </Suspense>
             ) : (
               <Navigate to="/auth" replace />
             )
@@ -447,7 +582,9 @@ const App = () => {
           path="/doctor-dashboard/analytics"
           element={
             isLoggedIn && userRole === "doctor" ? (
-              <DoctorAnalytics isProfileIncomplete={!doctorProfileCompleted} />
+              <Suspense fallback={<DoctorAnalyticsSkeleton />}>
+                <DoctorAnalytics isProfileIncomplete={!doctorProfileCompleted} />
+              </Suspense>
             ) : (
               <Navigate to="/auth" replace />
             )
@@ -460,7 +597,9 @@ const App = () => {
           path="/doctor-dashboard/records"
           element={
             isLoggedIn && userRole === "doctor" ? (
-              <ClinicalRecords />
+              <Suspense fallback={<ClinicalRecordsSkeleton />}>
+                <ClinicalRecords />
+              </Suspense>
             ) : (
               <Navigate to="/auth" replace />
             )
@@ -473,7 +612,9 @@ const App = () => {
           path="/doctor-dashboard/settings"
           element={
             isLoggedIn && userRole === "doctor" ? (
-              <DoctorProfileEdit isProfileIncomplete={!doctorProfileCompleted} />
+              <Suspense fallback={<DoctorProfileEditSkeleton />}>
+                <DoctorProfileEdit isProfileIncomplete={!doctorProfileCompleted} />
+              </Suspense>
             ) : (
               <Navigate to="/auth" replace />
             )
@@ -486,7 +627,9 @@ const App = () => {
           path="/doctor-dashboard/help"
           element={
             isLoggedIn && userRole === "doctor" ? (
-              <DoctorHelp isProfileIncomplete={!doctorProfileCompleted} />
+              <Suspense fallback={<DoctorDashboardSkeleton />}>
+                <DoctorHelp isProfileIncomplete={!doctorProfileCompleted} />
+              </Suspense>
             ) : (
               <Navigate to="/auth" replace />
             )
