@@ -9,7 +9,6 @@ import styles from "./PatientHistory.module.css";
 
 export default function PatientHistory() {
   const [history, setHistory] = useState(null);
-  const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("timeline");
@@ -20,12 +19,9 @@ export default function PatientHistory() {
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      const [histRes, analyticsRes] = await Promise.all([
-        patientHistoryApi.getPatientClinicalRecords(patientId),
-        patientHistoryApi.getDoctorPatientAnalytics("me", patientId).catch(() => null),
-      ]);
+      // getPatientClinicalRecords returns { success, patientOverview, prescriptions, documents, timeline }
+      const histRes = await patientHistoryApi.getPatientClinicalRecords(patientId);
       setHistory(histRes.data);
-      if (analyticsRes?.data?.analytics) setAnalytics(analyticsRes.data.analytics);
     } catch (err) {
       setError("Failed to load clinical history. Please try again.");
       console.error(err);
@@ -40,8 +36,10 @@ export default function PatientHistory() {
   if (error) return <ErrorState message={error} onRetry={load} />;
 
   const { patientOverview, prescriptions = [], documents = [], timeline = [] } = history || {};
-  const activeMeds = analytics?.prescriptionAnalytics?.activeMedications || [];
-  const completedMeds = analytics?.prescriptionAnalytics?.completedMedications || [];
+  // Derive active / completed meds directly from the prescriptions already fetched
+  const allItems = prescriptions.flatMap((rx) => rx.items || []);
+  const activeMeds = allItems.filter((i) => (i.currentStatus || i.status) === "active");
+  const completedMeds = allItems.filter((i) => (i.currentStatus || i.status) === "completed");
 
   return (
     <div className={styles.layout}>
@@ -277,27 +275,45 @@ function PrescriptionCard({ rx, expanded, onToggle }) {
 
       {expanded && (
         <div className={styles.rxCardBody}>
-          {rx.advice && (
+          {rx.diagnosis?.trim() && (
+            <div className={styles.rxSection}>
+              <span className={styles.rxSectionLabel}>Diagnosis</span>
+              <p>{rx.diagnosis}</p>
+            </div>
+          )}
+          {rx.advice?.trim() && (
             <div className={styles.rxSection}>
               <span className={styles.rxSectionLabel}>Advice</span>
               <p>{rx.advice}</p>
             </div>
           )}
-          {rx.recommendedTests && (
+          {rx.recommendedTests?.trim() && (
             <div className={styles.rxSection}>
               <span className={styles.rxSectionLabel}>Recommended Tests</span>
               <p>{rx.recommendedTests}</p>
             </div>
           )}
-          {rx.referralInfo && (
+          {rx.referralInfo?.trim() && (
             <div className={styles.rxSection}>
               <span className={styles.rxSectionLabel}>Referral</span>
               <p>{rx.referralInfo}</p>
             </div>
           )}
-          {rx.items?.length > 0 && (
+          {rx.followUpInstructions?.trim() && (
             <div className={styles.rxSection}>
-              <span className={styles.rxSectionLabel}>Medicines</span>
+              <span className={styles.rxSectionLabel}>Follow-up Instructions</span>
+              <p>{rx.followUpInstructions}</p>
+            </div>
+          )}
+          {rx.followUpRequired && (
+            <div className={styles.rxSection}>
+              <span className={styles.rxSectionLabel}>Follow-up Required</span>
+              <p>In {rx.followUpDays || "?"} days</p>
+            </div>
+          )}
+          {rx.items?.length > 0 ? (
+            <div className={styles.rxSection}>
+              <span className={styles.rxSectionLabel}>Medicines ({rx.items.length})</span>
               <div className={styles.medTable}>
                 <div className={styles.medTableHead}>
                   <span>Medicine</span><span>Dosage</span><span>Route</span>
@@ -306,10 +322,10 @@ function PrescriptionCard({ rx, expanded, onToggle }) {
                 {rx.items.map((item) => (
                   <div key={item.id} className={styles.medTableRow}>
                     <span>{item.medicineName}</span>
-                    <span>{item.dosage}</span>
+                    <span>{item.dosage || "—"}</span>
                     <span>{item.route || "Oral"}</span>
-                    <span>{item.frequency}</span>
-                    <span>{item.duration}</span>
+                    <span>{item.frequency || "—"}</span>
+                    <span>{item.duration || "—"}</span>
                     <span>
                       <MedStatusBadge status={item.currentStatus || item.status} />
                     </span>
@@ -317,6 +333,14 @@ function PrescriptionCard({ rx, expanded, onToggle }) {
                 ))}
               </div>
             </div>
+          ) : (
+            <div className={styles.rxSection}>
+              <span className={styles.rxSectionLabel}>Medicines</span>
+              <p style={{ color: "var(--text-muted, #888)", fontStyle: "italic" }}>No medicines listed in this prescription.</p>
+            </div>
+          )}
+          {!rx.advice?.trim() && !rx.recommendedTests?.trim() && !rx.referralInfo?.trim() && !rx.followUpInstructions?.trim() && !rx.items?.length && (
+            <p style={{ color: "var(--text-muted, #888)", fontStyle: "italic", padding: "8px 0" }}>No additional details recorded for this prescription.</p>
           )}
         </div>
       )}
