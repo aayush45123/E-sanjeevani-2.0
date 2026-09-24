@@ -54,9 +54,19 @@ router.get("/health", async (req, res) => {
 // ─────────────────────────────────────────────────────────────────────────────
 router.post("/assess", async (req, res) => {
   try {
-    const { symptoms, red_flags, triageSessionId } = req.body;
+    let symptoms = req.body.symptoms;
+    const red_flags = req.body.red_flags || req.body.redFlags || {};
+    const triageSessionId = req.body.triageSessionId;
 
+    // Handle case where frontend passes flat symptom vector directly as body
     if (!symptoms || typeof symptoms !== "object") {
+      const { red_flags: _rf, redFlags: _rf2, triageSessionId: _ts, ...flatSymptoms } = req.body || {};
+      if (Object.keys(flatSymptoms).length > 0) {
+        symptoms = flatSymptoms;
+      }
+    }
+
+    if (!symptoms || typeof symptoms !== "object" || Object.keys(symptoms).length === 0) {
       return res.status(400).json({
         success: false,
         message: "Request must include a 'symptoms' object with binary feature values.",
@@ -79,6 +89,37 @@ router.post("/assess", async (req, res) => {
         message: data.message || "Fever assessment failed",
       });
     }
+
+    // Attach structured assessment object for frontend compatibility (e.g. PatientDashBoard chatbot)
+    const topMatch = data.top_ranking?.[0];
+    const topDiseaseName = topMatch?.disease
+      ? topMatch.disease.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+      : (data.red_flag_alert ? "High Risk Alert" : "Inconclusive Assessment");
+    const confidencePct = topMatch?.score ? Math.round(topMatch.score * 100) : (data.red_flag_alert ? 95 : 0);
+
+    data.assessment = {
+      prediction: topDiseaseName,
+      confidence: confidencePct,
+      riskLevel: data.red_flag_alert
+        ? "Critical"
+        : (confidencePct >= 70 ? "High" : (confidencePct >= 40 ? "Moderate" : "Low")),
+      summary: data.red_flag_alert
+        ? (data.red_flag_message || "Critical warning signs detected. Seek immediate emergency care.")
+        : (data.primary_explanation?.join(". ") || "Differential analysis completed based on reported fever symptoms."),
+      topMatches: (data.top_ranking || []).map((r) => ({
+        disease: r.disease
+          ? r.disease.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+          : (r.label || "Condition"),
+        probability: Math.round((r.score || 0) * 100),
+      })),
+      recommendations: data.recommended_action
+        ? [data.recommended_action]
+        : ["Rest and monitor temperature regularly", "Consult a certified physician for confirmatory tests"],
+      suggestedSpecialist: topMatch?.disease?.toLowerCase().includes("dengue")
+        ? "Infectious Disease Specialist"
+        : (topMatch?.disease?.toLowerCase().includes("malaria") ? "General Physician / Tropical Medicine" : "General Physician"),
+      disclaimer: data.disclaimer || "AI-generated preliminary assessment. Not a substitute for formal clinical diagnosis.",
+    };
 
     // Save session in PostgreSQL database so it appears in patient Triage History
     const userId = req.user?.id || req.user?.userId;

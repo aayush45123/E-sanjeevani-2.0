@@ -84,8 +84,13 @@ export const getDoctorPatientAnalytics = async (req, res) => {
 
 export const getPatientClinicalRecords = async (req, res) => {
   try {
-    const { patientId } = req.params;
+    let { patientId } = req.params;
     const { id: requesterId, role } = req.user;
+
+    // Normalize patientId if frontend passes null/undefined/me
+    if (!patientId || patientId === "null" || patientId === "undefined" || patientId === "me") {
+      patientId = requesterId;
+    }
 
     // Patients can only access their own records
     if (role === "patient" && requesterId !== patientId) {

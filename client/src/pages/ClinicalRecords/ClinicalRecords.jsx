@@ -21,6 +21,7 @@ import Sidebar from "../../components/Sidebar/Sidebar";
 import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
 import AddPreviousRecordModal from "../../components/MedicalRecords/AddPreviousRecordModal";
 import AmendPrescriptionModal from "./AmendPrescriptionModal";
+import PrescriptionDetailsModal from "./PrescriptionDetailsModal";
 import { medicalRecordApi, authApi } from "../../utils/api";
 import { performLogout } from "../../utils/auth";
 import styles from "./ClinicalRecords.module.css";
@@ -32,6 +33,7 @@ export default function ClinicalRecords() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [amendTarget, setAmendTarget] = useState(null); // prescription object to amend
+  const [selectedRecord, setSelectedRecord] = useState(null); // view details modal
   const [user, setUser] = useState(null);
   const userRole = localStorage.getItem("userRole");
 
@@ -378,6 +380,16 @@ export default function ClinicalRecords() {
                       )}
 
                       <div className={styles.cardFooterActions}>
+                        {/* View Details button */}
+                        <button
+                          className={styles.amendBtn}
+                          style={{ background: "#f0fdf4", color: "#166534", borderColor: "#bbf7d0" }}
+                          onClick={() => setSelectedRecord(rec)}
+                          title="View complete prescription and clinical details"
+                        >
+                          <FileText size={14} /> View Details
+                        </button>
+
                         {rec.prescriptionPdfUrl && (
                           <a
                             href={rec.prescriptionPdfUrl}
@@ -423,6 +435,12 @@ export default function ClinicalRecords() {
           setAmendTarget(null);
           fetchRecords();
         }}
+      />
+
+      <PrescriptionDetailsModal
+        isOpen={!!selectedRecord}
+        record={selectedRecord}
+        onClose={() => setSelectedRecord(null)}
       />
     </div>
   );

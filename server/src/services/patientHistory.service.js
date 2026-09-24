@@ -63,14 +63,18 @@ export class PatientHistoryService {
 
     // ── 3. All prescriptions (first-class entity) ─────────────────────────
     const allPrescriptions = await db
-      .select()
+      .select({
+        prescription: prescriptions,
+        doctorName: users.name,
+      })
       .from(prescriptions)
+      .leftJoin(users, eq(prescriptions.doctorId, users.id))
       .where(eq(prescriptions.patientId, patientId))
       .orderBy(desc(prescriptions.createdAt));
 
-    // Hydrate each prescription with its items
+    // Hydrate each prescription with its items and doctor info
     const hydratedPrescriptions = await Promise.all(
-      allPrescriptions.map(async (rx) => {
+      allPrescriptions.map(async ({ prescription: rx, doctorName }) => {
         const items = await db
           .select()
           .from(prescriptionItems)
@@ -85,7 +89,11 @@ export class PatientHistoryService {
           return { ...item, currentStatus };
         });
 
-        return { ...rx, items: itemsWithStatus };
+        return {
+          ...rx,
+          doctorName: doctorName || "Doctor",
+          items: itemsWithStatus,
+        };
       })
     );
 

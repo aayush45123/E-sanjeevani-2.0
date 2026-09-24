@@ -14,7 +14,17 @@ export default function PatientHistory() {
   const [activeTab, setActiveTab] = useState("timeline");
   const [expandedRx, setExpandedRx] = useState(null);
 
-  const patientId = localStorage.getItem("userId");
+  const getPatientId = () => {
+    let id = localStorage.getItem("userId");
+    if (!id || id === "null" || id === "undefined") {
+      try {
+        const u = JSON.parse(localStorage.getItem("user"));
+        id = u?.id || u?._id;
+      } catch (e) {}
+    }
+    return id || "me";
+  };
+  const patientId = getPatientId();
 
   const load = useCallback(async () => {
     try {
@@ -138,16 +148,14 @@ export default function PatientHistory() {
             {prescriptions.length === 0 ? (
               <EmptyState text="No prescriptions issued yet" />
             ) : (
-              prescriptions
-                .filter((rx) => rx.status === "finalized")
-                .map((rx) => (
-                  <PrescriptionCard
-                    key={rx.id}
-                    rx={rx}
-                    expanded={expandedRx === rx.id}
-                    onToggle={() => setExpandedRx(expandedRx === rx.id ? null : rx.id)}
-                  />
-                ))
+              prescriptions.map((rx) => (
+                <PrescriptionCard
+                  key={rx.id}
+                  rx={rx}
+                  expanded={expandedRx === rx.id}
+                  onToggle={() => setExpandedRx(expandedRx === rx.id ? null : rx.id)}
+                />
+              ))
             )}
           </div>
         )}
@@ -243,7 +251,8 @@ function TimelineEvent({ event }) {
 }
 
 function PrescriptionCard({ rx, expanded, onToggle }) {
-  const statusColor = { finalized: "green", draft: "amber", amended: "blue" };
+  const statusColorMap = { finalized: "green", draft: "amber", amended: "blue" };
+  const badgeColor = statusColorMap[rx.status] || "green";
   return (
     <div className={styles.rxCard}>
       <div className={styles.rxCardHeader} onClick={onToggle}>
@@ -253,12 +262,13 @@ function PrescriptionCard({ rx, expanded, onToggle }) {
             {new Date(rx.createdAt).toLocaleDateString("en-IN", {
               day: "2-digit", month: "short", year: "numeric",
             })}
+            {rx.doctorName && ` · Dr. ${rx.doctorName.replace(/^Dr\.\s*/i, "")}`}
             {rx.items?.length > 0 && ` · ${rx.items.length} medicine${rx.items.length > 1 ? "s" : ""}`}
           </div>
         </div>
         <div className={styles.rxCardActions}>
-          <span className={`${styles.statusBadge} ${styles[`status_${statusColor[rx.status]}`]}`}>
-            {rx.status}
+          <span className={`${styles.statusBadge} ${styles[`status_${badgeColor}`]}`}>
+            {rx.status || "Finalized"}
           </span>
           {rx.pdfUrl && (
             <a href={rx.pdfUrl} target="_blank" rel="noopener noreferrer"

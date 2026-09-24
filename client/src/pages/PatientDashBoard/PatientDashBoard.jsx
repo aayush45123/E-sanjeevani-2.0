@@ -523,7 +523,7 @@ export default function PatientDashboard() {
       const durationScore =
         typeof answers.duration === "number" ? answers.duration : 1;
 
-      const payload = {
+      const symptomMap = {
         high_fever: answers.high_fever ? 1 : 0,
         sudden_onset: answers.sudden_onset ? 1 : 0,
         chills: answers.chills ? 1 : 0,
@@ -538,11 +538,30 @@ export default function PatientDashboard() {
         duration_days: durationScore,
       };
 
+      const payload = {
+        symptoms: symptomMap,
+        red_flags: answers.red_flags ? { bleeding: true } : {},
+      };
+
       const response = await apiClient.post("/fever/assess", payload);
       const data = response.data;
 
-      if (data.success && data.assessment) {
-        const a = data.assessment;
+      const assessment = data.assessment || (data.top_ranking ? {
+        prediction: data.top_ranking[0]?.disease?.replace(/_/g, " ") || "Fever Assessment",
+        confidence: Math.round((data.top_ranking[0]?.score || 0) * 100),
+        riskLevel: data.red_flag_alert ? "Critical" : "Moderate",
+        summary: data.red_flag_alert ? (data.red_flag_message || "High risk warning") : (data.primary_explanation?.join(". ") || data.recommended_action || "Fever differential analysis completed."),
+        topMatches: (data.top_ranking || []).map((m) => ({
+          disease: m.disease ? m.disease.replace(/_/g, " ") : (m.label || "Condition"),
+          probability: Math.round((m.score || 0) * 100),
+        })),
+        recommendations: data.recommended_action ? [data.recommended_action] : ["Consult a physician for clinical evaluation."],
+        suggestedSpecialist: "General Physician",
+        disclaimer: data.disclaimer || "AI-generated assessment for informational purposes only.",
+      } : null);
+
+      if (data.success && assessment) {
+        const a = assessment;
         let md = `## Fever Assessment Report\n\n`;
         md += `**Primary Suspect:** ${a.prediction} (${a.confidence}% confidence)\n`;
         md += `**Risk Level:** ${a.riskLevel}\n\n`;
