@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { AvailableDoctorsSkeleton } from "../../components/Skeletons";
 
-import { Search, MapPin, Video, Phone, RefreshCw } from "lucide-react";
+import { Search, MapPin, Video, Phone, RefreshCw, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar/Sidebar";
-import { consultationApi } from "../../utils/api";
+import { consultationApi, feedbackApi } from "../../utils/api";
 import styles from "./AvailableDoctors.module.css";
 import toast from "react-hot-toast";
 
@@ -16,8 +16,27 @@ export default function AvailableDoctors() {
   const [showNearMe, setShowNearMe] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
   const [locationLoading, setLocationLoading] = useState(false);
+  const [doctorRatings, setDoctorRatings] = useState({});
 
   const navigate = useNavigate();
+
+  const fetchRatingsForDoctors = async (docs) => {
+    if (!docs || docs.length === 0) return;
+    const ratingsMap = {};
+    await Promise.all(
+      docs.map(async (doc) => {
+        const docId = doc.id || doc._id;
+        if (!docId) return;
+        try {
+          const res = await feedbackApi.getDoctorRating(docId);
+          ratingsMap[docId] = res.data?.data || res.data;
+        } catch {
+          // ignore error for single doctor rating
+        }
+      })
+    );
+    setDoctorRatings((prev) => ({ ...prev, ...ratingsMap }));
+  };
 
   useEffect(() => {
     if (showNearMe && userLocation) {
@@ -34,7 +53,9 @@ export default function AvailableDoctors() {
         specialization: specialization !== "all" ? specialization : undefined,
         limit: 50,
       });
-      setDoctors(response.data.doctors || []);
+      const docs = response.data.doctors || [];
+      setDoctors(docs);
+      fetchRatingsForDoctors(docs);
     } catch (error) {
       console.error("Failed to fetch doctors:", error);
     } finally {
@@ -51,7 +72,9 @@ export default function AvailableDoctors() {
         radiusKm: 50,
         specialization: specialization !== "all" ? specialization : undefined,
       });
-      setDoctors(response.data.doctors || response.data.data?.doctors || []);
+      const docs = response.data.doctors || response.data.data?.doctors || [];
+      setDoctors(docs);
+      fetchRatingsForDoctors(docs);
     } catch (error) {
       console.error("Failed to fetch nearby doctors:", error);
     } finally {
@@ -217,6 +240,23 @@ export default function AvailableDoctors() {
 
                     <div className={styles.cardBody}>
                       <h3 className={styles.doctorName}>Dr. {doctorName}</h3>
+                      {(() => {
+                        const r = doctorRatings[doc.id || doc._id];
+                        const hasReviews = r && r.totalReviews > 0;
+                        return (
+                          <div style={{ display: "flex", alignItems: "center", gap: "6px", margin: "4px 0 8px 0" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "3px", background: "#fef3c7", padding: "2px 8px", borderRadius: "12px" }}>
+                              <Star size={13} fill="#f59e0b" color="#f59e0b" />
+                              <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#92400e" }}>
+                                {hasReviews ? Number(r.averageRating).toFixed(1) : "New"}
+                              </span>
+                            </div>
+                            <span style={{ fontSize: "0.78rem", color: "#64748b" }}>
+                              {hasReviews ? `(${r.totalReviews} review${r.totalReviews > 1 ? "s" : ""})` : "No reviews yet"}
+                            </span>
+                          </div>
+                        );
+                      })()}
                       <p className={styles.specializationText}>{spec}</p>
                       <p className={styles.qualificationText}>{qualification}</p>
                       <p className={styles.experienceText}>{experience}</p>

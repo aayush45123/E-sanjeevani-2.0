@@ -33,6 +33,10 @@ import NotificationService from "../../utils/notificationService";
 import styles from "./PatientDashBoard.module.css";
 import { authApi, consultationApi, medicalRecordApi, apiClient } from "../../utils/api";
 import { performLogout } from "../../utils/auth";
+import {
+  getHomemadeRemedies,
+  getRecommendedDoctor,
+} from "../../utils/remediesAndDoctorRecommender";
 import toast from "react-hot-toast";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -587,6 +591,36 @@ export default function PatientDashboard() {
           md += `**Suggested Specialist:** ${a.suggestedSpecialist}\n\n`;
         }
 
+        // Homemade Remedies for low/medium urgency
+        const remedyResult = getHomemadeRemedies(a.prediction, a.riskLevel);
+        if (remedyResult.isEligible && remedyResult.remedies.length > 0) {
+          md += `---\n### 🌿 Supportive Home Remedies\n`;
+          remedyResult.remedies.forEach((r) => {
+            md += `${r.icon} **${r.title}**: ${r.desc}\n`;
+          });
+          md += `\n*${remedyResult.disclaimer}*\n\n`;
+        } else if (!remedyResult.isEligible) {
+          md += `\n> ⚠️ **${remedyResult.warning}**\n\n`;
+        }
+
+        // Top Recommended Doctor based on Priority Score
+        try {
+          const docRes = await consultationApi.getAvailableDoctors();
+          const doctorsList = docRes.data?.doctors || docRes.data || [];
+          const topDoc = getRecommendedDoctor(doctorsList, a.suggestedSpecialist || "General Physician");
+          if (topDoc) {
+            md += `---\n### 🩺 Recommended Doctor (Best Match by Priority Score)\n`;
+            md += `• **Dr. ${topDoc.name}** (${topDoc.specialization || "General Physician"})\n`;
+            md += `  - **Priority Match Score:** ${topDoc.priorityScore}/100\n`;
+            md += `  - **Experience:** ${topDoc.experience || 5} years\n`;
+            md += `  - **Rating:** ⭐ ${topDoc.effectiveRating}/5\n`;
+            if (topDoc.hospitalName) md += `  - **Hospital:** ${topDoc.hospitalName}\n`;
+            md += `\n👉 *You can book a direct consultation with Dr. ${topDoc.name} from Available Doctors.*\n\n`;
+          }
+        } catch (e) {
+          console.warn("Could not fetch recommended doctor for fever report:", e);
+        }
+
         md += `*${a.disclaimer}*`;
 
         setMessages((prev) => [
@@ -597,7 +631,8 @@ export default function PatientDashboard() {
             text: md,
             options: [
               { label: "⚡ Retake Assessment", value: "start" },
-              { label: "🩺 Consult a Doctor", value: "Help me find a doctor for fever" },
+              { label: "🩺 Find a Doctor", value: "Help me find a doctor for fever" },
+              { label: "📋 View Available Doctors", value: "/available-doctors" },
             ],
             timestamp: new Date(),
           },

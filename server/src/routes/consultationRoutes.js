@@ -10,6 +10,7 @@ import {
   getAvailableDoctors,
   getDoctorsNearMe,
   markUserJoined,
+  getConsultationById,
 } from "../controllers/consultationController.js";
 import { validate } from "../validators/validation.middleware.js";
 import {
@@ -39,6 +40,7 @@ router.get("/doctor-slots", validate(getDoctorAvailableSlotsSchema), getDoctorAv
 router.get("/doctor-dashboard", getDoctorConsultations);
 
 // Status and notes update
+router.get("/:consultationId", getConsultationById);
 router.patch("/:consultationId/status", validate(updateConsultationStatusSchema), updateConsultationStatus);
 router.patch("/:consultationId/notes", validate(addDoctorNotesSchema), addDoctorNotes);
 router.post("/:consultationId/mark-joined", validate(markUserJoinedSchema), markUserJoined);

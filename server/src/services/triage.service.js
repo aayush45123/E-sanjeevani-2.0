@@ -12,6 +12,10 @@ import {
   matchDoctorBySpecialty,
   createAutoMatchedConsultation,
 } from "../helpers/doctorMatching.js";
+import {
+  getHomemadeRemediesText,
+  getTopDoctorRecommendation,
+} from "../helpers/remediesAndDoctorRecommender.js";
 
 const generateAIPreliminaryAssessment = (symptoms) => {
   const symptomList = symptoms.map((s) => s.symptom).join(", ");
@@ -378,7 +382,24 @@ export class TriageService {
         const { predictTriageDisease } = await import("../ai/aiTriageClient.js");
         const res = await predictTriageDisease(prompt);
         const predictionData = res.data?.data || res.data;
-        aiResponseText = `## AI Triage Report\n\n### Predicted Disease\n${predictionData.predictedDisease || "General Evaluation"}\n\n### Urgency Level\n${predictionData.urgency || "Moderate"}\n\n### Recommended Specialist\n${predictionData.doctorType || "General Physician"}\n\nPlease consult a qualified doctor for a complete medical diagnosis.`;
+        const disease = predictionData.predictedDisease || "General Evaluation";
+        const urgency = predictionData.urgency || "Moderate";
+        const specialist = predictionData.doctorType || "General Physician";
+
+        let report = `## AI Triage Report\n\n### Predicted Disease\n${disease}\n\n### Urgency Level\n${urgency}\n\n### Recommended Specialist\n${specialist}\n\n`;
+
+        const remedies = getHomemadeRemediesText(disease, urgency);
+        if (remedies) {
+          report += `${remedies}\n\n`;
+        }
+
+        const doctorRec = await getTopDoctorRecommendation(specialist);
+        if (doctorRec) {
+          report += `${doctorRec}\n\n`;
+        }
+
+        report += `Please consult a qualified doctor for a complete medical diagnosis.`;
+        aiResponseText = report;
       } catch (err) {
         console.error("Custom ML triage model error:", err.message);
         aiResponseText = "I have recorded your symptoms. Based on current AI analysis, please monitor your condition and consult a healthcare professional if symptoms persist.";
@@ -402,7 +423,8 @@ export class TriageService {
             messages: [
               {
                 role: "system",
-                content: "You are a professional, empathetic clinical AI assistant for E-Sanjeevani. Provide helpful, accurate medical triage advice, ask relevant follow-up questions, and educate patients. Always advise consulting a doctor for severe symptoms.",
+                content:
+                  "You are a professional, empathetic clinical AI assistant for E-Sanjeevani. If the patient describes symptoms that appear low or medium in urgency/severity, you MUST prescribe safe, practical homemade remedies (such as ginger-tulsi tea, hydration, warm gargles, honey, steam inhalation, and rest) and recommend they book a consultation with our verified doctors on E-Sanjeevani.",
               },
               ...formattedHistory,
             ],
@@ -410,7 +432,20 @@ export class TriageService {
 
           aiResponseText = chatCompletion.choices[0]?.message?.content || "Thank you for sharing your symptoms. Please consult a doctor for advice.";
         } else {
-          aiResponseText = "I have received your message. Please describe any additional symptoms so I can assist you better.";
+          aiResponseText = "I have received your message. For mild to moderate symptoms, ensure adequate hydration, rest, and warm fluids like ginger-tulsi tea. Please consult an available doctor if symptoms persist.";
+        }
+
+        // Check if message discusses symptoms and append remedies & top doctor if not already included
+        const symptomPattern = /fever|cough|cold|headache|chills|throat|stomach|pain|nausea|vomit|ache|dengue|malaria|typhoid|fatigue|flu|rash/i;
+        if (symptomPattern.test(prompt)) {
+          const remedies = getHomemadeRemediesText(prompt, "Moderate");
+          const doctorRec = await getTopDoctorRecommendation("General Physician");
+          if (remedies && !aiResponseText.toLowerCase().includes("remedies")) {
+            aiResponseText += `\n\n${remedies}`;
+          }
+          if (doctorRec && !aiResponseText.toLowerCase().includes("priority match score")) {
+            aiResponseText += `\n\n${doctorRec}`;
+          }
         }
       } catch (err) {
         console.error("HuggingFace OpenAI chat error:", err.message);

@@ -1,5 +1,9 @@
 import { predictTriageDisease } from "../ai/aiTriageClient.js";
 import { AiTriageRepository } from "../repositories/aiTriage.repository.js";
+import {
+  getHomemadeRemediesText,
+  getTopDoctorRecommendation,
+} from "../helpers/remediesAndDoctorRecommender.js";
 
 export class AiTriageService {
   static async predictDisease(userId, { message }) {
@@ -25,24 +29,37 @@ export class AiTriageService {
 
     const result = aiResponse.data;
     const predictionData = result.data || result;
+    const disease = predictionData.predictedDisease || "General Assessment";
+    const urgency = predictionData.urgency || "Moderate";
+    const doctorType = predictionData.doctorType || "General Physician";
+
+    const remediesText = getHomemadeRemediesText(disease, urgency);
+    let recommendedDoctorText = null;
+    try {
+      recommendedDoctorText = await getTopDoctorRecommendation(doctorType);
+    } catch (docErr) {
+      console.warn("Could not fetch top recommended doctor:", docErr);
+    }
 
     await AiTriageRepository.createChat({
       userId,
       symptoms: message,
-      predictedDisease: predictionData.predictedDisease,
-      urgency: predictionData.urgency,
-      doctorType: predictionData.doctorType,
+      predictedDisease: disease,
+      urgency: urgency,
+      doctorType: doctorType,
       finalDoctorDiagnosis: "",
     });
 
     return {
-      predictedDisease: predictionData.predictedDisease,
+      predictedDisease: disease,
       confidence: predictionData.confidence,
-      urgency: predictionData.urgency,
+      urgency: urgency,
       urgencyScore: predictionData.urgencyScore,
-      doctorType: predictionData.doctorType,
+      doctorType: doctorType,
       topPredictions: predictionData.topPredictions,
       summary: predictionData.summary,
+      remedies: remediesText,
+      recommendedDoctor: recommendedDoctorText,
     };
   }
 }

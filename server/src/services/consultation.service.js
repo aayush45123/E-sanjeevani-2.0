@@ -551,6 +551,33 @@ export class ConsultationService {
       throw { status: 403, message: "You are not part of this consultation" };
     }
 
+    // Enforce 10-minute pre-join restriction
+    if (consultation.consultationDate && consultation.startTime) {
+      try {
+        const d = new Date(consultation.consultationDate);
+        let timeStr = consultation.startTime.trim().toUpperCase();
+        let isPM = timeStr.includes("PM");
+        let isAM = timeStr.includes("AM");
+        timeStr = timeStr.replace(/AM|PM/g, "").trim();
+        const [hoursPart, minutesPart] = timeStr.split(":");
+        let hours = parseInt(hoursPart, 10);
+        const minutes = parseInt(minutesPart, 10) || 0;
+        if (isPM && hours < 12) hours += 12;
+        if (isAM && hours === 12) hours = 0;
+        d.setHours(hours, minutes, 0, 0);
+
+        const diffMinutes = (d.getTime() - Date.now()) / 60000;
+        if (diffMinutes > 10) {
+          throw {
+            status: 400,
+            message: `Consultation can only be joined up to 10 minutes before the scheduled start time (${consultation.startTime}).`,
+          };
+        }
+      } catch (err) {
+        if (err.status) throw err;
+      }
+    }
+
     let joinField;
     if (userRole === "patient" && userId === consultation.patientId) {
       joinField = "patient";
@@ -610,5 +637,22 @@ export class ConsultationService {
     }
 
     return formatConsultation(updatedConsultation, { patient: row.patient });
+  }
+
+  static async getConsultationById(userId, userRole, consultationId) {
+    const consultation = await ConsultationRepository.findById(consultationId);
+    if (!consultation) {
+      throw { status: 404, message: "Consultation not found" };
+    }
+
+    if (consultation.patientId !== userId && consultation.doctorId !== userId) {
+      throw { status: 403, message: "You are not authorized to view this consultation" };
+    }
+
+    const patient = await UserRepository.findById(consultation.patientId);
+    const doctor = await UserRepository.findById(consultation.doctorId);
+    const doctorProfile = await DoctorProfileRepository.findByUserId(consultation.doctorId);
+
+    return formatConsultation(consultation, { patient, doctor, doctorProfile });
   }
 }

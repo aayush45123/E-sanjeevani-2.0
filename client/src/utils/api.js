@@ -13,6 +13,13 @@ export const apiClient = axios.create({
   withCredentials: true,
 });
 
+export const getFullFileUrl = (url) => {
+  if (!url) return "";
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  const baseUrl = API_BASE_URL.replace(/\/api\/?$/, "");
+  return `${baseUrl}${url.startsWith("/") ? "" : "/"}${url}`;
+};
+
 // ─── Token helpers (localStorage is port-isolated on localhost) ───────────────
 const TOKEN_KEY = "access_token_local";
 const REFRESH_TOKEN_KEY = "refresh_token_local";
@@ -306,6 +313,18 @@ export const patientHistoryApi = {
 // Analytics API
 export const analyticsApi = {
   getDoctorAnalytics: () => apiClient.get("/analytics/doctor"),
+};
+
+// Feedback & Dynamic Doctor Ratings API
+export const feedbackApi = {
+  // Patient submits post-call feedback
+  submitFeedback: (data) => apiClient.post("/feedback/submit", data),
+
+  // Check if patient already submitted feedback for a consultation
+  checkFeedback: (consultationId) => apiClient.get(`/feedback/check/${consultationId}`),
+
+  // Get dynamic rating for a specific doctor
+  getDoctorRating: (doctorId) => apiClient.get(`/feedback/doctor/${doctorId}`),
 };
 
 export default apiClient;

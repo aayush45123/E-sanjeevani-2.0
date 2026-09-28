@@ -21,7 +21,7 @@ import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
 import NotificationService from "../../utils/notificationService";
 import { useNavigate } from "react-router-dom";
 import styles from "./DoctorDashboard.module.css";
-import { authApi, consultationApi, apiClient } from "../../utils/api";
+import { authApi, consultationApi, apiClient, feedbackApi } from "../../utils/api";
 import { performLogout } from "../../utils/auth";
 
 export default function DoctorDashboard({ isProfileIncomplete = false }) {
@@ -50,12 +50,13 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
     missingItems: [],
   });
 
+  const [doctorRating, setDoctorRating] = useState(null);
   const [stats, setStats] = useState({
     totalPatients: 0,
     todayConsultations: 0,
     completedToday: 0,
     completedSessions: 0,
-    avgRating: 4.8,
+    avgRating: "—",
   });
 
 
@@ -82,14 +83,26 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
           consultationApi.checkDoctorProfileStatus?.().catch(() => null),
         ]);
 
+        let doctorData = null;
         if (userRes?.data) {
-          const doctorData = userRes.data.user || userRes.data;
+          doctorData = userRes.data.user || userRes.data;
           setUser(doctorData);
+        }
+
+        let ratingData = null;
+        if (doctorData?.id) {
+          try {
+            const ratingRes = await feedbackApi.getDoctorRating(doctorData.id);
+            ratingData = ratingRes?.data?.data || ratingRes?.data;
+            setDoctorRating(ratingData);
+          } catch (rErr) {
+            console.warn("Could not fetch doctor rating:", rErr);
+          }
         }
 
         const allConsultations = consultationRes?.data?.consultations || [];
         setConsultations(allConsultations);
-        calculateStats(allConsultations);
+        calculateStats(allConsultations, ratingData);
 
         if (statusRes?.data) {
           setProfileStatus({
@@ -165,7 +178,7 @@ const SOCKET_URL =
   ==================================================
   */
 
-  const calculateStats = (data) => {
+  const calculateStats = (data, ratingDataParam = null) => {
     const uniquePatients = new Set(
       data.filter((item) => item.patient?._id).map((item) => item.patient._id),
     );
@@ -201,12 +214,16 @@ const SOCKET_URL =
     // Calculate weekly overview data (Mon-Sat)
     calculateWeeklyData(data);
 
+    const activeRating = ratingDataParam !== null ? ratingDataParam : doctorRating;
+
     setStats({
       totalPatients: uniquePatients.size,
       todayConsultations,
       completedToday,
       completedSessions,
-      avgRating: 4.8,
+      avgRating: activeRating?.totalReviews > 0
+        ? `${Number(activeRating.averageRating).toFixed(1)} (${activeRating.totalReviews} reviews)`
+        : "New (No reviews yet)",
     });
   };
 

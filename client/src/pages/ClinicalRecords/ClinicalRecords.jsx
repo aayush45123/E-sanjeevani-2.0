@@ -22,7 +22,7 @@ import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
 import AddPreviousRecordModal from "../../components/MedicalRecords/AddPreviousRecordModal";
 import AmendPrescriptionModal from "./AmendPrescriptionModal";
 import PrescriptionDetailsModal from "./PrescriptionDetailsModal";
-import { medicalRecordApi, authApi } from "../../utils/api";
+import { medicalRecordApi, authApi, getFullFileUrl } from "../../utils/api";
 import { performLogout } from "../../utils/auth";
 import styles from "./ClinicalRecords.module.css";
 
@@ -348,7 +348,7 @@ export default function ClinicalRecords() {
                             {rec.attachments.map((att) => (
                               <a
                                 key={att.id}
-                                href={att.fileUrl}
+                                href={getFullFileUrl(att.fileUrl)}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className={styles.attachPill}
@@ -392,9 +392,10 @@ export default function ClinicalRecords() {
 
                         {rec.prescriptionPdfUrl && (
                           <a
-                            href={rec.prescriptionPdfUrl}
+                            href={getFullFileUrl(rec.prescriptionPdfUrl)}
                             target="_blank"
                             rel="noopener noreferrer"
+                            download
                             className={styles.pdfDownloadBtn}
                           >
                             <Download size={15} /> Download PDF

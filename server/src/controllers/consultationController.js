@@ -160,3 +160,20 @@ export const markUserJoined = async (req, res) => {
     return handleControllerError(res, error, "Failed to update meeting join status");
   }
 };
+
+export const getConsultationById = async (req, res) => {
+  try {
+    const { consultationId } = req.params;
+    const result = await ConsultationService.getConsultationById(
+      req.user.id,
+      req.user.role,
+      consultationId,
+    );
+    return res.status(200).json({
+      success: true,
+      consultation: result,
+    });
+  } catch (error) {
+    return handleControllerError(res, error, "Failed to fetch consultation details");
+  }
+};

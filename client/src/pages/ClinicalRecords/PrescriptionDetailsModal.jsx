@@ -11,6 +11,7 @@ import {
   ClipboardList,
   AlertCircle,
 } from "lucide-react";
+import { getFullFileUrl } from "../../utils/api";
 import styles from "./PrescriptionDetailsModal.module.css";
 
 export default function PrescriptionDetailsModal({ isOpen, onClose, record }) {
@@ -176,9 +177,10 @@ export default function PrescriptionDetailsModal({ isOpen, onClose, record }) {
         <div className={styles.modalFooter}>
           {record.prescriptionPdfUrl ? (
             <a
-              href={record.prescriptionPdfUrl}
+              href={getFullFileUrl(record.prescriptionPdfUrl)}
               target="_blank"
               rel="noopener noreferrer"
+              download
               className={styles.downloadPdfBtn}
             >
               <Download size={16} /> Download Signed PDF

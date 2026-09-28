@@ -11,6 +11,7 @@ export * from "./doctorProfiles.js";
 
 export * from "./consultations.js";
 export * from "./consultationReports.js";
+export * from "./consultationFeedback.js";
 
 export * from "./doctorAvailabilities.js";
 export * from "./availabilitySlots.js";

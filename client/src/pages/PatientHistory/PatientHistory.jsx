@@ -4,7 +4,7 @@ import {
   ChevronUp, Clock, CheckCircle, XCircle, AlertCircle, User, Shield, Stethoscope, ClipboardList,
 } from "lucide-react";
 import Sidebar from "../../components/Sidebar/Sidebar";
-import { patientHistoryApi, prescriptionApi } from "../../utils/api";
+import { patientHistoryApi, prescriptionApi, getFullFileUrl } from "../../utils/api";
 import styles from "./PatientHistory.module.css";
 
 export default function PatientHistory() {
@@ -240,7 +240,7 @@ function TimelineEvent({ event }) {
           <div className={styles.timelineDiag}>Diagnosis: {event.details.diagnosis}</div>
         )}
         {event.details?.pdfUrl && (
-          <a href={event.details.pdfUrl} target="_blank" rel="noopener noreferrer"
+          <a href={getFullFileUrl(event.details.pdfUrl)} target="_blank" rel="noopener noreferrer"
             className={styles.pdfLink}>
             <Download size={12} /> Download PDF
           </a>
@@ -271,7 +271,7 @@ function PrescriptionCard({ rx, expanded, onToggle }) {
             {rx.status || "Finalized"}
           </span>
           {rx.pdfUrl && (
-            <a href={rx.pdfUrl} target="_blank" rel="noopener noreferrer"
+            <a href={getFullFileUrl(rx.pdfUrl)} target="_blank" rel="noopener noreferrer"
               className={styles.pdfIconBtn} onClick={(e) => e.stopPropagation()}
               title="Download PDF">
               <Download size={14} />
@@ -405,7 +405,8 @@ function DocumentCard({ doc }) {
         </div>
         {doc.description && <p className={styles.docDesc}>{doc.description}</p>}
         {doc.attachments?.map((att) => (
-          <a key={att.id} href={att.fileUrl} target="_blank" rel="noopener noreferrer"
+          <a key={att.id} href={getFullFileUrl(att.fileUrl)} target="_blank" rel="noopener noreferrer"
+            download
             className={styles.attLink}>
             <Download size={12} /> {att.fileName}
           </a>

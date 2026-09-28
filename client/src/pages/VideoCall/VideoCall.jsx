@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import io from "socket.io-client";
-import { consultationApi, medicalRecordApi, apiClient } from "../../utils/api";
+import { consultationApi, medicalRecordApi, apiClient, feedbackApi } from "../../utils/api";
 import NotificationService from "../../utils/notificationService";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
@@ -18,6 +18,9 @@ import {
   ShieldCheck,
   PhoneCall,
   ArrowLeft,
+  Star,
+  Clock,
+  AlertCircle,
 } from "lucide-react";
 import styles from "./VideoCall.module.css";
 
@@ -74,6 +77,20 @@ export default function VideoCall() {
   const [rxSuccess, setRxSuccess] = useState(null); // { pdfUrl, message }
   const [rxError, setRxError] = useState("");
   const [pipMinimized, setPipMinimized] = useState(false);
+
+  // Feedback modal state
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [feedbackRating, setFeedbackRating] = useState(0);
+  const [feedbackHover, setFeedbackHover] = useState(0);
+  const [feedbackComment, setFeedbackComment] = useState("");
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
+  const [feedbackError, setFeedbackError] = useState("");
+  const [pendingNavigate, setPendingNavigate] = useState(false);
+
+  // Consultation scheduled time and doctor for 10-min restriction and feedback
+  const [consultationScheduledTime, setConsultationScheduledTime] = useState(null);
+  const [consultationDoctor, setConsultationDoctor] = useState(null);
+  const [timeCheckError, setTimeCheckError] = useState("");
 
   const userRole = localStorage.getItem("userRole");
 
@@ -905,7 +922,6 @@ Give a professional doctor-level response.
     if (shouldEmit && socketRef.current) {
       socketRef.current.emit("end-call");
       console.log("🔴 End call signal sent to other participant");
-      // Small delay to ensure socket message is delivered before disconnect
       setTimeout(() => {
         socketRef.current?.disconnect();
       }, 100);
@@ -914,15 +930,124 @@ Give a professional doctor-level response.
     }
 
     if (shouldNavigate) {
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 200);
+      // Patients must rate; doctors navigate directly
+      if (userRole === "patient") {
+        setPendingNavigate(true);
+        setShowFeedbackModal(true);
+      } else {
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 200);
+      }
     }
+  };
+
+  // ── 10-MINUTE PRE-JOIN RESTRICTION ──────────────────────────────────────────
+  // Fetch consultation details to get scheduled time and doctor info
+  useEffect(() => {
+    const fetchConsultationTime = async () => {
+      try {
+        const res = await consultationApi.getConsultationDetails(consultationId);
+        const consultation = res.data?.consultation || res.data;
+        if (consultation?.startTime && consultation?.consultationDate) {
+          setConsultationScheduledTime({
+            date: consultation.consultationDate,
+            startTime: consultation.startTime,
+          });
+        }
+        if (consultation?.doctor) {
+          setConsultationDoctor(consultation.doctor);
+        }
+      } catch (err) {
+        console.warn("Could not fetch consultation time for restriction check", err);
+      }
+    };
+    fetchConsultationTime();
+  }, [consultationId]);
+
+  const getScheduledDateTime = useCallback(() => {
+    if (!consultationScheduledTime?.date || !consultationScheduledTime?.startTime) return null;
+    try {
+      const d = new Date(consultationScheduledTime.date);
+      if (isNaN(d.getTime())) return null;
+
+      let timeStr = String(consultationScheduledTime.startTime).trim().toUpperCase();
+      const isPM = timeStr.includes("PM");
+      const isAM = timeStr.includes("AM");
+      timeStr = timeStr.replace(/AM|PM/g, "").trim();
+
+      const [hoursPart, minutesPart] = timeStr.split(":");
+      let hours = parseInt(hoursPart, 10);
+      const minutes = parseInt(minutesPart, 10) || 0;
+
+      if (isPM && hours < 12) hours += 12;
+      if (isAM && hours === 12) hours = 0;
+
+      const scheduled = new Date(d.getFullYear(), d.getMonth(), d.getDate(), hours, minutes, 0);
+      return isNaN(scheduled.getTime()) ? null : scheduled;
+    } catch {
+      return null;
+    }
+  }, [consultationScheduledTime]);
+
+  const canJoinNow = () => {
+    const scheduled = getScheduledDateTime();
+    if (!scheduled) return true; // No data = allow (fail open)
+    const now = new Date();
+    const diffMinutes = (scheduled.getTime() - now.getTime()) / 60000;
+    // Allow joining 10 minutes before or any time after scheduled start
+    return diffMinutes <= 10;
+  };
+
+  const getMinutesUntilJoin = () => {
+    const scheduled = getScheduledDateTime();
+    if (!scheduled) return null;
+    const now = new Date();
+    const diffMinutes = Math.ceil((scheduled.getTime() - now.getTime()) / 60000);
+    return diffMinutes > 0 ? diffMinutes : 0;
+  };
+
+  // ── FEEDBACK HANDLERS ────────────────────────────────────────────────────────
+  const handleFeedbackSubmit = async () => {
+    if (feedbackRating === 0) {
+      setFeedbackError("Please select a star rating before submitting.");
+      return;
+    }
+    setFeedbackSubmitting(true);
+    setFeedbackError("");
+    try {
+      await feedbackApi.submitFeedback({
+        consultationId,
+        rating: feedbackRating,
+        comment: feedbackComment.trim(),
+      });
+      setShowFeedbackModal(false);
+      navigate("/dashboard");
+    } catch (err) {
+      const msg = err.response?.data?.message || "Failed to submit feedback. Please try again.";
+      // If already submitted, just navigate away
+      if (err.response?.status === 409) {
+        setShowFeedbackModal(false);
+        navigate("/dashboard");
+        return;
+      }
+      setFeedbackError(msg);
+    } finally {
+      setFeedbackSubmitting(false);
+    }
+  };
+
+  const handleSkipFeedback = () => {
+    setShowFeedbackModal(false);
+    navigate("/dashboard");
   };
 
   const sidebarWidth = userRole === "doctor" ? 230 : 260;
 
   if (isPreJoin) {
+    const joinAllowed = canJoinNow();
+    const minsLeft = getMinutesUntilJoin();
+
     return (
       <div className={styles.root}>
         {userRole === "doctor" ? <DoctorSidebar /> : <Sidebar />}
@@ -966,6 +1091,30 @@ Give a professional doctor-level response.
                   </div>
                 )}
               </div>
+
+              {/* 10-minute restriction banner */}
+              {!joinAllowed && minsLeft !== null && (
+                <div style={{
+                  background: "#fff7ed",
+                  border: "1px solid #fed7aa",
+                  borderRadius: "10px",
+                  padding: "14px 18px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  margin: "0 0 16px 0",
+                }}>
+                  <Clock size={20} color="#f97316" />
+                  <div>
+                    <strong style={{ color: "#9a3412", display: "block", fontSize: "0.95rem" }}>
+                      Consultation starts in {minsLeft} minute{minsLeft !== 1 ? "s" : ""}
+                    </strong>
+                    <span style={{ color: "#c2410c", fontSize: "0.82rem" }}>
+                      You can join up to 10 minutes before your scheduled time ({consultationScheduledTime?.startTime}).
+                    </span>
+                  </div>
+                </div>
+              )}
 
               {/* Settings & Toggles */}
               <div className={styles.prejoinControlsArea}>
@@ -1023,13 +1172,16 @@ Give a professional doctor-level response.
                   type="button"
                   id="prejoin-join-btn"
                   className={styles.prejoinJoinBtn}
+                  disabled={!joinAllowed}
+                  style={!joinAllowed ? { opacity: 0.5, cursor: "not-allowed" } : {}}
                   onClick={() => {
+                    if (!joinAllowed) return;
                     setIsPreJoin(false);
                     setCallStatus("connecting");
                   }}
                 >
                   <PhoneCall size={18} />
-                  <span>Join Consultation</span>
+                  <span>{joinAllowed ? "Join Consultation" : `Opens in ${minsLeft ?? "..."} min`}</span>
                 </button>
               </div>
             </div>
@@ -1846,6 +1998,237 @@ Give a professional doctor-level response.
             </div>
           </div>
         </div>
+
+        {/* Mandatory Post-Call Feedback Modal for Patients */}
+        {showFeedbackModal && (
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              backgroundColor: "rgba(15, 23, 42, 0.8)",
+              backdropFilter: "blur(8px)",
+              zIndex: 99999,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "20px",
+            }}
+          >
+            <div
+              style={{
+                background: "#ffffff",
+                borderRadius: "20px",
+                padding: "36px 32px",
+                maxWidth: "480px",
+                width: "100%",
+                boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+                textAlign: "center",
+                position: "relative",
+              }}
+            >
+              <div
+                style={{
+                  width: "56px",
+                  height: "56px",
+                  borderRadius: "50%",
+                  background: "linear-gradient(135deg, #fef3c7, #fde68a)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  margin: "0 auto 16px auto",
+                }}
+              >
+                <Star size={30} color="#d97706" fill="#f59e0b" />
+              </div>
+
+              <h2
+                style={{
+                  fontSize: "1.45rem",
+                  fontWeight: 700,
+                  color: "#0f172a",
+                  marginBottom: "6px",
+                }}
+              >
+                Rate Your Consultation
+              </h2>
+              <p
+                style={{
+                  color: "#64748b",
+                  fontSize: "0.92rem",
+                  marginBottom: "20px",
+                  lineHeight: "1.45",
+                }}
+              >
+                Consultation feedback is <strong>compulsory</strong>. Please rate your experience with{" "}
+                <strong>{consultationDoctor?.name ? `Dr. ${consultationDoctor.name}` : "your doctor"}</strong> to complete this consultation.
+              </p>
+
+              {/* Stars */}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  gap: "10px",
+                  marginBottom: "8px",
+                }}
+              >
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => {
+                      setFeedbackRating(star);
+                      setFeedbackError("");
+                    }}
+                    onMouseEnter={() => setFeedbackHover(star)}
+                    onMouseLeave={() => setFeedbackHover(0)}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      padding: "6px",
+                      transition: "transform 0.15s ease",
+                      transform:
+                        (feedbackHover || feedbackRating) >= star
+                          ? "scale(1.18)"
+                          : "scale(1)",
+                    }}
+                  >
+                    <Star
+                      size={36}
+                      fill={
+                        (feedbackHover || feedbackRating) >= star
+                          ? "#f59e0b"
+                          : "none"
+                      }
+                      color={
+                        (feedbackHover || feedbackRating) >= star
+                          ? "#f59e0b"
+                          : "#cbd5e1"
+                      }
+                      strokeWidth={2}
+                    />
+                  </button>
+                ))}
+              </div>
+
+              {/* Rating Label */}
+              <div style={{ minHeight: "24px", marginBottom: "16px" }}>
+                <span
+                  style={{
+                    fontSize: "0.9rem",
+                    fontWeight: 600,
+                    color: (feedbackHover || feedbackRating) ? "#d97706" : "#94a3b8",
+                  }}
+                >
+                  {(feedbackHover || feedbackRating) === 1
+                    ? "1 / 5 — Poor"
+                    : (feedbackHover || feedbackRating) === 2
+                    ? "2 / 5 — Fair"
+                    : (feedbackHover || feedbackRating) === 3
+                    ? "3 / 5 — Good"
+                    : (feedbackHover || feedbackRating) === 4
+                    ? "4 / 5 — Very Good"
+                    : (feedbackHover || feedbackRating) === 5
+                    ? "5 / 5 — Excellent!"
+                    : "Tap a star to rate"}
+                </span>
+              </div>
+
+              <div style={{ textAlign: "left", marginBottom: "18px" }}>
+                <label
+                  style={{
+                    display: "block",
+                    fontSize: "0.85rem",
+                    fontWeight: 600,
+                    color: "#334155",
+                    marginBottom: "6px",
+                  }}
+                >
+                  Feedback comments (optional):
+                </label>
+                <textarea
+                  placeholder="Tell us about the consultation quality, audio/video clarity, or advice received..."
+                  value={feedbackComment}
+                  onChange={(e) => setFeedbackComment(e.target.value)}
+                  rows={3}
+                  style={{
+                    width: "100%",
+                    borderRadius: "10px",
+                    border: "1px solid #cbd5e1",
+                    padding: "10px 14px",
+                    fontSize: "0.9rem",
+                    color: "#1e293b",
+                    resize: "none",
+                    outline: "none",
+                    boxSizing: "border-box",
+                    fontFamily: "inherit",
+                  }}
+                />
+              </div>
+
+              {feedbackError && (
+                <div
+                  style={{
+                    background: "#fef2f2",
+                    border: "1px solid #fecaca",
+                    borderRadius: "8px",
+                    padding: "8px 12px",
+                    color: "#b91c1c",
+                    fontSize: "0.84rem",
+                    marginBottom: "16px",
+                  }}
+                >
+                  {feedbackError}
+                </div>
+              )}
+
+              <button
+                type="button"
+                disabled={feedbackSubmitting}
+                onClick={handleFeedbackSubmit}
+                style={{
+                  width: "100%",
+                  padding: "13px 20px",
+                  borderRadius: "10px",
+                  background: "linear-gradient(135deg, #0284c7, #0369a1)",
+                  color: "#ffffff",
+                  border: "none",
+                  fontSize: "0.95rem",
+                  fontWeight: 600,
+                  cursor: feedbackSubmitting ? "not-allowed" : "pointer",
+                  boxShadow: "0 4px 12px rgba(2, 132, 199, 0.3)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                }}
+              >
+                {feedbackSubmitting
+                  ? "Submitting Rating..."
+                  : "Submit Rating & Finish"}
+              </button>
+
+              {feedbackError && (
+                <button
+                  type="button"
+                  onClick={handleSkipFeedback}
+                  style={{
+                    marginTop: "12px",
+                    background: "transparent",
+                    border: "none",
+                    color: "#64748b",
+                    fontSize: "0.82rem",
+                    cursor: "pointer",
+                    textDecoration: "underline",
+                  }}
+                >
+                  Having trouble? Continue to dashboard
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Toast Notifications Container */}
         <div id="toast-container" className={styles.toastContainer}></div>

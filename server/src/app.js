@@ -24,6 +24,7 @@ import analyticsRoutes from "./routes/analyticsRoutes.js";
 import feverRoutes from "./routes/feverRoutes.js";
 import prescriptionRoutes from "./routes/prescriptionRoutes.js";
 import patientHistoryRoutes from "./routes/patientHistoryRoutes.js";
+import feedbackRoutes from "./routes/feedbackRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -143,6 +144,11 @@ app.use("/api/patient-history", patientHistoryRoutes);
 
 /*aichat*/
 app.use("/api/chat", chatRoutes);
+
+/*
+POST-CALL FEEDBACK & DYNAMIC DOCTOR RATINGS
+*/
+app.use("/api/feedback", feedbackRoutes);
 
 /*
 ==================================================

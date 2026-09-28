@@ -3,7 +3,7 @@ import {
   X, User, Calendar, FileText, Pill, Activity, AlertCircle, Shield,
   TrendingUp, Download, CheckCircle, Clock, ChevronDown, ChevronUp, AlertTriangle, Info,
 } from "lucide-react";
-import { patientHistoryApi } from "../../utils/api";
+import { patientHistoryApi, getFullFileUrl } from "../../utils/api";
 import styles from "./DoctorPatientHistory.module.css";
 
 /**
@@ -204,7 +204,7 @@ export default function DoctorPatientHistory({ patientId, doctorId, onClose }) {
                             <div className={styles.eventDiag}>Diagnosis: {evt.details.diagnosis}</div>
                           )}
                           {evt.details?.pdfUrl && (
-                            <a href={evt.details.pdfUrl} target="_blank" rel="noopener noreferrer" className={styles.pdfLink}>
+                            <a href={getFullFileUrl(evt.details.pdfUrl)} target="_blank" rel="noopener noreferrer" className={styles.pdfLink}>
                               <Download size={12} /> Prescription PDF
                             </a>
                           )}
@@ -240,7 +240,7 @@ export default function DoctorPatientHistory({ patientId, doctorId, onClose }) {
                         </ul>
                       )}
                       {rx.pdfUrl && (
-                        <a href={rx.pdfUrl} target="_blank" rel="noopener noreferrer" className={styles.pdfLink}>
+                        <a href={getFullFileUrl(rx.pdfUrl)} target="_blank" rel="noopener noreferrer" className={styles.pdfLink}>
                           <Download size={12} /> Download PDF
                         </a>
                       )}
