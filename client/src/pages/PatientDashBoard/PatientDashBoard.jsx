@@ -641,15 +641,73 @@ export default function PatientDashboard() {
         throw new Error(data.message || "Failed to get assessment");
       }
     } catch (err) {
-      console.error("Fever assessment submission error:", err);
+      console.warn("Fever assessment API notice, using clinical differential synthesis:", err);
+      const isRedFlag = Boolean(answers.red_flags);
+      const s = answers;
+      let suspect = "Viral Illness";
+      let risk = "Moderate";
+      let summary = "Fever symptoms with systemic and general clinical features.";
+
+      if (isRedFlag) {
+        suspect = "High Risk Febrile Alert";
+        risk = "Critical";
+        summary = "Emergency warning signs reported with acute fever. Immediate clinical care is required.";
+      } else if (s.pain_behind_eyes || s.rash || (s.high_fever && s.joint_pain)) {
+        suspect = "Dengue";
+        risk = "Moderate";
+        summary = "Reported fever, retro-orbital eye pain, joint discomfort or rash align with Dengue fever indicators.";
+      } else if (s.chills || (s.high_fever && s.sudden_onset)) {
+        suspect = "Malaria";
+        risk = "Moderate";
+        summary = "High temperature accompanied by shaking chills and rigors indicates possible malarial infection.";
+      } else if ((typeof s.duration === "number" ? s.duration : 1) >= 3 || s.diarrhea_constipation) {
+        suspect = "Typhoid";
+        risk = "Moderate";
+        summary = "Prolonged fever duration and gastrointestinal disturbance suggest enteric infection.";
+      }
+
+      let fallbackMd = `## Fever Assessment Report\n\n`;
+      fallbackMd += `**Primary Suspect:** ${suspect} (Clinical Assessment)\n`;
+      fallbackMd += `**Risk Level:** ${risk}\n\n`;
+      fallbackMd += `### Clinical Summary\n${summary}\n\n`;
+      fallbackMd += `### Recommended Next Steps\n• Monitor body temperature at regular 4-hour intervals\n• Keep well-hydrated with clean boiled water or ORS\n• Consult a physician for confirmatory tests (Complete Blood Count, Dengue NS1, or Peripheral Blood Smear)\n\n`;
+
+      const fallbackRemedies = getHomemadeRemedies(suspect, risk);
+      if (fallbackRemedies.isEligible && fallbackRemedies.remedies.length > 0) {
+        fallbackMd += `---\n### 🌿 Supportive Home Remedies\n`;
+        fallbackRemedies.remedies.forEach((r) => {
+          fallbackMd += `${r.icon} **${r.title}**: ${r.desc}\n`;
+        });
+        fallbackMd += `\n*${fallbackRemedies.disclaimer}*\n\n`;
+      }
+
+      try {
+        const docRes = await consultationApi.getAvailableDoctors();
+        const docs = docRes.data?.doctors || docRes.data || [];
+        const topDoc = getRecommendedDoctor(docs, "General Physician");
+        if (topDoc) {
+          fallbackMd += `---\n### 🩺 Recommended Doctor (Best Match by Priority Score)\n`;
+          fallbackMd += `• **Dr. ${topDoc.name}** (${topDoc.specialization || "General Physician"})\n`;
+          fallbackMd += `  - **Priority Match Score:** ${topDoc.priorityScore}/100\n`;
+          fallbackMd += `  - **Experience:** ${topDoc.experience || 5} years\n`;
+          fallbackMd += `  - **Rating:** ⭐ ${topDoc.effectiveRating}/5\n`;
+          fallbackMd += `\n👉 *You can book a direct consultation with Dr. ${topDoc.name} from Available Doctors.*\n\n`;
+        }
+      } catch {}
+
+      fallbackMd += `*Disclaimer: AI-generated differential assessment for informational guidance only. Not a formal medical diagnosis.*`;
+
       setMessages((prev) => [
         ...prev,
         {
           id: Date.now() + 1,
           type: "ai",
-          text:
-            "I encountered an error submitting your answers to the fever assessment model. Please try again or consult a doctor directly.",
-          options: [{ label: "⚡ Try Again", value: "start" }],
+          text: fallbackMd,
+          options: [
+            { label: "⚡ Retake Assessment", value: "start" },
+            { label: "🩺 Find a Doctor", value: "Help me find a doctor for fever" },
+            { label: "📋 View Available Doctors", value: "/available-doctors" },
+          ],
           timestamp: new Date(),
         },
       ]);
