@@ -31,8 +31,16 @@ export class FeedbackService {
       throw { status: 403, message: "Only the patient can submit feedback for this consultation" };
     }
 
+    if (consultation.status === "cancelled") {
+      throw { status: 400, message: "Feedback cannot be submitted for a cancelled consultation" };
+    }
+
+    // If the consultation is ongoing or scheduled when the call ended, mark it completed
     if (consultation.status !== "completed") {
-      throw { status: 400, message: "Feedback can only be submitted after the consultation is completed" };
+      await db
+        .update(consultations)
+        .set({ status: "completed", updatedAt: new Date() })
+        .where(eq(consultations.id, consultationId));
     }
 
     // Check for duplicate feedback
@@ -64,7 +72,7 @@ export class FeedbackService {
    * Get aggregated rating for a doctor (average + count).
    */
   static async getDoctorRating(doctorId) {
-    const result = await db
+    let result = await db
       .select({
         averageRating: avg(consultationFeedback.rating),
         totalReviews: count(consultationFeedback.id),
@@ -72,7 +80,28 @@ export class FeedbackService {
       .from(consultationFeedback)
       .where(eq(consultationFeedback.doctorId, doctorId));
 
-    const row = result[0];
+    let row = result[0];
+
+    // Fallback: if no feedback found, doctorId might be a doctor_profile id
+    if (!row?.averageRating) {
+      const [profile] = await db
+        .select({ userId: doctorProfiles.userId })
+        .from(doctorProfiles)
+        .where(eq(doctorProfiles.id, doctorId))
+        .limit(1);
+
+      if (profile?.userId) {
+        result = await db
+          .select({
+            averageRating: avg(consultationFeedback.rating),
+            totalReviews: count(consultationFeedback.id),
+          })
+          .from(consultationFeedback)
+          .where(eq(consultationFeedback.doctorId, profile.userId));
+        row = result[0];
+      }
+    }
+
     return {
       averageRating: row?.averageRating ? parseFloat(Number(row.averageRating).toFixed(1)) : null,
       totalReviews: Number(row?.totalReviews ?? 0),

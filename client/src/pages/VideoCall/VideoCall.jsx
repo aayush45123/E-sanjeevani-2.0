@@ -1021,6 +1021,7 @@ Give a professional doctor-level response.
         rating: feedbackRating,
         comment: feedbackComment.trim(),
       });
+      NotificationService.showToast("Thank you for your feedback!", "success");
       setShowFeedbackModal(false);
       navigate("/dashboard");
     } catch (err) {

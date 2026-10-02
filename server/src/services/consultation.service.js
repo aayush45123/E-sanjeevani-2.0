@@ -407,7 +407,7 @@ export class ConsultationService {
     }
 
     const CONSULTATION_STATUS_TRANSITIONS = {
-      scheduled: ["ongoing", "cancelled"],
+      scheduled: ["ongoing", "completed", "cancelled"],
       ongoing: ["completed", "cancelled"],
       completed: [],
       cancelled: [],
@@ -421,7 +421,10 @@ export class ConsultationService {
         return consult.doctorId === userId;
       }
       if (role === "patient") {
-        return consult.patientId === userId && nextStatus === "cancelled";
+        return (
+          consult.patientId === userId &&
+          (nextStatus === "cancelled" || nextStatus === "ongoing" || nextStatus === "completed")
+        );
       }
       return false;
     };
