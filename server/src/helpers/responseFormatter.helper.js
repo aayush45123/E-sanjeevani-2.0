@@ -1,20 +1,33 @@
-export const formatDoctor = (user, profile) => ({
-  _id: user.id,
-  id: user.id,
-  name: user.name,
-  email: user.email,
-  role: user.role,
-  profileImage: user.profileImage ?? null,
-  specialization: profile?.specialization ?? null,
-  qualification: profile?.qualification ?? null,
-  experience: profile?.experience ?? null,
-  hospitalName: profile?.hospitalName ?? null,
-  consultationFee: profile?.consultationFee ?? null,
-  consultationModes: profile?.consultationModes ?? [],
-  aboutDoctor: profile?.aboutDoctor ?? "",
-  shortBio: profile?.shortBio ?? "",
-  profileCompleted: profile?.profileCompleted ?? false,
-});
+export const cleanDoctorName = (rawName) => {
+  if (!rawName) return "Doctor";
+  let cleaned = String(rawName).trim();
+  while (/^(dr\.?|doctor)\s+/i.test(cleaned)) {
+    cleaned = cleaned.replace(/^(dr\.?|doctor)\s+/i, "").trim();
+  }
+  return cleaned || "Doctor";
+};
+
+export const formatDoctor = (user, profile) => {
+  const cleanedName = cleanDoctorName(user.name);
+  return {
+    _id: user.id,
+    id: user.id,
+    name: cleanedName,
+    displayName: `Dr. ${cleanedName}`,
+    email: user.email,
+    role: user.role,
+    profileImage: user.profileImage ?? null,
+    specialization: profile?.specialization ?? null,
+    qualification: profile?.qualification ?? null,
+    experience: profile?.experience ?? null,
+    hospitalName: profile?.hospitalName ?? null,
+    consultationFee: profile?.consultationFee ?? null,
+    consultationModes: profile?.consultationModes ?? [],
+    aboutDoctor: profile?.aboutDoctor ?? "",
+    shortBio: profile?.shortBio ?? "",
+    profileCompleted: profile?.profileCompleted ?? false,
+  };
+};
 
 export const formatSlot = (slot) => ({
   _id: slot.id,
@@ -48,10 +61,12 @@ export const formatConsultation = (
   }
 
   if (doctor) {
+    const cleanedDocName = cleanDoctorName(doctor.name);
     result.doctor = {
       _id: doctor.id,
       id: doctor.id,
-      name: doctor.name,
+      name: cleanedDocName,
+      displayName: `Dr. ${cleanedDocName}`,
       email: doctor.email,
       specialization: doctorProfile?.specialization ?? null,
       qualification: doctorProfile?.qualification ?? null,

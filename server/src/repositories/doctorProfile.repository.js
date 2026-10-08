@@ -146,4 +146,19 @@ export class DoctorProfileRepository {
       )
       .orderBy(distanceExpression);
   }
+
+  static async getDistinctSpecializations() {
+    const rows = await db
+      .select({
+        specialization: doctorProfiles.specialization,
+        count: count(),
+      })
+      .from(doctorProfiles)
+      .innerJoin(users, eq(users.id, doctorProfiles.userId))
+      .where(and(eq(users.role, "doctor"), eq(users.isActive, true)))
+      .groupBy(doctorProfiles.specialization)
+      .orderBy(asc(doctorProfiles.specialization));
+
+    return rows.filter((r) => r.specialization && r.specialization.trim() !== "");
+  }
 }

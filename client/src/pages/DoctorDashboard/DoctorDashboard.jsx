@@ -21,8 +21,16 @@ import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
 import NotificationService from "../../utils/notificationService";
 import { useNavigate } from "react-router-dom";
 import styles from "./DoctorDashboard.module.css";
-import { authApi, consultationApi, apiClient, feedbackApi } from "../../utils/api";
+import {
+  authApi,
+  consultationApi,
+  apiClient,
+  feedbackApi,
+  analyticsApi,
+} from "../../utils/api";
 import { performLogout } from "../../utils/auth";
+import { getCleanDoctorName, formatDoctorName } from "../../utils/doctorUtils";
+import toast from "react-hot-toast";
 
 export default function DoctorDashboard({ isProfileIncomplete = false }) {
   const navigate = useNavigate();
@@ -51,6 +59,8 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
   });
 
   const [doctorRating, setDoctorRating] = useState(null);
+  const [followUps, setFollowUps] = useState([]);
+  const [overviewStats, setOverviewStats] = useState(null);
   const [stats, setStats] = useState({
     totalPatients: 0,
     todayConsultations: 0,
@@ -69,7 +79,7 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
   useEffect(() => {
     async function init() {
       try {
-        const [userRes, consultationRes, statusRes] = await Promise.all([
+        const [userRes, consultationRes, statusRes, followUpRes, overviewRes] = await Promise.all([
           authApi.me().catch((err) => {
             if (err.status === 401 || err.response?.status === 401) {
               performLogout();
@@ -81,6 +91,8 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
             return { data: { consultations: [] } };
           }),
           consultationApi.checkDoctorProfileStatus?.().catch(() => null),
+          analyticsApi.getDoctorFollowUps?.().catch(() => ({ data: { data: [] } })),
+          analyticsApi.getDoctorOverview?.().catch(() => ({ data: { data: null } })),
         ]);
 
         let doctorData = null;
@@ -104,6 +116,14 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
         setConsultations(allConsultations);
         calculateStats(allConsultations, ratingData);
 
+        if (followUpRes?.data?.data) {
+          setFollowUps(followUpRes.data.data);
+        }
+
+        if (overviewRes?.data?.data) {
+          setOverviewStats(overviewRes.data.data);
+        }
+
         if (statusRes?.data) {
           setProfileStatus({
             clinicAddressComplete: statusRes.data.clinicAddressComplete || false,
@@ -120,6 +140,21 @@ export default function DoctorDashboard({ isProfileIncomplete = false }) {
 
     init();
   }, []);
+
+  const handleCompleteFollowUp = async (consultationId) => {
+    try {
+      await analyticsApi.updateFollowUpStatus(consultationId, "completed");
+      setFollowUps((prev) =>
+        prev.map((f) =>
+          f.consultationId === consultationId ? { ...f, status: "completed" } : f
+        )
+      );
+      toast.success("Follow-up marked as completed!");
+    } catch (err) {
+      console.error("Failed to update follow-up status:", err);
+      toast.error("Could not update follow-up status");
+    }
+  };
 
   // ─── Refetch profile status (called after doctor saves clinic address) ────
   const refreshProfileStatus = async () => {
@@ -460,7 +495,7 @@ const SOCKET_URL =
         <header className={styles.pageHeader}>
           <div className={styles.headerLeft}>
             <h1 className={styles.pageTitle}>
-              Good morning, Dr.{firstName}
+              Good morning, Dr. {getCleanDoctorName(user?.name)}
             </h1>
 
             <p className={styles.pageSubtitle}>{todayFormatted}</p>
@@ -546,39 +581,52 @@ const SOCKET_URL =
 
           <section className={styles.statsRow}>
             <StatCard
-              icon={FiUsers}
-              iconColor="#2563eb"
-              iconBg="#eff6ff"
-              label="Total Patients"
-              value={stats.totalPatients}
-              trend="Dynamic from database"
-            />
-
-            <StatCard
               icon={FiCalendar}
               iconColor="#059669"
               iconBg="#f0fdf4"
               label="Today's Consultations"
               value={stats.todayConsultations}
-              trend="Today's bookings"
+              trend={`${stats.completedToday} completed today`}
             />
 
             <StatCard
-              icon={FiStar}
+              icon={FiUsers}
+              iconColor="#2563eb"
+              iconBg="#eff6ff"
+              label="Total Patients"
+              value={overviewStats?.totalPatients || stats.totalPatients}
+              trend="Consulted patient portfolio"
+            />
+
+            <StatCard
+              icon={FiAlertCircle}
+              iconColor="#dc2626"
+              iconBg="#fef2f2"
+              label="Urgent Patients"
+              value={
+                overviewStats?.urgentPatients ??
+                Object.values(urgencyMap).filter(
+                  (u) => u?.urgency === "critical" || u?.urgency === "urgent"
+                ).length
+              }
+              trend="Priority clinical review"
+            />
+
+            <StatCard
+              icon={FiClock}
               iconColor="#d97706"
               iconBg="#fffbeb"
-              label="Average Rating"
-              value={stats.avgRating}
-              trend="Professional score"
-            />
-
-            <StatCard
-              icon={FiCheckCircle}
-              iconColor="#7c3aed"
-              iconBg="#f5f3ff"
-              label="Completed Sessions"
-              value={stats.completedSessions}
-              trend="Completed consultations"
+              label="Follow-ups Due"
+              value={
+                overviewStats?.followUpsDue ??
+                followUps.filter(
+                  (f) =>
+                    f.status === "due_today" ||
+                    f.status === "due_soon" ||
+                    f.status === "overdue"
+                ).length
+              }
+              trend="Requires clinician check"
             />
           </section>
 
@@ -622,7 +670,12 @@ const SOCKET_URL =
                 <div className={styles.cardHeader}>
                   <div className={styles.cardTitleGroup}>
                     <FiTrendingUp size={16} className={styles.cardIcon} />
-                    <h2 className={styles.cardTitle}>Weekly Overview</h2>
+                    <div>
+                      <h2 className={styles.cardTitle}>Weekly Consultations Overview</h2>
+                      <p style={{ margin: "2px 0 0", fontSize: "11.5px", color: "#64748b" }}>
+                        Consultation volume per day
+                      </p>
+                    </div>
                   </div>
                 </div>
 
@@ -651,7 +704,7 @@ const SOCKET_URL =
                             }}
                             title={
                               hasConsultations
-                                ? `${consultationCounts[i]} consultations`
+                                ? `${consultationCounts[i]} consultation(s)`
                                 : "No consultations"
                             }
                           />
@@ -663,10 +716,10 @@ const SOCKET_URL =
                   })}
                 </div>
 
-                <p className={styles.weeklyNote}>
-                  <FiAlertCircle size={12} />
-                  Dynamic consultation activity overview
-                </p>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#64748b", marginTop: "10px", borderTop: "1px solid #f1f5f9", paddingTop: "6px" }}>
+                  <span>X-axis: Day of Week</span>
+                  <span>Y-axis: Number of Consultations</span>
+                </div>
               </section>
 
               {/* RECENT PATIENTS */}
@@ -730,6 +783,134 @@ const SOCKET_URL =
               </section>
             </div>
           </div>
+
+          {/* FOLLOW-UPS REQUIRED */}
+          <section className={styles.followUpsCard}>
+            <div className={styles.cardHeader}>
+              <div className={styles.cardTitleGroup}>
+                <FiClock size={18} style={{ color: "#0ea5a4" }} />
+                <div>
+                  <h2 className={styles.cardTitle}>Follow-ups Required</h2>
+                  <p style={{ margin: "2px 0 0", fontSize: "12px", color: "#64748b" }}>
+                    Patients requiring proactive clinical follow-up based on consultation records
+                  </p>
+                </div>
+              </div>
+
+              <span className={styles.badge} style={{ background: "#e0f2fe", color: "#0369a1" }}>
+                {followUps.length} Pending
+              </span>
+            </div>
+
+            {followUps.length === 0 ? (
+              <div className={styles.emptyState}>
+                <p>No pending patient follow-ups recorded at this time.</p>
+              </div>
+            ) : (
+              <div className={styles.tableWrapper}>
+                <table className={styles.followUpTable}>
+                  <thead>
+                    <tr>
+                      <th>Patient</th>
+                      <th>Last Consultation</th>
+                      <th>Follow-up Due</th>
+                      <th>Reason / Clinical Note</th>
+                      <th>Status</th>
+                      <th>Priority</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {followUps.slice(0, 10).map((fu) => (
+                      <tr key={fu.id || fu.consultationId}>
+                        <td>
+                          <strong>{fu.patientName || "Patient"}</strong>
+                          {fu.patientPhone && (
+                            <div className={styles.fuPatientMeta}>{fu.patientPhone}</div>
+                          )}
+                        </td>
+                        <td>
+                          {fu.lastConsultationDate
+                            ? new Date(fu.lastConsultationDate).toLocaleDateString("en-IN", {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                              })
+                            : "—"}
+                        </td>
+                        <td>
+                          <strong>
+                            {fu.followUpDate
+                              ? new Date(fu.followUpDate).toLocaleDateString("en-IN", {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric",
+                                })
+                              : "Scheduled"}
+                          </strong>
+                        </td>
+                        <td style={{ maxWidth: "240px" }}>{fu.reason || "Clinical follow-up"}</td>
+                        <td>
+                          <span
+                            className={`${styles.fuStatusPill} ${
+                              fu.status === "due_today"
+                                ? styles.statusDueToday
+                                : fu.status === "due_soon"
+                                ? styles.statusDueSoon
+                                : fu.status === "overdue"
+                                ? styles.statusOverdue
+                                : fu.status === "completed"
+                                ? styles.statusCompleted
+                                : styles.statusScheduled
+                            }`}
+                          >
+                            {fu.status === "due_today"
+                              ? "Due Today"
+                              : fu.status === "due_soon"
+                              ? "Due Soon"
+                              : fu.status === "overdue"
+                              ? "Overdue"
+                              : fu.status === "completed"
+                              ? "Completed"
+                              : "Scheduled"}
+                          </span>
+                        </td>
+                        <td>
+                          <span
+                            className={`${styles.priorityBadge} ${
+                              fu.priority === "high"
+                                ? styles.priorityHigh
+                                : fu.priority === "medium"
+                                ? styles.priorityMed
+                                : styles.priorityNormal
+                            }`}
+                          >
+                            {fu.priority}
+                          </span>
+                        </td>
+                        <td>
+                          {fu.status === "completed" ? (
+                            <span className={styles.completedCheck}>
+                              <CheckCircle size={14} /> Done
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              className={styles.markCompleteBtn}
+                              onClick={() => handleCompleteFollowUp(fu.consultationId)}
+                              title="Mark this follow-up as completed"
+                            >
+                              <CheckCircle size={13} /> Mark Done
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
         </div>
       </main>
     </div>

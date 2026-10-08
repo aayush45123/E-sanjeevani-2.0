@@ -181,6 +181,9 @@ export const consultationApi = {
   getAvailableDoctors: (params) =>
     apiClient.get("/consultations/doctors/available", { params }),
 
+  getSpecialties: () =>
+    apiClient.get("/consultations/specialties"),
+
   getDoctorsNearMe: (params) =>
     apiClient.get("/consultations/doctors/nearby", { params }),
 
@@ -312,7 +315,11 @@ export const patientHistoryApi = {
 
 // Analytics API
 export const analyticsApi = {
-  getDoctorAnalytics: () => apiClient.get("/analytics/doctor"),
+  getDoctorAnalytics: (params) => apiClient.get("/analytics/doctor", { params }),
+  getDoctorOverview: () => apiClient.get("/analytics/doctor/overview"),
+  getDoctorFollowUps: () => apiClient.get("/analytics/doctor/follow-ups"),
+  updateFollowUpStatus: (consultationId, status) =>
+    apiClient.patch(`/analytics/doctor/follow-ups/${consultationId}/status`, { status }),
 };
 
 // Feedback & Dynamic Doctor Ratings API

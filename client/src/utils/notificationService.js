@@ -1,6 +1,7 @@
 import React from "react";
 import toast from "react-hot-toast";
 import { CheckCircle2, AlertCircle, AlertTriangle, Info } from "lucide-react";
+import { formatDoctorName } from "./doctorUtils";
 
 // Notification Service with Sound Alerts and Vibration
 // This service handles desktop notifications, sound alerts, and vibration
@@ -144,7 +145,7 @@ export class NotificationService {
   // Appointment reminder notification
   static async appointmentReminderNotification(doctorName) {
     const title = "Appointment Time!";
-    const body = `Your consultation with Dr. ${doctorName} is starting now. Please join immediately!`;
+    const body = `Your consultation with ${formatDoctorName(doctorName)} is starting now. Please join immediately!`;
 
     // Play alert sound
     this.playSound("alert");

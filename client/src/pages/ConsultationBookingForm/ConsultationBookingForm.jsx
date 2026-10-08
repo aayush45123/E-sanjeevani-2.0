@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import styles from "./ConsultationBookingForm.module.css";
 import { consultationApi, doctorAvailabilityApi } from "../../utils/api";
+import { formatDoctorName } from "../../utils/doctorUtils";
 import toast from "react-hot-toast";
 
 export default function ConsultationBookingForm() {
@@ -84,7 +85,7 @@ export default function ConsultationBookingForm() {
         ...formData,
       });
 
-      toast.success(`Consultation booked successfully with Dr. ${doctor.name}!`);
+      toast.success(`Consultation booked successfully with ${formatDoctorName(doctor.name)}!`);
       navigate("/consultations");
     } catch (error) {
       console.error(error);
@@ -107,7 +108,7 @@ export default function ConsultationBookingForm() {
           <div className={styles.headerBlock}>
             <h1 className={styles.title}>Book Consultation</h1>
             <p className={styles.subtitle}>
-              Schedule a secure consultation with <strong>Dr. {doctor.name}</strong> ({doctor.specialization || "Specialist"})
+              Schedule a secure consultation with <strong>{formatDoctorName(doctor.name)}</strong> ({doctor.specialization || "Specialist"})
             </p>
           </div>
 

@@ -21,6 +21,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import { consultationApi } from "../../utils/api";
+import { formatDoctorName, getDoctorInitials } from "../../utils/doctorUtils";
 import styles from "./ConsultedDoctors.module.css";
 
 export default function ConsultedDoctors() {
@@ -167,7 +168,7 @@ export default function ConsultedDoctors() {
           ) : (
             <div className={styles.doctorGrid}>
               {filteredConsultations.map((c) => {
-                const doctorName = c.doctor?.name || "Dr. Specialist";
+                const doctorName = formatDoctorName(c.doctor?.name);
                 const spec = c.doctor?.specialization || "General Practitioner";
                 const hospital = c.doctor?.hospitalName || "Partner Clinic";
                 const dateStr = new Date(c.consultationDate).toLocaleDateString(
@@ -179,10 +180,10 @@ export default function ConsultedDoctors() {
                   <div key={c._id || c.id} className={styles.doctorCard}>
                     <div className={styles.cardHeader}>
                       <div className={styles.avatarCircle}>
-                        {doctorName.charAt(0).toUpperCase()}
+                        {getDoctorInitials(c.doctor?.name)}
                       </div>
                       <div className={styles.doctorInfo}>
-                        <h3 className={styles.doctorName}>Dr. {doctorName}</h3>
+                        <h3 className={styles.doctorName}>{doctorName}</h3>
                         <div className={styles.badgeRow}>
                           <span className={styles.specBadge}>
                             <Stethoscope size={13} /> {spec}
@@ -259,7 +260,7 @@ export default function ConsultedDoctors() {
                 <div>
                   <h2>Consultation Details & Summary</h2>
                   <p>
-                    Dr. {selectedConsultation.doctor?.name || "Specialist"} •{" "}
+                    {formatDoctorName(selectedConsultation.doctor?.name)} •{" "}
                     {new Date(selectedConsultation.consultationDate).toLocaleDateString()}
                   </p>
                 </div>
@@ -318,7 +319,7 @@ export default function ConsultedDoctors() {
                   handleBookFollowUp(doc);
                 }}
               >
-                Re-book with Dr. {selectedConsultation.doctor?.name || "Doctor"}
+                Re-book with {formatDoctorName(selectedConsultation.doctor?.name)}
               </button>
             </div>
           </div>

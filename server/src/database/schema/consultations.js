@@ -69,6 +69,14 @@ export const consultations = pgTable(
 
     followUpRequired: boolean("follow_up_required").default(false).notNull(),
 
+    followUpDate: timestamp("follow_up_date", {
+      withTimezone: true,
+    }),
+
+    followUpStatus: varchar("follow_up_status", {
+      length: 50,
+    }).default("due"),
+
     paymentStatus: paymentStatusEnum("payment_status")
       .default("pending")
       .notNull(),

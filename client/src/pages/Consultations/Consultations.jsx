@@ -18,6 +18,7 @@ import Sidebar from "../../components/Sidebar/Sidebar";
 import styles from "./Consultations.module.css";
 import { useNavigate } from "react-router-dom";
 import { consultationApi } from "../../utils/api";
+import { formatDoctorName } from "../../utils/doctorUtils";
 import toast from "react-hot-toast";
 
 export default function Consultations() {
@@ -297,7 +298,7 @@ export default function Consultations() {
                           </div>
                           <div className={styles.doctorInfoText}>
                             <h3 className={styles.doctorName}>
-                              Dr. {consultation.doctor?.name || "Unknown"}
+                              {formatDoctorName(consultation.doctor?.name)}
                             </h3>
                             <p className={styles.specialization}>
                               {consultation.doctor?.specialization ||
@@ -408,7 +409,7 @@ export default function Consultations() {
                           </div>
                           <div className={styles.doctorInfoText}>
                             <h3 className={styles.doctorName}>
-                              Dr. {consultation.doctor?.name || "Unknown"}
+                              {formatDoctorName(consultation.doctor?.name)}
                             </h3>
                             <p className={styles.specialization}>
                               {consultation.doctor?.specialization ||
@@ -588,7 +589,7 @@ export default function Consultations() {
                         {doctor.name?.charAt(0) || "D"}
                       </div>
 
-                      <h3>Dr. {doctor.name}</h3>
+                      <h3>{formatDoctorName(doctor.name)}</h3>
 
                       <p className={styles.docSpec}>
                         {doctor.specialization || "Specialist"}

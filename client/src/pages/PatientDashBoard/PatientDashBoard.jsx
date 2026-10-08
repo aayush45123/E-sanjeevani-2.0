@@ -37,6 +37,7 @@ import {
   getHomemadeRemedies,
   getRecommendedDoctor,
 } from "../../utils/remediesAndDoctorRecommender";
+import { formatDoctorName } from "../../utils/doctorUtils";
 import toast from "react-hot-toast";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -609,13 +610,14 @@ export default function PatientDashboard() {
           const doctorsList = docRes.data?.doctors || docRes.data || [];
           const topDoc = getRecommendedDoctor(doctorsList, a.suggestedSpecialist || "General Physician");
           if (topDoc) {
+            const cleanDocName = formatDoctorName(topDoc.name);
             md += `---\n### 🩺 Recommended Doctor (Best Match by Priority Score)\n`;
-            md += `• **Dr. ${topDoc.name}** (${topDoc.specialization || "General Physician"})\n`;
+            md += `• **${cleanDocName}** (${topDoc.specialization || "General Physician"})\n`;
             md += `  - **Priority Match Score:** ${topDoc.priorityScore}/100\n`;
             md += `  - **Experience:** ${topDoc.experience || 5} years\n`;
             md += `  - **Rating:** ⭐ ${topDoc.effectiveRating}/5\n`;
             if (topDoc.hospitalName) md += `  - **Hospital:** ${topDoc.hospitalName}\n`;
-            md += `\n👉 *You can book a direct consultation with Dr. ${topDoc.name} from Available Doctors.*\n\n`;
+            md += `\n👉 *You can book a direct consultation with ${cleanDocName} from Available Doctors.*\n\n`;
           }
         } catch (e) {
           console.warn("Could not fetch recommended doctor for fever report:", e);
@@ -686,12 +688,13 @@ export default function PatientDashboard() {
         const docs = docRes.data?.doctors || docRes.data || [];
         const topDoc = getRecommendedDoctor(docs, "General Physician");
         if (topDoc) {
+          const cleanDocName = formatDoctorName(topDoc.name);
           fallbackMd += `---\n### 🩺 Recommended Doctor (Best Match by Priority Score)\n`;
-          fallbackMd += `• **Dr. ${topDoc.name}** (${topDoc.specialization || "General Physician"})\n`;
+          fallbackMd += `• **${cleanDocName}** (${topDoc.specialization || "General Physician"})\n`;
           fallbackMd += `  - **Priority Match Score:** ${topDoc.priorityScore}/100\n`;
           fallbackMd += `  - **Experience:** ${topDoc.experience || 5} years\n`;
           fallbackMd += `  - **Rating:** ⭐ ${topDoc.effectiveRating}/5\n`;
-          fallbackMd += `\n👉 *You can book a direct consultation with Dr. ${topDoc.name} from Available Doctors.*\n\n`;
+          fallbackMd += `\n👉 *You can book a direct consultation with ${cleanDocName} from Available Doctors.*\n\n`;
         }
       } catch {}
 
@@ -1160,7 +1163,7 @@ export default function PatientDashboard() {
                   </div>
                   <div className={styles.doctorDetails}>
                     <h3 className={styles.doctorNameText}>
-                      Dr. {nextAppt.doctor?.name || "Specialist Doctor"}
+                      {formatDoctorName(nextAppt.doctor?.name)}
                     </h3>
                     <p className={styles.doctorSpecText}>
                       {nextAppt.doctor?.specialization || "General Medicine"}
@@ -1533,8 +1536,8 @@ export default function PatientDashboard() {
                   prompt: "Please analyze and explain this medical report in plain language: ",
                 },
                 {
-                  icon: <ClipboardList size={14} />,
-                  label: "Full Assessment",
+                  icon: <Sparkles size={14} />,
+                  label: "AI Clinical Triage",
                   action: () => navigate("/ai-triage"),
                 },
               ].map((pill) => (
@@ -1593,7 +1596,7 @@ export default function PatientDashboard() {
                         </div>
                         <div className={styles.activityItemInfo}>
                           <div className={styles.activityItemName}>
-                            Dr. {c.doctor?.name || "Specialist"}
+                            {formatDoctorName(c.doctor?.name)}
                           </div>
                           <div className={styles.activityItemSub}>
                             {c.symptoms || c.currentProblem || "Online Consultation"}
@@ -1637,7 +1640,7 @@ export default function PatientDashboard() {
                             {r.recordTitle || r.diagnosis || "Medical Record"}
                           </div>
                           <div className={styles.activityItemSub}>
-                            {r.doctorName ? `Dr. ${r.doctorName}` : "Patient Record"} •{" "}
+                            {r.doctorName ? formatDoctorName(r.doctorName) : "Patient Record"} •{" "}
                             {r.recordDate ? new Date(r.recordDate).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : ""}
                           </div>
                         </div>

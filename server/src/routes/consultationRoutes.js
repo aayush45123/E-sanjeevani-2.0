@@ -8,6 +8,7 @@ import {
   updateConsultationStatus,
   addDoctorNotes,
   getAvailableDoctors,
+  getDoctorSpecialties,
   getDoctorsNearMe,
   markUserJoined,
   getConsultationById,
@@ -28,6 +29,8 @@ const router = express.Router();
 router.use(authMiddleware);
 
 // Patient routes
+router.get("/specialties", getDoctorSpecialties);
+router.get("/doctors/specialties", getDoctorSpecialties);
 router.get("/doctors/available", validate(getAvailableDoctorsSchema), getAvailableDoctors);
 router.get("/doctors/nearby", validate(getDoctorsNearMeSchema), getDoctorsNearMe);
 router.post("/book", validate(createConsultationSchema), createConsultation);

@@ -1,41 +1,64 @@
 import { AnalyticsRepository } from "../repositories/analytics.repository.js";
 
 export class AnalyticsService {
-  static async getDoctorAnalytics(doctorId) {
+  static async getDoctorAnalytics(doctorId, { range = 30 } = {}) {
+    const days = Number(range) === 7 ? 7 : 30;
     const now = new Date();
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(now.getDate() - 30);
 
-    const basicStats = await AnalyticsRepository.getBasicStats(doctorId);
+    const [
+      basicStats,
+      trendRows,
+      modalityRows,
+      peakHoursRows,
+      demographicsRows,
+      followUps,
+      triageData,
+      diseaseData,
+      rxData,
+      summaryCards,
+    ] = await Promise.all([
+      AnalyticsRepository.getBasicStats(doctorId),
+      AnalyticsRepository.getTrendRows(doctorId, days),
+      AnalyticsRepository.getModalityRows(doctorId),
+      AnalyticsRepository.getPeakHoursRows(doctorId),
+      AnalyticsRepository.getDemographicsRows(doctorId),
+      AnalyticsRepository.getFollowUps(doctorId),
+      AnalyticsRepository.getTriageAnalytics(doctorId),
+      AnalyticsRepository.getDiseaseAnalytics(doctorId),
+      AnalyticsRepository.getPrescriptionAnalytics(doctorId),
+      AnalyticsRepository.getSummaryCards(doctorId),
+    ]);
+
     const stats = basicStats || {
       total: 0,
       completed: 0,
       cancelled: 0,
       ongoing: 0,
+      scheduled: 0,
+      todayConsultations: 0,
+      thisWeekConsultations: 0,
+      thisMonthConsultations: 0,
     };
 
-    const trendRows = await AnalyticsRepository.getTrendRows(doctorId, thirtyDaysAgo);
-    const modalityRows = await AnalyticsRepository.getModalityRows(doctorId);
-
     const modalities = modalityRows.map((d) => ({
-      name: d.type.charAt(0).toUpperCase() + d.type.slice(1),
+      name: d.type ? d.type.charAt(0).toUpperCase() + d.type.slice(1) : "Other",
       value: d.value,
     }));
 
-    const peakHoursRows = await AnalyticsRepository.getPeakHoursRows(doctorId);
     const peakHours = peakHoursRows.map((d) => ({
       hour: `${d.hour}:00`,
       consultations: d.count,
     }));
 
-    const last30Days = [];
-    for (let i = 29; i >= 0; i--) {
+    // Build day-by-day continuous timeline
+    const trend = [];
+    for (let i = days - 1; i >= 0; i--) {
       const d = new Date();
       d.setDate(now.getDate() - i);
       const dateStr = d.toISOString().split("T")[0];
 
       const found = trendRows.find((t) => t.date === dateStr);
-      last30Days.push({
+      trend.push({
         date: dateStr,
         displayDate: d.toLocaleDateString("en-US", {
           month: "short",
@@ -43,18 +66,21 @@ export class AnalyticsService {
         }),
         total: found ? found.count : 0,
         completed: found ? found.completed : 0,
+        cancelled: found ? found.cancelled : 0,
       });
     }
 
-    const demographicsRows = await AnalyticsRepository.getDemographicsRows(doctorId);
-
-    let retention = { new: 0, returning: 0 };
+    let retention = { new: 0, returning: 0, firstTime: 0 };
     let genderDistribution = { male: 0, female: 0, other: 0 };
     let ageDistribution = { under18: 0, "18to35": 0, "36to50": 0, "51plus": 0 };
 
     demographicsRows.forEach((p) => {
-      if (p.consultationCount === 1) retention.new++;
-      else if (p.consultationCount > 1) retention.returning++;
+      if (p.consultationCount === 1) {
+        retention.new++;
+        retention.firstTime++;
+      } else if (p.consultationCount > 1) {
+        retention.returning++;
+      }
 
       if (p.gender) {
         const gender = p.gender.toLowerCase();
@@ -88,11 +114,35 @@ export class AnalyticsService {
 
     return {
       stats,
-      trend: last30Days,
+      trend,
       modalities,
       peakHours,
       demographics,
       retention,
+      followUps,
+      triage: triageData,
+      diseases: diseaseData,
+      prescriptions: rxData,
+      summaryCards,
     };
+  }
+
+  static async getFollowUps(doctorId) {
+    return AnalyticsRepository.getFollowUps(doctorId);
+  }
+
+  static async updateFollowUpStatus(doctorId, consultationId, status) {
+    if (!consultationId || !status) {
+      throw { status: 400, message: "consultationId and status are required" };
+    }
+    return AnalyticsRepository.updateFollowUpStatus(
+      doctorId,
+      consultationId,
+      status,
+    );
+  }
+
+  static async getDoctorOverview(doctorId) {
+    return AnalyticsRepository.getSummaryCards(doctorId);
   }
 }

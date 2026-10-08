@@ -127,6 +127,10 @@ export class ConsultationService {
     };
   }
 
+  static async getDoctorSpecialties() {
+    return DoctorProfileRepository.getDistinctSpecializations();
+  }
+
   static async getDoctorAvailableSlots({ doctorId, date }) {
     const availableDate = getDateString(date);
     if (!doctorId || !availableDate) {

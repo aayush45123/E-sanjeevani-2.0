@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import io from "socket.io-client";
 import { consultationApi, medicalRecordApi, apiClient, feedbackApi } from "../../utils/api";
+import { formatDoctorName } from "../../utils/doctorUtils";
 import NotificationService from "../../utils/notificationService";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
@@ -1063,7 +1064,7 @@ Give a professional doctor-level response.
                 <h2 className={styles.prejoinTitle}>Ready for your consultation?</h2>
                 <p className={styles.prejoinSubtitle}>
                   Room {consultationId?.slice(-6)?.toUpperCase()} · Joining as{" "}
-                  <strong>{userRole === "doctor" ? "Dr. " : ""}{userName}</strong>
+                  <strong>{userRole === "doctor" ? formatDoctorName(userName) : userName}</strong>
                 </p>
               </div>
 
@@ -1388,7 +1389,7 @@ Give a professional doctor-level response.
                   <h3 className={styles.remoteAudioOnlyName}>
                     {userRole === "doctor"
                       ? (doctorAssistantData?.patientBasicInfo?.name || "Patient")
-                      : (doctorAssistantData?.doctorInfo?.name ? `Dr. ${doctorAssistantData?.doctorInfo?.name}` : "Doctor")}
+                      : formatDoctorName(doctorAssistantData?.doctorInfo?.name)}
                   </h3>
                   <div className={styles.remoteAudioOnlyBadge}>
                     <Volume2 size={16} />
@@ -2061,7 +2062,7 @@ Give a professional doctor-level response.
                 }}
               >
                 Consultation feedback is <strong>compulsory</strong>. Please rate your experience with{" "}
-                <strong>{consultationDoctor?.name ? `Dr. ${consultationDoctor.name}` : "your doctor"}</strong> to complete this consultation.
+                <strong>{formatDoctorName(consultationDoctor?.name)}</strong> to complete this consultation.
               </p>
 
               {/* Stars */}

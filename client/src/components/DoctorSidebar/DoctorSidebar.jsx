@@ -7,6 +7,7 @@ import {
   FiUsers,
   FiFileText,
   FiBarChart2,
+  FiActivity,
   FiSettings,
   FiHelpCircle,
   FiLogOut,
@@ -14,6 +15,7 @@ import {
   FiChevronUp,
 } from "react-icons/fi";
 import logoImage from "../../assets/logo-svg.svg";
+import { formatDoctorName, getDoctorInitials } from "../../utils/doctorUtils";
 import styles from "./DoctorSidebar.module.css";
 
 const navSections = [
@@ -37,6 +39,11 @@ const navSections = [
         to: "/doctor-dashboard/analytics",
         icon: FiBarChart2,
         label: "Analytics",
+      },
+      {
+        to: "/ai-triage",
+        icon: FiActivity,
+        label: "AI Clinical Triage",
       },
     ],
   },
@@ -87,16 +94,9 @@ export default function DoctorSidebar({
     }
   };
 
-  const displayName = user?.name || getCachedName();
-
-  const initials = displayName !== "Doctor"
-    ? displayName
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase()
-    : "DR";
+  const rawName = user?.name || getCachedName();
+  const displayName = formatDoctorName(rawName);
+  const initials = getDoctorInitials(rawName);
 
   return (
     <>

@@ -33,6 +33,18 @@ export const getAvailableDoctors = async (req, res) => {
   }
 };
 
+export const getDoctorSpecialties = async (req, res) => {
+  try {
+    const specialties = await ConsultationService.getDoctorSpecialties();
+    return res.status(200).json({
+      success: true,
+      specialties,
+    });
+  } catch (error) {
+    return handleControllerError(res, error, "Failed to fetch doctor specialties");
+  }
+};
+
 export const getDoctorAvailableSlots = async (req, res) => {
   try {
     const slots = await ConsultationService.getDoctorAvailableSlots(req.query);

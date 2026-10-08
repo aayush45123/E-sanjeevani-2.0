@@ -1,24 +1,51 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { AvailableDoctorsSkeleton } from "../../components/Skeletons";
-
-import { Search, MapPin, Video, Phone, RefreshCw, Star } from "lucide-react";
+import {
+  Search,
+  MapPin,
+  Video,
+  Phone,
+  RefreshCw,
+  Star,
+  Layers,
+  LayoutGrid,
+  Stethoscope,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import { consultationApi, feedbackApi } from "../../utils/api";
+import { formatDoctorName, getDoctorInitials } from "../../utils/doctorUtils";
 import styles from "./AvailableDoctors.module.css";
 import toast from "react-hot-toast";
 
 export default function AvailableDoctors() {
   const [doctors, setDoctors] = useState([]);
+  const [dbSpecialties, setDbSpecialties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [specialization, setSpecialization] = useState("all");
+  const [selectedSpecialty, setSelectedSpecialty] = useState("all");
+  const [viewMode, setViewMode] = useState("sections"); // "sections" | "grid"
   const [showNearMe, setShowNearMe] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
   const [locationLoading, setLocationLoading] = useState(false);
   const [doctorRatings, setDoctorRatings] = useState({});
 
   const navigate = useNavigate();
+
+  // Load distinct specialties from database on mount
+  useEffect(() => {
+    async function loadSpecialties() {
+      try {
+        const res = await consultationApi.getSpecialties();
+        if (res.data?.specialties) {
+          setDbSpecialties(res.data.specialties);
+        }
+      } catch (err) {
+        console.warn("Could not fetch specialties list:", err);
+      }
+    }
+    loadSpecialties();
+  }, []);
 
   const fetchRatingsForDoctors = async (docs) => {
     if (!docs || docs.length === 0) return;
@@ -31,7 +58,7 @@ export default function AvailableDoctors() {
           const res = await feedbackApi.getDoctorRating(docId);
           ratingsMap[docId] = res.data?.data || res.data;
         } catch {
-          // ignore error for single doctor rating
+          // ignore single doctor rating failure
         }
       })
     );
@@ -44,16 +71,17 @@ export default function AvailableDoctors() {
     } else {
       fetchDoctors();
     }
-  }, [specialization, showNearMe, userLocation]);
+  }, [selectedSpecialty, showNearMe, userLocation]);
 
   const fetchDoctors = async () => {
     try {
       setLoading(true);
       const response = await consultationApi.getAvailableDoctors({
-        specialization: specialization !== "all" ? specialization : undefined,
-        limit: 50,
+        specialization:
+          selectedSpecialty !== "all" ? selectedSpecialty : undefined,
+        limit: 100,
       });
-      const docs = response.data.doctors || [];
+      const docs = response.data?.doctors || [];
       setDoctors(docs);
       fetchRatingsForDoctors(docs);
     } catch (error) {
@@ -70,9 +98,10 @@ export default function AvailableDoctors() {
         latitude: userLocation.latitude,
         longitude: userLocation.longitude,
         radiusKm: 50,
-        specialization: specialization !== "all" ? specialization : undefined,
+        specialization:
+          selectedSpecialty !== "all" ? selectedSpecialty : undefined,
       });
-      const docs = response.data.doctors || response.data.data?.doctors || [];
+      const docs = response.data?.doctors || response.data?.data?.doctors || [];
       setDoctors(docs);
       fetchRatingsForDoctors(docs);
     } catch (error) {
@@ -100,7 +129,9 @@ export default function AvailableDoctors() {
             toast.success("Location acquired. Showing nearby doctors.");
           },
           (error) => {
-            toast.error("Could not retrieve your location. Please check browser permissions.");
+            toast.error(
+              "Could not retrieve your location. Please check browser permissions."
+            );
             setLocationLoading(false);
           }
         );
@@ -112,18 +143,42 @@ export default function AvailableDoctors() {
     }
   };
 
-  // Get unique specializations for filter dropdown
-  const specializationsList = [
-    "all",
-    ...new Set(doctors.map((d) => d.specialization).filter(Boolean)),
-  ];
+  // Compile full available list of specialties combining DB list and currently loaded doctors
+  const allSpecialties = useMemo(() => {
+    const specsMap = new Map();
+    dbSpecialties.forEach((s) => {
+      if (s.specialization) specsMap.set(s.specialization, Number(s.count || 0));
+    });
+    doctors.forEach((d) => {
+      if (d.specialization) {
+        const cur = specsMap.get(d.specialization) || 0;
+        if (!specsMap.has(d.specialization)) specsMap.set(d.specialization, cur + 1);
+      }
+    });
+    return Array.from(specsMap.keys()).sort();
+  }, [dbSpecialties, doctors]);
 
-  const filteredDoctors = doctors.filter((doc) => {
-    const name = doc.name || "";
-    const spec = doc.specialization || "";
-    const q = searchQuery.toLowerCase();
-    return name.toLowerCase().includes(q) || spec.toLowerCase().includes(q);
-  });
+  // Filtered doctors based on search query
+  const filteredDoctors = useMemo(() => {
+    return doctors.filter((doc) => {
+      const name = doc.name || "";
+      const spec = doc.specialization || "";
+      const q = searchQuery.toLowerCase().trim();
+      if (!q) return true;
+      return name.toLowerCase().includes(q) || spec.toLowerCase().includes(q);
+    });
+  }, [doctors, searchQuery]);
+
+  // Group filtered doctors by Section / Department
+  const sectionWiseDoctors = useMemo(() => {
+    const groups = {};
+    filteredDoctors.forEach((doc) => {
+      const section = doc.specialization || "General Medicine";
+      if (!groups[section]) groups[section] = [];
+      groups[section].push(doc);
+    });
+    return groups;
+  }, [filteredDoctors]);
 
   const handleBookAppt = (doctor) => {
     navigate("/consultation-booking", {
@@ -131,9 +186,115 @@ export default function AvailableDoctors() {
     });
   };
 
-  if (loading) {
+  if (loading && doctors.length === 0) {
     return <AvailableDoctorsSkeleton />;
   }
+
+  // Doctor Card Component to ensure consistent rendering
+  const renderDoctorCard = (doc) => {
+    const docDisplayName = formatDoctorName(doc.name);
+    const spec = doc.specialization || "Specialist";
+    const qualification = doc.qualification || "Qualified";
+    const experience =
+      doc.experience !== undefined
+        ? `${doc.experience} years exp.`
+        : "0 years exp.";
+    const initials = getDoctorInitials(doc.name);
+
+    return (
+      <div key={doc._id || doc.id} className={styles.doctorCard}>
+        <div className={styles.cardHeader}>
+          <div className={styles.avatarCircle}>{initials}</div>
+          {doc.distanceInKm && (
+            <span className={styles.distanceBadge}>
+              <MapPin size={12} /> {doc.distanceInKm.toFixed(1)} km away
+            </span>
+          )}
+        </div>
+
+        <div className={styles.cardBody}>
+          <h3 className={styles.doctorName}>{docDisplayName}</h3>
+          {(() => {
+            const r = doctorRatings[doc.id || doc._id];
+            const hasReviews = r && r.totalReviews > 0;
+            return (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  margin: "4px 0 8px 0",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "3px",
+                    background: "#fef3c7",
+                    padding: "2px 8px",
+                    borderRadius: "12px",
+                  }}
+                >
+                  <Star size={13} fill="#f59e0b" color="#f59e0b" />
+                  <span
+                    style={{
+                      fontSize: "0.82rem",
+                      fontWeight: 700,
+                      color: "#92400e",
+                    }}
+                  >
+                    {hasReviews ? Number(r.averageRating).toFixed(1) : "New"}
+                  </span>
+                </div>
+                <span style={{ fontSize: "0.78rem", color: "#64748b" }}>
+                  {hasReviews
+                    ? `(${r.totalReviews} review${r.totalReviews > 1 ? "s" : ""})`
+                    : "No reviews yet"}
+                </span>
+              </div>
+            );
+          })()}
+          <p className={styles.specializationText}>{spec}</p>
+          <p className={styles.qualificationText}>{qualification}</p>
+          <p className={styles.experienceText}>{experience}</p>
+          {doc.hospitalName && (
+            <p className={styles.hospitalText}>{doc.hospitalName}</p>
+          )}
+          {doc.consultationFee !== undefined &&
+            doc.consultationFee !== null &&
+            doc.consultationFee > 0 && (
+              <p className={styles.feeText}>
+                ₹{doc.consultationFee} Consultation Fee
+              </p>
+            )}
+        </div>
+
+        <div className={styles.cardFooter}>
+          <button
+            className={styles.iconBtn}
+            title="Video Consultation"
+            onClick={() => handleBookAppt(doc)}
+          >
+            <Video size={16} />
+          </button>
+          <button
+            className={styles.iconBtn}
+            title="Audio Consultation"
+            onClick={() => handleBookAppt(doc)}
+          >
+            <Phone size={16} />
+          </button>
+          <button
+            className={styles.bookApptBtn}
+            onClick={() => handleBookAppt(doc)}
+          >
+            Book Appt
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className={styles.dashboardLayout}>
@@ -143,10 +304,82 @@ export default function AvailableDoctors() {
         <div className={styles.contentWrapper}>
           {/* Header */}
           <div className={styles.pageHeader}>
-            <h1 className={styles.pageTitle}>Available Doctors</h1>
-            <p className={styles.pageSubtitle}>
-              Find and book appointments with available doctors.
-            </p>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+                flexWrap: "wrap",
+                gap: "16px",
+              }}
+            >
+              <div>
+                <h1 className={styles.pageTitle}>Available Doctors</h1>
+                <p className={styles.pageSubtitle}>
+                  Section-wise directory of verified specialists available for
+                  teleconsultation.
+                </p>
+              </div>
+
+              {/* View Mode Toggle */}
+              <div className={styles.viewModeToggle}>
+                <button
+                  type="button"
+                  className={`${styles.viewModeBtn} ${
+                    viewMode === "sections" ? styles.viewModeBtnActive : ""
+                  }`}
+                  onClick={() => setViewMode("sections")}
+                  title="Group doctors by department section"
+                >
+                  <Layers size={14} /> Section-Wise
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.viewModeBtn} ${
+                    viewMode === "grid" ? styles.viewModeBtnActive : ""
+                  }`}
+                  onClick={() => setViewMode("grid")}
+                  title="View all doctors in standard grid"
+                >
+                  <LayoutGrid size={14} /> Grid View
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Section / Department Quick-Filter Pills */}
+          <div className={styles.sectionPillsContainer}>
+            <button
+              type="button"
+              className={`${styles.sectionPill} ${
+                selectedSpecialty === "all" ? styles.sectionPillActive : ""
+              }`}
+              onClick={() => setSelectedSpecialty("all")}
+            >
+              <span>All Sections</span>
+              <span className={styles.pillBadge}>{doctors.length}</span>
+            </button>
+            {allSpecialties.map((spec) => {
+              const count = doctors.filter(
+                (d) => d.specialization === spec
+              ).length;
+              return (
+                <button
+                  key={spec}
+                  type="button"
+                  className={`${styles.sectionPill} ${
+                    selectedSpecialty === spec ? styles.sectionPillActive : ""
+                  }`}
+                  onClick={() => setSelectedSpecialty(spec)}
+                >
+                  <Stethoscope size={12} />
+                  <span>{spec}</span>
+                  {count > 0 && (
+                    <span className={styles.pillBadge}>{count}</span>
+                  )}
+                </button>
+              );
+            })}
           </div>
 
           {/* Filter Toolbar */}
@@ -155,7 +388,7 @@ export default function AvailableDoctors() {
               <Search size={16} className={styles.searchIcon} />
               <input
                 type="text"
-                placeholder="Search doctor..."
+                placeholder="Search by doctor name or department..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className={styles.searchInput}
@@ -164,23 +397,23 @@ export default function AvailableDoctors() {
 
             <div className={styles.filterDropdownWrapper}>
               <select
-                value={specialization}
-                onChange={(e) => setSpecialization(e.target.value)}
+                value={selectedSpecialty}
+                onChange={(e) => setSelectedSpecialty(e.target.value)}
                 className={styles.selectInput}
               >
-                <option value="all">All Specializations</option>
-                {specializationsList
-                  .filter((s) => s !== "all")
-                  .map((spec) => (
-                    <option key={spec} value={spec}>
-                      {spec}
-                    </option>
-                  ))}
+                <option value="all">All Departments / Specialties</option>
+                {allSpecialties.map((spec) => (
+                  <option key={spec} value={spec}>
+                    {spec}
+                  </option>
+                ))}
               </select>
             </div>
 
             <button
-              className={`${styles.nearMeBtn} ${showNearMe ? styles.nearMeActive : ""}`}
+              className={`${styles.nearMeBtn} ${
+                showNearMe ? styles.nearMeActive : ""
+              }`}
               onClick={handleToggleNearMe}
               disabled={locationLoading}
             >
@@ -193,21 +426,16 @@ export default function AvailableDoctors() {
             </button>
           </div>
 
-          {/* Doctors Grid */}
-          {loading ? (
-            <div className={styles.loadingState}>
-              <div className={styles.spinner}></div>
-              <p>Loading available doctors...</p>
-            </div>
-          ) : filteredDoctors.length === 0 ? (
+          {/* Doctors Listing */}
+          {filteredDoctors.length === 0 ? (
             <div className={styles.emptyState}>
-              <p>No available doctors found.</p>
-              {(searchQuery || specialization !== "all" || showNearMe) && (
+              <p>No doctors found matching the selected section or search query.</p>
+              {(searchQuery || selectedSpecialty !== "all" || showNearMe) && (
                 <button
                   className={styles.resetBtn}
                   onClick={() => {
                     setSearchQuery("");
-                    setSpecialization("all");
+                    setSelectedSpecialty("all");
                     setShowNearMe(false);
                   }}
                 >
@@ -215,84 +443,34 @@ export default function AvailableDoctors() {
                 </button>
               )}
             </div>
-          ) : (
-            <div className={styles.doctorsGrid}>
-              {filteredDoctors.map((doc) => {
-                const doctorName = doc.name || "Doctor";
-                const spec = doc.specialization || "Specialist";
-                const qualification = doc.qualification || "Qualified";
-                const experience =
-                  doc.experience !== undefined
-                    ? `${doc.experience} years exp.`
-                    : "0 years exp.";
-                const initial = doctorName.charAt(0).toUpperCase();
-
+          ) : viewMode === "sections" ? (
+            /* SECTION-WISE ORGANIZED DISPLAY */
+            <div className={styles.sectionWiseContainer}>
+              {Object.keys(sectionWiseDoctors).map((sectionName) => {
+                const sectionDoctors = sectionWiseDoctors[sectionName];
                 return (
-                  <div key={doc._id || doc.id} className={styles.doctorCard}>
-                    <div className={styles.cardHeader}>
-                      <div className={styles.avatarCircle}>{initial}</div>
-                      {doc.distanceInKm && (
-                        <span className={styles.distanceBadge}>
-                          <MapPin size={12} /> {doc.distanceInKm.toFixed(1)} km away
+                  <section key={sectionName} className={styles.sectionGroup}>
+                    <div className={styles.sectionHeader}>
+                      <div className={styles.sectionTitleGroup}>
+                        <Stethoscope size={18} color="#0ea5a4" />
+                        <h2 className={styles.sectionTitle}>{sectionName}</h2>
+                        <span className={styles.sectionBadge}>
+                          {sectionDoctors.length} {sectionDoctors.length === 1 ? "Doctor" : "Doctors"} Available
                         </span>
-                      )}
+                      </div>
                     </div>
 
-                    <div className={styles.cardBody}>
-                      <h3 className={styles.doctorName}>Dr. {doctorName}</h3>
-                      {(() => {
-                        const r = doctorRatings[doc.id || doc._id];
-                        const hasReviews = r && r.totalReviews > 0;
-                        return (
-                          <div style={{ display: "flex", alignItems: "center", gap: "6px", margin: "4px 0 8px 0" }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "3px", background: "#fef3c7", padding: "2px 8px", borderRadius: "12px" }}>
-                              <Star size={13} fill="#f59e0b" color="#f59e0b" />
-                              <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#92400e" }}>
-                                {hasReviews ? Number(r.averageRating).toFixed(1) : "New"}
-                              </span>
-                            </div>
-                            <span style={{ fontSize: "0.78rem", color: "#64748b" }}>
-                              {hasReviews ? `(${r.totalReviews} review${r.totalReviews > 1 ? "s" : ""})` : "No reviews yet"}
-                            </span>
-                          </div>
-                        );
-                      })()}
-                      <p className={styles.specializationText}>{spec}</p>
-                      <p className={styles.qualificationText}>{qualification}</p>
-                      <p className={styles.experienceText}>{experience}</p>
-                      {doc.hospitalName && (
-                        <p className={styles.hospitalText}>{doc.hospitalName}</p>
-                      )}
-                      {doc.consultationFee !== undefined && doc.consultationFee !== null && doc.consultationFee > 0 && (
-                        <p className={styles.feeText}>₹{doc.consultationFee} Consultation Fee</p>
-                      )}
+                    <div className={styles.doctorsGrid}>
+                      {sectionDoctors.map((doc) => renderDoctorCard(doc))}
                     </div>
-
-                    <div className={styles.cardFooter}>
-                      <button
-                        className={styles.iconBtn}
-                        title="Video Consultation"
-                        onClick={() => handleBookAppt(doc)}
-                      >
-                        <Video size={16} />
-                      </button>
-                      <button
-                        className={styles.iconBtn}
-                        title="Audio Consultation"
-                        onClick={() => handleBookAppt(doc)}
-                      >
-                        <Phone size={16} />
-                      </button>
-                      <button
-                        className={styles.bookApptBtn}
-                        onClick={() => handleBookAppt(doc)}
-                      >
-                        Book Appt
-                      </button>
-                    </div>
-                  </div>
+                  </section>
                 );
               })}
+            </div>
+          ) : (
+            /* STANDARD GRID DISPLAY */
+            <div className={styles.doctorsGrid}>
+              {filteredDoctors.map((doc) => renderDoctorCard(doc))}
             </div>
           )}
         </div>
