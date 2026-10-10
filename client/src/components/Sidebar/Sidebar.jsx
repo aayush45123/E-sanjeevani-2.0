@@ -75,20 +75,19 @@ const Sidebar = () => {
   };
 
   const patientMenu = [
-    { label: "Dashboard",          icon: <LayoutDashboard size={15} />, path: "/dashboard" },
-    { label: "Find Doctors",       icon: <Stethoscope size={15} />,     path: "/available-doctors" },
-    { label: "Consultations",      icon: <Calendar size={15} />,        path: "/consultations" },
-    { label: "Clinical Records",   icon: <FileText size={15} />,        path: "/clinical-records" },
-    { label: "AI Clinical Triage", icon: <Sparkles size={15} />,        path: "/ai-triage" },
+    { label: "Dashboard",        icon: <LayoutDashboard size={15} />, path: "/dashboard" },
+    { label: "Find Doctors",     icon: <Stethoscope size={15} />,     path: "/available-doctors" },
+    { label: "Consultations",    icon: <Calendar size={15} />,        path: "/consultations" },
+    { label: "Clinical Records", icon: <FileText size={15} />,        path: "/clinical-records" },
+    { label: "AI Symptom Check", icon: <Sparkles size={15} />,        path: "/dashboard" },
   ];
 
   const doctorMenu = [
-    { label: "Dashboard",          icon: <LayoutDashboard size={15} />, path: "/dashboard" },
-    { label: "My Patients",        icon: <Users size={15} />,           path: "/doctor-dashboard/patients" },
-    { label: "Schedule",          icon: <Calendar size={15} />,        path: "/doctor-dashboard/schedule" },
-    { label: "Clinical Records",   icon: <ClipboardList size={15} />,   path: "/clinical-records" },
-    { label: "Analytics",         icon: <BarChart3 size={15} />,       path: "/doctor-dashboard/analytics" },
-    { label: "AI Clinical Triage", icon: <Sparkles size={15} />,        path: "/ai-triage" },
+    { label: "Dashboard",        icon: <LayoutDashboard size={15} />, path: "/dashboard" },
+    { label: "My Patients",      icon: <Users size={15} />,           path: "/doctor-dashboard/patients" },
+    { label: "Schedule",         icon: <Calendar size={15} />,        path: "/doctor-dashboard/schedule" },
+    { label: "Clinical Records", icon: <ClipboardList size={15} />,   path: "/clinical-records" },
+    { label: "Analytics",        icon: <BarChart3 size={15} />,       path: "/doctor-dashboard/analytics" },
   ];
 
   const supportMenu = [

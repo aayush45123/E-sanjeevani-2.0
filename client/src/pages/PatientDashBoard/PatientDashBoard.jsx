@@ -1294,10 +1294,13 @@ export default function PatientDashboard() {
                 <button
                   type="button"
                   className={styles.openFullAssessmentBtn}
-                  onClick={() => navigate("/ai-triage")}
-                  title="Open Dedicated Full AI Symptom Assessment Form"
+                  onClick={() => {
+                    setInputValue("I want to describe my symptoms for a full clinical assessment: ");
+                    if (textareaRef.current) textareaRef.current.focus();
+                  }}
+                  title="Start AI Symptom Assessment"
                 >
-                  <ClipboardList size={13} /> Open Full Assessment
+                  <ClipboardList size={13} /> Start Assessment
                 </button>
               </div>
               <div className={styles.searchInputWrapper}>
@@ -1537,8 +1540,8 @@ export default function PatientDashboard() {
                 },
                 {
                   icon: <Sparkles size={14} />,
-                  label: "AI Clinical Triage",
-                  action: () => navigate("/ai-triage"),
+                  label: "AI Symptom Check",
+                  prompt: "I want to describe my symptoms for a detailed medical assessment: ",
                 },
               ].map((pill) => (
                 <button
@@ -1857,7 +1860,13 @@ export default function PatientDashboard() {
                                   className={`${styles.optionPillBtn} ${
                                     isSec ? styles.optionPillBtnSecondary : ""
                                   }`}
-                                  onClick={() => handleSendMessage(null, val)}
+                                  onClick={() => {
+                                    if (typeof val === "string" && val.startsWith("/")) {
+                                      navigate(val);
+                                    } else {
+                                      handleSendMessage(null, val);
+                                    }
+                                  }}
                                 >
                                   {label}
                                 </button>

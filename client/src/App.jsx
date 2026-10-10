@@ -29,7 +29,6 @@ import {
   ProfileCompletionSkeleton,
   DoctorProfileSetupSkeleton,
   VideoCallSkeleton,
-  AiTriageSkeleton,
 } from "./components/Skeletons";
 
 import Navbar from "./components/Navbar/Navbar";
@@ -54,11 +53,11 @@ const ConsultationBookingForm = lazy(() => import("./pages/ConsultationBookingFo
 const DoctorProfileSetup      = lazy(() => import("./pages/DoctorProfileSetup/DoctorProfileSetup"));
 const DoctorProfileEdit       = lazy(() => import("./pages/DoctorProfileEdit/DoctorProfileEdit"));
 const VideoCall               = lazy(() => import("./pages/VideoCall/VideoCall"));
-const AiTriage                = lazy(() => import("./components/AiTriage/AiTriage"));
 const ConsultedDoctors        = lazy(() => import("./pages/ConsultedDoctors/ConsultedDoctors"));
 const AvailableDoctors        = lazy(() => import("./pages/AvailableDoctors/AvailableDoctors"));
 const ClinicalRecords         = lazy(() => import("./pages/ClinicalRecords/ClinicalRecords"));
 const PatientHistory          = lazy(() => import("./pages/PatientHistory/PatientHistory"));
+
 
 
 
@@ -243,7 +242,6 @@ const App = () => {
     if (path.startsWith("/doctor-profile-setup")) return <DoctorProfileSetupSkeleton />;
     if (path.startsWith("/doctor-profile-edit") || path.startsWith("/doctor-dashboard/settings")) return <DoctorProfileEditSkeleton />;
     if (path.startsWith("/video-call")) return <VideoCallSkeleton />;
-    if (path.startsWith("/ai-triage")) return <AiTriageSkeleton />;
     if (path.startsWith("/auth")) return <AuthSkeleton />;
     if (path === "/" || path === "") return <HomeSkeleton />;
     if (path.startsWith("/dashboard")) {
@@ -535,15 +533,11 @@ const App = () => {
           }
         />
 
-        {/* AI TRIAGE */}
+        {/* AI TRIAGE — redirected to dashboard chatbot */}
 
         <Route
           path="/ai-triage"
-          element={
-            <Suspense fallback={<AiTriageSkeleton />}>
-              <AiTriage />
-            </Suspense>
-          }
+          element={<Navigate to="/dashboard" replace />}
         />
 
         {/* DOCTOR PATIENTS */}
