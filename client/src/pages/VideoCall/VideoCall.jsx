@@ -1,7 +1,13 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import io from "socket.io-client";
-import { consultationApi, medicalRecordApi, apiClient, feedbackApi } from "../../utils/api";
+import {
+  consultationApi,
+  medicalRecordApi,
+  apiClient,
+  feedbackApi,
+  doctorAssistantApi,
+} from "../../utils/api";
 import { formatDoctorName } from "../../utils/doctorUtils";
 import NotificationService from "../../utils/notificationService";
 import Sidebar from "../../components/Sidebar/Sidebar";
@@ -22,6 +28,15 @@ import {
   Star,
   Clock,
   AlertCircle,
+  Sparkles,
+  Send,
+  History,
+  Pill,
+  FileSpreadsheet,
+  User,
+  Stethoscope,
+  Activity,
+  HeartPulse,
 } from "lucide-react";
 import styles from "./VideoCall.module.css";
 
@@ -49,6 +64,7 @@ export default function VideoCall() {
   const [patientJoined, setPatientJoined] = useState(false);
   const [doctorJoined, setDoctorJoined] = useState(false);
   const [remoteStream, setRemoteStream] = useState(null);
+  const [localStream, setLocalStream] = useState(null);
   const [remoteVideoEnabled, setRemoteVideoEnabled] = useState(true);
 
   // Pre-join audio-only state
@@ -61,6 +77,7 @@ export default function VideoCall() {
   const [doctorAiQuery, setDoctorAiQuery] = useState("");
   const [doctorAiReply, setDoctorAiReply] = useState("");
   const [doctorAiLoading, setDoctorAiLoading] = useState(false);
+  const [aiChatHistory, setAiChatHistory] = useState([]);
 
   // Doctor Clinical Workspace State
   const [clinicalTab, setClinicalTab] = useState("info"); // 'info' | 'prescription' | 'ai'
@@ -416,6 +433,33 @@ export default function VideoCall() {
   INIT
   =============================================
   */
+  /*
+  =============================================
+  VIDEO STREAM ATTACHMENT EFFECTS
+  =============================================
+  */
+  useEffect(() => {
+    if (myVideo.current && localStream) {
+      if (myVideo.current.srcObject !== localStream) {
+        myVideo.current.srcObject = localStream;
+      }
+      myVideo.current.play?.().catch((err) =>
+        console.warn("[Video] myVideo play:", err)
+      );
+    }
+  }, [localStream, pipMinimized, isCameraOff]);
+
+  useEffect(() => {
+    if (remoteVideo.current && remoteStream) {
+      if (remoteVideo.current.srcObject !== remoteStream) {
+        remoteVideo.current.srcObject = remoteStream;
+      }
+      remoteVideo.current.play?.().catch((err) =>
+        console.warn("[Video] remoteVideo play:", err)
+      );
+    }
+  }, [remoteStream, remoteVideoEnabled, callStatus]);
+
   useEffect(() => {
     NotificationService.requestPermission().catch((err) =>
       console.error("Notification permission error:", err),
@@ -438,6 +482,7 @@ export default function VideoCall() {
 
         if (!mounted) return;
         localStreamRef.current = stream;
+        setLocalStream(stream);
 
         if (joinWithMicMuted) {
           stream.getAudioTracks().forEach((t) => (t.enabled = false));
@@ -448,7 +493,11 @@ export default function VideoCall() {
           setIsCameraOff(true);
         } else if (myVideo.current) {
           myVideo.current.srcObject = stream;
+          myVideo.current.play?.().catch((err) =>
+            console.warn("[Video] myVideo initial play:", err)
+          );
         }
+
 
         const socket = io(SOCKET_URL, { transports: ["websocket"] });
         socketRef.current = socket;
@@ -704,61 +753,40 @@ export default function VideoCall() {
   DOCTOR AI QUERY
   =============================================
   */
-  const handleDoctorAiQuery = async () => {
-    if (!doctorAiQuery.trim()) return;
+  const handleDoctorAiQuery = async (overridePrompt) => {
+    const q = (overridePrompt || doctorAiQuery || "").trim();
+    if (!q) return;
 
     setDoctorAiLoading(true);
+    const newHistory = [...aiChatHistory, { role: "doctor", content: q }];
+    setAiChatHistory(newHistory);
+    setDoctorAiQuery("");
 
     try {
-      const patientSummary = `
-Patient Name: ${doctorAssistantData?.patientBasicInfo?.name || ""}
-Age: ${doctorAssistantData?.patientProfile?.age || ""}
-Gender: ${doctorAssistantData?.patientProfile?.gender || ""}
-Medical History: ${doctorAssistantData?.patientProfile?.medicalHistory || ""}
-Current Medications: ${doctorAssistantData?.patientProfile?.currentMedications || ""}
-Allergies: ${doctorAssistantData?.patientProfile?.allergies || ""}
-Symptoms: ${doctorAssistantData?.consultationDetails?.symptoms || ""}
-Problem Description: ${doctorAssistantData?.consultationDetails?.problemDescription || ""}
-Predicted Disease: ${doctorAssistantData?.latestAITriage?.predictedDisease || ""}
-Urgency: ${doctorAssistantData?.latestAITriage?.urgency || ""}
-Recommended Specialist: ${doctorAssistantData?.latestAITriage?.doctorType || ""}
-`;
-
-      const response = await apiClient.post("/chat", {
-        prompt: `
-You are a medical AI assistant helping a doctor during live consultation.
-
-Patient Information:
-${patientSummary}
-
-Doctor Question:
-${doctorAiQuery}
-
-Provide:
-1. Probable diagnosis
-2. Medicine suggestions
-3. Recommended tests
-4. Severity level
-5. Next steps
-
-Give a professional doctor-level response.
-        `,
+      const response = await doctorAssistantApi.chat({
+        consultationId,
+        query: q,
+        history: newHistory,
       });
 
-      const data = response.data;
+      const reply =
+        response.data?.data?.reply ||
+        response.data?.reply ||
+        "No AI response generated.";
 
-      if (data?.data?.reply) {
-        setDoctorAiReply(data.data.reply);
-      } else {
-        setDoctorAiReply("No AI response generated.");
-      }
+      setDoctorAiReply(reply);
+      setAiChatHistory((prev) => [...prev, { role: "assistant", content: reply }]);
     } catch (error) {
-      console.error(error);
-      setDoctorAiReply("Failed to get AI response.");
+      console.error("Doctor AI chat error:", error);
+      const errMsg =
+        error.response?.data?.message || "Failed to get AI assistant advice.";
+      setDoctorAiReply(errMsg);
+      setAiChatHistory((prev) => [...prev, { role: "assistant", content: errMsg }]);
+    } finally {
+      setDoctorAiLoading(false);
     }
-
-    setDoctorAiLoading(false);
   };
+
 
   /*
   =============================================
@@ -867,10 +895,13 @@ Give a professional doctor-level response.
         });
         const newTrack = videoStream.getVideoTracks()[0];
         localStream.addTrack(newTrack);
+        setLocalStream(new MediaStream(localStream.getTracks()));
 
         if (myVideo.current) {
           myVideo.current.srcObject = localStream;
+          myVideo.current.play?.().catch(() => {});
         }
+
 
         if (peerRef.current) {
           peerRef.current.addTrack(newTrack, localStream);
@@ -1472,418 +1503,18 @@ Give a professional doctor-level response.
                 </>
               )}
 
-              {/* Minimize / expand toggle */}
+              {/* Minimize / expand toggle button */}
               <button
                 className={styles.pipToggleBtn}
-                onClick={() => setPipMinimized((v) => !v)}
-                title={pipMinimized ? "Expand" : "Minimize"}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setPipMinimized(!pipMinimized);
+                }}
+                title={pipMinimized ? "Expand camera" : "Minimize camera"}
               >
-                {pipMinimized ? "⛶" : "−"}
+                {pipMinimized ? "▢" : "—"}
               </button>
             </div>
-
-            {/* DOCTOR CLINICAL WORKSPACE PANEL */}
-            {userRole === "doctor" && (
-              <div className={styles.clinicalPanel}>
-                {/* Panel Header */}
-                <div className={styles.clinicalPanelHeader}>
-                  <span className={styles.clinicalPanelTitle}>Clinical Workspace</span>
-                  <span className={styles.clinicalPanelPatient}>
-                    {doctorAssistantData?.patientBasicInfo?.name || "Patient"}
-                  </span>
-                </div>
-
-                {/* Tab Bar */}
-                <div className={styles.clinicalTabs}>
-                  <button
-                    className={`${styles.clinicalTab} ${clinicalTab === "info" ? styles.clinicalTabActive : ""}`}
-                    onClick={() => setClinicalTab("info")}
-                  >
-                    Patient Info
-                  </button>
-                  <button
-                    className={`${styles.clinicalTab} ${clinicalTab === "prescription" ? styles.clinicalTabActive : ""}`}
-                    onClick={() => setClinicalTab("prescription")}
-                  >
-                    Prescription
-                  </button>
-                  <button
-                    className={`${styles.clinicalTab} ${clinicalTab === "ai" ? styles.clinicalTabActive : ""}`}
-                    onClick={() => setClinicalTab("ai")}
-                  >
-                    AI Assistant
-                  </button>
-                </div>
-
-                {/* Tab Content */}
-                <div className={styles.clinicalTabContent}>
-
-                  {/* ── PATIENT INFO TAB ── */}
-                  {clinicalTab === "info" && (
-                    <div className={styles.infoTab}>
-                      <div className={styles.infoSection}>
-                        <div className={styles.infoSectionTitle}>Basic Information</div>
-                        <div className={styles.infoGrid}>
-                          <div className={styles.infoItem}>
-                            <span className={styles.infoLabel}>Name</span>
-                            <span className={styles.infoValue}>{doctorAssistantData?.patientBasicInfo?.name || "—"}</span>
-                          </div>
-                          <div className={styles.infoItem}>
-                            <span className={styles.infoLabel}>Age</span>
-                            <span className={styles.infoValue}>{doctorAssistantData?.patientProfile?.age || "—"}</span>
-                          </div>
-                          <div className={styles.infoItem}>
-                            <span className={styles.infoLabel}>Gender</span>
-                            <span className={styles.infoValue}>{doctorAssistantData?.patientProfile?.gender || "—"}</span>
-                          </div>
-                          <div className={styles.infoItem}>
-                            <span className={styles.infoLabel}>Blood Group</span>
-                            <span className={styles.infoValue}>{doctorAssistantData?.patientProfile?.bloodGroup || "—"}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className={styles.infoSection}>
-                        <div className={styles.infoSectionTitle}>Medical History</div>
-                        <div className={styles.infoChipRow}>
-                          {doctorAssistantData?.patientProfile?.medicalHistory ? (
-                            <span className={styles.infoChip}>{doctorAssistantData.patientProfile.medicalHistory}</span>
-                          ) : <span className={styles.infoNone}>None reported</span>}
-                        </div>
-                      </div>
-
-                      <div className={styles.infoSection}>
-                        <div className={styles.infoSectionTitle}>Allergies</div>
-                        <div className={styles.infoChipRow}>
-                          {doctorAssistantData?.patientProfile?.allergies ? (
-                            <span className={`${styles.infoChip} ${styles.infoChipRed}`}>{doctorAssistantData.patientProfile.allergies}</span>
-                          ) : <span className={styles.infoNone}>None reported</span>}
-                        </div>
-                      </div>
-
-                      <div className={styles.infoSection}>
-                        <div className={styles.infoSectionTitle}>Current Medications</div>
-                        <div className={styles.infoChipRow}>
-                          {doctorAssistantData?.patientProfile?.currentMedications ? (
-                            <span className={styles.infoChip}>{doctorAssistantData.patientProfile.currentMedications}</span>
-                          ) : <span className={styles.infoNone}>None reported</span>}
-                        </div>
-                      </div>
-
-                      {doctorAssistantData?.latestAITriage && (
-                        <div className={styles.infoSection}>
-                          <div className={styles.infoSectionTitle}>AI Triage Result</div>
-                          <div className={styles.aiTriageBadge}>
-                            <div className={styles.triageRow}>
-                              <span className={styles.triageLabel}>Predicted Disease</span>
-                              <span className={styles.triageValue}>{doctorAssistantData.latestAITriage.predictedDisease || "—"}</span>
-                            </div>
-                            <div className={styles.triageRow}>
-                              <span className={styles.triageLabel}>Urgency</span>
-                              <span className={`${styles.triageValue} ${styles.urgencyBadge}`} data-urgency={doctorAssistantData.latestAITriage.urgency?.toLowerCase()}>
-                                {doctorAssistantData.latestAITriage.urgency || "—"}
-                              </span>
-                            </div>
-                            <div className={styles.triageRow}>
-                              <span className={styles.triageLabel}>Recommended Specialist</span>
-                              <span className={styles.triageValue}>{doctorAssistantData.latestAITriage.doctorType || "—"}</span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {doctorAssistantData?.consultationDetails && (
-                        <div className={styles.infoSection}>
-                          <div className={styles.infoSectionTitle}>Presenting Complaints</div>
-                          <p className={styles.infoText}>
-                            {doctorAssistantData.consultationDetails.symptoms || doctorAssistantData.consultationDetails.problemDescription || "No complaints recorded."}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* ── PRESCRIPTION TAB ── */}
-                  {clinicalTab === "prescription" && (
-                    <div className={styles.rxTab}>
-                      {rxSuccess ? (
-                        <div className={styles.rxSuccessCard}>
-                          <div className={styles.rxSuccessIcon}><CheckCircle size={32} color="#16a34a" /></div>
-                          <h3>Prescription Issued!</h3>
-                          <p>{rxSuccess.message}</p>
-                          {rxSuccess.pdfUrl && (
-                            <a
-                              href={
-                                rxSuccess.pdfUrl.startsWith("http")
-                                  ? rxSuccess.pdfUrl
-                                  : `${(import.meta.env.VITE_API_URL || "http://localhost:5000/api").replace(/\/api\/?$/, "")}${rxSuccess.pdfUrl.startsWith("/") ? "" : "/"}${rxSuccess.pdfUrl}`
-                              }
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className={styles.rxPdfDownload}
-                            >
-                              <FileText size={16} /> Download Prescription PDF
-                            </a>
-                          )}
-                          <button
-                            className={styles.rxNewBtn}
-                            onClick={() => {
-                              setRxSuccess(null);
-                              setRxDiagnosis("");
-                              setRxMedicines([{ medicineName: "", dosage: "", route: "Oral", frequency: "", duration: "", instructions: "" }]);
-                              setRxAdvice("");
-                              setRxTests("");
-                              setRxReferralInfo("");
-                              setRxFollowUpRequired(false);
-                              setRxFollowUpDays(7);
-                              setRxDoctorNotes("");
-                            }}
-                          >
-                            Write New Prescription
-                          </button>
-                        </div>
-                      ) : (
-                        <>
-                          {/* Diagnosis */}
-                          <div className={styles.rxField}>
-                            <label className={styles.rxLabel}>Diagnosis *</label>
-                            <input
-                              className={styles.rxInput}
-                              placeholder="e.g. Viral Upper Respiratory Infection"
-                              value={rxDiagnosis}
-                              onChange={(e) => setRxDiagnosis(e.target.value)}
-                            />
-                          </div>
-
-                          {/* Medicines */}
-                          <div className={styles.rxField}>
-                            <label className={styles.rxLabel}>Medicines (Rx)</label>
-                            <div className={styles.rxMedsList}>
-                              {rxMedicines.map((med, idx) => (
-                                <div key={idx} className={styles.rxMedCard}>
-                                  <div className={styles.rxMedHeader}>
-                                    <span className={styles.rxMedNum}>Medicine {idx + 1}</span>
-                                    {rxMedicines.length > 1 && (
-                                      <button
-                                        className={styles.rxMedRemove}
-                                        onClick={() => removeMedicineRow(idx)}
-                                      >
-                                        ✕
-                                      </button>
-                                    )}
-                                  </div>
-                                  <div className={styles.rxMedRow}>
-                                    <div className={styles.rxMedFieldFull}>
-                                      <label className={styles.rxMiniLabel}>Medicine name</label>
-                                      <input
-                                        className={styles.rxInput}
-                                        placeholder="Paracetamol"
-                                        value={med.medicineName}
-                                        onChange={(e) => updateMedicineRow(idx, "medicineName", e.target.value)}
-                                      />
-                                    </div>
-                                  </div>
-                                  <div className={styles.rxMedRow}>
-                                    <div className={styles.rxMedField}>
-                                      <label className={styles.rxMiniLabel}>Dosage</label>
-                                      <input
-                                        className={styles.rxInput}
-                                        placeholder="500mg"
-                                        value={med.dosage}
-                                        onChange={(e) => updateMedicineRow(idx, "dosage", e.target.value)}
-                                      />
-                                    </div>
-                                    <div className={styles.rxMedField}>
-                                      <label className={styles.rxMiniLabel}>Route</label>
-                                      <select
-                                        className={styles.rxSelect}
-                                        value={med.route || "Oral"}
-                                        onChange={(e) => updateMedicineRow(idx, "route", e.target.value)}
-                                      >
-                                        <option value="Oral">Oral</option>
-                                        <option value="Sublingual">Sublingual</option>
-                                        <option value="Intravenous">IV (Intravenous)</option>
-                                        <option value="Intramuscular">IM (Intramuscular)</option>
-                                        <option value="Subcutaneous">Subcutaneous</option>
-                                        <option value="Topical">Topical</option>
-                                        <option value="Inhaled">Inhaled</option>
-                                        <option value="Nasal">Nasal</option>
-                                        <option value="Ophthalmic">Ophthalmic</option>
-                                        <option value="Otic">Otic (Ear)</option>
-                                        <option value="Rectal">Rectal</option>
-                                        <option value="Transdermal">Transdermal</option>
-                                      </select>
-                                    </div>
-                                    <div className={styles.rxMedField}>
-                                      <label className={styles.rxMiniLabel}>Frequency</label>
-                                      <select
-                                        className={styles.rxSelect}
-                                        value={med.frequency}
-                                        onChange={(e) => updateMedicineRow(idx, "frequency", e.target.value)}
-                                      >
-                                        <option value="">Select</option>
-                                        <option value="Once daily">Once daily</option>
-                                        <option value="Twice daily">Twice daily</option>
-                                        <option value="Three times daily">Three times daily</option>
-                                        <option value="Four times daily">Four times daily</option>
-                                        <option value="Every 8 hours">Every 8 hours</option>
-                                        <option value="Every 12 hours">Every 12 hours</option>
-                                        <option value="At night">At night</option>
-                                        <option value="As needed">As needed</option>
-                                      </select>
-                                    </div>
-                                  </div>
-                                  <div className={styles.rxMedRow}>
-                                    <div className={styles.rxMedField}>
-                                      <label className={styles.rxMiniLabel}>Duration</label>
-                                      <input
-                                        className={styles.rxInput}
-                                        placeholder="5 days"
-                                        value={med.duration}
-                                        onChange={(e) => updateMedicineRow(idx, "duration", e.target.value)}
-                                      />
-                                    </div>
-                                    <div className={styles.rxMedField}>
-                                      <label className={styles.rxMiniLabel}>Instructions</label>
-                                      <input
-                                        className={styles.rxInput}
-                                        placeholder="After food"
-                                        value={med.instructions}
-                                        onChange={(e) => updateMedicineRow(idx, "instructions", e.target.value)}
-                                      />
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                              <button className={styles.rxAddMedBtn} onClick={addMedicineRow}>
-                                + Add Medicine
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Advice */}
-                          <div className={styles.rxField}>
-                            <label className={styles.rxLabel}>Advice</label>
-                            <textarea
-                              className={styles.rxTextarea}
-                              placeholder="Rest, adequate hydration..."
-                              value={rxAdvice}
-                              onChange={(e) => setRxAdvice(e.target.value)}
-                              rows={2}
-                            />
-                          </div>
-
-                          {/* Recommended Tests */}
-                          <div className={styles.rxField}>
-                            <label className={styles.rxLabel}>Recommended Tests</label>
-                            <input
-                              className={styles.rxInput}
-                              placeholder="CBC, LFT, X-Ray..."
-                              value={rxTests}
-                              onChange={(e) => setRxTests(e.target.value)}
-                            />
-                          </div>
-
-                          {/* Referral Info */}
-                          <div className={styles.rxField}>
-                            <label className={styles.rxLabel}>Referral Info</label>
-                            <input
-                              className={styles.rxInput}
-                              placeholder="Refer to Cardiologist / AIIMS Neurology Dept..."
-                              value={rxReferralInfo}
-                              onChange={(e) => setRxReferralInfo(e.target.value)}
-                            />
-                          </div>
-
-                          {/* Follow-Up */}
-                          <div className={styles.rxField}>
-                            <label className={styles.rxLabel}>Follow-Up</label>
-                            <div className={styles.rxFollowRow}>
-                              <label className={styles.rxCheckboxLabel}>
-                                <input
-                                  type="checkbox"
-                                  checked={rxFollowUpRequired}
-                                  onChange={(e) => setRxFollowUpRequired(e.target.checked)}
-                                />
-                                Follow-up required
-                              </label>
-                              {rxFollowUpRequired && (
-                                <div className={styles.rxFollowDays}>
-                                  <span>After</span>
-                                  <input
-                                    type="number"
-                                    min={1}
-                                    max={90}
-                                    value={rxFollowUpDays}
-                                    onChange={(e) => setRxFollowUpDays(e.target.value)}
-                                    className={styles.rxDaysInput}
-                                  />
-                                  <span>days</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Doctor Notes */}
-                          <div className={styles.rxField}>
-                            <label className={styles.rxLabel}>Additional Doctor Notes</label>
-                            <textarea
-                              className={styles.rxTextarea}
-                              placeholder="Internal notes (not shown to patient)..."
-                              value={rxDoctorNotes}
-                              onChange={(e) => setRxDoctorNotes(e.target.value)}
-                              rows={2}
-                            />
-                          </div>
-
-                          {rxError && <div className={styles.rxErrorMsg}>{rxError}</div>}
-
-                          <div className={styles.rxActions}>
-                            <button
-                              className={styles.rxIssueBtn}
-                              onClick={handleIssuePrescription}
-                              disabled={rxSubmitting}
-                            >
-                              {rxSubmitting ? "Generating PDF..." : <><FileText size={16} /> Issue Final Prescription</>}
-                            </button>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  )}
-
-                  {/* ── AI ASSISTANT TAB ── */}
-                  {clinicalTab === "ai" && (
-                    <div className={styles.aiTab}>
-                      <div className={styles.aiTabHint}>
-                        Ask the AI assistant for diagnosis suggestions, medicine recommendations, or test guidance based on this patient.
-                      </div>
-                      <textarea
-                        className={styles.aiTextarea}
-                        value={doctorAiQuery}
-                        onChange={(e) => setDoctorAiQuery(e.target.value)}
-                        placeholder="Ask about diagnosis, medicines, tests, severity..."
-                        rows={4}
-                      />
-                      <button
-                        className={styles.aiAskBtn}
-                        onClick={handleDoctorAiQuery}
-                        disabled={doctorAiLoading}
-                      >
-                        {doctorAiLoading ? "Thinking..." : "Ask AI"}
-                      </button>
-                      {doctorAiReply && (
-                        <div className={styles.aiReplyCard}>
-                          <h4>AI Recommendation</h4>
-                          <p>{doctorAiReply}</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                </div>
-              </div>
-            )}
 
             {/* Bottom Controls */}
             <div className={styles.controls}>
@@ -1999,6 +1630,618 @@ Give a professional doctor-level response.
               </button>
             </div>
           </div>
+
+          {/* DOCTOR CLINICAL WORKSPACE PANEL (Independent right sidebar, unobstructed by call controls) */}
+          {userRole === "doctor" && (
+            <div className={styles.clinicalPanel}>
+              {/* Panel Header */}
+              <div className={styles.clinicalPanelHeader}>
+                <div>
+                  <span className={styles.clinicalPanelTitle}>Clinical Workspace</span>
+                  {doctorAssistantData?.patientHistory?.patientOverview?.doctorStats?.consultationCount > 1 ? (
+                    <span className={styles.repeatPatientBadge}>
+                      Repeat Patient ({doctorAssistantData.patientHistory.patientOverview.doctorStats.consultationCount} visits)
+                    </span>
+                  ) : (
+                    <span className={styles.firstVisitBadge}>First Visit with You</span>
+                  )}
+                </div>
+                <span className={styles.clinicalPanelPatient}>
+                  {doctorAssistantData?.patientBasicInfo?.name || "Patient"}
+                </span>
+              </div>
+
+              {/* Tab Bar */}
+              <div className={styles.clinicalTabs}>
+                <button
+                  className={`${styles.clinicalTab} ${clinicalTab === "info" ? styles.clinicalTabActive : ""}`}
+                  onClick={() => setClinicalTab("info")}
+                >
+                  <User size={13} style={{ marginRight: 4 }} /> Patient Info
+                </button>
+                <button
+                  className={`${styles.clinicalTab} ${clinicalTab === "prescription" ? styles.clinicalTabActive : ""}`}
+                  onClick={() => setClinicalTab("prescription")}
+                >
+                  <FileText size={13} style={{ marginRight: 4 }} /> Prescription
+                </button>
+                <button
+                  className={`${styles.clinicalTab} ${clinicalTab === "ai" ? styles.clinicalTabActive : ""}`}
+                  onClick={() => setClinicalTab("ai")}
+                >
+                  <Sparkles size={13} style={{ marginRight: 4 }} /> AI Assistant
+                </button>
+              </div>
+
+              {/* Tab Content */}
+              <div className={styles.clinicalTabContent}>
+                {/* ── PATIENT INFO TAB ── */}
+                {clinicalTab === "info" && (
+                  <div className={styles.infoTab}>
+                    {/* Basic Information */}
+                    <div className={styles.infoSection}>
+                      <div className={styles.infoSectionTitle}>Demographics & Profile</div>
+                      <div className={styles.infoGrid}>
+                        <div className={styles.infoItem}>
+                          <span className={styles.infoLabel}>Name</span>
+                          <span className={styles.infoValue}>{doctorAssistantData?.patientBasicInfo?.name || "—"}</span>
+                        </div>
+                        <div className={styles.infoItem}>
+                          <span className={styles.infoLabel}>Age / Gender</span>
+                          <span className={styles.infoValue}>
+                            {doctorAssistantData?.patientProfile?.age ? `${doctorAssistantData.patientProfile.age} yrs` : "—"} / {doctorAssistantData?.patientProfile?.gender || "—"}
+                          </span>
+                        </div>
+                        <div className={styles.infoItem}>
+                          <span className={styles.infoLabel}>Blood Group</span>
+                          <span className={styles.infoValue}>{doctorAssistantData?.patientProfile?.bloodGroup || "—"}</span>
+                        </div>
+                        <div className={styles.infoItem}>
+                          <span className={styles.infoLabel}>Phone</span>
+                          <span className={styles.infoValue}>{doctorAssistantData?.patientBasicInfo?.phone || "—"}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Vitals & Lifestyle */}
+                    <div className={styles.infoSection}>
+                      <div className={styles.infoSectionTitle}>Vitals & Lifestyle History</div>
+                      <div className={styles.infoGrid}>
+                        <div className={styles.infoItem}>
+                          <span className={styles.infoLabel}>Blood Pressure</span>
+                          <span className={styles.infoValue}>{doctorAssistantData?.patientProfile?.bloodPressure || "Not recorded"}</span>
+                        </div>
+                        <div className={styles.infoItem}>
+                          <span className={styles.infoLabel}>Height / Weight</span>
+                          <span className={styles.infoValue}>
+                            {doctorAssistantData?.patientProfile?.height ? `${doctorAssistantData.patientProfile.height} cm` : "—"} / {doctorAssistantData?.patientProfile?.weight ? `${doctorAssistantData.patientProfile.weight} kg` : "—"}
+                          </span>
+                        </div>
+                        <div className={styles.infoItem}>
+                          <span className={styles.infoLabel}>Diet / Exercise</span>
+                          <span className={styles.infoValue}>
+                            {doctorAssistantData?.patientProfile?.diet || "—"} / {doctorAssistantData?.patientProfile?.exercise || "—"}
+                          </span>
+                        </div>
+                        <div className={styles.infoItem}>
+                          <span className={styles.infoLabel}>Smoking / Alcohol</span>
+                          <span className={styles.infoValue}>
+                            {doctorAssistantData?.patientProfile?.smoking || "—"} / {doctorAssistantData?.patientProfile?.alcohol || "—"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Chronic Conditions */}
+                    <div className={styles.infoSection}>
+                      <div className={styles.infoSectionTitle}>Chronic Conditions & Past Surgeries</div>
+                      <div className={styles.infoChipRow}>
+                        {doctorAssistantData?.patientProfile?.chronicConditions ? (
+                          <span className={styles.infoChipWarning}>{doctorAssistantData.patientProfile.chronicConditions}</span>
+                        ) : (
+                          <span className={styles.infoNone}>No chronic conditions recorded</span>
+                        )}
+                      </div>
+                      {doctorAssistantData?.patientProfile?.pastSurgeries && (
+                        <div style={{ marginTop: 8 }}>
+                          <span className={styles.infoMiniLabel}>Past Surgeries / Procedures:</span>
+                          <p className={styles.infoText}>{doctorAssistantData.patientProfile.pastSurgeries}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Known Allergies */}
+                    <div className={styles.infoSection}>
+                      <div className={styles.infoSectionTitle}>Known Allergies</div>
+                      <div className={styles.infoChipRow}>
+                        {doctorAssistantData?.patientProfile?.allergies ? (
+                          <span className={`${styles.infoChip} ${styles.infoChipRed}`}>
+                            ⚠️ {doctorAssistantData.patientProfile.allergies}
+                          </span>
+                        ) : (
+                          <span className={styles.infoNone}>No allergies reported</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Current Medications */}
+                    <div className={styles.infoSection}>
+                      <div className={styles.infoSectionTitle}>Current Regular Medications</div>
+                      <div className={styles.infoChipRow}>
+                        {doctorAssistantData?.patientProfile?.currentMedications ? (
+                          <span className={styles.infoChip}>{doctorAssistantData.patientProfile.currentMedications}</span>
+                        ) : (
+                          <span className={styles.infoNone}>No regular medications recorded</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Visit History with THIS Doctor */}
+                    <div className={styles.infoSection}>
+                      <div className={styles.infoSectionTitle}>Prior Consultations with You</div>
+                      {doctorAssistantData?.patientHistory?.previousConsultations?.filter(
+                        (c) => c.doctorId === localStorage.getItem("userId") && c.id !== consultationId
+                      )?.length > 0 ? (
+                        <div className={styles.historyList}>
+                          {doctorAssistantData.patientHistory.previousConsultations
+                            .filter((c) => c.doctorId === localStorage.getItem("userId") && c.id !== consultationId)
+                            .map((c, i) => (
+                              <div key={i} className={styles.historyCard}>
+                                <div className={styles.historyCardHeader}>
+                                  <span className={styles.historyDate}>{c.consultationDate}</span>
+                                  <span className={styles.historyStatus}>{c.status}</span>
+                                </div>
+                                <p className={styles.historyDiagnosis}>
+                                  <strong>Diagnosis:</strong> {c.diagnosis || "General Evaluation"}
+                                </p>
+                                {c.symptoms && (
+                                  <p className={styles.historySymptoms}>
+                                    <strong>Symptoms:</strong> {c.symptoms}
+                                  </p>
+                                )}
+                              </div>
+                            ))}
+                        </div>
+                      ) : (
+                        <span className={styles.infoNone}>This is the patient's first consultation with you.</span>
+                      )}
+                    </div>
+
+                    {/* Past Prescriptions */}
+                    <div className={styles.infoSection}>
+                      <div className={styles.infoSectionTitle}>
+                        Past Prescriptions ({doctorAssistantData?.patientHistory?.prescriptions?.length || 0})
+                      </div>
+                      {doctorAssistantData?.patientHistory?.prescriptions?.length > 0 ? (
+                        <div className={styles.historyList}>
+                          {doctorAssistantData.patientHistory.prescriptions.slice(0, 5).map((rx, idx) => (
+                            <div key={idx} className={styles.rxHistoryCard}>
+                              <div className={styles.rxHistoryHeader}>
+                                <span className={styles.historyDate}>
+                                  {rx.createdAt ? new Date(rx.createdAt).toLocaleDateString() : "Past Rx"}
+                                </span>
+                                <span className={styles.rxDoctorName}>Dr. {rx.doctorName || "Doctor"}</span>
+                              </div>
+                              {rx.diagnosis && (
+                                <p className={styles.rxHistoryDiag}>
+                                  <strong>Dx:</strong> {rx.diagnosis}
+                                </p>
+                              )}
+                              <div className={styles.rxMedChips}>
+                                {(rx.items || []).map((m, mi) => (
+                                  <span key={mi} className={styles.rxMedChip}>
+                                    💊 {m.medicineName} ({m.dosage})
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className={styles.infoNone}>No past prescriptions found in records.</span>
+                      )}
+                    </div>
+
+                    {/* Uploaded Lab Reports & Documents */}
+                    {doctorAssistantData?.patientHistory?.documents?.length > 0 && (
+                      <div className={styles.infoSection}>
+                        <div className={styles.infoSectionTitle}>
+                          Patient Medical Records & Lab Reports ({doctorAssistantData.patientHistory.documents.length})
+                        </div>
+                        <div className={styles.historyList}>
+                          {doctorAssistantData.patientHistory.documents.map((doc, idx) => (
+                            <div key={idx} className={styles.docCard}>
+                              <FileText size={15} className={styles.docIcon} />
+                              <div className={styles.docInfo}>
+                                <span className={styles.docTitle}>{doc.recordTitle || doc.recordType || "Medical Document"}</span>
+                                <span className={styles.docDate}>{doc.recordDate || "Uploaded document"}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* AI Triage Result */}
+                    {doctorAssistantData?.latestAITriage && (
+                      <div className={styles.infoSection}>
+                        <div className={styles.infoSectionTitle}>Initial AI Triage Assessment</div>
+                        <div className={styles.aiTriageBadge}>
+                          <div className={styles.triageRow}>
+                            <span className={styles.triageLabel}>Predicted Condition</span>
+                            <span className={styles.triageValue}>{doctorAssistantData.latestAITriage.predictedDisease || "—"}</span>
+                          </div>
+                          <div className={styles.triageRow}>
+                            <span className={styles.triageLabel}>Urgency Level</span>
+                            <span className={`${styles.triageValue} ${styles.urgencyBadge}`} data-urgency={doctorAssistantData.latestAITriage.urgency?.toLowerCase()}>
+                              {doctorAssistantData.latestAITriage.urgency || "—"}
+                            </span>
+                          </div>
+                          <div className={styles.triageRow}>
+                            <span className={styles.triageLabel}>Specialty Match</span>
+                            <span className={styles.triageValue}>{doctorAssistantData.latestAITriage.doctorType || "—"}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Presenting Complaints for this consultation */}
+                    {doctorAssistantData?.consultationDetails && (
+                      <div className={styles.infoSection}>
+                        <div className={styles.infoSectionTitle}>Presenting Complaints (Today)</div>
+                        <p className={styles.infoText}>
+                          {doctorAssistantData.consultationDetails.symptoms || doctorAssistantData.consultationDetails.problemDescription || "No complaints recorded."}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* ── PRESCRIPTION TAB ── */}
+                {clinicalTab === "prescription" && (
+                  <div className={styles.rxTab}>
+                    {rxSuccess ? (
+                      <div className={styles.rxSuccessCard}>
+                        <div className={styles.rxSuccessIcon}><CheckCircle size={32} color="#16a34a" /></div>
+                        <h3>Prescription Issued!</h3>
+                        <p>{rxSuccess.message}</p>
+                        {rxSuccess.pdfUrl && (
+                          <a
+                            href={
+                              rxSuccess.pdfUrl.startsWith("http")
+                                ? rxSuccess.pdfUrl
+                                : `${(import.meta.env.VITE_API_URL || "http://localhost:5000/api").replace(/\/api\/?$/, "")}${rxSuccess.pdfUrl.startsWith("/") ? "" : "/"}${rxSuccess.pdfUrl}`
+                            }
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={styles.rxPdfDownload}
+                          >
+                            <FileText size={16} /> Download Prescription PDF
+                          </a>
+                        )}
+                        <button
+                          className={styles.rxNewBtn}
+                          onClick={() => {
+                            setRxSuccess(null);
+                            setRxDiagnosis("");
+                            setRxMedicines([{ medicineName: "", dosage: "", route: "Oral", frequency: "", duration: "", instructions: "" }]);
+                            setRxAdvice("");
+                            setRxTests("");
+                            setRxReferralInfo("");
+                            setRxFollowUpRequired(false);
+                            setRxFollowUpDays(7);
+                            setRxDoctorNotes("");
+                          }}
+                        >
+                          Write New Prescription
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        {/* Diagnosis */}
+                        <div className={styles.rxField}>
+                          <label className={styles.rxLabel}>Diagnosis *</label>
+                          <input
+                            className={styles.rxInput}
+                            placeholder="e.g. Acute Bronchitis / Viral Pharyngitis"
+                            value={rxDiagnosis}
+                            onChange={(e) => setRxDiagnosis(e.target.value)}
+                          />
+                        </div>
+
+                        {/* Medicines */}
+                        <div className={styles.rxField}>
+                          <label className={styles.rxLabel}>Medicines (Rx)</label>
+                          <div className={styles.rxMedsList}>
+                            {rxMedicines.map((med, idx) => (
+                              <div key={idx} className={styles.rxMedCard}>
+                                <div className={styles.rxMedHeader}>
+                                  <span className={styles.rxMedNum}>Medicine #{idx + 1}</span>
+                                  {rxMedicines.length > 1 && (
+                                    <button
+                                      type="button"
+                                      className={styles.rxMedRemove}
+                                      onClick={() => removeMedicineRow(idx)}
+                                      title="Remove medicine"
+                                    >
+                                      ✕
+                                    </button>
+                                  )}
+                                </div>
+                                <div className={styles.rxMedRow}>
+                                  <div className={styles.rxMedFieldFull}>
+                                    <label className={styles.rxMiniLabel}>Medicine name</label>
+                                    <input
+                                      className={styles.rxInput}
+                                      placeholder="e.g. Paracetamol 500mg"
+                                      value={med.medicineName}
+                                      onChange={(e) => updateMedicineRow(idx, "medicineName", e.target.value)}
+                                    />
+                                  </div>
+                                </div>
+                                <div className={styles.rxMedRow}>
+                                  <div className={styles.rxMedField}>
+                                    <label className={styles.rxMiniLabel}>Dosage</label>
+                                    <input
+                                      className={styles.rxInput}
+                                      placeholder="e.g. 1 Tab"
+                                      value={med.dosage}
+                                      onChange={(e) => updateMedicineRow(idx, "dosage", e.target.value)}
+                                    />
+                                  </div>
+                                  <div className={styles.rxMedField}>
+                                    <label className={styles.rxMiniLabel}>Route</label>
+                                    <select
+                                      className={styles.rxSelect}
+                                      value={med.route || "Oral"}
+                                      onChange={(e) => updateMedicineRow(idx, "route", e.target.value)}
+                                    >
+                                      <option value="Oral">Oral</option>
+                                      <option value="Sublingual">Sublingual</option>
+                                      <option value="Intravenous">IV</option>
+                                      <option value="Intramuscular">IM</option>
+                                      <option value="Topical">Topical</option>
+                                      <option value="Inhaled">Inhaled</option>
+                                      <option value="Nasal">Nasal</option>
+                                    </select>
+                                  </div>
+                                  <div className={styles.rxMedField}>
+                                    <label className={styles.rxMiniLabel}>Frequency</label>
+                                    <select
+                                      className={styles.rxSelect}
+                                      value={med.frequency}
+                                      onChange={(e) => updateMedicineRow(idx, "frequency", e.target.value)}
+                                    >
+                                      <option value="">Select</option>
+                                      <option value="Once daily">Once daily (OD)</option>
+                                      <option value="Twice daily">Twice daily (BD)</option>
+                                      <option value="Three times daily">Three times daily (TDS)</option>
+                                      <option value="Four times daily">Four times daily (QID)</option>
+                                      <option value="At night">At bedtime (HS)</option>
+                                      <option value="As needed">As needed (SOS)</option>
+                                    </select>
+                                  </div>
+                                </div>
+                                <div className={styles.rxMedRow}>
+                                  <div className={styles.rxMedField}>
+                                    <label className={styles.rxMiniLabel}>Duration</label>
+                                    <input
+                                      className={styles.rxInput}
+                                      placeholder="e.g. 5 days"
+                                      value={med.duration}
+                                      onChange={(e) => updateMedicineRow(idx, "duration", e.target.value)}
+                                    />
+                                  </div>
+                                  <div className={styles.rxMedField}>
+                                    <label className={styles.rxMiniLabel}>Instructions</label>
+                                    <input
+                                      className={styles.rxInput}
+                                      placeholder="After food"
+                                      value={med.instructions}
+                                      onChange={(e) => updateMedicineRow(idx, "instructions", e.target.value)}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                            <button
+                              type="button"
+                              className={styles.rxAddMedBtn}
+                              onClick={addMedicineRow}
+                            >
+                              + Add Another Medicine
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Advice */}
+                        <div className={styles.rxField}>
+                          <label className={styles.rxLabel}>Clinical Advice</label>
+                          <textarea
+                            className={styles.rxTextarea}
+                            placeholder="Rest, hydration, steam inhalation..."
+                            value={rxAdvice}
+                            onChange={(e) => setRxAdvice(e.target.value)}
+                            rows={2}
+                          />
+                        </div>
+
+                        {/* Recommended Tests */}
+                        <div className={styles.rxField}>
+                          <label className={styles.rxLabel}>Recommended Lab / Diagnostic Tests</label>
+                          <input
+                            className={styles.rxInput}
+                            placeholder="e.g. CBC, Chest X-Ray PA view..."
+                            value={rxTests}
+                            onChange={(e) => setRxTests(e.target.value)}
+                          />
+                        </div>
+
+                        {/* Referral Info */}
+                        <div className={styles.rxField}>
+                          <label className={styles.rxLabel}>Referral Info</label>
+                          <input
+                            className={styles.rxInput}
+                            placeholder="e.g. Refer to Pulmonologist if fever persists"
+                            value={rxReferralInfo}
+                            onChange={(e) => setRxReferralInfo(e.target.value)}
+                          />
+                        </div>
+
+                        {/* Follow-Up */}
+                        <div className={styles.rxField}>
+                          <label className={styles.rxLabel}>Follow-Up</label>
+                          <div className={styles.rxFollowRow}>
+                            <label className={styles.rxCheckboxLabel}>
+                              <input
+                                type="checkbox"
+                                checked={rxFollowUpRequired}
+                                onChange={(e) => setRxFollowUpRequired(e.target.checked)}
+                              />
+                              Follow-up required
+                            </label>
+                            {rxFollowUpRequired && (
+                              <div className={styles.rxFollowDays}>
+                                <span>After</span>
+                                <input
+                                  type="number"
+                                  min={1}
+                                  max={90}
+                                  value={rxFollowUpDays}
+                                  onChange={(e) => setRxFollowUpDays(e.target.value)}
+                                  className={styles.rxDaysInput}
+                                />
+                                <span>days</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Doctor Notes */}
+                        <div className={styles.rxField}>
+                          <label className={styles.rxLabel}>Private Doctor Notes (Internal)</label>
+                          <textarea
+                            className={styles.rxTextarea}
+                            placeholder="Internal clinical notes..."
+                            value={rxDoctorNotes}
+                            onChange={(e) => setRxDoctorNotes(e.target.value)}
+                            rows={2}
+                          />
+                        </div>
+
+                        {rxError && <div className={styles.rxErrorMsg}>{rxError}</div>}
+
+                        {/* Sticky Action Footer (Always visible without zooming out!) */}
+                        <div className={styles.rxActionsSticky}>
+                          <button
+                            className={styles.rxIssueBtn}
+                            onClick={handleIssuePrescription}
+                            disabled={rxSubmitting}
+                          >
+                            {rxSubmitting ? "Generating PDF..." : <><FileText size={16} /> Issue Final Prescription</>}
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {/* ── AI ASSISTANT TAB ── */}
+                {clinicalTab === "ai" && (
+                  <div className={styles.aiTab}>
+                    {/* Clinical Context Banner */}
+                    <div className={styles.aiContextBanner}>
+                      <div className={styles.aiContextTitle}>
+                        <Sparkles size={14} className={styles.sparkleIcon} />
+                        <span>Live Clinical Dossier Active</span>
+                      </div>
+                      <p className={styles.aiContextDesc}>
+                        AI has full context: Patient Profile, Chronic Conditions (
+                        {doctorAssistantData?.patientProfile?.chronicConditions || "None"}
+                        ), Allergies (
+                        {doctorAssistantData?.patientProfile?.allergies || "None"}
+                        ), {doctorAssistantData?.patientHistory?.prescriptions?.length || 0} past prescriptions & visit history with Dr. {userName}.
+                      </p>
+                    </div>
+
+                    {/* Quick Prompts */}
+                    <div className={styles.aiQuickPromptsRow}>
+                      <button
+                        type="button"
+                        className={styles.aiQuickBtn}
+                        onClick={() => handleDoctorAiQuery("Based on this patient's symptoms, chronic conditions, and previous visits with me, suggest a comprehensive differential diagnosis and initial treatment.")}
+                      >
+                        ⚡ Differential Diagnosis & Plan
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.aiQuickBtn}
+                        onClick={() => handleDoctorAiQuery("Review this patient's known allergies and current regular medications. Are there any drug-drug or drug-disease contraindications?")}
+                      >
+                        🛡️ Check Drug Interactions & Allergies
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.aiQuickBtn}
+                        onClick={() => handleDoctorAiQuery("Summarize the previous prescriptions issued to this patient and evaluate clinical response or disease progression.")}
+                      >
+                        📋 Review Past Prescriptions
+                      </button>
+                    </div>
+
+                    {/* Chat Conversation Thread */}
+                    {aiChatHistory.length > 0 && (
+                      <div className={styles.aiChatThread}>
+                        {aiChatHistory.map((item, idx) => (
+                          <div
+                            key={idx}
+                            className={
+                              item.role === "doctor"
+                                ? styles.aiMsgDoctor
+                                : styles.aiMsgAssistant
+                            }
+                          >
+                            <span className={styles.aiMsgRole}>
+                              {item.role === "doctor" ? `Dr. ${userName}` : "Clinical AI"}
+                            </span>
+                            <div className={styles.aiMsgText}>{item.content}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Ask Input */}
+                    <div className={styles.aiInputArea}>
+                      <textarea
+                        className={styles.aiTextarea}
+                        value={doctorAiQuery}
+                        onChange={(e) => setDoctorAiQuery(e.target.value)}
+                        placeholder="Ask clinical assistant (e.g., 'Suggest dosage of Amoxicillin-Clavulanate given patient's age and history')..."
+                        rows={3}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
+                            handleDoctorAiQuery();
+                          }
+                        }}
+                      />
+                      <button
+                        className={styles.aiAskBtn}
+                        onClick={() => handleDoctorAiQuery()}
+                        disabled={doctorAiLoading || !doctorAiQuery.trim()}
+                      >
+                        {doctorAiLoading ? (
+                          "Analyzing Patient Dossier..."
+                        ) : (
+                          <><Send size={14} style={{ marginRight: 6 }} /> Ask Clinical Assistant</>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Mandatory Post-Call Feedback Modal for Patients */}

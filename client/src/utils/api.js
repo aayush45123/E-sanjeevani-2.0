@@ -261,7 +261,20 @@ export const doctorAvailabilityApi = {
   DELETE /api/doctor-availability/:id
   */
   deleteAvailability: (id) => apiClient.delete(`/doctor-availability/${id}`),
+
+  /*
+  DELETE SINGLE UNBOOKED SLOT
+  DELETE /api/doctor-availability/slots/:slotId
+  */
+  deleteSlot: (slotId) => apiClient.delete(`/doctor-availability/slots/${slotId}`),
 };
+
+// Doctor Assistant API
+export const doctorAssistantApi = {
+  getData: (consultationId) => apiClient.get(`/doctor-assistant/data/${consultationId}`),
+  chat: (data) => apiClient.post("/doctor-assistant/chat", data),
+};
+
 
 // Medical Records & Digital Prescription API
 export const medicalRecordApi = {

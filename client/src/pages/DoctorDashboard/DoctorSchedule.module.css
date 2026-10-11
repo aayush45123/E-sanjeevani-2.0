@@ -24,7 +24,6 @@
   .scheduleContainer { width: 100%; margin-left: 0; padding-top: 52px; }
 }
 
-
 .scheduleContent {
   flex: 1;
   background: #ffffff;
@@ -46,7 +45,6 @@
 }
 
 .spinner {
-  color: #111827;
   animation: spin 0.8s linear infinite;
 }
 
@@ -59,22 +57,78 @@
 ========================================= */
 
 .header {
-  margin-bottom: 56px;
+  margin-bottom: 48px;
+}
+
+.headerTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
 }
 
 .header h1 {
   margin: 0;
-  font-size: 36px;
-  font-weight: 500;
+  font-size: 34px;
+  font-weight: 600;
   letter-spacing: -0.03em;
-  color: #000000;
+  color: #0f172a;
 }
 
 .header p {
   margin: 8px 0 0;
   font-size: 15px;
-  color: #6b7280;
+  color: #64748b;
   letter-spacing: -0.01em;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.addSlotsBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+}
+
+.addSlotsBtn:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.manageScheduleBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: #f8fafc;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.manageScheduleBtn:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #0f172a;
 }
 
 /* =========================================
@@ -83,9 +137,13 @@
 
 .ghostStatsContainer {
   display: flex;
-  gap: 64px;
-  margin-bottom: 56px;
+  gap: 48px;
+  margin-bottom: 48px;
   flex-wrap: wrap;
+  padding: 24px 28px;
+  background: #f8fafc;
+  border-radius: 14px;
+  border: 1px solid #f1f5f9;
 }
 
 .ghostStat {
@@ -95,19 +153,19 @@
 }
 
 .ghostValue {
-  font-size: 40px;
-  font-weight: 400;
-  line-height: 1;
-  color: #000000;
-  letter-spacing: -0.04em;
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1.1;
+  color: #0f172a;
+  letter-spacing: -0.03em;
 }
 
 .ghostLabel {
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: #9ca3af;
+  letter-spacing: 0.08em;
+  color: #64748b;
 }
 
 /* =========================================
@@ -118,28 +176,33 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-bottom: 64px;
+  margin-bottom: 48px;
 }
 
 .navButton {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: #9ca3af;
-  transition: color 0.2s ease;
-  padding: 8px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
+  color: #475569;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .navButton:hover {
-  color: #000000;
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #cbd5e1;
 }
 
 .daysWrapper {
   display: flex;
-  gap: 24px;
+  gap: 12px;
   flex: 1;
   justify-content: space-between;
 }
@@ -148,69 +211,84 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
+  flex: 1;
+  padding: 16px 8px 12px;
   cursor: pointer;
-  padding: 8px 12px;
   border-radius: 12px;
-  transition: all 0.2s ease;
-  position: relative;
+  border: 1px solid transparent;
+  transition: all 0.18s ease;
+  background: #ffffff;
 }
 
 .dayItem:hover {
-  background: #f9fafb;
+  background: #f8fafc;
+  border-color: #f1f5f9;
 }
 
-.dayName {
-  font-size: 13px;
-  font-weight: 500;
-  color: #9ca3af;
-}
-
-.dayNumber {
-  font-size: 20px;
-  font-weight: 400;
-  color: #111827;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: all 0.2s ease;
-}
-
-.dayItemActive .dayNumber {
-  background: #000000;
-  color: #ffffff;
-  font-weight: 500;
+.dayItemActive {
+  background: #f0fdf4 !important;
+  border-color: #bbf7d0 !important;
 }
 
 .dayItemActive .dayName {
-  color: #000000;
+  color: #15803d;
   font-weight: 600;
+}
+
+.dayItemActive .dayNumber {
+  color: #15803d;
+  font-weight: 700;
+}
+
+.dayName {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+  margin-bottom: 6px;
+}
+
+.dayNumber {
+  font-size: 22px;
+  font-weight: 600;
+  color: #1e293b;
+  line-height: 1;
+  margin-bottom: 8px;
+  font-variant-numeric: tabular-nums;
 }
 
 .dotIndicators {
   display: flex;
   gap: 4px;
-  height: 4px;
-  position: absolute;
-  bottom: -4px;
+  align-items: center;
+  height: 6px;
 }
 
 .dot {
-  width: 4px;
-  height: 4px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
-  background: #e5e7eb;
+  background: #cbd5e1;
 }
 
 .dot.booked {
-  background: #3b82f6; /* Subtle blue for booked */
+  background: #2563eb;
 }
 
 .dot.free {
-  background: #10b981; /* Subtle green for available */
+  background: #10b981;
+}
+
+.daySlotBadge {
+  font-size: 10px;
+  font-weight: 600;
+  color: #059669;
+  background: #ecfdf5;
+  padding: 2px 6px;
+  border-radius: 10px;
+  margin-top: 6px;
 }
 
 /* =========================================
@@ -223,21 +301,53 @@
 }
 
 .agendaHeader {
-  margin-bottom: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .agendaDateTitle {
-  font-size: 24px;
-  font-weight: 400;
+  font-size: 22px;
+  font-weight: 600;
   letter-spacing: -0.02em;
-  color: #000000;
+  color: #0f172a;
   margin: 0 0 4px;
 }
 
 .agendaSubtitle {
-  font-size: 14px;
-  color: #6b7280;
+  font-size: 13px;
+  color: #64748b;
   margin: 0;
+}
+
+.agendaActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.quickAddSlotBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.quickAddSlotBtn:hover {
+  background: #dbeafe;
 }
 
 /* Timeline Rows */
@@ -248,15 +358,16 @@
 
 .timelineRow {
   display: grid;
-  grid-template-columns: 140px 1fr 140px;
+  grid-template-columns: 160px 1fr 160px;
   align-items: center;
-  padding: 24px 0;
-  border-bottom: 1px solid #f3f4f6;
-  transition: background-color 0.2s ease;
+  padding: 20px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  border-radius: 10px;
+  transition: background-color 0.15s ease;
 }
 
 .timelineRow:hover {
-  background-color: #fafafa;
+  background-color: #f8fafc;
 }
 
 .timelineRow:last-child {
@@ -265,11 +376,18 @@
 
 /* Left: Time */
 .timeCol {
-  font-size: 15px;
-  font-weight: 500;
-  color: #111827;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
+}
+
+.clockIcon {
+  color: #94a3b8;
 }
 
 /* Middle: Info */
@@ -281,48 +399,59 @@
 
 .patientName {
   font-size: 15px;
-  font-weight: 500;
-  color: #000000;
+  font-weight: 600;
+  color: #0f172a;
   margin: 0;
+  letter-spacing: -0.01em;
 }
 
 .consultationType {
   font-size: 13px;
-  color: #6b7280;
+  color: #64748b;
   margin: 0;
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.typeIcon {
-  color: #9ca3af;
+.videoIcon {
+  color: #2563eb;
+}
+
+.callIcon {
+  color: #059669;
+}
+
+.bookedText {
+  font-size: 14px;
+  font-weight: 500;
+  color: #2563eb;
 }
 
 .freeText {
-  font-size: 15px;
-  font-weight: 400;
-  color: #6b7280;
+  font-size: 13px;
+  color: #10b981;
+  font-weight: 500;
 }
 
 .expiredText {
-  font-size: 15px;
-  font-weight: 400;
-  color: #9ca3af;
-  text-decoration: line-through;
+  font-size: 13px;
+  color: #94a3b8;
 }
 
-/* Right: Status / Action */
+/* Right: Actions & Status */
 .actionCol {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
+  gap: 12px;
 }
 
 .tinyStatusPill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
+  padding: 5px 12px;
   border-radius: 99px;
   font-size: 12px;
   font-weight: 500;
@@ -334,51 +463,518 @@
   border-radius: 50%;
 }
 
-/* Booked / Ongoing */
 .pillBooked {
-  background: #f8fafc;
-  color: #334155;
+  background: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
 }
 .pillBooked .pillDot {
-  background: #3b82f6;
+  background: #2563eb;
 }
 
-/* Completed */
 .pillCompleted {
   background: #f0fdf4;
   color: #16a34a;
+  border: 1px solid #bbf7d0;
 }
 .pillCompleted .pillDot {
   background: #16a34a;
 }
 
-/* Available */
 .pillAvailable {
-  background: #ffffff;
-  color: #6b7280;
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
 }
 .pillAvailable .pillDot {
   background: #10b981;
 }
 
-/* Cancelled / Expired */
 .pillExpired {
-  background: transparent;
-  color: #9ca3af;
+  background: #f1f5f9;
+  color: #64748b;
 }
 .pillExpired .pillDot {
-  background: #d1d5db;
+  background: #94a3b8;
+}
+
+.slotDeleteBtn {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  border: 1px solid #fecaca;
+  background: #fff5f5;
+  color: #dc2626;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.slotDeleteBtn:hover {
+  background: #fee2e2;
+  border-color: #f87171;
 }
 
 /* Empty State */
 .emptyState {
-  padding: 80px 0;
+  padding: 70px 20px;
   text-align: center;
-  color: #9ca3af;
-  font-size: 15px;
+  color: #64748b;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  background: #f8fafc;
+  border-radius: 14px;
+  border: 1px dashed #e2e8f0;
 }
 
-/* Responsive */
+.emptyCalendarIcon {
+  color: #94a3b8;
+  opacity: 0.6;
+}
+
+.emptyState p {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.emptyStateAddBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 18px;
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: all 0.15s ease;
+}
+
+.emptyStateAddBtn:hover {
+  background: #1d4ed8;
+}
+
+/* =========================================
+   MODAL STYLES (Availability & Slots Engine)
+========================================= */
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modalContent {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 620px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 22px 24px 16px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.modalSubtitle {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.modalCloseBtn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s;
+}
+
+.modalCloseBtn:hover {
+  color: #0f172a;
+}
+
+.modalTabs {
+  display: flex;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+  padding: 0 16px;
+  gap: 4px;
+}
+
+.modalTabBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 14px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.modalTabBtn:hover {
+  color: #2563eb;
+}
+
+.modalTabBtnActive {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+  font-weight: 600;
+  background: #ffffff;
+}
+
+.generatorBox {
+  padding: 18px 24px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.genHelpText {
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: #475569;
+}
+
+.genRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.genField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.genField label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.genField input,
+.genField select {
+  padding: 8px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 13px;
+  background: #ffffff;
+  color: #1e293b;
+  outline: none;
+}
+
+.generateBtn {
+  width: 100%;
+  padding: 10px;
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.generateBtn:hover {
+  background: #dbeafe;
+}
+
+.recurringBox {
+  padding: 18px 24px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.recurringTypeRow {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.recurringTypeBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.recurringTypeBtnActive {
+  background: #eff6ff;
+  border-color: #3b82f6;
+  color: #1d4ed8;
+  font-weight: 600;
+}
+
+.recurringConfig {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.boxLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.dayPillRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dayPill {
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dayPillActive {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.durationRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.styledSelect,
+.styledInput {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 13px;
+  background: #ffffff;
+  color: #1e293b;
+  outline: none;
+}
+
+.slotsEditorSection {
+  padding: 18px 24px;
+}
+
+.slotsEditorHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.slotsEditorTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.addSlotRowBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.addSlotRowBtn:hover {
+  background: #dbeafe;
+}
+
+.slotsListScroll {
+  max-height: 240px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-right: 4px;
+}
+
+.modalSlotRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f8fafc;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #f1f5f9;
+}
+
+.slotRowIndex {
+  font-size: 12px;
+  font-weight: 700;
+  color: #94a3b8;
+  min-width: 24px;
+}
+
+.timeInputCol {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.timeInputCol label {
+  font-size: 11px;
+  color: #64748b;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.timeInputCol input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 13px;
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.dashDivider {
+  color: #94a3b8;
+  font-weight: bold;
+}
+
+.removeSlotRowBtn {
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.removeSlotRowBtn:hover {
+  background: #fee2e2;
+}
+
+.modalFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid #f1f5f9;
+  background: #f8fafc;
+  border-radius: 0 0 16px 16px;
+}
+
+.modalCancelBtn {
+  padding: 9px 16px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #475569;
+  cursor: pointer;
+}
+
+.modalCancelBtn:hover {
+  background: #f1f5f9;
+}
+
+.modalSaveBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 20px;
+  background: #2563eb;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.modalSaveBtn:hover {
+  background: #1d4ed8;
+}
+
+.modalSaveBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
 @media (max-width: 1024px) {
   .scheduleContent {
     padding: 32px 40px;
@@ -398,29 +994,14 @@
   .timelineRow {
     grid-template-columns: 1fr;
     gap: 12px;
-    padding: 20px 0;
+    padding: 16px 0;
   }
 
   .actionCol {
     justify-content: flex-start;
   }
 
-  .timeCol {
-    font-size: 13px;
-    color: #6b7280;
-  }
-
   .daysWrapper {
     overflow-x: auto;
   }
 }
-
-@media (max-width: 480px) {
-  .scheduleContent {
-    padding: 12px;
-  }
-  .ghostStatsContainer {
-    flex-direction: column;
-    gap: 12px;
-  }
-}

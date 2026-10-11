@@ -82,3 +82,25 @@ export const deleteDoctorAvailability = async (req, res) => {
     });
   }
 };
+
+export const deleteDoctorSlot = async (req, res) => {
+  try {
+    const { slotId } = req.params;
+    const result = await AvailabilityService.deleteDoctorSlot(
+      req.user.id,
+      req.user.role,
+      slotId,
+    );
+    return res.status(200).json({
+      success: true,
+      ...result,
+    });
+  } catch (error) {
+    console.error("Delete slot controller error:", error);
+    return res.status(error.status || 500).json({
+      success: false,
+      message: error.message || "Failed to delete slot",
+      error: error.error || error.message,
+    });
+  }
+};

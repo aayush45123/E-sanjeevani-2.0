@@ -1957,3 +1957,284 @@
   transform: translateY(0);
 }
 
+/* =========================================
+   ENHANCED CLINICAL PANEL, HISTORY & AI CHAT
+   ========================================= */
+
+.rxActionsSticky {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 14px 16px;
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
+  z-index: 20;
+  margin: 16px -16px -16px -16px;
+}
+
+.repeatPatientBadge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+}
+
+.firstVisitBadge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.infoChipWarning {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.infoChipRed {
+  background: #fef2f2 !important;
+  color: #b91c1c !important;
+  border: 1px solid #fecaca !important;
+  font-weight: 600;
+}
+
+.infoNone {
+  font-size: 12px;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.infoMiniLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* History Cards */
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.historyCard {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 12px;
+}
+
+.historyCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.historyDate {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.historyStatus {
+  font-size: 10px;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #e2e8f0;
+  color: #475569;
+  font-weight: 600;
+}
+
+.historyDiagnosis {
+  color: #334155;
+  margin-bottom: 2px;
+}
+
+.historyAdvice {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.rxHistoryCard {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.rxMedChipsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.rxMedChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.docCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.docCardLink {
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 11px;
+}
+
+.docCardLink:hover {
+  text-decoration: underline;
+}
+
+/* AI Assistant Clinical Dossier */
+.aiContextBanner {
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.aiContextTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #15803d;
+  margin-bottom: 4px;
+}
+
+.sparkleIcon {
+  color: #16a34a;
+}
+
+.aiContextDesc {
+  font-size: 11px;
+  color: #166534;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.aiQuickPromptsRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.aiQuickBtn {
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #1e293b;
+  font-size: 11.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.aiQuickBtn:hover {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+.aiChatThread {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 4px 2px;
+}
+
+.aiMsgDoctor {
+  align-self: flex-end;
+  background: #2563eb;
+  color: #ffffff;
+  border-radius: 12px 12px 2px 12px;
+  padding: 8px 12px;
+  max-width: 85%;
+  font-size: 12px;
+}
+
+.aiMsgDoctor .aiMsgRole {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  color: #bfdbfe;
+  margin-bottom: 2px;
+}
+
+.aiMsgAssistant {
+  align-self: flex-start;
+  background: #f1f5f9;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px 12px 12px 2px;
+  padding: 10px 12px;
+  max-width: 90%;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.aiMsgAssistant .aiMsgRole {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  color: #059669;
+  margin-bottom: 4px;
+}
+
+.aiMsgText {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.aiInputArea {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+

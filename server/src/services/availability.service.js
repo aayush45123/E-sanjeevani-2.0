@@ -309,5 +309,28 @@ export class AvailabilityService {
 
     return { message: "Availability removed successfully" };
   }
+
+  static async deleteDoctorSlot(userId, userRole, slotId) {
+    if (userRole !== "doctor") {
+      throw { status: 403, message: "Only doctors can delete slots" };
+    }
+
+    const slotRecord = await AvailabilityRepository.findSlotById(slotId);
+    if (!slotRecord) {
+      throw { status: 404, message: "Slot not found" };
+    }
+
+    if (slotRecord.availability.doctorId !== userId) {
+      throw { status: 403, message: "Unauthorized access to this slot" };
+    }
+
+    if (slotRecord.slot.isBooked) {
+      throw { status: 400, message: "Cannot delete a booked slot" };
+    }
+
+    await AvailabilityRepository.deleteSlot(slotId);
+
+    return { message: "Slot removed successfully" };
+  }
 }
 import { doctorAvailabilities } from "../database/schema/index.js";

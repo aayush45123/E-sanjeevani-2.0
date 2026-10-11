@@ -204,4 +204,34 @@ export class AvailabilityRepository {
       })
       .where(eq(availabilitySlots.consultationId, consultationId));
   }
+
+  static async findSlotById(slotId) {
+    const result = await db
+      .select({
+        slot: availabilitySlots,
+        availability: doctorAvailabilities,
+      })
+      .from(availabilitySlots)
+      .innerJoin(
+        doctorAvailabilities,
+        eq(availabilitySlots.availabilityId, doctorAvailabilities.id),
+      )
+      .where(eq(availabilitySlots.id, slotId))
+      .limit(1);
+    return result[0] ?? null;
+  }
+
+  static async deleteSlot(slotId) {
+    const result = await db
+      .delete(availabilitySlots)
+      .where(
+        and(
+          eq(availabilitySlots.id, slotId),
+          eq(availabilitySlots.isBooked, false),
+        ),
+      )
+      .returning();
+    return result[0] ?? null;
+  }
 }
+

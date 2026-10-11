@@ -5,6 +5,7 @@ import {
   getDoctorOwnAvailability,
   getDoctorAvailabilitySlots,
   deleteDoctorAvailability,
+  deleteDoctorSlot,
 } from "../controllers/doctorAvailabilityController.js";
 import { validate } from "../validators/validation.middleware.js";
 import {
@@ -20,6 +21,8 @@ router.use(authMiddleware);
 router.post("/", validate(createAvailabilitySchema), createDoctorAvailability);
 router.get("/my-slots", getDoctorOwnAvailability);
 router.get("/slots/:doctorId", validate(getAvailabilitySlotsSchema), getDoctorAvailabilitySlots);
+router.delete("/slots/:slotId", deleteDoctorSlot);
 router.delete("/:availabilityId", validate(deleteAvailabilitySchema), deleteDoctorAvailability);
 
 export default router;
+
