@@ -1234,8 +1234,17 @@
   font-weight: 500;
 }
 
-.rxActions {
-  padding-top: 4px;
+.rxActions,
+.rxActionsSticky {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--bg-card, #ffffff);
+  padding: 12px 0 4px;
+  border-top: 1px solid var(--border, #e2e8f0);
+  z-index: 10;
+  margin-top: 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -1243,27 +1252,30 @@
 
 .rxIssueBtn {
   width: 100%;
-  padding: 13px;
-  border: none;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+  padding: 12px 16px;
+  border: 1px solid var(--slate-900, #0f172a);
+  border-radius: var(--radius-sm, 6px);
+  background: var(--slate-900, #0f172a);
   color: #ffffff;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
+  font-family: var(--font, inherit);
   cursor: pointer;
-  transition: 0.2s ease;
+  transition: background var(--duration-fast, 150ms) ease;
   letter-spacing: -0.01em;
-  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .rxIssueBtn:hover {
-  background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%);
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.45);
-  transform: translateY(-1px);
+  background: var(--slate-800, #1e293b);
 }
 
 .rxIssueBtn:disabled {
-  background: #cbd5e1;
+  background: var(--slate-300, #cbd5e1);
+  border-color: var(--slate-300, #cbd5e1);
   cursor: not-allowed;
   box-shadow: none;
   transform: none;

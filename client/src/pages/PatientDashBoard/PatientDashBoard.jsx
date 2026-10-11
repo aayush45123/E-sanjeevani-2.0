@@ -595,7 +595,7 @@ export default function PatientDashboard() {
         // Homemade Remedies for low/medium urgency
         const remedyResult = getHomemadeRemedies(a.prediction, a.riskLevel);
         if (remedyResult.isEligible && remedyResult.remedies.length > 0) {
-          md += `---\n### 🌿 Supportive Home Remedies\n`;
+          md += `---\n### Supportive Home Remedies\n`;
           remedyResult.remedies.forEach((r) => {
             md += `${r.icon} **${r.title}**: ${r.desc}\n`;
           });
@@ -611,13 +611,13 @@ export default function PatientDashboard() {
           const topDoc = getRecommendedDoctor(doctorsList, a.suggestedSpecialist || "General Physician");
           if (topDoc) {
             const cleanDocName = formatDoctorName(topDoc.name);
-            md += `---\n### 🩺 Recommended Doctor (Best Match by Priority Score)\n`;
+            md += `---\n### Recommended Doctor (Best Match by Priority Score)\n`;
             md += `• **${cleanDocName}** (${topDoc.specialization || "General Physician"})\n`;
             md += `  - **Priority Match Score:** ${topDoc.priorityScore}/100\n`;
             md += `  - **Experience:** ${topDoc.experience || 5} years\n`;
             md += `  - **Rating:** ⭐ ${topDoc.effectiveRating}/5\n`;
             if (topDoc.hospitalName) md += `  - **Hospital:** ${topDoc.hospitalName}\n`;
-            md += `\n👉 *You can book a direct consultation with ${cleanDocName} from Available Doctors.*\n\n`;
+            md += `\n*You can book a direct consultation with ${cleanDocName} from Available Doctors.*\n\n`;
           }
         } catch (e) {
           console.warn("Could not fetch recommended doctor for fever report:", e);
@@ -633,8 +633,8 @@ export default function PatientDashboard() {
             text: md,
             options: [
               { label: "⚡ Retake Assessment", value: "start" },
-              { label: "🩺 Find a Doctor", value: "Help me find a doctor for fever" },
-              { label: "📋 View Available Doctors", value: "/available-doctors" },
+              { label: "Find a Doctor", value: "Help me find a doctor for fever" },
+              { label: "View Available Doctors", value: "/available-doctors" },
             ],
             timestamp: new Date(),
           },
@@ -676,7 +676,7 @@ export default function PatientDashboard() {
 
       const fallbackRemedies = getHomemadeRemedies(suspect, risk);
       if (fallbackRemedies.isEligible && fallbackRemedies.remedies.length > 0) {
-        fallbackMd += `---\n### 🌿 Supportive Home Remedies\n`;
+        fallbackMd += `---\n### Supportive Home Remedies\n`;
         fallbackRemedies.remedies.forEach((r) => {
           fallbackMd += `${r.icon} **${r.title}**: ${r.desc}\n`;
         });
@@ -689,12 +689,12 @@ export default function PatientDashboard() {
         const topDoc = getRecommendedDoctor(docs, "General Physician");
         if (topDoc) {
           const cleanDocName = formatDoctorName(topDoc.name);
-          fallbackMd += `---\n### 🩺 Recommended Doctor (Best Match by Priority Score)\n`;
+          fallbackMd += `---\n### Recommended Doctor (Best Match by Priority Score)\n`;
           fallbackMd += `• **${cleanDocName}** (${topDoc.specialization || "General Physician"})\n`;
           fallbackMd += `  - **Priority Match Score:** ${topDoc.priorityScore}/100\n`;
           fallbackMd += `  - **Experience:** ${topDoc.experience || 5} years\n`;
           fallbackMd += `  - **Rating:** ⭐ ${topDoc.effectiveRating}/5\n`;
-          fallbackMd += `\n👉 *You can book a direct consultation with ${cleanDocName} from Available Doctors.*\n\n`;
+          fallbackMd += `\n*You can book a direct consultation with ${cleanDocName} from Available Doctors.*\n\n`;
         }
       } catch {}
 
@@ -708,8 +708,8 @@ export default function PatientDashboard() {
           text: fallbackMd,
           options: [
             { label: "⚡ Retake Assessment", value: "start" },
-            { label: "🩺 Find a Doctor", value: "Help me find a doctor for fever" },
-            { label: "📋 View Available Doctors", value: "/available-doctors" },
+            { label: "Find a Doctor", value: "Help me find a doctor for fever" },
+            { label: "View Available Doctors", value: "/available-doctors" },
           ],
           timestamp: new Date(),
         },
@@ -795,7 +795,7 @@ export default function PatientDashboard() {
               "**Please seek immediate emergency medical attention or call an ambulance.**\n\n" +
               "Do not delay — these symptoms may indicate severe Dengue, complicated Malaria, or another critical medical condition.",
             options: [
-              { label: "🩺 Consult a Doctor Now", value: "Help me find an emergency doctor" },
+              { label: "Consult a Doctor Now", value: "Help me find an emergency doctor" },
               { label: "Restart Assessment", value: "start", isSecondary: true },
             ],
             timestamp: new Date(),
@@ -910,7 +910,7 @@ export default function PatientDashboard() {
               id: Date.now() + 1,
               type: "ai",
               text:
-                "Hello! 👋 I'm your **Fever Assessment Assistant**.\n\n" +
+                "Hello! I'm your **Fever Assessment Assistant**.\n\n" +
                 "I evaluate fever symptoms and analyze differential patterns for conditions like **Dengue**, **Malaria**, **Typhoid**, and **Viral Illness**.\n\n" +
                 "**How would you like to proceed?**\n" +
                 "• Tap **Start Assessment** below to begin the guided questionnaire.\n" +
@@ -918,8 +918,8 @@ export default function PatientDashboard() {
                 "• You can also ask me general questions about fever care anytime!",
               options: [
                 { label: "⚡ Start Fever Assessment", value: "start" },
-                { label: "🌡️ What are fever danger signs?", value: "What are the emergency danger signs of fever?" },
-                { label: "🩺 Consult a Doctor", value: "Help me find a doctor for fever" },
+                { label: "️ What are fever danger signs?", value: "What are the emergency danger signs of fever?" },
+                { label: "Consult a Doctor", value: "Help me find a doctor for fever" },
               ],
               timestamp: new Date(),
             },
@@ -977,7 +977,7 @@ export default function PatientDashboard() {
           aiMessageText = "I'm here to assist with your fever symptoms and differential assessment.";
         }
 
-        aiMessageText += "\n\n---\n💡 *Ready to check your symptoms? Click below to start the differential fever questionnaire.*";
+        aiMessageText += "\n\n---\n*Ready to check your symptoms? Click below to start the differential fever questionnaire.*";
 
         setMessages((prev) => [
           ...prev,

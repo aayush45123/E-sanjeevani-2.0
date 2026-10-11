@@ -136,8 +136,8 @@ export default function AddressInput({
 
       {coordinates?.latitude && coordinates?.longitude && (
         <div className={styles.coordinateDisplay}>
-          📍 {coordinates.latitude.toFixed(4)},{" "}
-          {coordinates.longitude.toFixed(4)}
+          <FiMapPin size={13} style={{ display: "inline-block", verticalAlign: "middle", marginRight: "4px" }} />
+          {coordinates.latitude.toFixed(4)}, {coordinates.longitude.toFixed(4)}
         </div>
       )}
 

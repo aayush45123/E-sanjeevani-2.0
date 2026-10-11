@@ -1,205 +1,234 @@
+/* ==========================================================================
+   ClinicalRecords.module.css
+   Minimalist + Brutalist Clinical Records Page
+   Crisp borders, consistent design system variables, fully responsive
+   ========================================================================== */
+
 .dashboardLayout {
   display: flex;
   min-height: 100vh;
-  background: #f8fafc;
+  background: var(--bg);
   font-family: var(--font);
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 .mainContent {
   flex: 1;
-  margin-left: 240px;
-  padding: 40px 48px;
+  margin-left: var(--sidebar-width, 240px);
+  padding: var(--sp-8) var(--sp-8);
   overflow-y: auto;
   min-width: 0;
 }
 
-@media (max-width: 1280px) {
-  .mainContent { margin-left: 220px; }
-}
 @media (max-width: 1024px) {
-  .mainContent { margin-left: 200px; }
-}
-@media (max-width: 768px) {
-  .mainContent { margin-left: 0; padding: 60px 16px 24px; }
+  .mainContent {
+    margin-left: 200px;
+    padding: var(--sp-6) var(--sp-5);
+  }
 }
 
+@media (max-width: 768px) {
+  .mainContent {
+    margin-left: 0;
+    padding: 64px var(--sp-4) var(--sp-6);
+  }
+}
 
 .contentWrapper {
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: var(--sp-6);
   max-width: 1100px;
+  margin: 0 auto;
 }
 
-/* Header */
+/* ==========================================================================
+   HEADER
+   ========================================================================== */
+
 .pageHeader {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: var(--sp-3);
 }
 
 .pageTitle {
-  font-size: 1.75rem;
-  font-weight: 800;
-  color: #0f172a;
-  margin: 0 0 6px 0;
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 4px 0;
   letter-spacing: -0.02em;
 }
 
 .pageSubtitle {
-  font-size: 0.95rem;
-  color: #64748b;
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
   margin: 0;
 }
 
 .addRecordBtn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 18px;
-  background: var(--accent, #0ea5a4);
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.875rem;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--slate-900);
+  color: var(--white);
+  border: 1px solid var(--slate-900);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
   font-weight: 600;
+  font-family: var(--font);
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(14, 165, 164, 0.25);
-  transition: all 0.15s ease;
+  transition: background var(--duration-fast) var(--ease);
 }
 
 .addRecordBtn:hover {
-  background: var(--accent-dark, #0d9190);
-  box-shadow: 0 4px 12px rgba(14, 165, 164, 0.35);
+  background: var(--slate-800);
 }
 
-/* Toolbar */
+/* ==========================================================================
+   TOOLBAR
+   ========================================================================== */
+
 .filterToolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 16px;
+  gap: var(--sp-3);
   flex-wrap: wrap;
 }
 
 .tabGroup {
   display: flex;
-  background: #e2e8f0;
-  padding: 4px;
-  border-radius: 12px;
-  gap: 4px;
+  background: var(--bg-subtle);
+  padding: 3px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  gap: 2px;
 }
 
 .tabBtn {
-  padding: 8px 16px;
+  padding: 6px 14px;
   border: none;
-  border-radius: 8px;
-  font-size: 0.85rem;
+  border-radius: var(--radius-xs);
+  font-size: var(--text-xs);
   font-weight: 600;
-  color: #64748b;
+  font-family: var(--font);
+  color: var(--text-tertiary);
   background: transparent;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--duration-fast) var(--ease);
 }
 
 .tabActive {
-  background: #ffffff !important;
-  color: #0f172a !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  background: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+  box-shadow: var(--shadow-xs);
 }
 
 .searchBox {
   position: relative;
-  min-width: 280px;
+  min-width: 240px;
   flex: 1;
-  max-width: 380px;
+  max-width: 360px;
 }
 
 .searchIcon {
   position: absolute;
-  left: 14px;
+  left: 12px;
   top: 50%;
   transform: translateY(-50%);
-  color: #94a3b8;
+  color: var(--text-muted);
+  pointer-events: none;
 }
 
 .searchInput {
   width: 100%;
-  padding: 10px 16px 10px 40px;
-  border: 1px solid #cbd5e1;
-  border-radius: 10px;
-  font-size: 0.88rem;
-  color: #0f172a;
+  padding: 8px 14px 8px 36px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  font-family: var(--font);
   outline: none;
-  background: #ffffff;
-  transition: border-color 0.2s ease;
+  background: var(--bg-card);
+  transition: border-color var(--duration-fast) var(--ease);
 }
 
 .searchInput:focus {
-  border-color: #2563eb;
+  border-color: var(--text-primary);
 }
 
-/* Cards List */
+/* ==========================================================================
+   CARDS LIST
+   ========================================================================== */
+
 .recordsList {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--sp-4);
 }
 
 .recordCard {
-  background: #ffffff;
-  border-radius: 16px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-xs);
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color var(--duration-fast) var(--ease),
+              box-shadow var(--duration-fast) var(--ease);
 }
 
 .recordCard:hover {
-  border-color: #cbd5e1;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-sm);
 }
 
 .cardHeader {
-  padding: 20px 24px;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-  border-bottom: 1px solid #f1f5f9;
+  padding: var(--sp-4) var(--sp-5);
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
 }
 
 .cardTitleBox {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: var(--sp-3);
 }
 
 .cardTitleIcon {
-  color: #2563eb;
-  background: #eff6ff;
-  padding: 8px;
-  border-radius: 10px;
-  width: 38px;
-  height: 38px;
+  color: var(--text-secondary);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  width: 36px;
+  height: 36px;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .recordTitle {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #0f172a;
-  margin: 0 0 4px 0;
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 2px 0;
 }
 
 .recordDate {
-  font-size: 0.8rem;
-  color: #64748b;
+  font-size: 11px;
+  color: var(--text-muted);
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -208,36 +237,37 @@
 .sourceBadge {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.78rem;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: var(--radius-xs);
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .badgeConsultation {
-  background: #f0fdf4;
-  color: #16a34a;
-  border: 1px solid #bbf7d0;
+  background: var(--success-bg);
+  color: var(--success-text);
+  border: 1px solid var(--success-border);
 }
 
 .badgeUpload {
-  background: #f1f5f9;
-  color: #475569;
-  border: 1px solid #e2e8f0;
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
 }
 
 .cardBody {
-  padding: 24px;
+  padding: var(--sp-5);
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--sp-4);
 }
 
 .metaRow {
   display: flex;
-  gap: 20px;
+  gap: var(--sp-4);
   flex-wrap: wrap;
 }
 
@@ -245,343 +275,161 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: #334155;
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--text-secondary);
 }
 
 .metaIcon {
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .diagnosisBox {
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  border-radius: 10px;
-  padding: 12px 16px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
 }
 
 .diagnosisLabel {
-  font-size: 0.72rem;
-  font-weight: 800;
+  font-size: 10px;
+  font-weight: 700;
   letter-spacing: 0.05em;
-  color: #1e40af;
+  color: var(--text-muted);
   display: block;
   margin-bottom: 2px;
+  text-transform: uppercase;
 }
 
 .diagnosisText {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #1e3a8a;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
   margin: 0;
 }
 
 /* Medicines Box */
 .medsBox {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 16px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
 }
 
 .medsTitle {
-  font-size: 0.85rem;
-  font-weight: 800;
-  color: #0f172a;
-  margin: 0 0 12px 0;
-  letter-spacing: -0.01em;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin: 0 0 10px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .medsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 8px;
 }
 
-.medItem {
-  background: #ffffff;
-  padding: 10px 14px;
-  border-radius: 8px;
-  border: 1px solid #cbd5e1;
+.medChip {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .medName {
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: #0f172a;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 .medDosage {
-  color: #2563eb;
-  font-weight: 600;
+  font-size: 11px;
+  color: var(--text-tertiary);
 }
 
-.medMeta {
-  font-size: 0.78rem;
-  color: #64748b;
-  margin-top: 2px;
-}
-
-.medInstruction {
-  color: #d97706;
-}
-
-.prescriptionTextBlock {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 14px;
-}
-
-.prescriptionText {
-  font-size: 0.88rem;
-  color: #334155;
-  margin: 0;
-  white-space: pre-wrap;
-}
-
-.adviceBlock {
-  background: #fffbeb;
-  border: 1px solid #fef3c7;
-  padding: 12px 16px;
-  border-radius: 10px;
-}
-
-.subLabel {
-  font-size: 0.72rem;
-  font-weight: 800;
-  color: #b45309;
-  letter-spacing: 0.04em;
-  display: block;
-  margin-bottom: 2px;
-}
-
-.subText {
-  font-size: 0.88rem;
-  color: #78350f;
-  margin: 0;
-}
-
-/* Attachments */
-.attachmentsRow {
+/* Card Actions */
+.cardActions {
+  padding: var(--sp-3) var(--sp-5);
+  border-top: 1px solid var(--border);
   display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  padding-top: 8px;
-}
-
-.attachLabel {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: #475569;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.attachPills {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.attachPill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  background: #f1f5f9;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #2563eb;
-  text-decoration: none;
-  transition: all 0.2s ease;
-}
-
-.attachPill:hover {
-  background: #eff6ff;
-  border-color: #93c5fd;
-}
-
-/* PDF Download + Amend Footer */
-.cardFooter {
-  padding: 12px 24px;
-  background: #f8fafc;
-  border-top: 1px solid #f1f5f9;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.cardFooterActions {
-  display: flex;
-  align-items: center;
   justify-content: flex-end;
-  gap: 10px;
-  flex-wrap: wrap;
+  gap: var(--sp-2);
+  background: var(--bg-card);
 }
 
-/* Amendment chain indicator */
-.amendChainBadge {
+.viewDetailsBtn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #f0f4ff;
-  border: 1px solid #c7d2fe;
-  border-radius: 6px;
-  padding: 5px 10px;
-  font-size: 11.5px;
+  padding: 7px 14px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
   font-weight: 600;
-  color: #3730a3;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease);
 }
 
-/* Superseded prescription indicator */
-.supersededBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: #fff7ed;
-  border: 1px solid #fed7aa;
-  border-radius: 6px;
-  padding: 5px 10px;
-  font-size: 11.5px;
-  font-weight: 600;
-  color: #9a3412;
+.viewDetailsBtn:hover {
+  background: var(--bg-subtle);
+  border-color: var(--border-strong);
 }
 
-/* Amend button */
 .amendBtn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px;
-  background: #eef2ff;
-  color: #3730a3;
-  border: 1.5px solid #c7d2fe;
-  border-radius: 8px;
-  font-size: 0.83rem;
-  font-weight: 700;
+  padding: 7px 14px;
+  background: var(--slate-900);
+  color: var(--white);
+  border: 1px solid var(--slate-900);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  font-family: var(--font);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background var(--duration-fast) var(--ease);
 }
 
 .amendBtn:hover {
-  background: #3730a3;
-  color: #fff;
-  border-color: #3730a3;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(55, 48, 163, 0.3);
+  background: var(--slate-800);
 }
 
-.pdfDownloadBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 9px 18px;
-  background: #0f172a;
-  color: #ffffff;
-  border-radius: 10px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  text-decoration: none;
-  transition: background 0.2s ease;
-}
-
-.pdfDownloadBtn:hover {
-  background: #1e293b;
-}
-
-/* Empty & Loading */
-.loadingState {
+/* Loading & Empty States */
+.loadingContainer,
+.emptyState {
+  padding: 56px var(--sp-4);
+  text-align: center;
+  color: var(--text-tertiary);
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 64px;
-  color: #64748b;
-  gap: 12px;
+  gap: var(--sp-2);
+  background: var(--bg-card);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
 }
 
 .spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid #e2e8f0;
-  border-top-color: #2563eb;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--border);
+  border-top-color: var(--text-primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
+  margin-bottom: var(--sp-2);
 }
 
 @keyframes spin {
   to {
     transform: rotate(360deg);
-  }
-}
-
-.emptyState {
-  background: #ffffff;
-  border-radius: 16px;
-  border: 1px dashed #cbd5e1;
-  padding: 60px 24px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-
-.emptyIconCircle {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: #eff6ff;
-  color: #2563eb;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.emptyState h3 {
-  font-size: 1.2rem;
-  font-weight: 800;
-  color: #0f172a;
-  margin: 0;
-}
-
-.emptyState p {
-  font-size: 0.9rem;
-  color: #64748b;
-  margin: 0;
-  max-width: 440px;
-}
-
-.emptyAddBtn {
-  margin-top: 6px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 20px;
-  background: #2563eb;
-  color: #ffffff;
-  border: none;
-  border-radius: 10px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-@media (max-width: 1024px) {
-  .mainContent {
-    margin-left: 200px;
-  }
-}
-
-@media (max-width: 768px) {
-  .mainContent {
-    margin-left: 0;
-    padding: 24px 16px;
   }
 }

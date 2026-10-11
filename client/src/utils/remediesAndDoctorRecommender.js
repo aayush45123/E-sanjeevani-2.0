@@ -11,22 +11,22 @@ const REMEDY_MAP = {
     {
       title: "Papaya Leaf Juice",
       desc: "Extract fresh juice from young papaya leaves (15-20 ml twice daily). Known to support platelet count.",
-      icon: "🍃",
+      icon: "",
     },
     {
       title: "Tender Coconut Water & ORS",
       desc: "Replenish vital electrolytes and prevent dehydration by sipping coconut water and ORS throughout the day.",
-      icon: "🥥",
+      icon: "",
     },
     {
       title: "Pomegranate & Giloy Water",
       desc: "Drink fresh pomegranate juice or boiled Giloy water to reduce fatigue and support immune response.",
-      icon: "🍇",
+      icon: "",
     },
     {
       title: "Complete Bed Rest & Cold Compress",
       desc: "Avoid physical exertion. Use a lukewarm or cool damp cloth on forehead if temperature rises above 101°F.",
-      icon: "🛌",
+      icon: "",
     },
   ],
   malaria: [
@@ -38,46 +38,46 @@ const REMEDY_MAP = {
     {
       title: "Cinnamon & Honey Water",
       desc: "Boil cinnamon powder in water, add honey. Known for antimicrobial and fever-reducing properties.",
-      icon: "🍯",
+      icon: "",
     },
     {
       title: "Light Nourishing Diet",
       desc: "Consume easily digestible food like moong dal khichdi, vegetable soup, and oatmeal.",
-      icon: "🍲",
+      icon: "",
     },
     {
       title: "Intense Hydration",
       desc: "Drink warm boiled water, herbal teas, and clear broths to help the body flush metabolic waste.",
-      icon: "💧",
+      icon: "",
     },
   ],
   typhoid: [
     {
       title: "Boiled & Filtered Water Only",
       desc: "Strictly consume water that has been boiled for at least 5 minutes and cooled, or bottled water.",
-      icon: "🚰",
+      icon: "",
     },
     {
       title: "ORS & Barley Water",
       desc: "Maintain intestinal hydration and electrolyte balance with ORS packets and soothing barley water.",
-      icon: "🌾",
+      icon: "",
     },
     {
       title: "Fresh Buttermilk with Roasted Cumin",
       desc: "Drink light homemade buttermilk with a pinch of roasted jeera to aid sensitive gastrointestinal digestion.",
-      icon: "🥛",
+      icon: "",
     },
     {
       title: "Soft Bland Diet (BRAT)",
       desc: "Stick to bananas, soft rice, applesauce, and well-cooked porridge. Completely avoid spicy, oily, or raw food.",
-      icon: "🍌",
+      icon: "",
     },
   ],
   fever: [
     {
       title: "Ginger, Tulsi & Honey Kadha",
       desc: "Simmer fresh ginger, tulsi leaves, and cloves in water for 10 minutes. Sip warm twice a day.",
-      icon: "🍵",
+      icon: "",
     },
     {
       title: "Turmeric Milk (Golden Milk)",
@@ -87,90 +87,90 @@ const REMEDY_MAP = {
     {
       title: "Steam Inhalation",
       desc: "Inhale steam with a drop of eucalyptus oil or carom seeds (ajwain) to clear nasal passages and ease head heaviness.",
-      icon: "💨",
+      icon: "",
     },
     {
       title: "Lukewarm Sponge Bath",
       desc: "Sponge forehead, arms, and legs with lukewarm water if temperature exceeds 100°F. Never use ice-cold water.",
-      icon: "🧊",
+      icon: "",
     },
   ],
   cold_flu: [
     {
       title: "Warm Salt Water Gargle",
       desc: "Dissolve 1/2 teaspoon rock salt in warm water. Gargle 3-4 times daily to soothe an irritated, sore throat.",
-      icon: "🧂",
+      icon: "",
     },
     {
       title: "Honey & Black Pepper Syrup",
       desc: "Mix 1 teaspoon raw honey with a pinch of freshly ground black pepper to quiet dry or tickly coughs.",
-      icon: "🍯",
+      icon: "",
     },
     {
       title: "Carom Seed (Ajwain) Steam",
       desc: "Boil water with 1 tablespoon ajwain seeds and inhale the vapors to open congested sinuses.",
-      icon: "🌿",
+      icon: "",
     },
     {
       title: "Herbal Green / Chamomile Tea",
       desc: "Warm antioxidant-rich herbal teas soothe mucous membranes and promote restful sleep.",
-      icon: "🫖",
+      icon: "",
     },
   ],
   chikungunya: [
     {
       title: "Warm Turmeric & Ginger Paste Compress",
       desc: "Apply a lukewarm paste of turmeric and dry ginger powder over swollen, stiff joints to alleviate pain.",
-      icon: "🩹",
+      icon: "",
     },
     {
       title: "Epsom Salt Soaks",
       desc: "Soak aching feet and hands in warm water mixed with Epsom salt (magnesium sulfate) for 15 minutes.",
-      icon: "🛁",
+      icon: "",
     },
     {
       title: "Anti-Inflammatory Hydration",
       desc: "Sip warm water infused with lemon, mint, and cucumber throughout the day.",
-      icon: "🍋",
+      icon: "",
     },
   ],
   gastro: [
     {
       title: "Fennel & Cumin (Saunf-Jeera) Water",
       desc: "Boil 1 teaspoon each of fennel and cumin seeds in water. Drink warm after meals to soothe acidity and bloating.",
-      icon: "🌱",
+      icon: "",
     },
     {
       title: "Probiotic Curd / Buttermilk",
       desc: "Consume fresh curd or thin chaas with a pinch of black salt to restore beneficial gut bacteria.",
-      icon: "🥣",
+      icon: "",
     },
     {
       title: "Ginger & Mint Tea",
       desc: "Sip warm water infused with fresh mint leaves and ginger slices to calm nausea and stomach cramps.",
-      icon: "🍃",
+      icon: "",
     },
   ],
   general: [
     {
       title: "Rest & Recovery",
       desc: "Allow your immune system to fight the infection with at least 8 to 9 hours of uninterrupted rest.",
-      icon: "🛌",
+      icon: "",
     },
     {
       title: "Warm Hydration Protocol",
       desc: "Drink 2.5 to 3 liters of warm liquids daily (lukewarm water, herbal infusions, clear broths).",
-      icon: "💧",
+      icon: "",
     },
     {
       title: "Immunity Boost Kadha",
       desc: "Drink a traditional warm concoction of ginger, tulsi, black pepper, and honey once daily.",
-      icon: "🍵",
+      icon: "",
     },
     {
       title: "Light & Wholesome Meals",
       desc: "Prefer fresh, warm, easily digestible home-cooked meals. Avoid processed, fried, or cold foods.",
-      icon: "🥗",
+      icon: "",
     },
   ],
 };

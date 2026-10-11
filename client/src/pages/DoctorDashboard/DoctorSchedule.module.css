@@ -1,210 +1,226 @@
-/* =========================================
+/* ==========================================================================
    DoctorSchedule.module.css
-   ULTRA-PREMIUM MINIMALIST DESIGN
-   Borderless, Typography-driven, Sleek
-========================================= */
+   Minimalist + Brutalist Clinical Scheduling Engine
+   Border-based hierarchy, crisp tokens, zero emojis, fully responsive
+   ========================================================================== */
 
 .scheduleContainer {
   display: flex;
   min-height: 100vh;
-  width: calc(100% - 240px);
-  margin-left: 240px;
-  background: #ffffff;
+  width: calc(100% - var(--sidebar-width, 240px));
+  margin-left: var(--sidebar-width, 240px);
+  background: var(--bg);
   font-family: var(--font);
-  color: #111827;
+  color: var(--text-primary);
 }
 
-@media (max-width: 1280px) {
-  .scheduleContainer { width: calc(100% - 220px); margin-left: 220px; }
-}
 @media (max-width: 1024px) {
-  .scheduleContainer { width: calc(100% - 200px); margin-left: 200px; }
+  .scheduleContainer {
+    width: calc(100% - 200px);
+    margin-left: 200px;
+  }
 }
+
 @media (max-width: 768px) {
-  .scheduleContainer { width: 100%; margin-left: 0; padding-top: 52px; }
+  .scheduleContainer {
+    width: 100%;
+    margin-left: 0;
+    padding-top: 56px;
+  }
 }
 
 .scheduleContent {
   flex: 1;
-  background: #ffffff;
+  background: var(--bg);
   overflow-y: auto;
-  padding: 48px 60px;
+  padding: var(--sp-8) var(--sp-8);
+  min-width: 0;
 }
 
-/* =========================================
+@media (max-width: 640px) {
+  .scheduleContent {
+    padding: var(--sp-4);
+  }
+}
+
+/* ==========================================================================
    LOADING
-========================================= */
+   ========================================================================== */
 
 .loadingContainer {
   width: 100%;
-  height: 100vh;
+  height: 80vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #ffffff;
+  background: var(--bg);
 }
 
 .spinner {
   animation: spin 0.8s linear infinite;
+  color: var(--text-primary);
 }
 
 @keyframes spin {
-  100% { transform: rotate(360deg); }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
-/* =========================================
+/* ==========================================================================
    HEADER
-========================================= */
+   ========================================================================== */
 
 .header {
-  margin-bottom: 48px;
+  margin-bottom: var(--sp-6);
 }
 
 .headerTop {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 20px;
+  gap: var(--sp-4);
   flex-wrap: wrap;
 }
 
 .header h1 {
   margin: 0;
-  font-size: 34px;
-  font-weight: 600;
-  letter-spacing: -0.03em;
-  color: #0f172a;
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
 }
 
 .header p {
-  margin: 8px 0 0;
-  font-size: 15px;
-  color: #64748b;
-  letter-spacing: -0.01em;
+  margin: 4px 0 0;
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
 }
 
 .headerActions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
 }
 
 .addSlotsBtn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 18px;
-  background: #2563eb;
-  color: #ffffff;
-  border: none;
-  border-radius: 9px;
-  font-size: 13px;
+  padding: 9px 16px;
+  background: var(--accent);
+  color: var(--white);
+  border: 1px solid var(--accent-dark);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
   font-weight: 600;
+  font-family: var(--font);
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+  transition: background var(--duration-fast) var(--ease);
 }
 
 .addSlotsBtn:hover {
-  background: #1d4ed8;
-  transform: translateY(-1px);
+  background: var(--accent-hover);
 }
 
 .manageScheduleBtn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 18px;
-  background: #f8fafc;
-  color: #334155;
-  border: 1px solid #e2e8f0;
-  border-radius: 9px;
-  font-size: 13px;
+  padding: 9px 16px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
   font-weight: 600;
+  font-family: var(--font);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--duration-fast) var(--ease);
 }
 
 .manageScheduleBtn:hover {
-  background: #f1f5f9;
-  border-color: #cbd5e1;
-  color: #0f172a;
+  background: var(--bg-subtle);
+  border-color: var(--border-strong);
 }
 
-/* =========================================
-   GHOST STATS
-========================================= */
+/* ==========================================================================
+   STATS BAR
+   ========================================================================== */
 
 .ghostStatsContainer {
   display: flex;
-  gap: 48px;
-  margin-bottom: 48px;
+  gap: var(--sp-8);
+  margin-bottom: var(--sp-6);
   flex-wrap: wrap;
-  padding: 24px 28px;
-  background: #f8fafc;
-  border-radius: 14px;
-  border: 1px solid #f1f5f9;
+  padding: var(--sp-4) var(--sp-6);
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-xs);
 }
 
 .ghostStat {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .ghostValue {
-  font-size: 32px;
-  font-weight: 600;
+  font-size: var(--text-2xl);
+  font-weight: 700;
   line-height: 1.1;
-  color: #0f172a;
-  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
 }
 
 .ghostLabel {
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #64748b;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
 }
 
-/* =========================================
-   WEEK CALENDAR TIMELINE
-========================================= */
+/* ==========================================================================
+   WEEK TIMELINE
+   ========================================================================== */
 
 .weekTimeline {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 48px;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-6);
 }
 
 .navButton {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #475569;
-  transition: all 0.2s ease;
+  color: var(--text-secondary);
+  transition: all var(--duration-fast) var(--ease);
   flex-shrink: 0;
 }
 
 .navButton:hover {
-  background: #f8fafc;
-  color: #0f172a;
-  border-color: #cbd5e1;
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+  border-color: var(--border-strong);
 }
 
 .daysWrapper {
   display: flex;
-  gap: 12px;
+  gap: var(--sp-2);
   flex: 1;
-  justify-content: space-between;
+  overflow-x: auto;
+  padding-bottom: 4px;
 }
 
 .dayItem {
@@ -213,55 +229,53 @@
   align-items: center;
   justify-content: center;
   flex: 1;
-  padding: 16px 8px 12px;
+  min-width: 58px;
+  padding: 12px 6px 10px;
   cursor: pointer;
-  border-radius: 12px;
-  border: 1px solid transparent;
-  transition: all 0.18s ease;
-  background: #ffffff;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  transition: all var(--duration-fast) var(--ease);
+  background: var(--bg-card);
 }
 
 .dayItem:hover {
-  background: #f8fafc;
-  border-color: #f1f5f9;
+  background: var(--bg-subtle);
+  border-color: var(--border-strong);
 }
 
 .dayItemActive {
-  background: #f0fdf4 !important;
-  border-color: #bbf7d0 !important;
+  background: var(--slate-900) !important;
+  border-color: var(--slate-900) !important;
 }
 
 .dayItemActive .dayName {
-  color: #15803d;
-  font-weight: 600;
+  color: var(--slate-400);
 }
 
 .dayItemActive .dayNumber {
-  color: #15803d;
-  font-weight: 700;
+  color: var(--white);
 }
 
 .dayName {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #94a3b8;
-  margin-bottom: 6px;
+  color: var(--text-tertiary);
+  margin-bottom: 4px;
 }
 
 .dayNumber {
-  font-size: 22px;
-  font-weight: 600;
-  color: #1e293b;
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--text-primary);
   line-height: 1;
-  margin-bottom: 8px;
-  font-variant-numeric: tabular-nums;
+  margin-bottom: 6px;
 }
 
 .dotIndicators {
   display: flex;
-  gap: 4px;
+  gap: 3px;
   align-items: center;
   height: 6px;
 }
@@ -270,84 +284,92 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #cbd5e1;
+  background: var(--slate-300);
 }
 
 .dot.booked {
-  background: #2563eb;
+  background: var(--info);
 }
 
 .dot.free {
-  background: #10b981;
+  background: var(--accent);
 }
 
 .daySlotBadge {
   font-size: 10px;
-  font-weight: 600;
-  color: #059669;
-  background: #ecfdf5;
-  padding: 2px 6px;
-  border-radius: 10px;
-  margin-top: 6px;
+  font-weight: 700;
+  color: var(--accent-dark);
+  background: var(--accent-light);
+  border: 1px solid var(--accent-border);
+  padding: 1px 6px;
+  border-radius: var(--radius-xs);
+  margin-top: 4px;
 }
 
-/* =========================================
+/* ==========================================================================
    AGENDA / SLOTS LIST
-========================================= */
+   ========================================================================== */
 
 .agendaContainer {
   display: flex;
   flex-direction: column;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--sp-6);
+  box-shadow: var(--shadow-xs);
 }
 
 .agendaHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 28px;
+  margin-bottom: var(--sp-5);
   flex-wrap: wrap;
-  gap: 16px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #f1f5f9;
+  gap: var(--sp-3);
+  padding-bottom: var(--sp-4);
+  border-bottom: 1px solid var(--border);
 }
 
 .agendaDateTitle {
-  font-size: 22px;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  color: #0f172a;
-  margin: 0 0 4px;
+  font-size: var(--text-lg);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  margin: 0 0 2px;
 }
 
 .agendaSubtitle {
-  font-size: 13px;
-  color: #64748b;
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
   margin: 0;
 }
 
 .agendaActions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .quickAddSlotBtn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 14px;
-  background: #eff6ff;
-  color: #2563eb;
-  border: 1px solid #bfdbfe;
-  border-radius: 8px;
-  font-size: 13px;
+  padding: 7px 14px;
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
   font-weight: 600;
+  font-family: var(--font);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--duration-fast) var(--ease);
 }
 
 .quickAddSlotBtn:hover {
-  background: #dbeafe;
+  background: var(--bg-card);
+  border-color: var(--border-strong);
 }
 
 /* Timeline Rows */
@@ -360,101 +382,99 @@
   display: grid;
   grid-template-columns: 160px 1fr 160px;
   align-items: center;
-  padding: 20px 16px;
-  border-bottom: 1px solid #f1f5f9;
-  border-radius: 10px;
-  transition: background-color 0.15s ease;
+  padding: 14px var(--sp-3);
+  border-bottom: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  transition: background-color var(--duration-fast) var(--ease);
 }
 
 .timelineRow:hover {
-  background-color: #f8fafc;
+  background-color: var(--bg-subtle);
 }
 
 .timelineRow:last-child {
   border-bottom: none;
 }
 
-/* Left: Time */
 .timeCol {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
+  gap: 6px;
+  font-size: var(--text-sm);
   font-weight: 600;
-  color: #1e293b;
+  color: var(--text-primary);
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
 }
 
 .clockIcon {
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
-/* Middle: Info */
 .infoCol {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .patientName {
-  font-size: 15px;
+  font-size: var(--text-sm);
   font-weight: 600;
-  color: #0f172a;
+  color: var(--text-primary);
   margin: 0;
-  letter-spacing: -0.01em;
 }
 
 .consultationType {
-  font-size: 13px;
-  color: #64748b;
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 
 .videoIcon {
-  color: #2563eb;
+  color: var(--accent);
 }
 
 .callIcon {
-  color: #059669;
+  color: var(--success);
 }
 
 .bookedText {
-  font-size: 14px;
-  font-weight: 500;
-  color: #2563eb;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--info-text);
 }
 
 .freeText {
-  font-size: 13px;
-  color: #10b981;
-  font-weight: 500;
+  font-size: var(--text-xs);
+  color: var(--success-text);
+  font-weight: 600;
 }
 
 .expiredText {
-  font-size: 13px;
-  color: #94a3b8;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
 }
 
-/* Right: Actions & Status */
+/* Actions & Status */
 .actionCol {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 12px;
+  gap: 8px;
 }
 
 .tinyStatusPill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 12px;
-  border-radius: 99px;
-  font-size: 12px;
-  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: var(--radius-xs);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .pillDot {
@@ -464,81 +484,81 @@
 }
 
 .pillBooked {
-  background: #eff6ff;
-  color: #1e40af;
-  border: 1px solid #bfdbfe;
+  background: var(--info-bg);
+  color: var(--info-text);
+  border: 1px solid var(--info-border);
 }
 .pillBooked .pillDot {
-  background: #2563eb;
+  background: var(--info);
 }
 
 .pillCompleted {
-  background: #f0fdf4;
-  color: #16a34a;
-  border: 1px solid #bbf7d0;
+  background: var(--success-bg);
+  color: var(--success-text);
+  border: 1px solid var(--success-border);
 }
 .pillCompleted .pillDot {
-  background: #16a34a;
+  background: var(--success);
 }
 
 .pillAvailable {
-  background: #ecfdf5;
-  color: #065f46;
-  border: 1px solid #a7f3d0;
+  background: var(--accent-light);
+  color: var(--accent-dark);
+  border: 1px solid var(--accent-border);
 }
 .pillAvailable .pillDot {
-  background: #10b981;
+  background: var(--accent);
 }
 
 .pillExpired {
-  background: #f1f5f9;
-  color: #64748b;
+  background: var(--bg-subtle);
+  color: var(--text-tertiary);
+  border: 1px solid var(--border);
 }
 .pillExpired .pillDot {
-  background: #94a3b8;
+  background: var(--text-muted);
 }
 
 .slotDeleteBtn {
   width: 30px;
   height: 30px;
-  border-radius: 7px;
-  border: 1px solid #fecaca;
-  background: #fff5f5;
-  color: #dc2626;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--danger-border);
+  background: var(--danger-bg);
+  color: var(--danger-text);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--duration-fast) var(--ease);
 }
 
 .slotDeleteBtn:hover {
-  background: #fee2e2;
-  border-color: #f87171;
+  background: var(--danger);
+  color: var(--white);
 }
 
 /* Empty State */
 .emptyState {
-  padding: 70px 20px;
+  padding: 56px var(--sp-4);
   text-align: center;
-  color: #64748b;
+  color: var(--text-tertiary);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  background: #f8fafc;
-  border-radius: 14px;
-  border: 1px dashed #e2e8f0;
+  gap: var(--sp-2);
+  background: var(--bg-subtle);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border);
 }
 
 .emptyCalendarIcon {
-  color: #94a3b8;
-  opacity: 0.6;
+  color: var(--text-muted);
 }
 
 .emptyState p {
   margin: 0;
-  font-size: 15px;
+  font-size: var(--text-sm);
   font-weight: 500;
 }
 
@@ -546,46 +566,48 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 10px 18px;
-  background: #2563eb;
-  color: #ffffff;
-  border: none;
-  border-radius: 9px;
-  font-size: 13px;
+  padding: 8px 16px;
+  background: var(--slate-900);
+  color: var(--white);
+  border: 1px solid var(--slate-900);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
   font-weight: 600;
+  font-family: var(--font);
   cursor: pointer;
   margin-top: 6px;
-  transition: all 0.15s ease;
+  transition: background var(--duration-fast) var(--ease);
 }
 
 .emptyStateAddBtn:hover {
-  background: #1d4ed8;
+  background: var(--slate-800);
 }
 
-/* =========================================
+/* ==========================================================================
    MODAL STYLES (Availability & Slots Engine)
-========================================= */
+   ========================================================================== */
 
 .modalOverlay {
   position: fixed;
   inset: 0;
   background: rgba(15, 23, 42, 0.5);
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(2px);
   z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 16px;
 }
 
 .modalContent {
-  background: #ffffff;
-  border-radius: 16px;
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
   width: 100%;
-  max-width: 620px;
+  max-width: 640px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-xl);
   display: flex;
   flex-direction: column;
 }
@@ -594,260 +616,280 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  padding: 22px 24px 16px;
-  border-bottom: 1px solid #f1f5f9;
+  padding: var(--sp-5) var(--sp-6) var(--sp-4);
+  border-bottom: 1px solid var(--border);
 }
 
 .modalTitle {
   margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #0f172a;
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
 .modalSubtitle {
   margin: 4px 0 0;
-  font-size: 13px;
-  color: #64748b;
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
 }
 
 .modalCloseBtn {
   background: transparent;
   border: none;
-  color: #94a3b8;
+  color: var(--text-muted);
   cursor: pointer;
   padding: 4px;
-  border-radius: 6px;
+  border-radius: var(--radius-xs);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.15s;
+  transition: color var(--duration-fast);
 }
 
 .modalCloseBtn:hover {
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 .modalTabs {
   display: flex;
-  border-bottom: 1px solid #e2e8f0;
-  background: #f8fafc;
-  padding: 0 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-subtle);
+  padding: 0 var(--sp-4);
   gap: 4px;
+  overflow-x: auto;
 }
 
 .modalTabBtn {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 12px 14px;
+  padding: 10px 14px;
   background: transparent;
   border: none;
   border-bottom: 2px solid transparent;
-  font-size: 13px;
+  font-size: var(--text-xs);
   font-weight: 500;
-  color: #64748b;
+  font-family: var(--font);
+  color: var(--text-tertiary);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--duration-fast) var(--ease);
+  white-space: nowrap;
 }
 
 .modalTabBtn:hover {
-  color: #2563eb;
+  color: var(--text-primary);
 }
 
 .modalTabBtnActive {
-  color: #2563eb;
-  border-bottom-color: #2563eb;
+  color: var(--accent);
+  border-bottom-color: var(--accent);
   font-weight: 600;
-  background: #ffffff;
+  background: var(--bg-card);
 }
 
 .generatorBox {
-  padding: 18px 24px;
-  background: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
+  padding: var(--sp-5) var(--sp-6);
+  background: var(--bg-subtle);
+  border-bottom: 1px solid var(--border);
 }
 
 .genHelpText {
-  margin: 0 0 14px;
-  font-size: 13px;
-  color: #475569;
+  margin: 0 0 12px;
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
 }
 
 .genRow {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 580px) {
+  .genRow {
+    grid-template-columns: 1fr;
+  }
 }
 
 .genField {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .genField label {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
-  color: #475569;
+  color: var(--text-secondary);
 }
 
 .genField input,
 .genField select {
   padding: 8px 10px;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  font-size: 13px;
-  background: #ffffff;
-  color: #1e293b;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-family: var(--font);
   outline: none;
 }
 
 .generateBtn {
   width: 100%;
-  padding: 10px;
-  background: #eff6ff;
-  color: #2563eb;
-  border: 1px solid #bfdbfe;
-  border-radius: 8px;
-  font-size: 13px;
+  padding: 9px;
+  background: var(--slate-900);
+  color: var(--white);
+  border: 1px solid var(--slate-900);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
   font-weight: 600;
+  font-family: var(--font);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background var(--duration-fast) var(--ease);
 }
 
 .generateBtn:hover {
-  background: #dbeafe;
+  background: var(--slate-800);
 }
 
 .recurringBox {
-  padding: 18px 24px;
-  background: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
+  padding: var(--sp-5) var(--sp-6);
+  background: var(--bg-subtle);
+  border-bottom: 1px solid var(--border);
 }
 
 .recurringTypeRow {
   display: flex;
-  gap: 10px;
-  margin-bottom: 16px;
+  gap: 8px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
 }
 
 .recurringTypeBtn {
   flex: 1;
+  min-width: 120px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  padding: 9px;
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  font-size: 13px;
+  gap: 6px;
+  padding: 8px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
   font-weight: 500;
-  color: #475569;
+  font-family: var(--font);
+  color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--duration-fast) var(--ease);
 }
 
 .recurringTypeBtnActive {
-  background: #eff6ff;
-  border-color: #3b82f6;
-  color: #1d4ed8;
+  background: var(--slate-900);
+  border-color: var(--slate-900);
+  color: var(--white);
   font-weight: 600;
 }
 
 .recurringConfig {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .boxLabel {
-  font-size: 12px;
-  font-weight: 600;
-  color: #475569;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
 }
 
 .dayPillRow {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .dayPill {
-  padding: 6px 12px;
-  border-radius: 20px;
-  border: 1px solid #cbd5e1;
-  background: #ffffff;
-  color: #475569;
-  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 11px;
   font-weight: 500;
+  font-family: var(--font);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--duration-fast) var(--ease);
 }
 
 .dayPillActive {
-  background: #2563eb;
-  border-color: #2563eb;
-  color: #ffffff;
+  background: var(--accent);
+  border-color: var(--accent-dark);
+  color: var(--white);
   font-weight: 600;
 }
 
 .durationRow {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .styledSelect,
 .styledInput {
   flex: 1;
-  padding: 8px 12px;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  font-size: 13px;
-  background: #ffffff;
-  color: #1e293b;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-family: var(--font);
   outline: none;
 }
 
 .slotsEditorSection {
-  padding: 18px 24px;
+  padding: var(--sp-5) var(--sp-6);
 }
 
 .slotsEditorHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .slotsEditorTitle {
-  font-size: 13px;
-  font-weight: 600;
-  color: #334155;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
 }
 
 .addSlotRowBtn {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 6px 12px;
-  background: #eff6ff;
-  color: #2563eb;
-  border: 1px solid #bfdbfe;
-  border-radius: 7px;
-  font-size: 12px;
+  padding: 5px 10px;
+  background: var(--bg-card);
+  color: var(--accent);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius-xs);
+  font-size: 11px;
   font-weight: 600;
+  font-family: var(--font);
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: all var(--duration-fast) var(--ease);
 }
 
 .addSlotRowBtn:hover {
-  background: #dbeafe;
+  background: var(--accent-light);
+  border-color: var(--accent);
 }
 
 .slotsListScroll {
@@ -855,25 +897,25 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   padding-right: 4px;
 }
 
 .modalSlotRow {
   display: flex;
   align-items: center;
-  gap: 10px;
-  background: #f8fafc;
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid #f1f5f9;
+  gap: 8px;
+  background: var(--bg-subtle);
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
 }
 
 .slotRowIndex {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
-  color: #94a3b8;
-  min-width: 24px;
+  color: var(--text-muted);
+  min-width: 20px;
 }
 
 .timeInputCol {
@@ -884,124 +926,109 @@
 }
 
 .timeInputCol label {
-  font-size: 11px;
-  color: #64748b;
+  font-size: 10px;
+  color: var(--text-tertiary);
   text-transform: uppercase;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .timeInputCol input {
   width: 100%;
-  padding: 6px 8px;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  font-size: 13px;
-  background: #ffffff;
-  color: #0f172a;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  font-size: var(--text-xs);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-family: var(--font);
 }
 
 .dashDivider {
-  color: #94a3b8;
+  color: var(--text-muted);
   font-weight: bold;
 }
 
 .removeSlotRowBtn {
   background: transparent;
   border: none;
-  color: #ef4444;
+  color: var(--danger);
   cursor: pointer;
   padding: 4px;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background var(--duration-fast);
 }
 
 .removeSlotRowBtn:hover {
-  background: #fee2e2;
+  background: var(--danger-bg);
 }
 
 .modalFooter {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 12px;
-  padding: 16px 24px;
-  border-top: 1px solid #f1f5f9;
-  background: #f8fafc;
-  border-radius: 0 0 16px 16px;
+  gap: 8px;
+  padding: 14px var(--sp-6);
+  border-top: 1px solid var(--border);
+  background: var(--bg-subtle);
 }
 
 .modalCancelBtn {
-  padding: 9px 16px;
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  color: #475569;
+  padding: 8px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  font-family: var(--font);
+  color: var(--text-secondary);
   cursor: pointer;
 }
 
 .modalCancelBtn:hover {
-  background: #f1f5f9;
+  background: var(--bg-subtle);
+  border-color: var(--border-strong);
 }
 
 .modalSaveBtn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 9px 20px;
-  background: #2563eb;
-  border: none;
-  border-radius: 8px;
-  font-size: 13px;
+  padding: 8px 18px;
+  background: var(--slate-900);
+  border: 1px solid var(--slate-900);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
   font-weight: 600;
-  color: #ffffff;
+  font-family: var(--font);
+  color: var(--white);
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: background var(--duration-fast) var(--ease);
 }
 
 .modalSaveBtn:hover {
-  background: #1d4ed8;
+  background: var(--slate-800);
 }
 
 .modalSaveBtn:disabled {
-  opacity: 0.7;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
-/* =========================================
-   RESPONSIVE
-========================================= */
-
-@media (max-width: 1024px) {
-  .scheduleContent {
-    padding: 32px 40px;
-  }
-  .ghostStatsContainer {
-    gap: 32px;
-  }
-}
+/* ==========================================================================
+   RESPONSIVE ADJUSTMENTS
+   ========================================================================== */
 
 @media (max-width: 768px) {
-  .scheduleContent {
-    padding: 16px;
-    margin-left: 0;
-    width: 100%;
-  }
-
   .timelineRow {
     grid-template-columns: 1fr;
-    gap: 12px;
-    padding: 16px 0;
+    gap: 8px;
+    padding: 12px var(--sp-2);
   }
 
   .actionCol {
     justify-content: flex-start;
-  }
-
-  .daysWrapper {
-    overflow-x: auto;
   }
 }

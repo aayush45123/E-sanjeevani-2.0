@@ -197,7 +197,7 @@ export default function VideoCall() {
   =============================================
   */
   const createPeerConnection = useCallback(() => {
-    console.log("🌐 [WebRTC] Creating new RTCPeerConnection");
+    console.log("[WebRTC] Creating new RTCPeerConnection");
     const peer = new RTCPeerConnection({
       iceServers: [
         { urls: "stun:stun.l.google.com:19302" },
@@ -219,7 +219,7 @@ export default function VideoCall() {
     };
 
     peer.ontrack = (event) => {
-      console.log("🎥 [WebRTC] Remote stream track received:", event.streams);
+      console.log("[WebRTC] Remote stream track received:", event.streams);
       if (event.streams && event.streams[0]) {
         const stream = event.streams[0];
         setRemoteStream(stream);
@@ -243,7 +243,7 @@ export default function VideoCall() {
     };
 
     peer.ondatachannel = (event) => {
-      console.log("💬 [DataChannel] Remote data channel received");
+      console.log("[DataChannel] Remote data channel received");
       const channel = event.channel;
       setupDataChannel(channel);
       dataChannelRef.current = channel;
@@ -297,7 +297,7 @@ export default function VideoCall() {
         const data = JSON.parse(event.data);
 
         if (data.type === "video-status") {
-          console.log("🎥 [DataChannel] Remote peer video status:", data.videoEnabled);
+          console.log("[DataChannel] Remote peer video status:", data.videoEnabled);
           setRemoteVideoEnabled(data.videoEnabled);
           return;
         }
@@ -503,7 +503,7 @@ export default function VideoCall() {
         socketRef.current = socket;
 
         socket.on("connect", () => {
-          console.log("🔌 Socket connected, joining room...");
+          console.log("Socket connected, joining room...");
           socket.emit("join-room", {
             consultationId,
             userRole,
@@ -516,7 +516,7 @@ export default function VideoCall() {
           "room-join-confirmed",
           async ({ consultationId: roomId, usersInRoom }) => {
             console.log(
-              `📍 Successfully joined room ${roomId}. Users in room: ${usersInRoom}`,
+              `Successfully joined room ${roomId}. Users in room: ${usersInRoom}`,
             );
 
             apiClient
@@ -552,7 +552,7 @@ export default function VideoCall() {
 
         // First user — create offer + data channel
         socket.on("other-user", async ({ shouldInitiate, usersInRoom }) => {
-          console.log("👥 [WebRTC] other-user event. shouldInitiate:", shouldInitiate);
+          console.log("[WebRTC] other-user event. shouldInitiate:", shouldInitiate);
           setUsersInRoom(usersInRoom || 2);
           loadChatHistory();
 
@@ -564,7 +564,7 @@ export default function VideoCall() {
           setupDataChannel(channel);
           dataChannelRef.current = channel;
 
-          console.log("📤 [WebRTC] Creating offer...");
+          console.log("[WebRTC] Creating offer...");
           const offer = await peer.createOffer();
           await peer.setLocalDescription(offer);
 
@@ -577,13 +577,13 @@ export default function VideoCall() {
 
         // Second user — receive offer
         socket.on("incoming-call", async ({ signal, from }) => {
-          console.log("📞 [WebRTC] incoming-call event from:", from);
+          console.log("[WebRTC] incoming-call event from:", from);
           let peer = peerRef.current || createPeerConnection();
           await peer.setRemoteDescription(new RTCSessionDescription(signal));
           console.log("✅ [WebRTC] Remote description set (Offer)");
           await flushIceCandidateQueue();
 
-          console.log("📤 [WebRTC] Creating answer...");
+          console.log("[WebRTC] Creating answer...");
           const answer = await peer.createAnswer();
           await peer.setLocalDescription(answer);
 
@@ -641,7 +641,7 @@ export default function VideoCall() {
         });
 
         socket.on("peer-video-toggle", ({ videoEnabled }) => {
-          console.log("🎥 [Socket] peer-video-toggle:", videoEnabled);
+          console.log("[Socket] peer-video-toggle:", videoEnabled);
           setRemoteVideoEnabled(videoEnabled);
         });
 
@@ -654,14 +654,14 @@ export default function VideoCall() {
             patientJoined: patJoined,
             doctorJoined: docJoined,
           }) => {
-            console.log(`📢 Status Update: ${message}`);
+            console.log(`Status Update: ${message}`);
             setPatientJoined(patJoined);
             setDoctorJoined(docJoined);
 
             const roleText = userRole === "doctor" ? "Doctor" : "Patient";
             if (userJoined) {
               NotificationService.showToast(`${message}`, "info");
-              console.log(`🔔 ${roleText} has joined the consultation`);
+              console.log(`${roleText} has joined the consultation`);
             }
             console.log(
               `Patient joined: ${patJoined}, Doctor joined: ${docJoined}`,
@@ -683,7 +683,7 @@ export default function VideoCall() {
         );
 
         socket.on("call-ended", ({ message }) => {
-          console.log("🔴 Call ended by the other participant");
+          console.log("Call ended by the other participant");
           NotificationService.showToast(
             message || "Consultation has ended",
             "warning",
@@ -953,7 +953,7 @@ export default function VideoCall() {
 
     if (shouldEmit && socketRef.current) {
       socketRef.current.emit("end-call");
-      console.log("🔴 End call signal sent to other participant");
+      console.log("End call signal sent to other participant");
       setTimeout(() => {
         socketRef.current?.disconnect();
       }, 100);
@@ -1830,7 +1830,7 @@ export default function VideoCall() {
                               <div className={styles.rxMedChips}>
                                 {(rx.items || []).map((m, mi) => (
                                   <span key={mi} className={styles.rxMedChip}>
-                                    💊 {m.medicineName} ({m.dosage})
+                                    {m.medicineName} ({m.dosage})
                                   </span>
                                 ))}
                               </div>
@@ -2171,21 +2171,21 @@ export default function VideoCall() {
                         className={styles.aiQuickBtn}
                         onClick={() => handleDoctorAiQuery("Based on this patient's symptoms, chronic conditions, and previous visits with me, suggest a comprehensive differential diagnosis and initial treatment.")}
                       >
-                        ⚡ Differential Diagnosis & Plan
+                        Differential Diagnosis & Plan
                       </button>
                       <button
                         type="button"
                         className={styles.aiQuickBtn}
                         onClick={() => handleDoctorAiQuery("Review this patient's known allergies and current regular medications. Are there any drug-drug or drug-disease contraindications?")}
                       >
-                        🛡️ Check Drug Interactions & Allergies
+                        Check Drug Interactions & Allergies
                       </button>
                       <button
                         type="button"
                         className={styles.aiQuickBtn}
                         onClick={() => handleDoctorAiQuery("Summarize the previous prescriptions issued to this patient and evaluate clinical response or disease progression.")}
                       >
-                        📋 Review Past Prescriptions
+                        Review Past Prescriptions
                       </button>
                     </div>
 
