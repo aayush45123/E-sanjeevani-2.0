@@ -1422,6 +1422,207 @@
   padding: 16px 0;
 }
 
+/* ── Interactive Doctor Recommendation Card in Chat ─────── */
+.recommendedDoctorCard {
+  margin-top: 14px;
+  background: var(--white);
+  border: 1.5px solid var(--accent-border, rgba(14, 165, 164, 0.25));
+  border-radius: var(--radius-md, 10px);
+  padding: 14px 16px;
+  box-shadow: 0 4px 16px rgba(14, 165, 164, 0.08);
+  transition: all var(--duration-fast, 0.2s) var(--ease, ease);
+  position: relative;
+  overflow: hidden;
+  text-align: left;
+}
+
+.recommendedDoctorCard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--accent-gradient, linear-gradient(135deg, #0ea5a4 0%, #0d9488 100%));
+}
+
+.recommendedDoctorCard:hover {
+  border-color: var(--accent, #0ea5a4);
+  box-shadow: 0 6px 20px rgba(14, 165, 164, 0.14);
+}
+
+.recCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.recDoctorBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #0d9488;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.recDistancePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #047857;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  padding: 2px 7px;
+  border-radius: 10px;
+}
+
+.recCardBody {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.recAvatar {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md, 8px);
+  background: linear-gradient(135deg, var(--slate-100, #f1f5f9) 0%, var(--slate-200, #e2e8f0) 100%);
+  color: var(--slate-900, #0f172a);
+  border: 1.5px solid var(--slate-200, #e2e8f0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.recInfo {
+  flex: 1;
+  min-width: 200px;
+}
+
+.recNameLine {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.recDoctorName {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.recVerifiedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #0369a1;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.recSpecialtyLine {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  margin-bottom: 5px;
+  flex-wrap: wrap;
+}
+
+.recSpecText {
+  color: var(--accent, #0ea5a4);
+  font-weight: 600;
+}
+
+.recReasonText {
+  color: var(--text-tertiary, #64748b);
+  font-size: 11px;
+}
+
+.recMetaLine {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--text-secondary, #475569);
+  flex-wrap: wrap;
+}
+
+.recMetaLine span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.recActionArea {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-left: auto;
+}
+
+.recFeeBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.recFeeLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--text-tertiary, #64748b);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.recFeeVal {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-primary, #0f172a);
+}
+
+.recDirectBookBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--slate-900, #0f172a);
+  color: var(--white, #ffffff);
+  border: 1px solid var(--slate-900, #0f172a);
+  border-radius: var(--radius-sm, 6px);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--duration-fast, 0.15s) var(--ease, ease);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+}
+
+.recDirectBookBtn:hover {
+  background: var(--accent, #0ea5a4);
+  border-color: var(--accent, #0ea5a4);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(14, 165, 164, 0.25);
+}
+
 /* ── Responsive mobile ───────────────────────────────────── */
 @media (max-width: 640px) {
   .chatHeader          { padding: 10px 12px; }
@@ -1435,4 +1636,8 @@
   .upcomingActions     { width: 100%; }
   .joinConsultationBtn { flex: 1; justify-content: center; }
   .viewDetailsBtn      { flex: 1; justify-content: center; text-align: center; }
+  .recCardBody         { flex-direction: column; align-items: flex-start; }
+  .recActionArea       { width: 100%; justify-content: space-between; margin-left: 0; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border); }
+  .recFeeBlock         { align-items: flex-start; }
+  .recDirectBookBtn    { flex: 1; justify-content: center; }
 }

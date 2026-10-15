@@ -1,5 +1,6 @@
 import { DoctorProfileRepository } from "../repositories/doctorProfile.repository.js";
 import { FeedbackService } from "../services/feedback.service.js";
+import { formatDoctor } from "./responseFormatter.helper.js";
 
 const REMEDY_MAP = {
   dengue: [
@@ -74,80 +75,219 @@ export const getHomemadeRemediesText = (diseaseName, urgency) => {
   );
 };
 
-export const getTopDoctorRecommendation = async (specialistType) => {
+export const calculateHaversineDistanceKm = (lat1, lon1, lat2, lon2) => {
+  if (
+    lat1 === null ||
+    lat1 === undefined ||
+    lon1 === null ||
+    lon1 === undefined ||
+    lat2 === null ||
+    lat2 === undefined ||
+    lon2 === null ||
+    lon2 === undefined
+  ) {
+    return null;
+  }
+  const R = 6371; // Earth radius in km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const d = R * c;
+  return Number(d.toFixed(1));
+};
+
+export const mapConditionToSpecialty = (text) => {
+  if (!text) return "General Physician";
+  const t = String(text).toLowerCase();
+
+  if (/chest\s*pain|heart|angina|palpitation|blood\s*pressure|hypertension|\bcardio/i.test(t)) {
+    return "Cardiology";
+  }
+  if (/skin|rash|acne|itch|eczema|psoriasis|fungal|dermat/i.test(t)) {
+    return "Dermatology";
+  }
+  if (/bone|joint|knee|fracture|ortho|arthritis|back\s*pain|sprain|spine|shoulder|ligament/i.test(t)) {
+    return "Orthopedics";
+  }
+  if (/child|baby|infant|toddler|pediatric|newborn/i.test(t)) {
+    return "Pediatrics";
+  }
+  if (/stomach|acidity|gas|diarrhea|constipation|vomit|nausea|liver|abdomen|digest|gut|acid\s*reflux|ulcer|gastro/i.test(t)) {
+    return "Gastroenterology";
+  }
+  if (/brain|nerve|seizure|paralysis|stroke|vertigo|migraine|neuro/i.test(t)) {
+    return "Neurology";
+  }
+  if (/period|menstrual|pregnan|pcos|ovary|uterus|gynae|vaginal/i.test(t)) {
+    return "Gynecology";
+  }
+  if (/ear|nose|throat|tonsil|sinus|hearing|\bent\b/i.test(t)) {
+    return "ENT";
+  }
+  if (/eye|vision|blur|cataract|ophthalm/i.test(t)) {
+    return "Ophthalmology";
+  }
+  if (/tooth|teeth|gum|cavity|dent/i.test(t)) {
+    return "Dentistry";
+  }
+  if (/breath|lung|asthma|bronchitis|wheez|pulmon/i.test(t)) {
+    return "Pulmonology";
+  }
+  if (/stress|anxiety|depress|panic|insomnia|mental|psych/i.test(t)) {
+    return "Psychiatry";
+  }
+  if (/kidney|urinary|urine|bladder|nephro|uro/i.test(t)) {
+    return "Urology";
+  }
+  if (/sugar|diabetes|thyroid|endocrin/i.test(t)) {
+    return "Endocrinology";
+  }
+  return "General Physician";
+};
+
+export const findBestDoctorForPatient = async ({
+  symptoms = "",
+  disease = "",
+  specialty = "",
+  latitude = null,
+  longitude = null,
+  city = "",
+} = {}) => {
   try {
     const rows = await DoctorProfileRepository.findAvailableDoctors({
-      limit: 20,
+      limit: 100,
       offset: 0,
     });
 
     if (!rows || rows.length === 0) return null;
 
-    const targetSpec = String(specialistType || "").toLowerCase();
+    let targetSpec = specialty;
+    if (!targetSpec || targetSpec === "General Assessment" || targetSpec === "Specialist") {
+      targetSpec = mapConditionToSpecialty(`${disease} ${symptoms}`);
+    }
+    const targetSpecLower = targetSpec.toLowerCase();
+
+    const userLat = latitude !== null && latitude !== undefined ? Number(latitude) : null;
+    const userLon = longitude !== null && longitude !== undefined ? Number(longitude) : null;
+    const hasLocation = userLat !== null && userLon !== null && !isNaN(userLat) && !isNaN(userLon);
 
     const scoredDoctors = await Promise.all(
       rows.map(async ({ user, profile }) => {
-        let ratingData = { averageRating: 4.5, totalReviews: 0 };
+        let ratingData = { averageRating: 4.8, totalReviews: 12 };
         try {
           ratingData = await FeedbackService.getDoctorRating(user.id);
         } catch {}
 
         const docSpec = String(profile?.specialization || "").toLowerCase();
         let score = 0;
+        let matchReason = "";
 
-        // Match specialization
+        // 1. Specialty matching (0-50 pts)
         if (
-          docSpec.includes(targetSpec) ||
-          targetSpec.includes(docSpec) ||
-          (targetSpec.includes("general") && docSpec.includes("physician")) ||
-          (targetSpec.includes("fever") && docSpec.includes("general"))
+          docSpec.includes(targetSpecLower) ||
+          targetSpecLower.includes(docSpec) ||
+          (targetSpecLower.includes("physician") && docSpec.includes("medicine")) ||
+          (targetSpecLower.includes("medicine") && docSpec.includes("physician"))
         ) {
-          score += 40;
-        } else if (docSpec.includes("general") || docSpec.includes("internal")) {
-          score += 20;
+          score += 50;
+          matchReason = `Specialist in ${profile?.specialization || targetSpec}`;
+        } else if (docSpec.includes("general") || docSpec.includes("internal medicine")) {
+          score += 30;
+          matchReason = `General Physician for comprehensive evaluation`;
+        } else {
+          score += 10;
+          matchReason = `${profile?.specialization || "Physician"}`;
         }
 
-        // Rating
-        const avgRating = Number(ratingData.averageRating) || 4.5;
-        score += avgRating * 10;
+        // 2. Location & Distance matching (0-30 pts)
+        let distanceKm = null;
+        if (hasLocation && profile?.clinicLatitude && profile?.clinicLongitude) {
+          distanceKm = calculateHaversineDistanceKm(
+            userLat,
+            userLon,
+            Number(profile.clinicLatitude),
+            Number(profile.clinicLongitude)
+          );
+          if (distanceKm !== null) {
+            if (distanceKm <= 5) {
+              score += 30;
+              matchReason += ` • Nearby (${distanceKm} km away)`;
+            } else if (distanceKm <= 12) {
+              score += 22;
+              matchReason += ` • ${distanceKm} km away`;
+            } else if (distanceKm <= 25) {
+              score += 15;
+              matchReason += ` • ${distanceKm} km away`;
+            } else {
+              score += 5;
+            }
+          }
+        } else if (city && profile?.clinicCity) {
+          if (profile.clinicCity.toLowerCase().includes(city.toLowerCase())) {
+            score += 20;
+            matchReason += ` • Located in ${profile.clinicCity}`;
+          }
+        }
 
-        // Experience
+        // 3. Ratings (0-20 pts)
+        const avgRating = Number(ratingData.averageRating) || 4.7;
+        score += avgRating * 4;
+
+        // 4. Experience (0-10 pts)
         const exp = Number(profile?.experience || 5);
-        score += Math.min(exp, 30) * 1.5;
+        score += Math.min(exp, 20) * 0.5;
 
-        // Reviews count
-        const reviews = Number(ratingData.totalReviews || 0);
-        score += Math.min(reviews, 20);
+        const formatted = formatDoctor(user, profile);
+        if (distanceKm !== null) {
+          formatted.distanceInKm = distanceKm;
+          formatted.distance = distanceKm;
+        }
 
         return {
-          id: user.id,
-          name: user.name,
-          specialization: profile?.specialization || "General Physician",
-          experience: profile?.experience || 5,
-          hospitalName: profile?.hospitalName || "E-Sanjeevani Telehealth",
+          ...formatted,
           priorityScore: Math.round(score),
           rating: avgRating.toFixed(1),
-          totalReviews: reviews,
+          totalReviews: Number(ratingData.totalReviews || 0),
+          matchReason,
         };
       })
     );
 
     scoredDoctors.sort((a, b) => b.priorityScore - a.priorityScore);
     const topDoc = scoredDoctors[0];
-
     if (!topDoc) return null;
 
-    return (
-      `### 🩺 Recommended Doctor (Best Match by Priority Score)\n` +
-      `• **Dr. ${topDoc.name}** (${topDoc.specialization})\n` +
-      `  - **Priority Match Score:** ${topDoc.priorityScore}/100\n` +
-      `  - **Experience:** ${topDoc.experience} years\n` +
-      `  - **Patient Rating:** ⭐ ${topDoc.rating}/5 (${topDoc.totalReviews} reviews)\n` +
-      `  - **Hospital:** ${topDoc.hospitalName}\n` +
-      `  👉 *You can book a direct video consultation with Dr. ${topDoc.name} from the Available Doctors page.*`
-    );
+    const cleanDocName = topDoc.displayName || `Dr. ${topDoc.name}`;
+    const distanceText = topDoc.distanceInKm ? ` (${topDoc.distanceInKm} km away)` : "";
+    const hospitalText = topDoc.hospitalName ? ` • ${topDoc.hospitalName}` : "";
+    const feeText = topDoc.consultationFee ? ` • ₹${topDoc.consultationFee} Fee` : "";
+
+    const recommendationText =
+      `### 🩺 Recommended Doctor Match\n` +
+      `• **${cleanDocName}** (${topDoc.specialization || targetSpec})${distanceText}\n` +
+      `  - **Match:** ${topDoc.matchReason}\n` +
+      `  - **Experience:** ${topDoc.experience || 5} years${hospitalText}${feeText}\n` +
+      `  - **Rating:** ⭐ ${topDoc.rating}/5 (${topDoc.totalReviews} reviews)\n` +
+      `  👉 *You can directly connect with ${cleanDocName} below to book your appointment.*`;
+
+    return {
+      doctor: topDoc,
+      recommendationText,
+    };
   } catch (err) {
-    console.error("Error in getTopDoctorRecommendation:", err);
+    console.error("Error in findBestDoctorForPatient:", err);
     return null;
   }
 };
+
+export const getTopDoctorRecommendation = async (specialistType) => {
+  const result = await findBestDoctorForPatient({ specialty: specialistType });
+  return result?.recommendationText || null;
+};
+

@@ -15,6 +15,7 @@ import {
 import {
   getHomemadeRemediesText,
   getTopDoctorRecommendation,
+  findBestDoctorForPatient,
 } from "../helpers/remediesAndDoctorRecommender.js";
 
 const generateAIPreliminaryAssessment = (symptoms) => {
@@ -324,7 +325,7 @@ export class TriageService {
     };
   }
 
-  static async sendChatMessage(userId, { triageSessionId, prompt, model }) {
+  static async sendChatMessage(userId, { triageSessionId, prompt, model, latitude, longitude, city, userLocation }) {
     if (!userId) {
       throw { status: 401, message: "User authentication failed. Please log in again." };
     }
@@ -332,6 +333,10 @@ export class TriageService {
     if (!prompt || !prompt.trim()) {
       throw { status: 400, message: "Message content cannot be empty" };
     }
+
+    const reqLat = latitude !== undefined && latitude !== null ? latitude : userLocation?.latitude;
+    const reqLon = longitude !== undefined && longitude !== null ? longitude : userLocation?.longitude;
+    const reqCity = city || userLocation?.city;
 
     let session;
     if (triageSessionId) {
@@ -377,6 +382,8 @@ export class TriageService {
 
     // 3. Generate AI response
     let aiResponseText = "";
+    let recommendedDoctor = null;
+
     if (model === "custom-triage-ai") {
       try {
         const { predictTriageDisease } = await import("../ai/aiTriageClient.js");
@@ -393,9 +400,20 @@ export class TriageService {
           report += `${remedies}\n\n`;
         }
 
-        const doctorRec = await getTopDoctorRecommendation(specialist);
-        if (doctorRec) {
-          report += `${doctorRec}\n\n`;
+        const recResult = await findBestDoctorForPatient({
+          symptoms: prompt,
+          disease,
+          specialty: specialist,
+          latitude: reqLat,
+          longitude: reqLon,
+          city: reqCity,
+        });
+
+        if (recResult?.recommendationText) {
+          report += `${recResult.recommendationText}\n\n`;
+        }
+        if (recResult?.doctor) {
+          recommendedDoctor = recResult.doctor;
         }
 
         report += `Please consult a qualified doctor for a complete medical diagnosis.`;
@@ -435,17 +453,29 @@ export class TriageService {
           aiResponseText = "I have received your message. For mild to moderate symptoms, ensure adequate hydration, rest, and warm fluids like ginger-tulsi tea. Please consult an available doctor if symptoms persist.";
         }
 
-        // Check if message discusses symptoms and append remedies & top doctor if not already included
-        const symptomPattern = /fever|cough|cold|headache|chills|throat|stomach|pain|nausea|vomit|ache|dengue|malaria|typhoid|fatigue|flu|rash/i;
+        // Recommend top doctor matching symptoms and location
+        const recResult = await findBestDoctorForPatient({
+          symptoms: prompt,
+          latitude: reqLat,
+          longitude: reqLon,
+          city: reqCity,
+        });
+
+        if (recResult?.doctor) {
+          recommendedDoctor = recResult.doctor;
+        }
+
+        const symptomPattern = /fever|cough|cold|headache|chills|throat|stomach|pain|nausea|vomit|ache|dengue|malaria|typhoid|fatigue|flu|rash|chest|breath|skin|joint|knee|bone|eye|ear|period|pregnant|heart|bleed|tooth|dental/i;
         if (symptomPattern.test(prompt)) {
           const remedies = getHomemadeRemediesText(prompt, "Moderate");
-          const doctorRec = await getTopDoctorRecommendation("General Physician");
           if (remedies && !aiResponseText.toLowerCase().includes("remedies")) {
             aiResponseText += `\n\n${remedies}`;
           }
-          if (doctorRec && !aiResponseText.toLowerCase().includes("priority match score")) {
-            aiResponseText += `\n\n${doctorRec}`;
+          if (recResult?.recommendationText && !aiResponseText.toLowerCase().includes("recommended doctor")) {
+            aiResponseText += `\n\n${recResult.recommendationText}`;
           }
+        } else if (recResult?.recommendationText && !aiResponseText.toLowerCase().includes("recommended doctor")) {
+          aiResponseText += `\n\n${recResult.recommendationText}`;
         }
       } catch (err) {
         console.error("HuggingFace OpenAI chat error:", err.message);
@@ -481,6 +511,7 @@ export class TriageService {
       triageSessionId,
       userMessage,
       aiMessage,
+      recommendedDoctor,
     };
   }
 

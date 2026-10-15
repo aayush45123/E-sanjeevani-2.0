@@ -14,9 +14,9 @@ export default function ConsultationBookingForm() {
   const doctor = location.state?.doctor;
 
   const [formData, setFormData] = useState({
-    consultationType: "video",
-    symptoms: "",
-    currentProblem: "",
+    consultationType: location.state?.consultationMode || "video",
+    symptoms: location.state?.symptoms || location.state?.currentProblem || "",
+    currentProblem: location.state?.currentProblem || location.state?.symptoms || "",
     currentMedication: "",
     medicalHistory: "",
     allergies: "",
@@ -42,8 +42,9 @@ export default function ConsultationBookingForm() {
 
   const fetchDoctorSlots = async () => {
     try {
+      const docId = doctor._id || doctor.id;
       const response = await doctorAvailabilityApi.getDoctorSlots(
-        doctor._id,
+        docId,
         formData.consultationDate,
       );
 
@@ -81,7 +82,7 @@ export default function ConsultationBookingForm() {
 
     try {
       await consultationApi.createConsultation({
-        doctorId: doctor._id,
+        doctorId: doctor._id || doctor.id,
         ...formData,
       });
 

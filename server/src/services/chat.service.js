@@ -2,9 +2,10 @@ import { OpenAI } from "openai";
 import { ChatRepository } from "../repositories/chat.repository.js";
 import { ConsultationRepository } from "../repositories/consultation.repository.js";
 import { TriageService } from "./triage.service.js";
+import { findBestDoctorForPatient } from "../helpers/remediesAndDoctorRecommender.js";
 
 export class ChatService {
-  static async handleChat(userId, { prompt, triageSessionId, model }) {
+  static async handleChat(userId, { prompt, triageSessionId, model, latitude, longitude, city, userLocation }) {
     if (!prompt) {
       throw { status: 400, message: "Prompt is required" };
     }
@@ -14,6 +15,10 @@ export class ChatService {
         triageSessionId,
         prompt,
         model,
+        latitude,
+        longitude,
+        city,
+        userLocation,
       });
 
       return {
@@ -21,15 +26,28 @@ export class ChatService {
         triageSessionId: chatResult.triageSessionId,
         userMessage: chatResult.userMessage,
         aiMessage: chatResult.aiMessage,
+        recommendedDoctor: chatResult.recommendedDoctor || null,
         timestamp: new Date().toISOString(),
       };
     }
 
+    const recResult = await findBestDoctorForPatient({
+      symptoms: prompt,
+      latitude: latitude || userLocation?.latitude,
+      longitude: longitude || userLocation?.longitude,
+      city: city || userLocation?.city,
+    });
+
     if (!process.env.HF_TOKEN) {
       console.error("HF_TOKEN environment variable is not set");
-      throw {
-        status: 500,
-        message: "Server configuration error. Please contact support.",
+      let reply = "I received your medical inquiry. Please consult a qualified specialist for comprehensive assessment.";
+      if (recResult?.recommendationText) {
+        reply += `\n\n${recResult.recommendationText}`;
+      }
+      return {
+        reply,
+        recommendedDoctor: recResult?.doctor || null,
+        timestamp: new Date().toISOString(),
       };
     }
 
@@ -52,8 +70,14 @@ export class ChatService {
       ],
     });
 
+    let reply = chatCompletion.choices[0].message.content;
+    if (recResult?.recommendationText && !reply.toLowerCase().includes("recommended doctor")) {
+      reply += `\n\n${recResult.recommendationText}`;
+    }
+
     return {
-      reply: chatCompletion.choices[0].message.content,
+      reply,
+      recommendedDoctor: recResult?.doctor || null,
       timestamp: new Date().toISOString(),
     };
   }

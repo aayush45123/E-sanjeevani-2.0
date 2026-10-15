@@ -273,6 +273,27 @@ router.post("/assess", async (req, res) => {
       disclaimer: data.disclaimer || "AI-generated preliminary assessment. Not a substitute for formal clinical diagnosis.",
     };
 
+    // Attach structured recommended doctor based on symptoms and user location
+    try {
+      const { findBestDoctorForPatient } = await import("../helpers/remediesAndDoctorRecommender.js");
+      const recResult = await findBestDoctorForPatient({
+        symptoms: Object.keys(symptoms || {}).filter((k) => symptoms[k] === 1).join(" "),
+        disease: topDiseaseName,
+        specialty: data.assessment?.suggestedSpecialist || "General Physician",
+        latitude: req.body.latitude || req.body.userLocation?.latitude,
+        longitude: req.body.longitude || req.body.userLocation?.longitude,
+        city: req.body.city || req.body.userLocation?.city,
+      });
+
+      if (recResult?.doctor) {
+        data.recommendedDoctor = recResult.doctor;
+        data.assessment.recommendedDoctor = recResult.doctor;
+        data.assessment.recommendedDoctorText = recResult.recommendationText;
+      }
+    } catch (docErr) {
+      console.warn("[FeverRoute] Error matching recommended doctor:", docErr);
+    }
+
     // Save session in PostgreSQL database so it appears in patient Triage History
     const userId = req.user?.id || req.user?.userId;
     if (userId) {

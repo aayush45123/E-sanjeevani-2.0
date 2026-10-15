@@ -2,11 +2,11 @@ import { predictTriageDisease } from "../ai/aiTriageClient.js";
 import { AiTriageRepository } from "../repositories/aiTriage.repository.js";
 import {
   getHomemadeRemediesText,
-  getTopDoctorRecommendation,
+  findBestDoctorForPatient,
 } from "../helpers/remediesAndDoctorRecommender.js";
 
 export class AiTriageService {
-  static async predictDisease(userId, { message }) {
+  static async predictDisease(userId, { message, latitude, longitude, city, userLocation }) {
     if (!userId) {
       throw { status: 401, message: "Authentication required" };
     }
@@ -34,9 +34,23 @@ export class AiTriageService {
     const doctorType = predictionData.doctorType || "General Physician";
 
     const remediesText = getHomemadeRemediesText(disease, urgency);
+    let recommendedDoctor = null;
     let recommendedDoctorText = null;
+
     try {
-      recommendedDoctorText = await getTopDoctorRecommendation(doctorType);
+      const recResult = await findBestDoctorForPatient({
+        symptoms: message,
+        disease,
+        specialty: doctorType,
+        latitude: latitude !== undefined ? latitude : userLocation?.latitude,
+        longitude: longitude !== undefined ? longitude : userLocation?.longitude,
+        city: city || userLocation?.city,
+      });
+
+      if (recResult) {
+        recommendedDoctor = recResult.doctor || null;
+        recommendedDoctorText = recResult.recommendationText || null;
+      }
     } catch (docErr) {
       console.warn("Could not fetch top recommended doctor:", docErr);
     }
@@ -59,7 +73,8 @@ export class AiTriageService {
       topPredictions: predictionData.topPredictions,
       summary: predictionData.summary,
       remedies: remediesText,
-      recommendedDoctor: recommendedDoctorText,
+      recommendedDoctor,
+      recommendedDoctorText,
     };
   }
 }

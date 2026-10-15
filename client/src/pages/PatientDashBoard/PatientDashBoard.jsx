@@ -23,6 +23,10 @@ import {
   ShieldCheck,
   Video,
   ClipboardList,
+  MapPin,
+  Building2,
+  Award,
+  Star,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import io from "socket.io-client";
@@ -37,7 +41,7 @@ import {
   getHomemadeRemedies,
   getRecommendedDoctor,
 } from "../../utils/remediesAndDoctorRecommender";
-import { formatDoctorName } from "../../utils/doctorUtils";
+import { formatDoctorName, getDoctorInitials } from "../../utils/doctorUtils";
 import toast from "react-hot-toast";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -316,6 +320,26 @@ export default function PatientDashboard() {
   const [feverAnswers, setFeverAnswers] = useState({});
   const [feverActive, setFeverActive] = useState(false);
 
+  // User Geolocation for local doctor recommendations
+  const [userLocation, setUserLocation] = useState(null);
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setUserLocation({
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+          });
+        },
+        (err) => {
+          console.warn("Location permission not provided or skipped:", err.message);
+        },
+        { timeout: 8000, maximumAge: 60000 }
+      );
+    }
+  }, []);
+
   const hasStartedChat = messages.length > 0;
 
   // Auto-resize textarea handler
@@ -546,10 +570,14 @@ export default function PatientDashboard() {
       const payload = {
         symptoms: symptomMap,
         red_flags: answers.red_flags ? { bleeding: true } : {},
+        userLocation,
+        latitude: userLocation?.latitude,
+        longitude: userLocation?.longitude,
       };
 
       const response = await apiClient.post("/fever/assess", payload);
       const data = response.data;
+      const recDocFromApi = data.recommendedDoctor || data.assessment?.recommendedDoctor || null;
 
       const assessment = data.assessment || (data.top_ranking ? {
         prediction: data.top_ranking[0]?.disease?.replace(/_/g, " ") || "Fever Assessment",
@@ -604,26 +632,30 @@ export default function PatientDashboard() {
           md += `\n> ⚠️ **${remedyResult.warning}**\n\n`;
         }
 
-        // Top Recommended Doctor based on Priority Score
-        try {
-          const docRes = await consultationApi.getAvailableDoctors();
-          const doctorsList = docRes.data?.doctors || docRes.data || [];
-          const topDoc = getRecommendedDoctor(doctorsList, a.suggestedSpecialist || "General Physician");
-          if (topDoc) {
-            const cleanDocName = formatDoctorName(topDoc.name);
-            md += `---\n### Recommended Doctor (Best Match by Priority Score)\n`;
-            md += `• **${cleanDocName}** (${topDoc.specialization || "General Physician"})\n`;
-            md += `  - **Priority Match Score:** ${topDoc.priorityScore}/100\n`;
-            md += `  - **Experience:** ${topDoc.experience || 5} years\n`;
-            md += `  - **Rating:** ⭐ ${topDoc.effectiveRating}/5\n`;
-            if (topDoc.hospitalName) md += `  - **Hospital:** ${topDoc.hospitalName}\n`;
-            md += `\n*You can book a direct consultation with ${cleanDocName} from Available Doctors.*\n\n`;
+        // Fallback Doctor match if backend didn't supply one
+        let matchedDoc = recDocFromApi;
+        if (!matchedDoc) {
+          try {
+            const docRes = await consultationApi.getAvailableDoctors();
+            const doctorsList = docRes.data?.doctors || docRes.data || [];
+            matchedDoc = getRecommendedDoctor(doctorsList, a.suggestedSpecialist || "General Physician");
+          } catch (e) {
+            console.warn("Could not fetch recommended doctor for fever report:", e);
           }
-        } catch (e) {
-          console.warn("Could not fetch recommended doctor for fever report:", e);
         }
 
-        md += `*${a.disclaimer}*`;
+        if (matchedDoc) {
+          const cleanDocName = formatDoctorName(matchedDoc.name);
+          md += `---\n### Recommended Specialist\n`;
+          md += `• **${cleanDocName}** (${matchedDoc.specialization || "General Physician"})\n`;
+          if (matchedDoc.distanceInKm) md += `  - **Distance:** ${matchedDoc.distanceInKm} km away\n`;
+          md += `  - **Experience:** ${matchedDoc.experience || 5} years\n`;
+          md += `  - **Rating:** ⭐ ${matchedDoc.rating || matchedDoc.effectiveRating || 4.8}/5\n`;
+          if (matchedDoc.hospitalName) md += `  - **Hospital:** ${matchedDoc.hospitalName}\n`;
+          md += `\n*Connect with ${cleanDocName} below to proceed directly to the booking form.*`;
+        }
+
+        md += `\n\n*${a.disclaimer}*`;
 
         setMessages((prev) => [
           ...prev,
@@ -631,6 +663,8 @@ export default function PatientDashboard() {
             id: Date.now() + 1,
             type: "ai",
             text: md,
+            recommendedDoctor: matchedDoc,
+            userPromptContext: `Fever Assessment: ${a.prediction}`,
             options: [
               { label: "⚡ Retake Assessment", value: "start" },
               { label: "Find a Doctor", value: "Help me find a doctor for fever" },
@@ -683,18 +717,18 @@ export default function PatientDashboard() {
         fallbackMd += `\n*${fallbackRemedies.disclaimer}*\n\n`;
       }
 
+      let fallbackDoc = null;
       try {
         const docRes = await consultationApi.getAvailableDoctors();
         const docs = docRes.data?.doctors || docRes.data || [];
-        const topDoc = getRecommendedDoctor(docs, "General Physician");
-        if (topDoc) {
-          const cleanDocName = formatDoctorName(topDoc.name);
-          fallbackMd += `---\n### Recommended Doctor (Best Match by Priority Score)\n`;
-          fallbackMd += `• **${cleanDocName}** (${topDoc.specialization || "General Physician"})\n`;
-          fallbackMd += `  - **Priority Match Score:** ${topDoc.priorityScore}/100\n`;
-          fallbackMd += `  - **Experience:** ${topDoc.experience || 5} years\n`;
-          fallbackMd += `  - **Rating:** ⭐ ${topDoc.effectiveRating}/5\n`;
-          fallbackMd += `\n*You can book a direct consultation with ${cleanDocName} from Available Doctors.*\n\n`;
+        fallbackDoc = getRecommendedDoctor(docs, "General Physician");
+        if (fallbackDoc) {
+          const cleanDocName = formatDoctorName(fallbackDoc.name);
+          fallbackMd += `---\n### Recommended Specialist\n`;
+          fallbackMd += `• **${cleanDocName}** (${fallbackDoc.specialization || "General Physician"})\n`;
+          fallbackMd += `  - **Experience:** ${fallbackDoc.experience || 5} years\n`;
+          fallbackMd += `  - **Rating:** ⭐ ${fallbackDoc.effectiveRating || 4.8}/5\n`;
+          fallbackMd += `\n*Connect with ${cleanDocName} below to proceed directly to the booking form.*\n\n`;
         }
       } catch {}
 
@@ -706,6 +740,8 @@ export default function PatientDashboard() {
           id: Date.now() + 1,
           type: "ai",
           text: fallbackMd,
+          recommendedDoctor: fallbackDoc,
+          userPromptContext: `Fever Assessment: ${suspect}`,
           options: [
             { label: "⚡ Retake Assessment", value: "start" },
             { label: "Find a Doctor", value: "Help me find a doctor for fever" },
@@ -958,6 +994,9 @@ export default function PatientDashboard() {
           prompt: currentInput,
           triageSessionId: activeTriageSessionId,
           model: "fever-assessment",
+          userLocation: userLocation || null,
+          latitude: userLocation?.latitude || null,
+          longitude: userLocation?.longitude || null,
         });
 
         const data = response.data;
@@ -977,6 +1016,11 @@ export default function PatientDashboard() {
           aiMessageText = "I'm here to assist with your fever symptoms and differential assessment.";
         }
 
+        const recommendedDoctor =
+          data?.data?.recommendedDoctor ||
+          data?.recommendedDoctor ||
+          null;
+
         aiMessageText += "\n\n---\n*Ready to check your symptoms? Click below to start the differential fever questionnaire.*";
 
         setMessages((prev) => [
@@ -985,6 +1029,8 @@ export default function PatientDashboard() {
             id: Date.now() + 1,
             type: "ai",
             text: aiMessageText,
+            recommendedDoctor,
+            userPromptContext: currentInput,
             options: [{ label: "⚡ Start Fever Assessment", value: "start" }],
             timestamp: new Date(),
           },
@@ -1016,6 +1062,9 @@ export default function PatientDashboard() {
         prompt: currentInput,
         triageSessionId: activeTriageSessionId,
         model: selectedModel.id,
+        userLocation: userLocation || null,
+        latitude: userLocation?.latitude || null,
+        longitude: userLocation?.longitude || null,
       });
 
       const data = response.data;
@@ -1031,12 +1080,19 @@ export default function PatientDashboard() {
         ?.replace(/\n{3,}/g, "\n\n")
         ?.trim();
 
+      const recommendedDoctor =
+        data?.data?.recommendedDoctor ||
+        data?.recommendedDoctor ||
+        null;
+
       setMessages((prev) => [
         ...prev,
         {
           id: Date.now() + 1,
           type: "ai",
           text: aiMessageText || "No response generated",
+          recommendedDoctor,
+          userPromptContext: currentInput,
           timestamp: new Date(),
         },
       ]);
@@ -1845,6 +1901,100 @@ export default function PatientDashboard() {
                         >
                           {message.text}
                         </ReactMarkdown>
+
+                        {/* Interactive Recommended Doctor Card */}
+                        {message.recommendedDoctor && (
+                          <div className={styles.recommendedDoctorCard}>
+                            <div className={styles.recCardHeader}>
+                              <span className={styles.recDoctorBadge}>
+                                <Stethoscope size={13} /> Recommended Specialist
+                              </span>
+                              {message.recommendedDoctor.distanceInKm != null && (
+                                <span className={styles.recDistancePill}>
+                                  <MapPin size={11} /> {message.recommendedDoctor.distanceInKm} km away
+                                </span>
+                              )}
+                            </div>
+
+                            <div className={styles.recCardBody}>
+                              <div className={styles.recAvatar}>
+                                {getDoctorInitials(message.recommendedDoctor.name || "Dr")}
+                              </div>
+
+                              <div className={styles.recInfo}>
+                                <div className={styles.recNameLine}>
+                                  <h4 className={styles.recDoctorName}>
+                                    {formatDoctorName(message.recommendedDoctor.name)}
+                                  </h4>
+                                  <span className={styles.recVerifiedBadge}>
+                                    <ShieldCheck size={11} /> Verified
+                                  </span>
+                                </div>
+
+                                <div className={styles.recSpecialtyLine}>
+                                  <span className={styles.recSpecText}>
+                                    {message.recommendedDoctor.specialization || "General Physician"}
+                                  </span>
+                                  {message.recommendedDoctor.recommendationReason && (
+                                    <span className={styles.recReasonText}>
+                                      • {message.recommendedDoctor.recommendationReason}
+                                    </span>
+                                  )}
+                                </div>
+
+                                <div className={styles.recMetaLine}>
+                                  {message.recommendedDoctor.experience != null && (
+                                    <span>
+                                      <Award size={12} /> {message.recommendedDoctor.experience} yrs exp
+                                    </span>
+                                  )}
+                                  {(message.recommendedDoctor.rating || message.recommendedDoctor.effectiveRating) != null && (
+                                    <span>
+                                      <Star size={12} fill="#eab308" color="#eab308" />{" "}
+                                      {message.recommendedDoctor.rating || message.recommendedDoctor.effectiveRating}/5
+                                    </span>
+                                  )}
+                                  {message.recommendedDoctor.hospitalName && (
+                                    <span>
+                                      <Building2 size={12} /> {message.recommendedDoctor.hospitalName}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className={styles.recActionArea}>
+                                <div className={styles.recFeeBlock}>
+                                  <span className={styles.recFeeLabel}>Consultation</span>
+                                  <span className={styles.recFeeVal}>
+                                    ₹{message.recommendedDoctor.consultationFee ?? message.recommendedDoctor.fees ?? 500}
+                                  </span>
+                                </div>
+
+                                <button
+                                  type="button"
+                                  className={styles.recDirectBookBtn}
+                                  onClick={() => {
+                                    const symptoms =
+                                      message.userPromptContext ||
+                                      message.recommendedDoctor.recommendationReason ||
+                                      "Consultation for reported symptoms";
+                                    navigate("/consultation-booking", {
+                                      state: {
+                                        doctor: message.recommendedDoctor,
+                                        symptoms,
+                                        currentProblem: symptoms,
+                                        consultationMode: "video",
+                                      },
+                                    });
+                                  }}
+                                >
+                                  <Video size={13} />
+                                  <span>Connect & Book Appointment</span>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
 
                         {/* Interactive Option Pills */}
                         {message.options && message.options.length > 0 && (
