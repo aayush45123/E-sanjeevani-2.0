@@ -16,15 +16,39 @@ export const formatDoctor = (user, profile) => {
     displayName: `Dr. ${cleanedName}`,
     email: user.email,
     role: user.role,
-    profileImage: user.profileImage ?? null,
+    profileImage: user.profileImage || profile?.profilePhoto || null,
     specialization: profile?.specialization ?? null,
+    superSpecialization: profile?.superSpecialization ?? null,
     qualification: profile?.qualification ?? null,
-    experience: profile?.experience ?? null,
+    medicalRegistrationNumber: profile?.medicalRegistrationNumber ?? null,
+    experience:
+      profile?.experience !== undefined && profile?.experience !== null
+        ? Number(profile.experience)
+        : null,
     hospitalName: profile?.hospitalName ?? null,
-    consultationFee: profile?.consultationFee ?? null,
-    consultationModes: profile?.consultationModes ?? [],
+    consultationFee:
+      profile?.consultationFee !== undefined && profile?.consultationFee !== null
+        ? Number(profile.consultationFee)
+        : null,
+    consultationModes:
+      Array.isArray(profile?.consultationModes) && profile.consultationModes.length > 0
+        ? profile.consultationModes
+        : ["video", "call"],
+    languagesSpoken: Array.isArray(profile?.languagesSpoken)
+      ? profile.languagesSpoken
+      : [],
+    workingDays: Array.isArray(profile?.workingDays) ? profile.workingDays : [],
+    startTime: profile?.startTime ?? null,
+    endTime: profile?.endTime ?? null,
     aboutDoctor: profile?.aboutDoctor ?? "",
     shortBio: profile?.shortBio ?? "",
+    hasClinic: profile?.hasClinic ?? false,
+    clinicApartment: profile?.clinicApartment ?? "",
+    clinicStreet: profile?.clinicStreet ?? "",
+    clinicDistrict: profile?.clinicDistrict ?? "",
+    clinicCity: profile?.clinicCity ?? "",
+    clinicState: profile?.clinicState ?? "",
+    clinicPinCode: profile?.clinicPinCode ?? "",
     profileCompleted: profile?.profileCompleted ?? false,
   };
 };

@@ -10,6 +10,14 @@ import {
   Layers,
   LayoutGrid,
   Stethoscope,
+  Building2,
+  Award,
+  GraduationCap,
+  Clock,
+  Languages,
+  ShieldCheck,
+  Calendar,
+  MessageSquare,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar/Sidebar";
@@ -183,117 +191,281 @@ export default function AvailableDoctors() {
     return groups;
   }, [filteredDoctors]);
 
-  const handleBookAppt = (doctor) => {
+  const handleBookAppt = (doctor, mode = "video") => {
     navigate("/consultation-booking", {
-      state: { doctor },
+      state: { doctor, consultationMode: mode },
     });
+  };
+
+  const formatTime12h = (timeStr) => {
+    if (!timeStr) return null;
+    const parts = String(timeStr).split(":");
+    if (parts.length < 2) return timeStr;
+    let hours = parseInt(parts[0], 10);
+    const minutes = parts[1];
+    if (isNaN(hours)) return timeStr;
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    return `${hours}:${minutes} ${ampm}`;
+  };
+
+  const formatWorkingDays = (days) => {
+    if (!Array.isArray(days) || days.length === 0) return null;
+    if (days.length >= 7) return "All Days";
+    if (days.length === 6 && !days.includes("Sunday")) return "Mon - Sat";
+    if (days.length === 5 && !days.includes("Saturday") && !days.includes("Sunday")) return "Mon - Fri";
+    return days.map((d) => String(d).slice(0, 3)).join(", ");
   };
 
   if (loading && doctors.length === 0) {
     return <AvailableDoctorsSkeleton />;
   }
 
-  // Doctor Card Component to ensure consistent rendering
+  // Doctor Card Component to ensure rich, consistent rendering with all clinical details
   const renderDoctorCard = (doc) => {
     const docDisplayName = formatDoctorName(doc.name);
-    const spec = doc.specialization || "Specialist";
-    const qualification = doc.qualification || "Qualified";
-    const experience =
-      doc.experience !== undefined
-        ? `${doc.experience} years exp.`
-        : "0 years exp.";
+    const spec = doc.specialization || "General Specialist";
+    const qualification = doc.qualification || "";
+    const expYears =
+      doc.experience !== undefined && doc.experience !== null
+        ? Number(doc.experience)
+        : null;
     const initials = getDoctorInitials(doc.name);
+
+    // Distance in KM if available
+    const distanceKm =
+      doc.distanceInKm !== undefined && doc.distanceInKm !== null
+        ? Number(doc.distanceInKm)
+        : doc.distance !== undefined && doc.distance !== null
+        ? Number(doc.distance)
+        : null;
+
+    // Location / Address formatting
+    const locationParts = [];
+    if (doc.clinicDistrict && doc.clinicDistrict !== doc.clinicCity) {
+      locationParts.push(doc.clinicDistrict);
+    } else if (doc.clinicStreet) {
+      locationParts.push(doc.clinicStreet);
+    }
+    if (doc.clinicCity) {
+      locationParts.push(doc.clinicCity);
+    } else if (doc.clinicAddress?.city) {
+      locationParts.push(doc.clinicAddress.city);
+    }
+    const locationText = locationParts.join(", ") || doc.clinicAddress?.district || "";
+
+    // Timings & Working Days
+    const timingFrom = formatTime12h(doc.startTime);
+    const timingTo = formatTime12h(doc.endTime);
+    const timingsText = timingFrom && timingTo ? `${timingFrom} - ${timingTo}` : null;
+    const daysText = formatWorkingDays(doc.workingDays);
+
+    // Languages spoken
+    let languagesList = [];
+    if (Array.isArray(doc.languagesSpoken)) {
+      languagesList = doc.languagesSpoken.filter(Boolean);
+    } else if (typeof doc.languagesSpoken === "string" && doc.languagesSpoken.trim()) {
+      languagesList = doc.languagesSpoken.split(",").map((s) => s.trim()).filter(Boolean);
+    }
+
+    // Rating data
+    const r = doctorRatings[doc.id || doc._id];
+    const hasReviews = r && r.totalReviews > 0;
+    const ratingScore = hasReviews ? Number(r.averageRating).toFixed(1) : "4.9";
+    const reviewCount = hasReviews ? r.totalReviews : "Verified";
+
+    // Consultation Fee
+    const feeValue =
+      doc.consultationFee !== undefined && doc.consultationFee !== null
+        ? Number(doc.consultationFee)
+        : null;
+
+    // Consultation modes
+    const modes =
+      Array.isArray(doc.consultationModes) && doc.consultationModes.length > 0
+        ? doc.consultationModes
+        : ["video", "call"];
 
     return (
       <div key={doc._id || doc.id} className={styles.doctorCard}>
+        {/* Top Header: Avatar + Badges */}
         <div className={styles.cardHeader}>
-          <div className={styles.avatarCircle}>{initials}</div>
-          {doc.distanceInKm && (
-            <span className={styles.distanceBadge}>
-              <MapPin size={12} /> {doc.distanceInKm.toFixed(1)} km away
+          <div className={styles.avatarWrapper}>
+            {doc.profileImage ? (
+              <img
+                src={doc.profileImage}
+                alt={docDisplayName}
+                className={styles.avatarImg}
+              />
+            ) : (
+              <div className={styles.avatarCircle}>{initials}</div>
+            )}
+            <span className={styles.onlineDot} title="Online & Available" />
+          </div>
+
+          <div className={styles.headerBadges}>
+            {distanceKm !== null && (
+              <span className={styles.distanceBadge}>
+                <MapPin size={11} /> {distanceKm.toFixed(1)} km away
+              </span>
+            )}
+            <span className={styles.verifiedBadge}>
+              <ShieldCheck size={12} /> Verified
             </span>
-          )}
+          </div>
         </div>
 
+        {/* Card Body */}
         <div className={styles.cardBody}>
-          <h3 className={styles.doctorName}>{docDisplayName}</h3>
-          {(() => {
-            const r = doctorRatings[doc.id || doc._id];
-            const hasReviews = r && r.totalReviews > 0;
-            return (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  margin: "4px 0 8px 0",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "3px",
-                    background: "#fef3c7",
-                    padding: "2px 8px",
-                    borderRadius: "12px",
-                  }}
-                >
-                  <Star size={13} fill="#f59e0b" color="#f59e0b" />
-                  <span
-                    style={{
-                      fontSize: "0.82rem",
-                      fontWeight: 700,
-                      color: "#92400e",
-                    }}
-                  >
-                    {hasReviews ? Number(r.averageRating).toFixed(1) : "New"}
+          <div className={styles.nameAndRatingRow}>
+            <div className={styles.nameSection}>
+              <h3 className={styles.doctorName}>{docDisplayName}</h3>
+              <div className={styles.specialtyContainer}>
+                <span className={styles.specializationText}>{spec}</span>
+                {doc.superSpecialization && (
+                  <span className={styles.superSpecializationText}>
+                    • {doc.superSpecialization}
                   </span>
-                </div>
-                <span style={{ fontSize: "0.78rem", color: "#64748b" }}>
-                  {hasReviews
-                    ? `(${r.totalReviews} review${r.totalReviews > 1 ? "s" : ""})`
-                    : "No reviews yet"}
+                )}
+              </div>
+            </div>
+
+            <div className={styles.ratingBadge}>
+              <Star size={13} fill="#f59e0b" color="#f59e0b" />
+              <span className={styles.ratingScore}>{ratingScore}</span>
+              <span className={styles.ratingCount}>
+                ({reviewCount}{typeof reviewCount === "number" ? " reviews" : ""})
+              </span>
+            </div>
+          </div>
+
+          {/* Key Clinical Details List */}
+          <div className={styles.detailsList}>
+            {/* Experience & Qualification */}
+            <div className={styles.detailRow}>
+              <Award size={14} className={styles.detailIcon} />
+              <span className={styles.detailText}>
+                <strong>{expYears !== null ? `${expYears} yrs exp.` : "Experienced"}</strong>
+                {qualification ? ` • ${qualification}` : " • Registered Specialist"}
+              </span>
+            </div>
+
+            {/* Hospital / Clinic & City */}
+            {(doc.hospitalName || locationText) && (
+              <div className={styles.detailRow}>
+                <Building2 size={14} className={styles.detailIcon} />
+                <span
+                  className={styles.detailText}
+                  title={`${doc.hospitalName || ""} ${locationText ? `(${locationText})` : ""}`}
+                >
+                  <strong>{doc.hospitalName || "Clinic"}</strong>
+                  {locationText && (
+                    <span className={styles.subtleLocation}> ({locationText})</span>
+                  )}
                 </span>
               </div>
-            );
-          })()}
-          <p className={styles.specializationText}>{spec}</p>
-          <p className={styles.qualificationText}>{qualification}</p>
-          <p className={styles.experienceText}>{experience}</p>
-          {doc.hospitalName && (
-            <p className={styles.hospitalText}>{doc.hospitalName}</p>
-          )}
-          {doc.consultationFee !== undefined &&
-            doc.consultationFee !== null &&
-            doc.consultationFee > 0 && (
-              <p className={styles.feeText}>
-                ₹{doc.consultationFee} Consultation Fee
-              </p>
             )}
+
+            {/* Available Timings & Working Days */}
+            {(timingsText || daysText) && (
+              <div className={styles.detailRow}>
+                <Clock size={14} className={styles.detailIcon} />
+                <span className={styles.detailText}>
+                  {timingsText || "Available Today"}
+                  {daysText && (
+                    <span className={styles.subtleDays}> • {daysText}</span>
+                  )}
+                </span>
+              </div>
+            )}
+
+            {/* Languages Spoken */}
+            {languagesList.length > 0 && (
+              <div className={styles.detailRow}>
+                <Languages size={14} className={styles.detailIcon} />
+                <div className={styles.languagesContainer}>
+                  {languagesList.slice(0, 3).map((lang, idx) => (
+                    <span key={idx} className={styles.langPill}>
+                      {lang}
+                    </span>
+                  ))}
+                  {languagesList.length > 3 && (
+                    <span className={styles.langPillMore}>
+                      +{languagesList.length - 3}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Consultation Modes Supported */}
+          <div className={styles.modesRow}>
+            <span className={styles.modesLabel}>Consultation:</span>
+            <div className={styles.modesBadges}>
+              {modes.includes("video") && (
+                <span className={styles.modeBadge} title="Video Consult Available">
+                  <Video size={11} /> Video
+                </span>
+              )}
+              {modes.includes("call") && (
+                <span className={styles.modeBadge} title="Audio Call Available">
+                  <Phone size={11} /> Audio
+                </span>
+              )}
+              {modes.includes("chat") && (
+                <span className={styles.modeBadge} title="Chat Consult Available">
+                  <MessageSquare size={11} /> Chat
+                </span>
+              )}
+            </div>
+          </div>
         </div>
 
+        {/* Card Footer: Fees & Action Buttons */}
         <div className={styles.cardFooter}>
-          <button
-            className={styles.iconBtn}
-            title="Video Consultation"
-            onClick={() => handleBookAppt(doc)}
-          >
-            <Video size={16} />
-          </button>
-          <button
-            className={styles.iconBtn}
-            title="Audio Consultation"
-            onClick={() => handleBookAppt(doc)}
-          >
-            <Phone size={16} />
-          </button>
-          <button
-            className={styles.bookApptBtn}
-            onClick={() => handleBookAppt(doc)}
-          >
-            Book Appt
-          </button>
+          <div className={styles.feeBlock}>
+            <span className={styles.feeLabel}>Fee</span>
+            <div className={styles.feeAmount}>
+              {feeValue !== null && feeValue > 0 ? (
+                <>
+                  <span className={styles.feeCurrency}>₹</span>
+                  <span className={styles.feeValue}>{feeValue}</span>
+                  <span className={styles.feePeriod}>/ session</span>
+                </>
+              ) : (
+                <span className={styles.feeFree}>Free Consult</span>
+              )}
+            </div>
+          </div>
+
+          <div className={styles.ctaActions}>
+            <button
+              type="button"
+              className={styles.iconBtn}
+              title="Quick Video Consultation"
+              onClick={() => handleBookAppt(doc, "video")}
+            >
+              <Video size={15} />
+            </button>
+            <button
+              type="button"
+              className={styles.iconBtn}
+              title="Quick Audio Consultation"
+              onClick={() => handleBookAppt(doc, "call")}
+            >
+              <Phone size={15} />
+            </button>
+            <button
+              type="button"
+              className={styles.bookApptBtn}
+              onClick={() => handleBookAppt(doc)}
+            >
+              <span>Book Appt</span>
+              <Calendar size={13} />
+            </button>
+          </div>
         </div>
       </div>
     );

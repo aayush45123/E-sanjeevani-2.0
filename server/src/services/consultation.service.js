@@ -381,6 +381,7 @@ export class ConsultationService {
     return rows.map(({ user, profile, distance }) => ({
       ...formatDoctor(user, profile),
       distance: Number(Number(distance).toFixed(2)),
+      distanceInKm: Number(Number(distance).toFixed(1)),
       clinicAddress: {
         apartment: profile.clinicApartment ?? "",
         street: profile.clinicStreet ?? "",
