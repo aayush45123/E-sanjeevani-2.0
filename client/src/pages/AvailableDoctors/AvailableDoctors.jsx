@@ -20,6 +20,7 @@ import toast from "react-hot-toast";
 
 export default function AvailableDoctors() {
   const [doctors, setDoctors] = useState([]);
+  const [allDoctors, setAllDoctors] = useState([]); // full unfiltered list for client-side filtering
   const [dbSpecialties, setDbSpecialties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -65,23 +66,23 @@ export default function AvailableDoctors() {
     setDoctorRatings((prev) => ({ ...prev, ...ratingsMap }));
   };
 
+  // Only re-fetch when the Near Me toggle or location changes, NOT on every specialty click
   useEffect(() => {
     if (showNearMe && userLocation) {
       fetchDoctorsNearMe();
-    } else {
+    } else if (!showNearMe) {
       fetchDoctors();
     }
-  }, [selectedSpecialty, showNearMe, userLocation]);
+  }, [showNearMe, userLocation]);
 
   const fetchDoctors = async () => {
     try {
       setLoading(true);
       const response = await consultationApi.getAvailableDoctors({
-        specialization:
-          selectedSpecialty !== "all" ? selectedSpecialty : undefined,
         limit: 100,
       });
       const docs = response.data?.doctors || [];
+      setAllDoctors(docs);
       setDoctors(docs);
       fetchRatingsForDoctors(docs);
     } catch (error) {
@@ -97,11 +98,11 @@ export default function AvailableDoctors() {
       const response = await consultationApi.getDoctorsNearMe({
         latitude: userLocation.latitude,
         longitude: userLocation.longitude,
-        radiusKm: 50,
-        specialization:
-          selectedSpecialty !== "all" ? selectedSpecialty : undefined,
+        radiusKm: 15,
+        specialization: undefined, // load all, filter client-side
       });
       const docs = response.data?.doctors || response.data?.data?.doctors || [];
+      setAllDoctors(docs);
       setDoctors(docs);
       fetchRatingsForDoctors(docs);
     } catch (error) {
@@ -143,31 +144,33 @@ export default function AvailableDoctors() {
     }
   };
 
-  // Compile full available list of specialties combining DB list and currently loaded doctors
+  // Compile full available list of specialties combining DB list and all loaded doctors
   const allSpecialties = useMemo(() => {
     const specsMap = new Map();
     dbSpecialties.forEach((s) => {
       if (s.specialization) specsMap.set(s.specialization, Number(s.count || 0));
     });
-    doctors.forEach((d) => {
+    // Use allDoctors (full unfiltered list) so pills don't disappear when a specialty is selected
+    allDoctors.forEach((d) => {
       if (d.specialization) {
         const cur = specsMap.get(d.specialization) || 0;
         if (!specsMap.has(d.specialization)) specsMap.set(d.specialization, cur + 1);
       }
     });
     return Array.from(specsMap.keys()).sort();
-  }, [dbSpecialties, doctors]);
+  }, [dbSpecialties, allDoctors]);
 
-  // Filtered doctors based on search query
+  // Filtered doctors: apply specialty + search query client-side (instant, no API call)
   const filteredDoctors = useMemo(() => {
     return doctors.filter((doc) => {
       const name = doc.name || "";
       const spec = doc.specialization || "";
       const q = searchQuery.toLowerCase().trim();
-      if (!q) return true;
-      return name.toLowerCase().includes(q) || spec.toLowerCase().includes(q);
+      const matchesSearch = !q || name.toLowerCase().includes(q) || spec.toLowerCase().includes(q);
+      const matchesSpecialty = selectedSpecialty === "all" || spec === selectedSpecialty;
+      return matchesSearch && matchesSpecialty;
     });
-  }, [doctors, searchQuery]);
+  }, [doctors, searchQuery, selectedSpecialty]);
 
   // Group filtered doctors by Section / Department
   const sectionWiseDoctors = useMemo(() => {
@@ -357,10 +360,10 @@ export default function AvailableDoctors() {
               onClick={() => setSelectedSpecialty("all")}
             >
               <span>All Sections</span>
-              <span className={styles.pillBadge}>{doctors.length}</span>
+              <span className={styles.pillBadge}>{allDoctors.length}</span>
             </button>
             {allSpecialties.map((spec) => {
-              const count = doctors.filter(
+              const count = allDoctors.filter(
                 (d) => d.specialization === spec
               ).length;
               return (

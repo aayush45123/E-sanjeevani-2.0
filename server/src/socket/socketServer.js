@@ -250,6 +250,27 @@ const initializeSocket = (server) => {
 
     /*
     ==================================================
+    PRESCRIPTION ISSUED (Real-time notification to patient)
+    ==================================================
+    */
+
+    socket.on("prescription-issued", ({ consultationId, prescription }) => {
+      if (!consultationId || !prescription) {
+        console.warn("[Prescription] Invalid payload");
+        return;
+      }
+
+      console.log(`[Room ${consultationId}] Prescription issued by doctor – relaying to patient`);
+
+      // Broadcast to everyone else in the room (i.e. the patient)
+      socket.to(consultationId).emit("prescription-ready", {
+        prescription,
+        issuedAt: new Date(),
+      });
+    });
+
+    /*
+    ==================================================
     DISCONNECT
     ==================================================
     */

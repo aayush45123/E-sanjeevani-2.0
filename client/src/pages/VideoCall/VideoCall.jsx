@@ -96,6 +96,10 @@ export default function VideoCall() {
   const [rxError, setRxError] = useState("");
   const [pipMinimized, setPipMinimized] = useState(false);
 
+  // Patient: live prescription received during call
+  const [livePrescription, setLivePrescription] = useState(null); // set when doctor issues during call
+  const [showLiveRx, setShowLiveRx] = useState(false);
+
   // Feedback modal state
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [feedbackRating, setFeedbackRating] = useState(0);
@@ -691,6 +695,17 @@ export default function VideoCall() {
           leaveCall(true, false);
         });
 
+        // ── Patient receives real-time prescription from doctor ─────────────
+        socket.on("prescription-ready", ({ prescription, issuedAt }) => {
+          console.log("[Socket] Prescription received from doctor");
+          setLivePrescription({ ...prescription, issuedAt });
+          setShowLiveRx(true);
+          NotificationService.showToast(
+            "Your doctor has issued your prescription!",
+            "success",
+          );
+        });
+
         try {
           await consultationApi.updateConsultationStatus(consultationId, {
             status: "ongoing",
@@ -833,11 +848,31 @@ export default function VideoCall() {
         doctorNotes: rxDoctorNotes.trim(),
       });
 
+      const pdfUrl = res.data.record?.pdfUrl || res.data.record?.prescriptionPdfUrl || null;
+
       setRxSuccess({
         message: res.data.message || "Prescription issued successfully!",
-        pdfUrl: res.data.record?.pdfUrl || res.data.record?.prescriptionPdfUrl || null,
+        pdfUrl,
       });
       NotificationService.showToast("Digital prescription issued!", "success");
+
+      // ── Notify patient in real-time via socket ──────────────────────────────
+      if (socketRef.current?.connected) {
+        socketRef.current.emit("prescription-issued", {
+          consultationId,
+          prescription: {
+            diagnosis: rxDiagnosis.trim(),
+            medicines: validMeds,
+            advice: rxAdvice.trim(),
+            recommendedTests: rxTests.trim(),
+            referralInfo: rxReferralInfo.trim(),
+            followUpRequired: rxFollowUpRequired,
+            followUpDays: rxFollowUpRequired ? Number(rxFollowUpDays) : null,
+            pdfUrl,
+            doctorName: userName,
+          },
+        });
+      }
     } catch (err) {
       const msg = err.response?.data?.message || "Failed to issue prescription.";
       setRxError(msg);
@@ -2241,6 +2276,227 @@ export default function VideoCall() {
                 )}
               </div>
             </div>
+          )}
+
+          {/* ── PATIENT: LIVE PRESCRIPTION PANEL (received from doctor during call) ── */}
+          {userRole === "patient" && livePrescription && (
+            <div
+              style={{
+                position: "fixed",
+                bottom: showLiveRx ? "0" : "-100%",
+                right: "0",
+                width: "380px",
+                maxHeight: "85vh",
+                background: "linear-gradient(160deg, #0f172a 0%, #0c1a35 100%)",
+                borderRadius: "20px 20px 0 0",
+                boxShadow: "0 -8px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(99,179,237,0.15)",
+                zIndex: 9998,
+                display: "flex",
+                flexDirection: "column",
+                transition: "bottom 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                overflow: "hidden",
+              }}
+            >
+              {/* Header */}
+              <div
+                style={{
+                  padding: "16px 20px 12px",
+                  background: "linear-gradient(135deg, #1e40af, #0284c7)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  borderRadius: "20px 20px 0 0",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <div
+                    style={{
+                      width: 36, height: 36,
+                      background: "rgba(255,255,255,0.15)",
+                      borderRadius: "50%",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}
+                  >
+                    <Pill size={18} color="#fff" />
+                  </div>
+                  <div>
+                    <div style={{ color: "#fff", fontWeight: 700, fontSize: "0.95rem", lineHeight: 1.2 }}>
+                      Prescription Issued
+                    </div>
+                    <div style={{ color: "rgba(255,255,255,0.65)", fontSize: "0.75rem" }}>
+                      Dr. {livePrescription.doctorName} · Just now
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowLiveRx(false)}
+                  style={{
+                    background: "rgba(255,255,255,0.1)",
+                    border: "none",
+                    borderRadius: "8px",
+                    color: "#fff",
+                    width: 30, height: 30,
+                    cursor: "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: "1rem",
+                  }}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div style={{ overflowY: "auto", padding: "16px 20px", flex: 1 }}>
+                {/* Diagnosis */}
+                {livePrescription.diagnosis && (
+                  <div style={{ marginBottom: 14 }}>
+                    <div style={{ color: "#94a3b8", fontSize: "0.7rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>
+                      Diagnosis
+                    </div>
+                    <div
+                      style={{
+                        background: "rgba(14,165,233,0.12)",
+                        border: "1px solid rgba(14,165,233,0.25)",
+                        borderRadius: 10,
+                        padding: "9px 13px",
+                        color: "#e2e8f0",
+                        fontSize: "0.88rem",
+                        fontWeight: 600,
+                      }}
+                    >
+                      {livePrescription.diagnosis}
+                    </div>
+                  </div>
+                )}
+
+                {/* Medicines */}
+                {livePrescription.medicines?.length > 0 && (
+                  <div style={{ marginBottom: 14 }}>
+                    <div style={{ color: "#94a3b8", fontSize: "0.7rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
+                      Medicines
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                      {livePrescription.medicines.map((med, i) => (
+                        <div
+                          key={i}
+                          style={{
+                            background: "rgba(255,255,255,0.05)",
+                            border: "1px solid rgba(255,255,255,0.08)",
+                            borderRadius: 10,
+                            padding: "9px 13px",
+                          }}
+                        >
+                          <div style={{ color: "#f1f5f9", fontWeight: 600, fontSize: "0.88rem" }}>
+                            {med.medicineName} {med.dosage && <span style={{ color: "#7dd3fc", fontWeight: 400 }}>· {med.dosage}</span>}
+                          </div>
+                          <div style={{ color: "#94a3b8", fontSize: "0.78rem", marginTop: 2 }}>
+                            {[med.route, med.frequency, med.duration && `for ${med.duration}`].filter(Boolean).join(" · ")}
+                          </div>
+                          {med.instructions && (
+                            <div style={{ color: "#64748b", fontSize: "0.75rem", marginTop: 2, fontStyle: "italic" }}>{med.instructions}</div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Advice */}
+                {livePrescription.advice && (
+                  <div style={{ marginBottom: 12 }}>
+                    <div style={{ color: "#94a3b8", fontSize: "0.7rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>Clinical Advice</div>
+                    <p style={{ color: "#cbd5e1", fontSize: "0.82rem", margin: 0, lineHeight: 1.5 }}>{livePrescription.advice}</p>
+                  </div>
+                )}
+
+                {/* Tests */}
+                {livePrescription.recommendedTests && (
+                  <div style={{ marginBottom: 12 }}>
+                    <div style={{ color: "#94a3b8", fontSize: "0.7rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>Recommended Tests</div>
+                    <p style={{ color: "#cbd5e1", fontSize: "0.82rem", margin: 0 }}>{livePrescription.recommendedTests}</p>
+                  </div>
+                )}
+
+                {/* Follow-up */}
+                {livePrescription.followUpRequired && (
+                  <div
+                    style={{
+                      background: "rgba(245,158,11,0.1)",
+                      border: "1px solid rgba(245,158,11,0.25)",
+                      borderRadius: 10,
+                      padding: "8px 12px",
+                      display: "flex", alignItems: "center", gap: 8,
+                      marginBottom: 12,
+                    }}
+                  >
+                    <Clock size={14} color="#f59e0b" />
+                    <span style={{ color: "#fbbf24", fontSize: "0.82rem", fontWeight: 600 }}>
+                      Follow-up in {livePrescription.followUpDays} day{livePrescription.followUpDays !== 1 ? "s" : ""}
+                    </span>
+                  </div>
+                )}
+
+                {/* PDF Download */}
+                {livePrescription.pdfUrl && (
+                  <a
+                    href={
+                      livePrescription.pdfUrl.startsWith("http")
+                        ? livePrescription.pdfUrl
+                        : `${
+                            (import.meta.env.VITE_API_URL || "http://localhost:5000/api").replace(/\/api\/?$/, "")
+                          }${livePrescription.pdfUrl.startsWith("/") ? "" : "/"}${livePrescription.pdfUrl}`
+                    }
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
+                      padding: "10px 16px",
+                      background: "linear-gradient(135deg, #0284c7, #0369a1)",
+                      borderRadius: 10,
+                      color: "#fff",
+                      fontWeight: 600,
+                      fontSize: "0.88rem",
+                      textDecoration: "none",
+                      boxShadow: "0 4px 14px rgba(2,132,199,0.4)",
+                      marginTop: 6,
+                    }}
+                  >
+                    <FileText size={15} /> Download Prescription PDF
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Show-prescription toggle button for patient when panel is hidden */}
+          {userRole === "patient" && livePrescription && !showLiveRx && (
+            <button
+              onClick={() => setShowLiveRx(true)}
+              style={{
+                position: "fixed",
+                bottom: 24,
+                right: 24,
+                zIndex: 9997,
+                background: "linear-gradient(135deg, #0284c7, #0369a1)",
+                border: "none",
+                borderRadius: "50px",
+                color: "#fff",
+                padding: "10px 18px",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                fontWeight: 700,
+                fontSize: "0.85rem",
+                cursor: "pointer",
+                boxShadow: "0 4px 20px rgba(2,132,199,0.5)",
+                animation: "pulse 2s infinite",
+              }}
+            >
+              <Pill size={16} /> View Prescription
+            </button>
           )}
         </div>
 

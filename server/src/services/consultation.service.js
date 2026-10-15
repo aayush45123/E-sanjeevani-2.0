@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import { db } from "../config/neonDb.js";
 import { sql } from "drizzle-orm";
+import { doctorProfiles } from "../database/schema/index.js";
 import { UserRepository } from "../repositories/user.repository.js";
 import { AvailabilityRepository } from "../repositories/availability.repository.js";
 import { DoctorProfileRepository } from "../repositories/doctorProfile.repository.js";
@@ -326,10 +327,11 @@ export class ConsultationService {
     );
   }
 
-  static async getDoctorsNearMe({ latitude, longitude, radius = 10 }) {
+  static async getDoctorsNearMe({ latitude, longitude, radius, radiusKm }) {
     const lat = Number(latitude);
     const lng = Number(longitude);
-    const rad = Math.min(Math.max(Number(radius) || 10, 1), 100);
+    // Accept either `radiusKm` (sent by client) or legacy `radius`; cap at 25 km
+    const rad = Math.min(Math.max(Number(radiusKm ?? radius) || 15, 1), 25);
 
     if (
       !Number.isFinite(lat) ||
@@ -345,6 +347,9 @@ export class ConsultationService {
       };
     }
 
+    // Build the Haversine distance expression using raw SQL column name strings.
+    // Do NOT interpolate Drizzle column objects inside sql`` – they are treated
+    // as bound parameters (not column references) and cause a PostgreSQL type error.
     const distanceExpression = sql`
       (
         6371 * acos(
@@ -353,13 +358,13 @@ export class ConsultationService {
             greatest(
               -1,
               cos(radians(${lat}))
-              * cos(radians(${doctorProfiles.clinicLatitude}::double precision))
+              * cos(radians(doctor_profiles.clinic_latitude))
               * cos(
-                  radians(${doctorProfiles.clinicLongitude}::double precision)
+                  radians(doctor_profiles.clinic_longitude)
                   - radians(${lng})
                 )
               + sin(radians(${lat}))
-              * sin(radians(${doctorProfiles.clinicLatitude}::double precision))
+              * sin(radians(doctor_profiles.clinic_latitude))
             )
           )
         )

@@ -3,6 +3,12 @@
    Professional Light Theme — E-Sanjeevani
    ========================================= */
 
+/* Pulse animation for floating prescription button */
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 4px 20px rgba(2, 132, 199, 0.5); transform: scale(1); }
+  50%       { box-shadow: 0 4px 32px rgba(2, 132, 199, 0.85); transform: scale(1.04); }
+}
+
 /* ── ROOT ── */
 .root {
   display: flex;

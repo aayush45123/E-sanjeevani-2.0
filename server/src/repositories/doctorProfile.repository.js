@@ -139,8 +139,10 @@ export class DoctorProfileRepository {
           eq(users.role, "doctor"),
           eq(users.isActive, true),
           eq(doctorProfiles.hasClinic, true),
-          sql`${doctorProfiles.clinicLatitude} IS NOT NULL`,
-          sql`${doctorProfiles.clinicLongitude} IS NOT NULL`,
+          // Use raw column name strings — Drizzle column objects inside sql`` are
+          // treated as bound parameters, NOT column references, causing a type error.
+          sql`doctor_profiles.clinic_latitude IS NOT NULL`,
+          sql`doctor_profiles.clinic_longitude IS NOT NULL`,
           sql`${distanceExpression} <= ${radius}`,
         ),
       )

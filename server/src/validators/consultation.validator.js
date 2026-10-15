@@ -82,6 +82,12 @@ export const getDoctorsNearMeSchema = z.object({
       .string()
       .optional()
       .transform((val) => (val ? parseFloat(val) : undefined)),
+    // Client sends radiusKm; accept both names
+    radiusKm: z
+      .string()
+      .optional()
+      .transform((val) => (val ? parseFloat(val) : undefined)),
+    specialization: z.string().optional(),
   }),
 });
 
