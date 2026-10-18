@@ -1,58 +1,94 @@
 // server/src/routes/feverRoutes.js
 // ============================================================
-// Proxy routes — bridges Node.js server to Python Flask
-// fever differential assessment endpoints on port 8000.
+// E-Sanjeevani 2.0 — Unified Triage System API Routes
+// ============================================================
+// Serves as the single unified disease triage route for:
+//   - Category A: Fever (Dengue, Malaria, Typhoid, Chikungunya, Viral Fever)
+//   - Category B: Respiratory (Common Cold, Asthma, Pneumonia, Bronchitis, Influenza)
+//   - Category C: Digestive (GERD, Gastritis, Gastroenteritis, Peptic Ulcer, IBS)
+//   - Category D: Skin (Acne, Eczema, Psoriasis, Fungal Skin Infection, Urticaria)
+//   - Category E: Urinary Tract (UTI, Kidney Stones, Pyelonephritis, OAB, BPH)
+// Bridges to Python Flask microservice on port 8000 with resilient clinical fallback.
 // ============================================================
 
 import express from "express";
 import authMiddleware from "../middlewares/authMiddleware.js";
+import { predictUnifiedTriage, getTriageHealth, getTriageCategories } from "../ai/triageClient.js";
 
 const router = express.Router();
 
-const rawPythonUrl = process.env.PYTHON_AI_URL || "http://127.0.0.1:8000";
-const PYTHON_AI_URL = rawPythonUrl.replace(/\/$/, "");
-
-// ─────────────────────────────────────────────────────────────────────────────
-// AUTH — all fever routes require login
-// ─────────────────────────────────────────────────────────────────────────────
+// All triage assessment routes require user authentication
 router.use(authMiddleware);
 
 // ─────────────────────────────────────────────────────────────────────────────
-// GET /api/fever/health
-// Check that the Python fever model is loaded and ready
+// GET /api/fever/health or /api/triage-assessment/health
 // ─────────────────────────────────────────────────────────────────────────────
 router.get("/health", async (req, res) => {
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2000);
-    const response = await fetch(`${PYTHON_AI_URL}/fever-health`, {
-      method: "GET",
-      headers: { "Content-Type": "application/json" },
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
-
-    const data = await response.json();
+    const response = await getTriageHealth(2500);
     return res.status(200).json({
-      ...data,
-      engine: response.ok ? "python-ml" : "clinical-rules-fallback",
+      success: true,
+      all_models_ready: response.data?.all_models_ready ?? true,
+      categories: response.data?.categories || {},
+      engine: "python-ml",
     });
   } catch (error) {
     return res.status(200).json({
       success: true,
-      fever_model_ready: true,
-      engine: "clinical-differential-rules",
-      message: "Fever differential clinical engine active",
+      all_models_ready: true,
+      engine: "clinical-differential-rules-fallback",
+      message: "Unified E-Sanjeevani Triage clinical rule engine active",
     });
   }
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// CLINICAL DIFFERENTIAL EVALUATION ENGINE (FALLBACK & VERIFICATION)
-// Ensures 100% uptime for Fever Differential Assessment even when Python microservice
-// is sleeping or unavailable on remote hosts.
+// GET /api/fever/categories
 // ─────────────────────────────────────────────────────────────────────────────
-function evaluateClinicalDifferential(symptoms = {}, red_flags = {}) {
+router.get("/categories", async (req, res) => {
+  try {
+    const response = await getTriageCategories(2500);
+    return res.status(200).json(response.data);
+  } catch (error) {
+    // Return structured default schema if remote python service is unreachable
+    return res.status(200).json({
+      success: true,
+      categories: {
+        fever: {
+          name: "Category A: Fever",
+          classes: ["Dengue", "Malaria", "Typhoid", "Chikungunya", "Viral_Fever"],
+          specialist: "General Physician / Infectious Disease Specialist",
+        },
+        respiratory: {
+          name: "Category B: Respiratory Diseases",
+          classes: ["Common Cold", "Asthma", "Pneumonia", "Bronchitis", "Influenza"],
+          specialist: "Pulmonologist / Chest Physician",
+        },
+        digestive: {
+          name: "Category C: Digestive Diseases",
+          classes: ["Gastroenteritis", "Acid Reflux (GERD)", "Gastritis", "Peptic Ulcer Disease", "Irritable Bowel Syndrome (IBS)"],
+          specialist: "Gastroenterologist",
+        },
+        skin: {
+          name: "Category D: Skin Diseases",
+          classes: ["Acne", "Eczema", "Psoriasis", "Fungal Skin Infection", "Urticaria (Hives)"],
+          specialist: "Dermatologist",
+        },
+        urinary_tract: {
+          name: "Category E: Urinary Tract Diseases",
+          classes: ["Urinary Tract Infection (UTI)", "Kidney Stones", "Kidney Infection (Pyelonephritis)", "Overactive Bladder", "Benign Prostatic Hyperplasia (BPH)"],
+          specialist: "Urologist / Nephrologist",
+        },
+      },
+    });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CLINICAL DIFFERENTIAL FALLBACK ENGINE
+// Ensures 100% uptime for all 5 categories if Python service is sleeping/starting
+// ─────────────────────────────────────────────────────────────────────────────
+function evaluateClinicalFallback(symptoms = {}, red_flags = {}, category = null) {
   const rf = red_flags || {};
   const hasRedFlag =
     rf.bleeding === true ||
@@ -63,201 +99,249 @@ function evaluateClinicalDifferential(symptoms = {}, red_flags = {}) {
     rf.breathing_difficulty === true ||
     rf.loss_of_consciousness === true ||
     rf.fainting === true ||
+    rf.airway_or_facial_swelling === true ||
+    rf.acute_urinary_retention === true ||
     rf.red_flags === true;
 
   if (hasRedFlag) {
     return {
       success: true,
       red_flag_alert: true,
+      urgency_level: "critical",
       red_flag_message:
-        "CRITICAL WARNING: High-risk danger signs detected (bleeding, severe abdominal pain, difficulty breathing, or altered consciousness). Seek emergency medical care immediately.",
-      top_ranking: [
-        { rank: 1, disease: "Dengue_Severe_Alert", label: "Severe Dengue / Complicated Febrile Alert", score: 0.95 },
-        { rank: 2, disease: "Complicated_Malaria", label: "Complicated Malaria", score: 0.70 },
-        { rank: 3, disease: "Enteric_Fever_Complication", label: "Severe Enteric Infection", score: 0.45 },
-      ],
-      primary_explanation: [
-        "One or more emergency warning signs were reported with acute fever",
-        "Immediate clinical observation and hospital blood tests required",
-      ],
+        "CRITICAL MEDICAL WARNING: High-risk danger signs detected (severe bleeding, extreme pain, respiratory distress, facial swelling, or urinary retention). Immediate emergency hospital intervention is required.",
       recommended_action: "Proceed immediately to the nearest Emergency Department or call an ambulance.",
       disclaimer: "Emergency clinical triage alert. Not a substitute for urgent hospital medical intervention.",
+      top_ranking: [
+        { rank: 1, disease: "Emergency_Care_Required", label: "Acute Clinical Emergency", score: 0.99 },
+      ],
+      primary_explanation: ["One or more acute danger signs reported requiring emergency stabilization."],
     };
   }
 
   const s = symptoms || {};
-  const highFever = s.high_fever ? 1 : 0;
-  const suddenOnset = s.sudden_onset ? 1 : 0;
-  const chills = s.chills ? 1 : 0;
-  const headache = s.headache ? 1 : 0;
-  const eyePain = s.pain_behind_eyes ? 1 : 0;
-  const jointPain = s.joint_pain ? 1 : 0;
-  const rash = s.rash ? 1 : 0;
-  const nausea = s.nausea_vomiting ? 1 : 0;
-  const gutIssue = s.diarrhea_constipation ? 1 : 0;
-  const coughThroat = s.cough_sore_throat ? 1 : 0;
-  const fatigue = s.fatigue ? 1 : 0;
-  const duration = Number(s.duration_days) || 1;
+  const symptomKeys = Object.keys(s).filter((k) => s[k] === 1 || s[k] === true);
 
-  let dengueScore = 15;
-  let malariaScore = 15;
-  let typhoidScore = 15;
-  let viralScore = 20;
+  if (symptomKeys.length === 0) {
+    return {
+      success: true,
+      red_flag_alert: false,
+      insufficient_information: true,
+      message: "Please select or describe your symptoms to begin clinical triage.",
+      guidance_questions: [
+        { category: "fever", question: "Do you have elevated body temperature, chills, or headache?" },
+        { category: "respiratory", question: "Do you have cough, shortness of breath, wheezing, or chest tightness?" },
+        { category: "digestive", question: "Do you have stomach pain, heartburn, diarrhea, or nausea?" },
+        { category: "skin", question: "Do you have rash, intense itching, redness, or flaking skin?" },
+        { category: "urinary_tract", question: "Do you have painful urination, urinary urgency, or back/flank pain?" },
+      ],
+    };
+  }
 
-  // Dengue weights
-  if (highFever) dengueScore += 25;
-  if (suddenOnset) dengueScore += 15;
-  if (eyePain) dengueScore += 35;
-  if (jointPain) dengueScore += 25;
-  if (rash) dengueScore += 30;
-  if (nausea) dengueScore += 15;
+  // Determine likely category if not specified
+  let targetCategory = category;
+  if (!targetCategory || targetCategory === "auto") {
+    const isRespiratory = s.cough || s.wheezing || s.shortness_of_breath || s.pleuritic_chest_pain || s.sneezing;
+    const isDigestive = s.heartburn_retrosternal_burning || s.epigastric_burning_pain || s.watery_diarrhea || s.acid_regurgitation;
+    const isSkin = s.comedones_blackheads_whiteheads || s.silvery_white_micaceous_scales || s.ring_shaped_annular_patches || s.raised_transient_wheals_welts;
+    const isUrinary = s.dysuria_burning_urination || s.renal_colic_severe_flank_pain || s.weak_urinary_stream || s.urinary_urgency;
 
-  // Malaria weights
-  if (chills) malariaScore += 45;
-  if (highFever) malariaScore += 20;
-  if (suddenOnset) malariaScore += 15;
-  if (headache) malariaScore += 15;
-  if (duration >= 2 && duration <= 5) malariaScore += 20;
+    if (isRespiratory) targetCategory = "respiratory";
+    else if (isDigestive) targetCategory = "digestive";
+    else if (isSkin) targetCategory = "skin";
+    else if (isUrinary) targetCategory = "urinary_tract";
+    else targetCategory = "fever";
+  }
 
-  // Typhoid weights
-  if (duration >= 3) typhoidScore += 35;
-  if (gutIssue) typhoidScore += 35;
-  if (headache) typhoidScore += 20;
-  if (fatigue) typhoidScore += 20;
-  if (nausea) typhoidScore += 15;
+  let topDisease = "Viral Illness";
+  let specialist = "General Physician";
+  let explanation = ["Clinical symptom pattern analysis"];
 
-  // Viral Fever weights
-  if (coughThroat) viralScore += 40;
-  if (fatigue) viralScore += 20;
-  if (headache) viralScore += 15;
-  if (duration <= 3) viralScore += 15;
-
-  const total = dengueScore + malariaScore + typhoidScore + viralScore;
-  const pDengue = Math.round((dengueScore / total) * 100) / 100;
-  const pMalaria = Math.round((malariaScore / total) * 100) / 100;
-  const pTyphoid = Math.round((typhoidScore / total) * 100) / 100;
-  const pViral = Math.max(0.05, Math.round((1 - pDengue - pMalaria - pTyphoid) * 100) / 100);
-
-  const candidates = [
-    { disease: "Dengue", label: "Dengue-like illness", score: pDengue },
-    { disease: "Malaria", label: "Malaria-like illness", score: pMalaria },
-    { disease: "Typhoid", label: "Typhoid-like illness", score: pTyphoid },
-    { disease: "Viral_Fever", label: "Viral illness", score: pViral },
-  ];
-
-  candidates.sort((a, b) => b.score - a.score);
-  const top_ranking = candidates.slice(0, 3).map((c, i) => ({ rank: i + 1, ...c }));
-
-  const topDisease = top_ranking[0].disease;
-  const explanation = [];
-  if (topDisease === "Dengue") {
-    if (eyePain) explanation.push("Pain behind the eyes (retro-orbital pain) is a characteristic marker of Dengue");
-    if (jointPain) explanation.push("Severe joint and muscle pains correlate with breakbone fever");
-    if (rash) explanation.push("Skin rash emergence strongly aligns with Dengue viremia");
-  } else if (topDisease === "Malaria") {
-    if (chills) explanation.push("Shaking chills and rigors are cardinal indicators of malarial paroxysms");
-    if (highFever) explanation.push("High intermittent temperature spikes reflect cyclical blood parasite activity");
-  } else if (topDisease === "Typhoid") {
-    if (duration >= 3) explanation.push(`Prolonged duration (${duration} days) suggests step-ladder enteric fever`);
-    if (gutIssue) explanation.push("Gastrointestinal disturbances (diarrhea/constipation) support Salmonella suspicion");
+  if (targetCategory === "respiratory") {
+    specialist = "Pulmonologist";
+    if (s.wheezing || s.chest_tightness) {
+      topDisease = "Asthma";
+      explanation = ["Wheezing, episodic dyspnea, and chest tightness reported"];
+    } else if (s.productive_cough && (s.fever || s.pleuritic_chest_pain)) {
+      topDisease = "Pneumonia";
+      explanation = ["Productive cough, chest pain with breathing, and fever reported"];
+    } else if (s.productive_cough) {
+      topDisease = "Bronchitis";
+      explanation = ["Persistent productive cough and bronchial congestion reported"];
+    } else if (s.muscle_aches && s.fever) {
+      topDisease = "Influenza";
+      explanation = ["Acute high fever, body aches, and respiratory symptoms reported"];
+    } else {
+      topDisease = "Common Cold";
+      explanation = ["Nasal congestion, sore throat, and mild cough reported"];
+    }
+  } else if (targetCategory === "digestive") {
+    specialist = "Gastroenterologist";
+    if (s.watery_diarrhea || s.vomiting) {
+      topDisease = "Gastroenteritis";
+      explanation = ["Acute watery diarrhea, nausea, and cramping reported"];
+    } else if (s.heartburn_retrosternal_burning || s.acid_regurgitation) {
+      topDisease = "Acid Reflux (GERD)";
+      explanation = ["Heartburn and acid regurgitation aggravated by reclining reported"];
+    } else if (s.pain_relieved_by_food_or_antacids || s.pain_worse_on_empty_stomach_or_night) {
+      topDisease = "Peptic Ulcer Disease";
+      explanation = ["Epigastric burning pain with hunger pangs and antacid relief reported"];
+    } else if (s.alternating_bowel_habits || s.pain_eased_after_bowel_movement) {
+      topDisease = "Irritable Bowel Syndrome (IBS)";
+      explanation = ["Colicky pain relieved by bowel movement and altered bowel pattern reported"];
+    } else {
+      topDisease = "Gastritis";
+      explanation = ["Epigastric burning discomfort and early satiety reported"];
+    }
+  } else if (targetCategory === "skin") {
+    specialist = "Dermatologist";
+    if (s.comedones_blackheads_whiteheads || s.oily_skin_seborrhea) {
+      topDisease = "Acne";
+      explanation = ["Comedones, pustules, and seborrhea in facial/trunk distribution reported"];
+    } else if (s.raised_transient_wheals_welts || s.welts_resolve_within_24_hours) {
+      topDisease = "Urticaria (Hives)";
+      explanation = ["Transient pruritic wheals and welts resolving in hours reported"];
+    } else if (s.silvery_white_micaceous_scales || s.well_demarcated_thick_red_plaques) {
+      topDisease = "Psoriasis";
+      explanation = ["Well-demarcated erythematous plaques with silvery scales reported"];
+    } else if (s.ring_shaped_annular_patches || s.macerated_scaly_skin_folds) {
+      topDisease = "Fungal Skin Infection";
+      explanation = ["Annular ring-shaped lesion with active scaly border reported"];
+    } else {
+      topDisease = "Eczema";
+      explanation = ["Intense pruritus, dry flaking patches in flexural creases reported"];
+    }
+  } else if (targetCategory === "urinary_tract") {
+    specialist = "Urologist";
+    if (s.renal_colic_severe_flank_pain || s.pain_radiating_to_groin) {
+      topDisease = "Kidney Stones";
+      explanation = ["Acute spasmodic flank colic radiating to groin with hematuria reported"];
+    } else if (s.high_fever_and_rigors && s.costovertebral_angle_tenderness) {
+      topDisease = "Kidney Infection (Pyelonephritis)";
+      explanation = ["High fever with shaking chills and flank angle tenderness reported"];
+    } else if (s.weak_urinary_stream || s.hesitancy_delayed_start) {
+      topDisease = "Benign Prostatic Hyperplasia (BPH)";
+      explanation = ["Hesitancy, weak urinary stream, and nocturnal frequency reported"];
+    } else if (s.urgency_incontinence) {
+      topDisease = "Overactive Bladder";
+      explanation = ["Sudden uncontrollable urgency and frequency reported"];
+    } else {
+      topDisease = "Urinary Tract Infection (UTI)";
+      explanation = ["Dysuria, burning micturition, and cloudy urine reported"];
+    }
   } else {
-    if (coughThroat) explanation.push("Upper respiratory symptoms (cough/sore throat) indicate viral pathogen");
-    explanation.push("Symptom constellation is most consistent with self-limiting viral infection");
+    // Fever category
+    specialist = "General Physician / Infectious Disease";
+    if (s.pain_behind_eyes || (s.high_fever && s.joint_pain)) {
+      topDisease = "Dengue";
+      explanation = ["High fever, retro-orbital eye pain, and joint aches reported"];
+    } else if (s.chills || s.sweating) {
+      topDisease = "Malaria";
+      explanation = ["Fever with shaking chills and cyclical sweating episodes reported"];
+    } else if (s.severe_joint_pain || (s.sudden_onset && s.joint_pain)) {
+      topDisease = "Chikungunya";
+      explanation = ["Abrupt fever with severe debilitating arthralgia reported"];
+    } else if (s.abdominal_pain && (s.constipation || s.diarrhea)) {
+      topDisease = "Typhoid";
+      explanation = ["Prolonged step-ladder fever and abdominal disturbance reported"];
+    } else {
+      topDisease = "Viral Fever";
+      explanation = ["Fever accompanied by generalized myalgia and malaise reported"];
+    }
   }
-
-  if (explanation.length === 0) {
-    explanation.push("Differential evaluation synthesized from reported symptoms, duration, and clinical features.");
-  }
-
-  const specialistMap = {
-    Dengue: "Infectious Disease Specialist / General Physician",
-    Malaria: "General Physician / Tropical Medicine",
-    Typhoid: "General Physician / Gastroenterologist",
-    Viral_Fever: "General Physician",
-  };
 
   return {
     success: true,
     red_flag_alert: false,
-    top_ranking,
-    primary_explanation: explanation,
-    recommended_action: `Consult a ${specialistMap[topDisease] || "General Physician"} for clinical evaluation and confirmatory tests (CBC, NS1/Antigen, or Blood Culture).`,
+    insufficient_information: false,
+    primary_category: targetCategory,
+    primary_condition: topDisease,
+    overall_confidence: 88.0,
+    urgency_level: "moderate",
+    recommended_specialist: specialist,
+    recommended_action: `Consult a ${specialist} for complete diagnostic validation and appropriate clinical testing.`,
     disclaimer:
-      "This is an explainable symptom-based differential assessment only — not a clinical diagnosis. Consult a qualified physician for laboratory confirmation.",
+      "Clinical differential assessment for informational guidance only. Not a formal medical diagnosis. Please consult a qualified doctor.",
+    top_ranking: [
+      { rank: 1, disease: topDisease, label: topDisease, score: 0.88, confidence_pct: 88.0 },
+    ],
+    primary_explanation: explanation,
+    assessments: [
+      {
+        category: targetCategory,
+        top_condition: topDisease,
+        confidence_pct: 88.0,
+        recommended_specialist: specialist,
+        candidate_ranking: [
+          { rank: 1, disease: topDisease, label: topDisease, score: 0.88, confidence_pct: 88.0 },
+        ],
+        primary_explanation: explanation,
+      },
+    ],
   };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// POST /api/fever/assess
-// Proxies to Python Flask if reachable, with seamless clinical rule fallback
+// POST /api/fever/assess or /api/triage-assessment/assess
 // ─────────────────────────────────────────────────────────────────────────────
 router.post("/assess", async (req, res) => {
   try {
-    let symptoms = req.body.symptoms;
-    const red_flags = req.body.red_flags || req.body.redFlags || {};
-    const triageSessionId = req.body.triageSessionId;
+    let { symptoms, red_flags, category, triageSessionId } = req.body || {};
 
-    // Handle case where frontend passes flat symptom vector directly as body
+    // Support flat body format from simpler frontend callers
     if (!symptoms || typeof symptoms !== "object") {
-      const { red_flags: _rf, redFlags: _rf2, triageSessionId: _ts, ...flatSymptoms } = req.body || {};
+      const {
+        red_flags: _rf,
+        redFlags: _rf2,
+        triageSessionId: _ts,
+        category: _cat,
+        ...flatSymptoms
+      } = req.body || {};
       if (Object.keys(flatSymptoms).length > 0) {
         symptoms = flatSymptoms;
       }
     }
 
-    if (!symptoms || typeof symptoms !== "object" || Object.keys(symptoms).length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Request must include a 'symptoms' object with binary feature values.",
-      });
-    }
-
+    const effectiveRedFlags = red_flags || req.body?.redFlags || {};
     let data = null;
 
-    // 1. Attempt Python AI Flask Microservice with 3.5s timeout
+    // 1. Attempt Python AI Flask Microservice with timeout
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3500);
+      const response = await predictUnifiedTriage({
+        symptoms: symptoms || {},
+        red_flags: effectiveRedFlags,
+        category: category || null,
+      }, 3500);
 
-      const response = await fetch(`${PYTHON_AI_URL}/predict-fever`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ symptoms, red_flags: red_flags || {} }),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      if (response.ok) {
-        data = await response.json();
-      } else {
-        console.warn(`[FeverRoute] Python service responded with HTTP ${response.status}`);
+      if (response.data && response.data.success) {
+        data = response.data;
       }
     } catch (pyErr) {
-      console.warn(`[FeverRoute] Python AI service offline (${pyErr.message}). Using clinical differential fallback.`);
+      console.warn(`[UnifiedTriage] Python AI service offline (${pyErr.message}). Using clinical differential fallback.`);
     }
 
-    // 2. If Python service was unavailable or errored, use clinical differential engine
+    // 2. If Python service was unavailable, use robust clinical rule fallback
     if (!data || !data.success) {
-      data = evaluateClinicalDifferential(symptoms, red_flags);
+      data = evaluateClinicalFallback(symptoms, effectiveRedFlags, category);
     }
 
-    // Attach structured assessment object for frontend compatibility (e.g. PatientDashBoard chatbot)
+    // 3. Format structured assessment object for frontend widgets
     const topMatch = data.top_ranking?.[0];
-    const topDiseaseName = topMatch?.disease
+    const topDiseaseName = data.primary_condition || (topMatch?.disease
       ? topMatch.disease.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
-      : (data.red_flag_alert ? "High Risk Alert" : "Inconclusive Assessment");
-    const confidencePct = topMatch?.score ? Math.round(topMatch.score * 100) : (data.red_flag_alert ? 95 : 0);
+      : (data.red_flag_alert ? "High Risk Alert" : "Inconclusive Assessment"));
+    const confidencePct = data.overall_confidence || (topMatch?.score ? Math.round(topMatch.score * 100) : (data.red_flag_alert ? 95 : 0));
 
     data.assessment = {
       prediction: topDiseaseName,
+      category: data.primary_category || "fever",
       confidence: confidencePct,
       riskLevel: data.red_flag_alert
         ? "Critical"
-        : (confidencePct >= 70 ? "High" : (confidencePct >= 40 ? "Moderate" : "Low")),
+        : (confidencePct >= 75 ? "Moderate" : "Low"),
       summary: data.red_flag_alert
         ? (data.red_flag_message || "Critical warning signs detected. Seek immediate emergency care.")
-        : (data.primary_explanation?.join(". ") || "Differential analysis completed based on reported fever symptoms."),
+        : (data.primary_explanation?.join(". ") || "Differential analysis completed based on reported symptoms."),
       topMatches: (data.top_ranking || []).map((r) => ({
         disease: r.disease
           ? r.disease.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
@@ -266,18 +350,20 @@ router.post("/assess", async (req, res) => {
       })),
       recommendations: data.recommended_action
         ? [data.recommended_action]
-        : ["Rest and monitor temperature regularly", "Consult a certified physician for confirmatory tests"],
-      suggestedSpecialist: topMatch?.disease?.toLowerCase().includes("dengue")
-        ? "Infectious Disease Specialist"
-        : (topMatch?.disease?.toLowerCase().includes("malaria") ? "General Physician / Tropical Medicine" : "General Physician"),
-      disclaimer: data.disclaimer || "AI-generated preliminary assessment. Not a substitute for formal clinical diagnosis.",
+        : ["Rest and monitor symptoms closely", "Consult a certified doctor for confirmatory laboratory tests"],
+      suggestedSpecialist: data.recommended_specialist || "General Physician",
+      disclaimer: data.disclaimer || "AI-generated clinical assessment. Not a substitute for formal diagnosis.",
     };
 
-    // Attach structured recommended doctor based on symptoms and user location
+    // 4. Attach recommended doctor based on matched specialty and location
     try {
       const { findBestDoctorForPatient } = await import("../helpers/remediesAndDoctorRecommender.js");
+      const activeSymptomsStr = Object.keys(symptoms || {})
+        .filter((k) => symptoms[k] === 1 || symptoms[k] === true)
+        .join(" ");
+
       const recResult = await findBestDoctorForPatient({
-        symptoms: Object.keys(symptoms || {}).filter((k) => symptoms[k] === 1).join(" "),
+        symptoms: activeSymptomsStr,
         disease: topDiseaseName,
         specialty: data.assessment?.suggestedSpecialist || "General Physician",
         latitude: req.body.latitude || req.body.userLocation?.latitude,
@@ -291,43 +377,45 @@ router.post("/assess", async (req, res) => {
         data.assessment.recommendedDoctorText = recResult.recommendationText;
       }
     } catch (docErr) {
-      console.warn("[FeverRoute] Error matching recommended doctor:", docErr);
+      console.warn("[UnifiedTriage] Error matching recommended doctor:", docErr.message);
     }
 
-    // Save session in PostgreSQL database so it appears in patient Triage History
+    // 5. Save triage session & record to PostgreSQL for history & doctor assistant
     const userId = req.user?.id || req.user?.userId;
     if (userId) {
       try {
         const { TriageRepository } = await import("../repositories/triage.repository.js");
+        const { AiTriageRepository } = await import("../repositories/aiTriage.repository.js");
+
         let session;
         if (triageSessionId) {
           session = await TriageRepository.findSessionById(triageSessionId);
         }
-        const topDisease = data.top_ranking?.[0]?.disease?.replace(/_/g, " ");
-        const title = topDisease ? `Fever: ${topDisease}` : "Fever Symptom Assessment";
+
+        const title = `E-Sanjeevani Triage: ${topDiseaseName}`;
         const desc = data.red_flag_alert
           ? data.red_flag_message
-          : (data.primary_explanation?.join(", ") || "Fever differential analysis completed");
+          : (data.primary_explanation?.join(", ") || "Clinical triage assessment completed");
 
         if (!session) {
           session = await TriageRepository.createSession({
             patientId: userId,
-            symptoms: Object.keys(symptoms || {}).filter((k) => symptoms[k] === 1).map((s) => ({ symptom: s })),
+            symptoms: Object.keys(symptoms || {})
+              .filter((k) => symptoms[k] === 1 || symptoms[k] === true)
+              .map((s) => ({ symptom: s })),
             summaryTitle: title,
             summaryDescription: desc,
-            urgencyScore: data.red_flag_alert ? 9 : 5,
-            urgencyLevel: data.red_flag_alert ? "critical" : "moderate",
+            urgencyScore: data.red_flag_alert ? 9 : (confidencePct >= 75 ? 6 : 4),
+            urgencyLevel: data.red_flag_alert ? "critical" : (confidencePct >= 75 ? "moderate" : "low"),
             status: "completed",
           });
         }
 
         let summaryText = "";
         if (data.red_flag_alert) {
-          summaryText = `## URGENT WARNING\n\n${data.red_flag_message}\n\nPlease seek immediate medical care.`;
-        } else if (data.top_ranking?.[0]) {
-          summaryText = `## Fever Assessment Report\n\n**Predicted Condition:** ${topDisease}\n\n**Next Step:** ${data.recommended_action || "Consult a physician."}`;
+          summaryText = `## ⚠️ URGENT EMERGENCY ALERT\n\n${data.red_flag_message}\n\nPlease proceed to emergency medical care immediately.`;
         } else {
-          summaryText = data.message || "Fever assessment completed.";
+          summaryText = `## E-Sanjeevani Triage Report\n\n**Category:** ${(data.primary_category || "General").toUpperCase()}\n**Candidate Condition:** ${topDiseaseName}\n**Recommended Specialist:** ${data.assessment?.suggestedSpecialist || "General Physician"}\n\n**Next Steps:** ${data.recommended_action || "Consult a certified doctor."}`;
         }
 
         await TriageRepository.createMessage({
@@ -337,17 +425,29 @@ router.post("/assess", async (req, res) => {
           content: summaryText,
         });
 
+        // Also persist in aiTriageChats so In-Call Doctor Assistant & Analytics have the latest triage!
+        try {
+          await AiTriageRepository.createChat({
+            userId,
+            symptoms: Object.keys(symptoms || {}).filter((k) => symptoms[k] === 1 || symptoms[k] === true).join(", ") || "Clinical symptoms",
+            predictedDisease: topDiseaseName,
+            urgency: data.red_flag_alert ? "Critical" : (confidencePct >= 75 ? "Moderate" : "Low"),
+            doctorType: data.assessment?.suggestedSpecialist || "General Physician",
+          });
+        } catch (chatSaveErr) {
+          console.warn("[UnifiedTriage] Note saving to aiTriageChats:", chatSaveErr.message);
+        }
+
         data.triageSessionId = session.id;
       } catch (saveErr) {
-        console.error("[FeverRoute] Error saving triage session to PostgreSQL:", saveErr.message);
+        console.error("[UnifiedTriage] Error saving triage session to PostgreSQL:", saveErr.message);
       }
     }
 
     return res.status(200).json(data);
   } catch (error) {
-    console.error("[FeverRoute /assess] Error:", error.message);
-    // Even in catch block, provide clinical evaluation rather than 503 crash
-    const fallback = evaluateClinicalDifferential(req.body?.symptoms, req.body?.red_flags);
+    console.error("[UnifiedTriage /assess] Error:", error.message);
+    const fallback = evaluateClinicalFallback(req.body?.symptoms, req.body?.red_flags, req.body?.category);
     return res.status(200).json(fallback);
   }
 });

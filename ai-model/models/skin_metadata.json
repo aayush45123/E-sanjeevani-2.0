@@ -1,0 +1,149 @@
+{
+  "category": "skin",
+  "category_name": "Category D: Skin Diseases",
+  "selected_algorithm": "Logistic Regression",
+  "model_class": "LogisticRegression",
+  "dataset_rows": 1500,
+  "train_samples": 1200,
+  "test_samples": 300,
+  "num_features": 20,
+  "features": [
+    "comedones_blackheads_whiteheads",
+    "inflammatory_papules_pustules",
+    "deep_painful_nodules_cysts",
+    "oily_skin_seborrhea",
+    "facial_chest_back_distribution",
+    "intense_itching_pruritus",
+    "dry_cracked_flaking_skin",
+    "flexural_distribution_inner_elbows_knees",
+    "oozing_weeping_crusted_patches",
+    "silvery_white_micaceous_scales",
+    "well_demarcated_thick_red_plaques",
+    "extensor_distribution_knees_elbows_scalp",
+    "nail_changes_pitting_ridging",
+    "ring_shaped_annular_patches",
+    "macerated_scaly_skin_folds",
+    "raised_transient_wheals_welts",
+    "welts_resolve_within_24_hours",
+    "burning_or_stinging_sensation",
+    "allergic_or_contact_trigger",
+    "aggravated_by_sweat_heat_friction"
+  ],
+  "classes": [
+    "Acne",
+    "Eczema",
+    "Fungal Skin Infection",
+    "Psoriasis",
+    "Urticaria (Hives)"
+  ],
+  "metrics": {
+    "test_accuracy": 0.99,
+    "test_f1_macro": 0.9899981476336019,
+    "test_precision_macro": 0.9902150537634409,
+    "test_recall_macro": 0.99,
+    "test_roc_auc": 0.999638888888889,
+    "cv_5fold_f1_mean": 0.9933488985208612,
+    "cv_5fold_f1_std": 0.006210022533492339
+  },
+  "per_class_metrics": {
+    "Acne": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 60.0
+    },
+    "Eczema": {
+      "precision": 0.9833333333333333,
+      "recall": 0.9833333333333333,
+      "f1_score": 0.9833333333333333,
+      "support": 60.0
+    },
+    "Fungal Skin Infection": {
+      "precision": 1.0,
+      "recall": 0.9666666666666667,
+      "f1_score": 0.9830508474576272,
+      "support": 60.0
+    },
+    "Psoriasis": {
+      "precision": 0.967741935483871,
+      "recall": 1.0,
+      "f1_score": 0.9836065573770492,
+      "support": 60.0
+    },
+    "Urticaria (Hives)": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 60.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      60,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      59,
+      0,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      58,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      60,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      60
+    ]
+  ],
+  "candidate_comparison": [
+    {
+      "algorithm": "Logistic Regression",
+      "cv_f1_mean": 0.9933488985208612,
+      "test_accuracy": 0.99,
+      "test_f1_macro": 0.9899981476336019,
+      "test_roc_auc": 0.999638888888889
+    },
+    {
+      "algorithm": "Random Forest",
+      "cv_f1_mean": 0.9925080484716947,
+      "test_accuracy": 0.99,
+      "test_f1_macro": 0.9899981476336019,
+      "test_roc_auc": 0.999638888888889
+    },
+    {
+      "algorithm": "Extra Trees",
+      "cv_f1_mean": 0.9900156500831248,
+      "test_accuracy": 0.99,
+      "test_f1_macro": 0.9899981476336019,
+      "test_roc_auc": 0.9996527777777778
+    },
+    {
+      "algorithm": "Gradient Boosting",
+      "cv_f1_mean": 0.9842034343814072,
+      "test_accuracy": 0.9633333333333334,
+      "test_f1_macro": 0.9631388848205373,
+      "test_roc_auc": 0.9975972222222221
+    }
+  ],
+  "created_at": "2026-10-18 15:57:33",
+  "disclaimer": "Trained on clinically curated synthetic data for prototyping and educational use only. Independent clinical validation required before medical use."
+}

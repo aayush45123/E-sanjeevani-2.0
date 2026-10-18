@@ -1,0 +1,131 @@
+category,feature_name,data_type,description,clinical_relevance
+Fever,fever,Binary (0/1),Fever,WHO Guideline fever differential feature
+Fever,high_fever,Binary (0/1),High Fever,WHO Guideline fever differential feature
+Fever,sudden_onset,Binary (0/1),Sudden Onset,WHO Guideline fever differential feature
+Fever,headache,Binary (0/1),Headache,WHO Guideline fever differential feature
+Fever,severe_headache,Binary (0/1),Severe Headache,WHO Guideline fever differential feature
+Fever,chills,Binary (0/1),Chills,WHO Guideline fever differential feature
+Fever,sweating,Binary (0/1),Sweating,WHO Guideline fever differential feature
+Fever,body_pain,Binary (0/1),Body Pain,WHO Guideline fever differential feature
+Fever,muscle_pain,Binary (0/1),Muscle Pain,WHO Guideline fever differential feature
+Fever,joint_pain,Binary (0/1),Joint Pain,WHO Guideline fever differential feature
+Fever,severe_joint_pain,Binary (0/1),Severe Joint Pain,WHO Guideline fever differential feature
+Fever,pain_behind_eyes,Binary (0/1),Pain Behind Eyes,WHO Guideline fever differential feature
+Fever,rash,Binary (0/1),Rash,WHO Guideline fever differential feature
+Fever,nausea,Binary (0/1),Nausea,WHO Guideline fever differential feature
+Fever,vomiting,Binary (0/1),Vomiting,WHO Guideline fever differential feature
+Fever,abdominal_pain,Binary (0/1),Abdominal Pain,WHO Guideline fever differential feature
+Fever,diarrhea,Binary (0/1),Diarrhea,WHO Guideline fever differential feature
+Fever,constipation,Binary (0/1),Constipation,WHO Guideline fever differential feature
+Fever,cough,Binary (0/1),Cough,WHO Guideline fever differential feature
+Fever,sore_throat,Binary (0/1),Sore Throat,WHO Guideline fever differential feature
+Fever,runny_nose,Binary (0/1),Runny Nose,WHO Guideline fever differential feature
+Fever,fatigue,Binary (0/1),Fatigue,WHO Guideline fever differential feature
+Fever,weakness,Binary (0/1),Weakness,WHO Guideline fever differential feature
+Fever,swollen_lymph_nodes,Binary (0/1),Swollen Lymph Nodes,WHO Guideline fever differential feature
+Fever,loss_of_appetite,Binary (0/1),Loss Of Appetite,WHO Guideline fever differential feature
+Fever,[TARGET] disease,Categorical Label,Chikungunya,Target candidate condition in Fever category
+Fever,[TARGET] disease,Categorical Label,Viral_Fever,Target candidate condition in Fever category
+Fever,[TARGET] disease,Categorical Label,Malaria,Target candidate condition in Fever category
+Fever,[TARGET] disease,Categorical Label,Typhoid,Target candidate condition in Fever category
+Fever,[TARGET] disease,Categorical Label,Dengue,Target candidate condition in Fever category
+Respiratory,cough,Binary (0/1),Cough,Pulmonary & respiratory tract symptom indicator
+Respiratory,productive_cough,Binary (0/1),Productive Cough,Pulmonary & respiratory tract symptom indicator
+Respiratory,shortness_of_breath,Binary (0/1),Shortness Of Breath,Pulmonary & respiratory tract symptom indicator
+Respiratory,wheezing,Binary (0/1),Wheezing,Pulmonary & respiratory tract symptom indicator
+Respiratory,chest_tightness,Binary (0/1),Chest Tightness,Pulmonary & respiratory tract symptom indicator
+Respiratory,pleuritic_chest_pain,Binary (0/1),Pleuritic Chest Pain,Pulmonary & respiratory tract symptom indicator
+Respiratory,fever,Binary (0/1),Fever,Pulmonary & respiratory tract symptom indicator
+Respiratory,high_fever,Binary (0/1),High Fever,Pulmonary & respiratory tract symptom indicator
+Respiratory,chills,Binary (0/1),Chills,Pulmonary & respiratory tract symptom indicator
+Respiratory,sore_throat,Binary (0/1),Sore Throat,Pulmonary & respiratory tract symptom indicator
+Respiratory,runny_nose,Binary (0/1),Runny Nose,Pulmonary & respiratory tract symptom indicator
+Respiratory,nasal_congestion,Binary (0/1),Nasal Congestion,Pulmonary & respiratory tract symptom indicator
+Respiratory,sneezing,Binary (0/1),Sneezing,Pulmonary & respiratory tract symptom indicator
+Respiratory,fatigue,Binary (0/1),Fatigue,Pulmonary & respiratory tract symptom indicator
+Respiratory,headache,Binary (0/1),Headache,Pulmonary & respiratory tract symptom indicator
+Respiratory,muscle_aches,Binary (0/1),Muscle Aches,Pulmonary & respiratory tract symptom indicator
+Respiratory,rapid_shallow_breathing,Binary (0/1),Rapid Shallow Breathing,Pulmonary & respiratory tract symptom indicator
+Respiratory,loss_of_appetite,Binary (0/1),Loss Of Appetite,Pulmonary & respiratory tract symptom indicator
+Respiratory,symptom_triggers_allergens_exercise,Binary (0/1),Symptom Triggers Allergens Exercise,Pulmonary & respiratory tract symptom indicator
+Respiratory,night_sweats,Binary (0/1),Night Sweats,Pulmonary & respiratory tract symptom indicator
+Respiratory,[TARGET] disease,Categorical Label,Common Cold,Target candidate condition in Respiratory category
+Respiratory,[TARGET] disease,Categorical Label,Asthma,Target candidate condition in Respiratory category
+Respiratory,[TARGET] disease,Categorical Label,Pneumonia,Target candidate condition in Respiratory category
+Respiratory,[TARGET] disease,Categorical Label,Bronchitis,Target candidate condition in Respiratory category
+Respiratory,[TARGET] disease,Categorical Label,Influenza,Target candidate condition in Respiratory category
+Digestive,heartburn_retrosternal_burning,Binary (0/1),Heartburn Retrosternal Burning,Gastroenterological symptom indicator
+Digestive,acid_regurgitation,Binary (0/1),Acid Regurgitation,Gastroenterological symptom indicator
+Digestive,epigastric_burning_pain,Binary (0/1),Epigastric Burning Pain,Gastroenterological symptom indicator
+Digestive,pain_relieved_by_food_or_antacids,Binary (0/1),Pain Relieved By Food Or Antacids,Gastroenterological symptom indicator
+Digestive,pain_worse_on_empty_stomach_or_night,Binary (0/1),Pain Worse On Empty Stomach Or Night,Gastroenterological symptom indicator
+Digestive,nausea,Binary (0/1),Nausea,Gastroenterological symptom indicator
+Digestive,vomiting,Binary (0/1),Vomiting,Gastroenterological symptom indicator
+Digestive,watery_diarrhea,Binary (0/1),Watery Diarrhea,Gastroenterological symptom indicator
+Digestive,cramping_abdominal_pain,Binary (0/1),Cramping Abdominal Pain,Gastroenterological symptom indicator
+Digestive,bloating_abdominal_distension,Binary (0/1),Bloating Abdominal Distension,Gastroenterological symptom indicator
+Digestive,alternating_bowel_habits,Binary (0/1),Alternating Bowel Habits,Gastroenterological symptom indicator
+Digestive,pain_eased_after_bowel_movement,Binary (0/1),Pain Eased After Bowel Movement,Gastroenterological symptom indicator
+Digestive,mucus_in_stool,Binary (0/1),Mucus In Stool,Gastroenterological symptom indicator
+Digestive,early_satiety,Binary (0/1),Early Satiety,Gastroenterological symptom indicator
+Digestive,loss_of_appetite,Binary (0/1),Loss Of Appetite,Gastroenterological symptom indicator
+Digestive,belching_and_gas,Binary (0/1),Belching And Gas,Gastroenterological symptom indicator
+Digestive,worse_lying_down_after_eating,Binary (0/1),Worse Lying Down After Eating,Gastroenterological symptom indicator
+Digestive,fever,Binary (0/1),Fever,Gastroenterological symptom indicator
+Digestive,dehydration_thirst,Binary (0/1),Dehydration Thirst,Gastroenterological symptom indicator
+Digestive,food_triggers_spicy_fatty_stress,Binary (0/1),Food Triggers Spicy Fatty Stress,Gastroenterological symptom indicator
+Digestive,[TARGET] disease,Categorical Label,Gastroenteritis,Target candidate condition in Digestive category
+Digestive,[TARGET] disease,Categorical Label,Acid Reflux (GERD),Target candidate condition in Digestive category
+Digestive,[TARGET] disease,Categorical Label,Gastritis,Target candidate condition in Digestive category
+Digestive,[TARGET] disease,Categorical Label,Peptic Ulcer Disease,Target candidate condition in Digestive category
+Digestive,[TARGET] disease,Categorical Label,Irritable Bowel Syndrome (IBS),Target candidate condition in Digestive category
+Skin,comedones_blackheads_whiteheads,Binary (0/1),Comedones Blackheads Whiteheads,Dermatological symptom indicator
+Skin,inflammatory_papules_pustules,Binary (0/1),Inflammatory Papules Pustules,Dermatological symptom indicator
+Skin,deep_painful_nodules_cysts,Binary (0/1),Deep Painful Nodules Cysts,Dermatological symptom indicator
+Skin,oily_skin_seborrhea,Binary (0/1),Oily Skin Seborrhea,Dermatological symptom indicator
+Skin,facial_chest_back_distribution,Binary (0/1),Facial Chest Back Distribution,Dermatological symptom indicator
+Skin,intense_itching_pruritus,Binary (0/1),Intense Itching Pruritus,Dermatological symptom indicator
+Skin,dry_cracked_flaking_skin,Binary (0/1),Dry Cracked Flaking Skin,Dermatological symptom indicator
+Skin,flexural_distribution_inner_elbows_knees,Binary (0/1),Flexural Distribution Inner Elbows Knees,Dermatological symptom indicator
+Skin,oozing_weeping_crusted_patches,Binary (0/1),Oozing Weeping Crusted Patches,Dermatological symptom indicator
+Skin,silvery_white_micaceous_scales,Binary (0/1),Silvery White Micaceous Scales,Dermatological symptom indicator
+Skin,well_demarcated_thick_red_plaques,Binary (0/1),Well Demarcated Thick Red Plaques,Dermatological symptom indicator
+Skin,extensor_distribution_knees_elbows_scalp,Binary (0/1),Extensor Distribution Knees Elbows Scalp,Dermatological symptom indicator
+Skin,nail_changes_pitting_ridging,Binary (0/1),Nail Changes Pitting Ridging,Dermatological symptom indicator
+Skin,ring_shaped_annular_patches,Binary (0/1),Ring Shaped Annular Patches,Dermatological symptom indicator
+Skin,macerated_scaly_skin_folds,Binary (0/1),Macerated Scaly Skin Folds,Dermatological symptom indicator
+Skin,raised_transient_wheals_welts,Binary (0/1),Raised Transient Wheals Welts,Dermatological symptom indicator
+Skin,welts_resolve_within_24_hours,Binary (0/1),Welts Resolve Within 24 Hours,Dermatological symptom indicator
+Skin,burning_or_stinging_sensation,Binary (0/1),Burning Or Stinging Sensation,Dermatological symptom indicator
+Skin,allergic_or_contact_trigger,Binary (0/1),Allergic Or Contact Trigger,Dermatological symptom indicator
+Skin,aggravated_by_sweat_heat_friction,Binary (0/1),Aggravated By Sweat Heat Friction,Dermatological symptom indicator
+Skin,[TARGET] disease,Categorical Label,Acne,Target candidate condition in Skin category
+Skin,[TARGET] disease,Categorical Label,Eczema,Target candidate condition in Skin category
+Skin,[TARGET] disease,Categorical Label,Psoriasis,Target candidate condition in Skin category
+Skin,[TARGET] disease,Categorical Label,Fungal Skin Infection,Target candidate condition in Skin category
+Skin,[TARGET] disease,Categorical Label,Urticaria (Hives),Target candidate condition in Skin category
+Urinary Tract,dysuria_burning_urination,Binary (0/1),Dysuria Burning Urination,Urological and renal symptom indicator
+Urinary Tract,urinary_frequency,Binary (0/1),Urinary Frequency,Urological and renal symptom indicator
+Urinary Tract,urinary_urgency,Binary (0/1),Urinary Urgency,Urological and renal symptom indicator
+Urinary Tract,urgency_incontinence,Binary (0/1),Urgency Incontinence,Urological and renal symptom indicator
+Urinary Tract,nocturia_multiple_night_trips,Binary (0/1),Nocturia Multiple Night Trips,Urological and renal symptom indicator
+Urinary Tract,weak_urinary_stream,Binary (0/1),Weak Urinary Stream,Urological and renal symptom indicator
+Urinary Tract,hesitancy_delayed_start,Binary (0/1),Hesitancy Delayed Start,Urological and renal symptom indicator
+Urinary Tract,intermittent_stream_stop_start,Binary (0/1),Intermittent Stream Stop Start,Urological and renal symptom indicator
+Urinary Tract,straining_to_void,Binary (0/1),Straining To Void,Urological and renal symptom indicator
+Urinary Tract,feeling_incomplete_emptying,Binary (0/1),Feeling Incomplete Emptying,Urological and renal symptom indicator
+Urinary Tract,renal_colic_severe_flank_pain,Binary (0/1),Renal Colic Severe Flank Pain,Urological and renal symptom indicator
+Urinary Tract,pain_radiating_to_groin,Binary (0/1),Pain Radiating To Groin,Urological and renal symptom indicator
+Urinary Tract,costovertebral_angle_tenderness,Binary (0/1),Costovertebral Angle Tenderness,Urological and renal symptom indicator
+Urinary Tract,high_fever_and_rigors,Binary (0/1),High Fever And Rigors,Urological and renal symptom indicator
+Urinary Tract,hematuria_visible_blood_in_urine,Binary (0/1),Hematuria Visible Blood In Urine,Urological and renal symptom indicator
+Urinary Tract,cloudy_foul_smelling_urine,Binary (0/1),Cloudy Foul Smelling Urine,Urological and renal symptom indicator
+Urinary Tract,nausea_and_vomiting,Binary (0/1),Nausea And Vomiting,Urological and renal symptom indicator
+Urinary Tract,suprapubic_pelvic_pressure,Binary (0/1),Suprapubic Pelvic Pressure,Urological and renal symptom indicator
+Urinary Tract,pain_fluctuates_in_spasms_waves,Binary (0/1),Pain Fluctuates In Spasms Waves,Urological and renal symptom indicator
+Urinary Tract,fatigue_and_malaise,Binary (0/1),Fatigue And Malaise,Urological and renal symptom indicator
+Urinary Tract,[TARGET] disease,Categorical Label,Urinary Tract Infection (UTI),Target candidate condition in Urinary Tract category
+Urinary Tract,[TARGET] disease,Categorical Label,Kidney Stones,Target candidate condition in Urinary Tract category
+Urinary Tract,[TARGET] disease,Categorical Label,Kidney Infection (Pyelonephritis),Target candidate condition in Urinary Tract category
+Urinary Tract,[TARGET] disease,Categorical Label,Overactive Bladder,Target candidate condition in Urinary Tract category
+Urinary Tract,[TARGET] disease,Categorical Label,Benign Prostatic Hyperplasia (BPH),Target candidate condition in Urinary Tract category

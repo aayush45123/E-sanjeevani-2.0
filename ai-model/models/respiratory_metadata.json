@@ -1,0 +1,149 @@
+{
+  "category": "respiratory",
+  "category_name": "Category B: Respiratory Diseases",
+  "selected_algorithm": "Extra Trees",
+  "model_class": "ExtraTreesClassifier",
+  "dataset_rows": 1500,
+  "train_samples": 1200,
+  "test_samples": 300,
+  "num_features": 20,
+  "features": [
+    "cough",
+    "productive_cough",
+    "shortness_of_breath",
+    "wheezing",
+    "chest_tightness",
+    "pleuritic_chest_pain",
+    "fever",
+    "high_fever",
+    "chills",
+    "sore_throat",
+    "runny_nose",
+    "nasal_congestion",
+    "sneezing",
+    "fatigue",
+    "headache",
+    "muscle_aches",
+    "rapid_shallow_breathing",
+    "loss_of_appetite",
+    "symptom_triggers_allergens_exercise",
+    "night_sweats"
+  ],
+  "classes": [
+    "Asthma",
+    "Bronchitis",
+    "Common Cold",
+    "Influenza",
+    "Pneumonia"
+  ],
+  "metrics": {
+    "test_accuracy": 0.95,
+    "test_f1_macro": 0.9502610873286208,
+    "test_precision_macro": 0.9509848627598769,
+    "test_recall_macro": 0.95,
+    "test_roc_auc": 0.9937777777777776,
+    "cv_5fold_f1_mean": 0.9515759150084871,
+    "cv_5fold_f1_std": 0.004156547650608816
+  },
+  "per_class_metrics": {
+    "Asthma": {
+      "precision": 0.9655172413793104,
+      "recall": 0.9333333333333333,
+      "f1_score": 0.9491525423728814,
+      "support": 60.0
+    },
+    "Bronchitis": {
+      "precision": 0.8888888888888888,
+      "recall": 0.9333333333333333,
+      "f1_score": 0.9105691056910569,
+      "support": 60.0
+    },
+    "Common Cold": {
+      "precision": 0.9833333333333333,
+      "recall": 0.9833333333333333,
+      "f1_score": 0.9833333333333333,
+      "support": 60.0
+    },
+    "Influenza": {
+      "precision": 0.9344262295081968,
+      "recall": 0.95,
+      "f1_score": 0.9421487603305785,
+      "support": 60.0
+    },
+    "Pneumonia": {
+      "precision": 0.9827586206896551,
+      "recall": 0.95,
+      "f1_score": 0.9661016949152542,
+      "support": 60.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      56,
+      4,
+      0,
+      0,
+      0
+    ],
+    [
+      2,
+      56,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      59,
+      0,
+      0
+    ],
+    [
+      0,
+      2,
+      0,
+      57,
+      1
+    ],
+    [
+      0,
+      0,
+      0,
+      3,
+      57
+    ]
+  ],
+  "candidate_comparison": [
+    {
+      "algorithm": "Logistic Regression",
+      "cv_f1_mean": 0.9591568905235626,
+      "test_accuracy": 0.94,
+      "test_f1_macro": 0.9397703065666387,
+      "test_roc_auc": 0.99475
+    },
+    {
+      "algorithm": "Random Forest",
+      "cv_f1_mean": 0.9524080494047084,
+      "test_accuracy": 0.9433333333333334,
+      "test_f1_macro": 0.9436229184036758,
+      "test_roc_auc": 0.9939166666666667
+    },
+    {
+      "algorithm": "Extra Trees",
+      "cv_f1_mean": 0.9515759150084871,
+      "test_accuracy": 0.95,
+      "test_f1_macro": 0.9502610873286208,
+      "test_roc_auc": 0.9937777777777776
+    },
+    {
+      "algorithm": "Gradient Boosting",
+      "cv_f1_mean": 0.9365560857942459,
+      "test_accuracy": 0.94,
+      "test_f1_macro": 0.9401843164386235,
+      "test_roc_auc": 0.9912777777777777
+    }
+  ],
+  "created_at": "2026-10-18 15:56:33",
+  "disclaimer": "Trained on clinically curated synthetic data for prototyping and educational use only. Independent clinical validation required before medical use."
+}

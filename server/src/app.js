@@ -18,7 +18,6 @@ import doctorProfileRoutes from "./routes/doctorProfileRoutes.js";
 import medicalRecordRoutes from "./routes/medicalRecordRoutes.js";
 import chatRoutes from "./routes/chatRoutes.js";
 import triageRoutes from "./routes/triageRoutes.js";
-import aiTriageRoutes from "./routes/aiTriageRoutes.js";
 import doctorAssistantRoutes from "./routes/doctorAssistantRoutes.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
 import feverRoutes from "./routes/feverRoutes.js";
@@ -115,14 +114,14 @@ app.use("/api/doctor-availability", doctorAvailabilityRoutes);
 
 app.use("/api/triage", triageRoutes);
 
-app.use("/api/ai-triage", aiTriageRoutes);
 
 app.use("/api/doctor-assistant", doctorAssistantRoutes);
 app.use("/api/analytics", analyticsRoutes);
 
 /*
-FEVER DIFFERENTIAL ASSESSMENT ROUTES
+UNIFIED E-SANJEEVANI TRIAGE ASSESSMENT ROUTES (5 CATEGORIES)
 */
+app.use("/api/triage-assessment", feverRoutes);
 app.use("/api/fever", feverRoutes);
 
 /*

@@ -1,0 +1,752 @@
+[
+  {
+    "category": "fever",
+    "category_name": "Category A: Fever",
+    "selected_algorithm": "Logistic Regression",
+    "model_class": "LogisticRegression",
+    "dataset_rows": 1500,
+    "train_samples": 1200,
+    "test_samples": 300,
+    "num_features": 25,
+    "features": [
+      "fever",
+      "high_fever",
+      "sudden_onset",
+      "headache",
+      "severe_headache",
+      "chills",
+      "sweating",
+      "body_pain",
+      "muscle_pain",
+      "joint_pain",
+      "severe_joint_pain",
+      "pain_behind_eyes",
+      "rash",
+      "nausea",
+      "vomiting",
+      "abdominal_pain",
+      "diarrhea",
+      "constipation",
+      "cough",
+      "sore_throat",
+      "runny_nose",
+      "fatigue",
+      "weakness",
+      "swollen_lymph_nodes",
+      "loss_of_appetite"
+    ],
+    "classes": [
+      "Chikungunya",
+      "Dengue",
+      "Malaria",
+      "Typhoid",
+      "Viral_Fever"
+    ],
+    "metrics": {
+      "test_accuracy": 0.86,
+      "test_f1_macro": 0.8600010285946438,
+      "test_precision_macro": 0.862086599337845,
+      "test_recall_macro": 0.8600000000000001,
+      "test_roc_auc": 0.9813472222222221,
+      "cv_5fold_f1_mean": 0.870993974168273,
+      "cv_5fold_f1_std": 0.03330355168625645
+    },
+    "per_class_metrics": {
+      "Chikungunya": {
+        "precision": 0.8181818181818182,
+        "recall": 0.9,
+        "f1_score": 0.8571428571428571,
+        "support": 60.0
+      },
+      "Dengue": {
+        "precision": 0.8421052631578947,
+        "recall": 0.8,
+        "f1_score": 0.8205128205128205,
+        "support": 60.0
+      },
+      "Malaria": {
+        "precision": 0.8225806451612904,
+        "recall": 0.85,
+        "f1_score": 0.8360655737704918,
+        "support": 60.0
+      },
+      "Typhoid": {
+        "precision": 0.9259259259259259,
+        "recall": 0.8333333333333334,
+        "f1_score": 0.8771929824561403,
+        "support": 60.0
+      },
+      "Viral_Fever": {
+        "precision": 0.9016393442622951,
+        "recall": 0.9166666666666666,
+        "f1_score": 0.9090909090909091,
+        "support": 60.0
+      }
+    },
+    "confusion_matrix": [
+      [
+        54,
+        5,
+        1,
+        0,
+        0
+      ],
+      [
+        10,
+        48,
+        0,
+        1,
+        1
+      ],
+      [
+        2,
+        0,
+        51,
+        3,
+        4
+      ],
+      [
+        0,
+        2,
+        7,
+        50,
+        1
+      ],
+      [
+        0,
+        2,
+        3,
+        0,
+        55
+      ]
+    ],
+    "candidate_comparison": [
+      {
+        "algorithm": "Logistic Regression",
+        "cv_f1_mean": 0.870993974168273,
+        "test_accuracy": 0.86,
+        "test_f1_macro": 0.8600010285946438,
+        "test_roc_auc": 0.9813472222222221
+      },
+      {
+        "algorithm": "Random Forest",
+        "cv_f1_mean": 0.8593023589556242,
+        "test_accuracy": 0.8266666666666667,
+        "test_f1_macro": 0.8252109617225842,
+        "test_roc_auc": 0.9750833333333334
+      },
+      {
+        "algorithm": "Extra Trees",
+        "cv_f1_mean": 0.856938507223657,
+        "test_accuracy": 0.83,
+        "test_f1_macro": 0.8288722687476578,
+        "test_roc_auc": 0.9748472222222222
+      },
+      {
+        "algorithm": "Gradient Boosting",
+        "cv_f1_mean": 0.8434290928827028,
+        "test_accuracy": 0.8366666666666667,
+        "test_f1_macro": 0.8360703375126212,
+        "test_roc_auc": 0.9752222222222222
+      }
+    ],
+    "created_at": "2026-10-18 15:56:04",
+    "disclaimer": "Trained on clinically curated synthetic data for prototyping and educational use only. Independent clinical validation required before medical use."
+  },
+  {
+    "category": "respiratory",
+    "category_name": "Category B: Respiratory Diseases",
+    "selected_algorithm": "Extra Trees",
+    "model_class": "ExtraTreesClassifier",
+    "dataset_rows": 1500,
+    "train_samples": 1200,
+    "test_samples": 300,
+    "num_features": 20,
+    "features": [
+      "cough",
+      "productive_cough",
+      "shortness_of_breath",
+      "wheezing",
+      "chest_tightness",
+      "pleuritic_chest_pain",
+      "fever",
+      "high_fever",
+      "chills",
+      "sore_throat",
+      "runny_nose",
+      "nasal_congestion",
+      "sneezing",
+      "fatigue",
+      "headache",
+      "muscle_aches",
+      "rapid_shallow_breathing",
+      "loss_of_appetite",
+      "symptom_triggers_allergens_exercise",
+      "night_sweats"
+    ],
+    "classes": [
+      "Asthma",
+      "Bronchitis",
+      "Common Cold",
+      "Influenza",
+      "Pneumonia"
+    ],
+    "metrics": {
+      "test_accuracy": 0.95,
+      "test_f1_macro": 0.9502610873286208,
+      "test_precision_macro": 0.9509848627598769,
+      "test_recall_macro": 0.95,
+      "test_roc_auc": 0.9937777777777776,
+      "cv_5fold_f1_mean": 0.9515759150084871,
+      "cv_5fold_f1_std": 0.004156547650608816
+    },
+    "per_class_metrics": {
+      "Asthma": {
+        "precision": 0.9655172413793104,
+        "recall": 0.9333333333333333,
+        "f1_score": 0.9491525423728814,
+        "support": 60.0
+      },
+      "Bronchitis": {
+        "precision": 0.8888888888888888,
+        "recall": 0.9333333333333333,
+        "f1_score": 0.9105691056910569,
+        "support": 60.0
+      },
+      "Common Cold": {
+        "precision": 0.9833333333333333,
+        "recall": 0.9833333333333333,
+        "f1_score": 0.9833333333333333,
+        "support": 60.0
+      },
+      "Influenza": {
+        "precision": 0.9344262295081968,
+        "recall": 0.95,
+        "f1_score": 0.9421487603305785,
+        "support": 60.0
+      },
+      "Pneumonia": {
+        "precision": 0.9827586206896551,
+        "recall": 0.95,
+        "f1_score": 0.9661016949152542,
+        "support": 60.0
+      }
+    },
+    "confusion_matrix": [
+      [
+        56,
+        4,
+        0,
+        0,
+        0
+      ],
+      [
+        2,
+        56,
+        1,
+        1,
+        0
+      ],
+      [
+        0,
+        1,
+        59,
+        0,
+        0
+      ],
+      [
+        0,
+        2,
+        0,
+        57,
+        1
+      ],
+      [
+        0,
+        0,
+        0,
+        3,
+        57
+      ]
+    ],
+    "candidate_comparison": [
+      {
+        "algorithm": "Logistic Regression",
+        "cv_f1_mean": 0.9591568905235626,
+        "test_accuracy": 0.94,
+        "test_f1_macro": 0.9397703065666387,
+        "test_roc_auc": 0.99475
+      },
+      {
+        "algorithm": "Random Forest",
+        "cv_f1_mean": 0.9524080494047084,
+        "test_accuracy": 0.9433333333333334,
+        "test_f1_macro": 0.9436229184036758,
+        "test_roc_auc": 0.9939166666666667
+      },
+      {
+        "algorithm": "Extra Trees",
+        "cv_f1_mean": 0.9515759150084871,
+        "test_accuracy": 0.95,
+        "test_f1_macro": 0.9502610873286208,
+        "test_roc_auc": 0.9937777777777776
+      },
+      {
+        "algorithm": "Gradient Boosting",
+        "cv_f1_mean": 0.9365560857942459,
+        "test_accuracy": 0.94,
+        "test_f1_macro": 0.9401843164386235,
+        "test_roc_auc": 0.9912777777777777
+      }
+    ],
+    "created_at": "2026-10-18 15:56:33",
+    "disclaimer": "Trained on clinically curated synthetic data for prototyping and educational use only. Independent clinical validation required before medical use."
+  },
+  {
+    "category": "digestive",
+    "category_name": "Category C: Digestive Diseases",
+    "selected_algorithm": "Logistic Regression",
+    "model_class": "LogisticRegression",
+    "dataset_rows": 1500,
+    "train_samples": 1200,
+    "test_samples": 300,
+    "num_features": 20,
+    "features": [
+      "heartburn_retrosternal_burning",
+      "acid_regurgitation",
+      "epigastric_burning_pain",
+      "pain_relieved_by_food_or_antacids",
+      "pain_worse_on_empty_stomach_or_night",
+      "nausea",
+      "vomiting",
+      "watery_diarrhea",
+      "cramping_abdominal_pain",
+      "bloating_abdominal_distension",
+      "alternating_bowel_habits",
+      "pain_eased_after_bowel_movement",
+      "mucus_in_stool",
+      "early_satiety",
+      "loss_of_appetite",
+      "belching_and_gas",
+      "worse_lying_down_after_eating",
+      "fever",
+      "dehydration_thirst",
+      "food_triggers_spicy_fatty_stress"
+    ],
+    "classes": [
+      "Acid Reflux (GERD)",
+      "Gastritis",
+      "Gastroenteritis",
+      "Irritable Bowel Syndrome (IBS)",
+      "Peptic Ulcer Disease"
+    ],
+    "metrics": {
+      "test_accuracy": 0.9133333333333333,
+      "test_f1_macro": 0.9141820823760602,
+      "test_precision_macro": 0.9171130704021687,
+      "test_recall_macro": 0.9133333333333333,
+      "test_roc_auc": 0.9920694444444444,
+      "cv_5fold_f1_mean": 0.9247633934422226,
+      "cv_5fold_f1_std": 0.00991377729891415
+    },
+    "per_class_metrics": {
+      "Acid Reflux (GERD)": {
+        "precision": 0.9491525423728814,
+        "recall": 0.9333333333333333,
+        "f1_score": 0.9411764705882353,
+        "support": 60.0
+      },
+      "Gastritis": {
+        "precision": 0.7794117647058824,
+        "recall": 0.8833333333333333,
+        "f1_score": 0.828125,
+        "support": 60.0
+      },
+      "Gastroenteritis": {
+        "precision": 0.9833333333333333,
+        "recall": 0.9833333333333333,
+        "f1_score": 0.9833333333333333,
+        "support": 60.0
+      },
+      "Irritable Bowel Syndrome (IBS)": {
+        "precision": 0.9827586206896551,
+        "recall": 0.95,
+        "f1_score": 0.9661016949152542,
+        "support": 60.0
+      },
+      "Peptic Ulcer Disease": {
+        "precision": 0.8909090909090909,
+        "recall": 0.8166666666666667,
+        "f1_score": 0.8521739130434782,
+        "support": 60.0
+      }
+    },
+    "confusion_matrix": [
+      [
+        56,
+        4,
+        0,
+        0,
+        0
+      ],
+      [
+        1,
+        53,
+        0,
+        0,
+        6
+      ],
+      [
+        0,
+        1,
+        59,
+        0,
+        0
+      ],
+      [
+        0,
+        2,
+        1,
+        57,
+        0
+      ],
+      [
+        2,
+        8,
+        0,
+        1,
+        49
+      ]
+    ],
+    "candidate_comparison": [
+      {
+        "algorithm": "Logistic Regression",
+        "cv_f1_mean": 0.9247633934422226,
+        "test_accuracy": 0.9133333333333333,
+        "test_f1_macro": 0.9141820823760602,
+        "test_roc_auc": 0.9920694444444444
+      },
+      {
+        "algorithm": "Random Forest",
+        "cv_f1_mean": 0.9159484384872216,
+        "test_accuracy": 0.8966666666666666,
+        "test_f1_macro": 0.8959829472814066,
+        "test_roc_auc": 0.9914444444444444
+      },
+      {
+        "algorithm": "Extra Trees",
+        "cv_f1_mean": 0.9134925759517628,
+        "test_accuracy": 0.9033333333333333,
+        "test_f1_macro": 0.9026962505949092,
+        "test_roc_auc": 0.99125
+      },
+      {
+        "algorithm": "Gradient Boosting",
+        "cv_f1_mean": 0.8915161833944868,
+        "test_accuracy": 0.9066666666666666,
+        "test_f1_macro": 0.9069905046771014,
+        "test_roc_auc": 0.986736111111111
+      }
+    ],
+    "created_at": "2026-10-18 15:57:01",
+    "disclaimer": "Trained on clinically curated synthetic data for prototyping and educational use only. Independent clinical validation required before medical use."
+  },
+  {
+    "category": "skin",
+    "category_name": "Category D: Skin Diseases",
+    "selected_algorithm": "Logistic Regression",
+    "model_class": "LogisticRegression",
+    "dataset_rows": 1500,
+    "train_samples": 1200,
+    "test_samples": 300,
+    "num_features": 20,
+    "features": [
+      "comedones_blackheads_whiteheads",
+      "inflammatory_papules_pustules",
+      "deep_painful_nodules_cysts",
+      "oily_skin_seborrhea",
+      "facial_chest_back_distribution",
+      "intense_itching_pruritus",
+      "dry_cracked_flaking_skin",
+      "flexural_distribution_inner_elbows_knees",
+      "oozing_weeping_crusted_patches",
+      "silvery_white_micaceous_scales",
+      "well_demarcated_thick_red_plaques",
+      "extensor_distribution_knees_elbows_scalp",
+      "nail_changes_pitting_ridging",
+      "ring_shaped_annular_patches",
+      "macerated_scaly_skin_folds",
+      "raised_transient_wheals_welts",
+      "welts_resolve_within_24_hours",
+      "burning_or_stinging_sensation",
+      "allergic_or_contact_trigger",
+      "aggravated_by_sweat_heat_friction"
+    ],
+    "classes": [
+      "Acne",
+      "Eczema",
+      "Fungal Skin Infection",
+      "Psoriasis",
+      "Urticaria (Hives)"
+    ],
+    "metrics": {
+      "test_accuracy": 0.99,
+      "test_f1_macro": 0.9899981476336019,
+      "test_precision_macro": 0.9902150537634409,
+      "test_recall_macro": 0.99,
+      "test_roc_auc": 0.999638888888889,
+      "cv_5fold_f1_mean": 0.9933488985208612,
+      "cv_5fold_f1_std": 0.006210022533492339
+    },
+    "per_class_metrics": {
+      "Acne": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 60.0
+      },
+      "Eczema": {
+        "precision": 0.9833333333333333,
+        "recall": 0.9833333333333333,
+        "f1_score": 0.9833333333333333,
+        "support": 60.0
+      },
+      "Fungal Skin Infection": {
+        "precision": 1.0,
+        "recall": 0.9666666666666667,
+        "f1_score": 0.9830508474576272,
+        "support": 60.0
+      },
+      "Psoriasis": {
+        "precision": 0.967741935483871,
+        "recall": 1.0,
+        "f1_score": 0.9836065573770492,
+        "support": 60.0
+      },
+      "Urticaria (Hives)": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 60.0
+      }
+    },
+    "confusion_matrix": [
+      [
+        60,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        59,
+        0,
+        1,
+        0
+      ],
+      [
+        0,
+        1,
+        58,
+        1,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        60,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        60
+      ]
+    ],
+    "candidate_comparison": [
+      {
+        "algorithm": "Logistic Regression",
+        "cv_f1_mean": 0.9933488985208612,
+        "test_accuracy": 0.99,
+        "test_f1_macro": 0.9899981476336019,
+        "test_roc_auc": 0.999638888888889
+      },
+      {
+        "algorithm": "Random Forest",
+        "cv_f1_mean": 0.9925080484716947,
+        "test_accuracy": 0.99,
+        "test_f1_macro": 0.9899981476336019,
+        "test_roc_auc": 0.999638888888889
+      },
+      {
+        "algorithm": "Extra Trees",
+        "cv_f1_mean": 0.9900156500831248,
+        "test_accuracy": 0.99,
+        "test_f1_macro": 0.9899981476336019,
+        "test_roc_auc": 0.9996527777777778
+      },
+      {
+        "algorithm": "Gradient Boosting",
+        "cv_f1_mean": 0.9842034343814072,
+        "test_accuracy": 0.9633333333333334,
+        "test_f1_macro": 0.9631388848205373,
+        "test_roc_auc": 0.9975972222222221
+      }
+    ],
+    "created_at": "2026-10-18 15:57:33",
+    "disclaimer": "Trained on clinically curated synthetic data for prototyping and educational use only. Independent clinical validation required before medical use."
+  },
+  {
+    "category": "urinary_tract",
+    "category_name": "Category E: Urinary Tract Diseases",
+    "selected_algorithm": "Logistic Regression",
+    "model_class": "LogisticRegression",
+    "dataset_rows": 1500,
+    "train_samples": 1200,
+    "test_samples": 300,
+    "num_features": 20,
+    "features": [
+      "dysuria_burning_urination",
+      "urinary_frequency",
+      "urinary_urgency",
+      "urgency_incontinence",
+      "nocturia_multiple_night_trips",
+      "weak_urinary_stream",
+      "hesitancy_delayed_start",
+      "intermittent_stream_stop_start",
+      "straining_to_void",
+      "feeling_incomplete_emptying",
+      "renal_colic_severe_flank_pain",
+      "pain_radiating_to_groin",
+      "costovertebral_angle_tenderness",
+      "high_fever_and_rigors",
+      "hematuria_visible_blood_in_urine",
+      "cloudy_foul_smelling_urine",
+      "nausea_and_vomiting",
+      "suprapubic_pelvic_pressure",
+      "pain_fluctuates_in_spasms_waves",
+      "fatigue_and_malaise"
+    ],
+    "classes": [
+      "Benign Prostatic Hyperplasia (BPH)",
+      "Kidney Infection (Pyelonephritis)",
+      "Kidney Stones",
+      "Overactive Bladder",
+      "Urinary Tract Infection (UTI)"
+    ],
+    "metrics": {
+      "test_accuracy": 0.9733333333333334,
+      "test_f1_macro": 0.9733594925573537,
+      "test_precision_macro": 0.9734935630267667,
+      "test_recall_macro": 0.9733333333333333,
+      "test_roc_auc": 0.997625,
+      "cv_5fold_f1_mean": 0.9758685508520859,
+      "cv_5fold_f1_std": 0.006053916409616518
+    },
+    "per_class_metrics": {
+      "Benign Prostatic Hyperplasia (BPH)": {
+        "precision": 1.0,
+        "recall": 0.9833333333333333,
+        "f1_score": 0.9915966386554622,
+        "support": 60.0
+      },
+      "Kidney Infection (Pyelonephritis)": {
+        "precision": 0.9661016949152542,
+        "recall": 0.95,
+        "f1_score": 0.957983193277311,
+        "support": 60.0
+      },
+      "Kidney Stones": {
+        "precision": 0.9836065573770492,
+        "recall": 1.0,
+        "f1_score": 0.9917355371900827,
+        "support": 60.0
+      },
+      "Overactive Bladder": {
+        "precision": 0.9833333333333333,
+        "recall": 0.9833333333333333,
+        "f1_score": 0.9833333333333333,
+        "support": 60.0
+      },
+      "Urinary Tract Infection (UTI)": {
+        "precision": 0.9344262295081968,
+        "recall": 0.95,
+        "f1_score": 0.9421487603305785,
+        "support": 60.0
+      }
+    },
+    "confusion_matrix": [
+      [
+        59,
+        0,
+        0,
+        0,
+        1
+      ],
+      [
+        0,
+        57,
+        1,
+        0,
+        2
+      ],
+      [
+        0,
+        0,
+        60,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        59,
+        1
+      ],
+      [
+        0,
+        2,
+        0,
+        1,
+        57
+      ]
+    ],
+    "candidate_comparison": [
+      {
+        "algorithm": "Logistic Regression",
+        "cv_f1_mean": 0.9758685508520859,
+        "test_accuracy": 0.9733333333333334,
+        "test_f1_macro": 0.9733594925573537,
+        "test_roc_auc": 0.997625
+      },
+      {
+        "algorithm": "Random Forest",
+        "cv_f1_mean": 0.9734151781738213,
+        "test_accuracy": 0.96,
+        "test_f1_macro": 0.9599928338030278,
+        "test_roc_auc": 0.9958472222222221
+      },
+      {
+        "algorithm": "Extra Trees",
+        "cv_f1_mean": 0.9759066775407954,
+        "test_accuracy": 0.9633333333333334,
+        "test_f1_macro": 0.9634118565458971,
+        "test_roc_auc": 0.9958472222222221
+      },
+      {
+        "algorithm": "Gradient Boosting",
+        "cv_f1_mean": 0.9641165144728354,
+        "test_accuracy": 0.9666666666666667,
+        "test_f1_macro": 0.9665824015556636,
+        "test_roc_auc": 0.9956805555555555
+      }
+    ],
+    "created_at": "2026-10-18 15:58:02",
+    "disclaimer": "Trained on clinically curated synthetic data for prototyping and educational use only. Independent clinical validation required before medical use."
+  }
+]

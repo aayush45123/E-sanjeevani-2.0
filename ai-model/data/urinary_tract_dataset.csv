@@ -1,0 +1,1501 @@
+dysuria_burning_urination,urinary_frequency,urinary_urgency,urgency_incontinence,nocturia_multiple_night_trips,weak_urinary_stream,hesitancy_delayed_start,intermittent_stream_stop_start,straining_to_void,feeling_incomplete_emptying,renal_colic_severe_flank_pain,pain_radiating_to_groin,costovertebral_angle_tenderness,high_fever_and_rigors,hematuria_visible_blood_in_urine,cloudy_foul_smelling_urine,nausea_and_vomiting,suprapubic_pelvic_pressure,pain_fluctuates_in_spasms_waves,fatigue_and_malaise,disease
+1,1,1,0,1,0,0,0,0,1,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,1,1,0,0,0,0,1,0,0,1,1,1,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,1,1,1,1,1,0,0,0,0,1,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,0,0,1,0,0,0,0,1,0,0,1,1,0,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,0,1,0,0,0,0,0,0,0,1,1,1,0,1,0,1,0,1,0,Kidney Stones
+0,0,1,0,1,0,0,0,0,0,1,1,1,0,1,0,0,1,1,1,Kidney Stones
+1,1,0,0,0,1,0,0,0,0,0,0,1,1,0,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,1,0,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,Overactive Bladder
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,0,0,0,0,1,0,0,0,1,1,1,0,0,1,1,1,0,0,0,Kidney Stones
+1,1,0,0,0,1,0,0,0,0,1,1,1,0,1,1,0,1,1,0,Kidney Stones
+1,1,1,0,0,0,0,0,0,0,0,0,1,0,1,1,1,1,0,1,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,0,0,0,0,1,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,0,0,0,0,0,0,0,0,0,1,0,1,0,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Urinary Tract Infection (UTI)
+0,0,1,1,0,0,0,1,0,1,1,1,1,0,1,0,0,0,1,1,Kidney Stones
+1,0,0,0,0,1,0,0,0,0,1,1,0,0,1,0,1,1,1,1,Kidney Stones
+0,0,1,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,1,0,0,0,0,0,1,1,1,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,1,1,1,0,0,0,0,0,0,1,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,1,0,0,1,0,0,0,1,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,0,1,0,1,1,1,1,1,1,0,0,0,0,0,0,1,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,0,1,0,0,0,0,1,0,0,0,0,0,1,0,1,0,1,1,0,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,0,1,0,0,0,0,0,0,0,0,1,1,0,1,0,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,0,0,1,0,0,0,0,1,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,0,1,0,0,0,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,0,1,0,1,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,0,0,1,0,0,0,0,0,0,0,1,1,1,0,1,1,0,0,Kidney Infection (Pyelonephritis)
+1,1,0,0,0,0,1,0,0,0,1,0,1,1,1,1,0,1,0,0,Kidney Infection (Pyelonephritis)
+0,0,0,0,0,0,0,0,0,1,0,1,0,0,1,0,0,0,1,0,Kidney Stones
+1,1,1,0,1,0,0,0,1,1,0,0,0,1,0,1,0,0,0,0,Urinary Tract Infection (UTI)
+1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,1,0,1,0,1,Urinary Tract Infection (UTI)
+1,1,1,0,1,0,0,0,0,1,1,1,0,0,1,0,1,0,1,1,Kidney Stones
+0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,1,1,Kidney Infection (Pyelonephritis)
+1,1,0,0,0,0,0,0,0,1,0,0,1,0,1,0,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,1,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,0,0,0,0,0,1,0,0,1,1,1,0,1,0,1,1,1,1,Kidney Stones
+0,1,0,0,0,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,1,0,0,0,0,1,0,0,0,0,1,1,0,1,0,1,Urinary Tract Infection (UTI)
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,0,1,0,0,0,0,0,0,0,1,1,0,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,0,0,1,0,0,0,0,1,0,0,0,0,0,0,1,1,0,0,Urinary Tract Infection (UTI)
+1,0,0,0,0,0,0,0,0,0,1,1,0,0,1,0,1,0,1,1,Kidney Stones
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,Urinary Tract Infection (UTI)
+0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,Overactive Bladder
+0,0,1,0,0,1,0,0,0,0,1,1,0,0,1,1,1,0,1,0,Kidney Stones
+0,1,0,0,0,0,0,0,1,0,1,1,0,0,1,0,1,0,1,0,Kidney Stones
+1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,0,0,1,0,0,1,0,0,0,1,1,1,0,1,0,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,0,0,0,0,0,0,0,0,1,0,1,1,0,0,1,1,0,0,Kidney Infection (Pyelonephritis)
+0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,0,1,1,0,0,Kidney Stones
+0,1,1,0,1,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,0,1,0,1,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,Urinary Tract Infection (UTI)
+0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,0,1,0,1,1,Kidney Stones
+0,1,1,0,0,0,0,0,0,0,1,0,1,0,1,0,1,1,1,1,Kidney Stones
+1,1,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,Urinary Tract Infection (UTI)
+1,1,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,1,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,Overactive Bladder
+1,0,0,0,1,0,0,1,0,0,1,1,1,0,1,1,1,1,1,1,Kidney Stones
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,1,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,0,0,0,0,0,0,0,0,1,1,1,0,1,1,1,1,1,0,Kidney Stones
+0,1,1,0,0,0,1,0,0,0,1,0,1,1,1,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,0,1,1,1,0,1,0,1,0,0,0,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+0,0,0,0,1,1,1,1,1,0,0,0,0,0,1,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,Overactive Bladder
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,1,1,0,1,0,0,0,0,1,1,0,1,1,1,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,0,0,0,0,0,0,1,0,1,1,1,0,0,1,0,1,1,1,0,Kidney Stones
+1,1,1,0,1,0,0,1,0,0,1,0,1,1,1,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,0,0,1,1,1,1,0,1,0,0,0,0,1,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,0,1,0,0,0,0,0,0,0,1,0,1,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,0,0,1,1,1,1,1,1,0,0,0,0,1,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,0,1,0,0,0,1,1,1,0,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,1,1,0,0,0,1,0,0,1,1,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,0,0,0,0,0,0,1,0,0,1,1,1,0,1,0,0,0,1,1,Kidney Stones
+0,0,0,0,0,1,0,0,0,0,1,0,0,0,1,0,0,0,1,0,Kidney Stones
+0,0,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,1,0,0,0,0,0,0,0,1,1,0,0,1,1,1,0,Kidney Infection (Pyelonephritis)
+0,1,1,0,0,0,0,0,0,1,0,1,1,0,1,0,1,0,1,0,Kidney Stones
+0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,1,0,0,1,1,1,1,0,0,1,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,1,0,0,0,0,1,0,0,0,0,1,1,0,1,0,1,Urinary Tract Infection (UTI)
+0,0,1,0,1,1,0,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,Kidney Stones
+1,1,1,0,0,0,0,0,0,0,1,1,0,0,1,0,1,1,0,1,Kidney Stones
+1,1,0,0,0,0,0,0,0,0,0,0,1,1,0,1,1,1,1,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,1,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+0,1,0,0,0,0,0,0,0,0,1,1,1,0,1,0,0,0,1,1,Kidney Stones
+0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,0,0,0,0,1,0,0,0,1,1,1,0,0,0,0,1,1,0,Kidney Stones
+0,1,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,0,1,1,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,0,1,0,1,0,1,0,0,0,1,1,1,0,1,0,1,0,0,0,Kidney Stones
+0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+1,0,1,0,0,0,0,0,0,1,0,0,1,1,1,1,0,1,0,1,Kidney Infection (Pyelonephritis)
+1,0,1,0,1,0,0,0,0,0,0,1,1,1,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,Urinary Tract Infection (UTI)
+0,1,1,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,0,0,0,0,0,0,1,1,0,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,1,1,0,1,1,0,1,0,0,0,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+0,1,0,0,1,1,1,1,1,1,0,0,0,0,1,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,0,0,0,1,0,0,0,0,0,0,1,1,1,1,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,0,0,0,0,0,0,0,0,1,0,1,1,1,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,1,0,0,0,0,0,0,0,0,1,0,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,0,0,0,0,0,0,0,1,1,1,0,1,1,1,0,1,1,Kidney Stones
+0,1,1,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,0,0,0,1,0,0,0,0,1,1,1,0,1,0,0,0,1,1,Kidney Stones
+0,1,1,1,1,0,1,0,0,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,1,0,0,0,0,0,1,0,0,1,1,1,1,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,0,0,1,1,0,Kidney Stones
+0,1,0,0,1,0,1,1,0,0,0,0,0,0,0,0,1,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,1,0,0,1,0,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,0,1,0,1,0,0,0,1,0,0,0,0,1,1,0,1,1,0,Urinary Tract Infection (UTI)
+1,0,0,0,0,1,1,0,0,0,0,0,0,0,1,1,1,0,1,1,Kidney Stones
+0,1,0,0,0,0,0,0,0,0,1,1,1,0,1,0,1,0,0,1,Kidney Stones
+0,0,1,0,0,0,0,0,0,0,1,1,1,0,1,0,0,0,1,1,Kidney Stones
+1,1,0,0,1,0,0,0,0,0,0,1,1,1,0,1,0,0,1,1,Kidney Infection (Pyelonephritis)
+1,0,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,0,0,1,1,1,1,0,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,0,0,0,0,0,1,1,0,1,1,0,0,1,0,0,0,1,0,Kidney Stones
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Urinary Tract Infection (UTI)
+0,0,1,0,0,0,0,0,0,0,0,1,0,0,1,0,1,0,0,0,Kidney Stones
+0,1,1,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,0,1,0,0,0,0,0,1,0,0,0,0,0,0,1,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,0,1,0,0,0,0,0,0,0,1,1,1,1,0,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,Overactive Bladder
+1,1,0,0,0,1,0,0,0,1,1,0,1,1,1,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,0,0,1,0,0,0,0,0,0,0,1,1,0,0,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,0,0,0,0,1,1,0,0,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,0,0,0,1,0,0,0,0,0,0,1,1,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1,0,1,Urinary Tract Infection (UTI)
+1,1,0,0,0,0,0,0,0,0,1,1,1,1,0,0,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,0,0,1,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,0,1,0,0,0,0,0,0,0,1,1,1,0,1,0,1,1,1,1,Kidney Stones
+1,1,0,0,0,0,0,0,0,0,0,0,0,1,0,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,1,1,1,0,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,1,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,0,1,1,0,1,1,1,0,0,0,0,0,0,0,0,1,0,1,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,1,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,0,0,1,1,1,0,1,1,0,0,0,0,0,1,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,1,0,0,0,0,0,1,1,1,0,1,1,1,0,0,0,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,0,1,1,0,0,0,0,0,1,1,1,1,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,0,0,0,1,1,Kidney Stones
+1,1,1,0,0,1,1,0,0,0,0,0,0,0,0,1,0,1,0,1,Urinary Tract Infection (UTI)
+0,0,1,0,0,0,1,0,0,0,1,0,1,0,1,0,1,0,1,1,Kidney Stones
+1,1,1,0,0,0,0,0,0,1,1,0,0,0,0,1,0,0,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,0,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,0,0,0,0,0,0,0,0,1,0,1,1,0,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,0,0,1,0,0,0,0,1,1,1,0,1,0,1,0,1,0,Kidney Stones
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1,Overactive Bladder
+0,1,1,0,0,0,0,0,1,0,1,1,0,0,1,0,1,1,1,0,Kidney Stones
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,1,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,0,1,0,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,0,0,0,0,0,1,1,0,1,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,1,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,Overactive Bladder
+1,1,1,0,0,0,0,0,0,0,1,0,1,1,0,0,0,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,0,0,0,0,0,0,0,0,1,1,0,0,1,0,1,0,1,1,Kidney Stones
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,1,0,0,0,1,0,0,0,1,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,1,0,0,1,1,0,1,0,1,1,1,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,0,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,0,0,1,0,0,1,0,0,0,1,1,1,0,1,0,1,0,1,1,Kidney Stones
+1,1,1,1,0,0,0,0,0,0,1,0,1,1,0,0,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,0,0,0,1,0,0,0,1,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,0,1,1,0,1,1,1,0,0,0,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+0,1,0,0,1,0,0,1,0,0,1,0,1,1,1,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,Urinary Tract Infection (UTI)
+0,1,1,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+0,0,0,0,0,0,0,0,1,0,1,1,0,0,1,1,1,1,1,1,Kidney Stones
+0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,1,0,0,1,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,1,0,0,1,0,0,0,0,0,0,1,1,0,0,0,1,Urinary Tract Infection (UTI)
+0,0,1,1,1,0,0,1,0,1,0,0,0,0,0,0,0,1,0,1,Overactive Bladder
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,0,1,0,0,0,0,0,0,0,1,1,1,0,1,0,1,1,0,1,Kidney Stones
+0,1,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,1,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,0,1,0,0,1,1,1,1,0,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,0,0,1,1,1,1,0,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,0,0,0,0,0,1,1,1,0,0,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,0,0,1,1,1,Kidney Stones
+0,1,1,0,1,0,0,0,0,0,1,1,1,1,1,0,1,0,1,0,Kidney Stones
+0,1,1,0,1,0,0,1,1,1,0,0,0,0,0,0,0,1,0,1,Benign Prostatic Hyperplasia (BPH)
+0,1,1,0,0,0,0,0,0,0,0,0,1,1,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,Urinary Tract Infection (UTI)
+0,1,0,0,0,1,1,1,1,1,0,1,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,1,1,1,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,0,1,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,1,0,Kidney Stones
+0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,0,0,1,0,1,1,0,1,0,0,0,0,1,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,0,0,0,1,0,0,0,0,1,1,0,0,0,1,Urinary Tract Infection (UTI)
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,1,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,0,0,1,0,0,0,0,1,0,0,0,0,1,1,0,1,0,1,Urinary Tract Infection (UTI)
+1,1,1,0,1,1,1,1,0,0,0,0,0,0,0,1,0,0,0,0,Urinary Tract Infection (UTI)
+0,0,0,0,1,0,0,0,0,1,1,1,0,0,1,0,1,1,1,0,Kidney Stones
+1,1,1,0,0,0,1,0,0,0,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,1,1,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,0,1,0,1,0,0,0,1,1,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,0,0,0,0,1,1,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,0,0,0,0,0,0,0,0,1,1,1,0,0,1,1,0,1,1,Kidney Stones
+1,1,0,0,1,0,0,0,0,0,0,0,1,1,0,1,1,0,0,0,Kidney Infection (Pyelonephritis)
+0,1,0,0,1,0,0,0,0,0,1,0,0,0,1,0,1,0,1,0,Kidney Stones
+1,1,1,1,1,0,0,0,0,0,0,0,0,0,1,0,0,1,0,1,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,1,1,1,1,1,0,1,1,1,1,1,0,Kidney Stones
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,0,0,0,1,1,1,1,1,1,0,0,0,0,1,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,0,1,1,0,0,0,0,0,0,0,0,1,1,0,1,0,1,Urinary Tract Infection (UTI)
+1,0,1,0,0,0,0,0,0,0,1,1,1,0,1,0,1,1,0,1,Kidney Stones
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1,0,1,Urinary Tract Infection (UTI)
+0,0,1,0,0,0,1,0,0,1,1,1,0,0,1,0,1,0,0,0,Kidney Stones
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,0,1,0,1,0,0,0,0,0,1,0,1,0,1,0,1,1,1,1,Kidney Stones
+0,1,1,1,1,0,0,1,0,1,0,0,0,0,0,0,0,0,0,1,Overactive Bladder
+1,1,0,1,1,0,0,0,0,0,1,0,1,1,1,1,1,1,1,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,0,0,0,0,1,0,1,1,1,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,1,0,0,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,0,0,0,0,0,0,0,0,0,1,1,1,0,1,1,1,1,1,0,Kidney Stones
+0,1,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,1,1,0,0,0,0,1,0,1,1,0,0,1,0,1,1,1,0,Kidney Stones
+1,0,0,0,0,0,0,0,0,0,1,1,1,0,1,0,1,0,1,1,Kidney Stones
+1,1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,1,0,0,0,0,0,0,1,1,1,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,0,1,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,0,0,0,0,0,0,1,1,1,0,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,0,1,1,0,0,0,1,0,1,0,0,1,0,1,1,0,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,0,0,1,1,1,1,0,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,1,0,1,0,0,1,1,1,1,1,1,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,Urinary Tract Infection (UTI)
+0,1,1,0,1,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,Overactive Bladder
+0,0,1,0,0,1,0,0,0,0,0,0,1,0,1,0,1,1,1,1,Kidney Stones
+0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,0,0,0,1,0,0,0,0,1,1,1,0,0,1,1,0,0,1,0,Kidney Stones
+0,1,1,0,0,0,0,0,0,0,1,1,0,0,0,1,1,0,1,1,Kidney Stones
+1,0,0,1,0,0,0,0,0,0,0,0,0,1,1,0,1,1,0,0,Kidney Infection (Pyelonephritis)
+0,1,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,0,1,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,Urinary Tract Infection (UTI)
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,1,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,0,0,0,0,0,1,1,1,0,0,0,0,1,1,0,1,0,1,Urinary Tract Infection (UTI)
+0,0,1,0,0,0,0,0,0,0,1,1,1,0,1,0,1,0,1,0,Kidney Stones
+0,0,0,0,0,0,0,0,1,0,1,1,1,0,1,0,1,0,1,0,Kidney Stones
+1,1,1,1,1,0,0,1,0,1,0,0,0,0,0,1,0,0,0,0,Urinary Tract Infection (UTI)
+1,0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,1,0,1,0,Kidney Stones
+1,1,1,0,1,1,0,0,0,1,0,1,1,1,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,1,0,0,0,0,0,1,1,0,0,0,0,1,0,1,1,Kidney Stones
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,1,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,1,Urinary Tract Infection (UTI)
+1,1,1,0,1,0,0,1,0,0,0,0,1,1,0,0,0,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,0,0,0,0,0,0,0,0,1,1,1,0,1,0,1,1,1,0,Kidney Stones
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,0,0,1,1,1,0,1,1,1,1,1,0,Kidney Stones
+0,1,0,0,0,0,0,0,0,0,1,1,0,0,1,1,1,1,1,0,Kidney Stones
+1,1,0,0,1,0,0,0,0,1,0,0,1,1,0,1,0,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,0,0,1,0,0,0,0,1,0,0,1,0,1,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,1,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,1,Benign Prostatic Hyperplasia (BPH)
+0,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1,0,1,Urinary Tract Infection (UTI)
+0,1,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,0,0,1,1,0,1,1,1,0,0,0,0,1,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,0,0,0,0,0,0,0,1,0,1,1,1,1,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,0,1,0,1,1,Kidney Stones
+1,1,1,0,1,0,0,0,0,1,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,0,1,0,0,0,0,0,1,1,1,1,0,1,0,1,0,1,0,Kidney Stones
+0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,Overactive Bladder
+0,1,1,0,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,0,0,0,0,0,0,0,0,0,1,1,0,1,0,1,0,1,Kidney Infection (Pyelonephritis)
+0,0,1,1,1,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,Overactive Bladder
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,Overactive Bladder
+1,1,1,0,1,0,0,0,0,0,0,0,1,1,0,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,1,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+1,1,0,0,0,0,0,0,0,0,1,1,1,0,1,0,1,0,1,0,Kidney Stones
+0,1,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,1,1,0,1,1,0,0,0,0,0,0,0,1,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,1,1,0,1,1,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,1,0,0,0,0,0,0,0,0,1,1,0,1,0,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,1,0,1,1,1,1,0,0,1,0,0,0,0,0,0,0,1,0,1,Benign Prostatic Hyperplasia (BPH)
+0,0,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,1,0,1,0,0,0,0,0,0,0,0,1,1,0,1,0,1,Urinary Tract Infection (UTI)
+0,1,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,0,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,1,Benign Prostatic Hyperplasia (BPH)
+1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Urinary Tract Infection (UTI)
+0,0,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,0,1,0,1,0,Kidney Stones
+1,1,1,0,1,0,0,0,0,0,1,0,1,1,1,1,0,0,0,1,Kidney Infection (Pyelonephritis)
+1,0,1,0,0,0,0,0,0,0,1,1,1,0,1,1,1,0,1,1,Kidney Stones
+0,0,1,0,0,1,0,0,0,0,1,1,0,0,0,1,0,1,1,1,Kidney Stones
+1,1,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Urinary Tract Infection (UTI)
+1,1,0,0,0,0,0,0,0,0,0,1,1,1,0,0,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,0,1,0,Kidney Infection (Pyelonephritis)
+1,1,1,1,1,1,0,0,0,0,0,0,0,0,1,1,0,1,0,1,Urinary Tract Infection (UTI)
+0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,1,0,Kidney Stones
+0,1,1,0,1,0,0,0,0,0,1,0,1,1,1,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,0,0,0,1,1,0,0,0,0,0,1,1,1,1,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,1,0,0,0,1,0,0,1,0,0,1,0,0,1,0,1,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,0,0,0,1,0,0,0,1,0,1,0,1,Urinary Tract Infection (UTI)
+0,0,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1,Overactive Bladder
+1,1,1,0,1,0,0,0,0,0,0,0,1,1,1,0,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,0,0,0,0,0,0,0,0,1,1,1,0,1,0,1,1,1,0,Kidney Stones
+0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,0,1,0,0,0,0,0,0,0,1,1,0,1,0,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,0,0,0,0,1,0,0,0,0,0,0,1,0,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,1,0,0,0,1,0,1,1,1,1,0,1,0,1,Kidney Infection (Pyelonephritis)
+1,0,1,0,0,0,0,0,0,0,1,1,1,0,1,0,1,1,0,1,Kidney Stones
+0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,1,0,0,0,0,0,1,0,0,0,0,1,1,0,1,0,1,Urinary Tract Infection (UTI)
+0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,0,1,0,0,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,0,0,1,0,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,0,0,1,0,0,0,0,0,1,0,1,1,1,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,0,0,0,0,0,0,0,0,1,1,1,1,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,0,1,1,1,0,0,0,0,0,0,0,0,0,1,1,0,1,0,1,Urinary Tract Infection (UTI)
+0,1,1,0,1,0,1,0,1,1,0,0,0,0,0,0,0,1,0,1,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,1,0,1,Urinary Tract Infection (UTI)
+1,0,1,1,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,Urinary Tract Infection (UTI)
+0,1,1,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,0,0,1,0,0,0,1,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,1,0,0,0,0,0,1,0,0,0,0,1,0,1,0,0,1,Urinary Tract Infection (UTI)
+0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,0,0,1,0,0,0,0,0,1,1,0,0,1,0,0,0,1,0,Kidney Stones
+1,1,1,0,0,0,0,0,0,1,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,0,0,0,0,0,0,0,0,1,1,1,0,1,0,1,0,1,0,Kidney Stones
+1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,0,0,1,1,0,0,1,1,1,1,0,1,0,1,1,1,0,Kidney Stones
+1,1,1,1,1,0,0,0,0,1,0,0,0,0,1,1,0,0,0,0,Urinary Tract Infection (UTI)
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,0,1,0,0,1,0,0,0,0,1,1,1,0,0,1,1,0,1,0,Kidney Stones
+1,0,1,0,0,0,0,0,0,0,1,1,1,0,1,0,1,1,1,0,Kidney Stones
+1,1,0,0,0,0,0,0,0,0,1,1,1,0,1,0,1,1,1,0,Kidney Stones
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1,1,0,Urinary Tract Infection (UTI)
+0,1,1,0,1,1,0,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,0,0,0,0,0,0,0,0,1,0,1,1,0,0,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,Urinary Tract Infection (UTI)
+1,0,1,1,1,0,0,0,0,0,1,1,0,0,1,0,1,0,1,1,Kidney Stones
+1,1,0,1,0,0,0,0,1,1,0,0,1,0,1,1,0,1,0,1,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,0,0,0,0,0,0,0,0,1,1,0,0,1,0,0,1,1,0,Kidney Stones
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,1,0,0,0,0,0,1,0,0,1,0,1,1,1,1,1,1,1,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,1,0,0,0,0,0,0,0,1,0,0,1,0,1,Urinary Tract Infection (UTI)
+1,1,1,0,1,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,0,1,0,0,0,0,0,0,0,1,0,0,0,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,0,0,1,0,0,0,0,0,0,0,1,1,1,0,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,Urinary Tract Infection (UTI)
+1,1,1,0,1,0,0,0,0,0,0,0,1,1,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,1,1,0,0,0,0,0,0,0,0,1,1,1,0,1,0,1,Urinary Tract Infection (UTI)
+0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,1,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,0,0,0,1,1,0,1,0,0,0,1,0,Kidney Stones
+0,1,1,0,1,1,0,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,0,0,0,1,0,0,0,0,1,1,0,1,0,1,Urinary Tract Infection (UTI)
+0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,1,1,0,1,0,Kidney Stones
+1,1,1,1,1,0,0,0,0,1,1,0,1,1,0,0,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,0,0,Urinary Tract Infection (UTI)
+0,0,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,0,0,1,1,1,0,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,0,0,0,0,0,0,0,0,0,1,1,1,0,1,0,1,0,1,0,Kidney Stones
+1,1,0,0,1,0,1,0,0,0,0,1,0,1,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,0,1,1,0,0,0,0,1,1,0,1,1,1,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,1,0,0,1,1,1,1,1,1,0,0,1,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1,1,0,1,1,Kidney Infection (Pyelonephritis)
+0,0,0,1,0,0,1,0,1,0,0,1,1,0,1,0,1,1,1,0,Kidney Stones
+1,1,1,0,0,0,0,1,0,0,1,1,0,0,1,0,0,1,1,1,Kidney Stones
+0,1,1,1,1,1,1,1,0,1,0,0,0,0,1,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,1,0,1,0,0,0,0,0,1,1,1,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,0,0,1,0,0,0,0,0,1,1,0,0,0,0,1,1,1,1,Kidney Stones
+0,0,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,0,1,0,0,0,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,1,0,1,0,0,1,0,0,0,1,0,1,0,1,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,Overactive Bladder
+1,0,1,0,0,0,0,0,0,1,1,0,1,1,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,0,1,0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,0,0,1,0,0,0,0,1,0,0,1,1,0,1,1,1,0,0,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,1,Urinary Tract Infection (UTI)
+0,0,1,0,1,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,0,0,0,0,0,0,0,1,1,0,0,0,0,1,0,0,0,Kidney Stones
+1,1,1,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,Urinary Tract Infection (UTI)
+0,1,1,1,1,1,1,1,0,1,0,0,0,0,0,0,0,1,0,1,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,0,0,0,0,0,0,0,0,0,1,1,0,0,1,0,1,0,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,0,1,0,0,0,0,0,0,1,1,0,0,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,1,0,1,0,0,0,1,0,0,0,1,0,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,1,0,0,0,0,0,1,1,0,1,1,0,0,0,Kidney Infection (Pyelonephritis)
+1,1,1,0,1,0,0,0,0,1,1,1,0,1,0,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,1,0,0,0,0,0,1,0,1,1,0,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,0,0,0,0,0,0,0,0,1,1,1,0,1,0,1,1,1,0,Kidney Stones
+0,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,0,0,0,Kidney Infection (Pyelonephritis)
+1,1,0,0,1,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,Urinary Tract Infection (UTI)
+0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,0,0,0,0,0,0,1,0,0,1,1,0,0,1,0,1,0,1,1,Kidney Stones
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,0,0,0,0,1,1,1,1,1,1,0,1,0,1,1,1,0,Kidney Stones
+0,0,1,0,0,0,1,0,0,0,1,1,1,1,1,0,1,1,1,0,Kidney Stones
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,0,0,0,0,0,0,0,0,0,0,1,1,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,0,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,0,0,0,0,0,1,0,1,1,1,0,0,0,1,0,1,0,Kidney Stones
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,0,0,1,0,0,0,0,0,0,0,1,1,0,1,0,1,0,1,1,Kidney Stones
+1,1,1,0,0,1,0,0,0,1,1,1,1,0,1,0,0,0,1,0,Kidney Stones
+1,1,0,0,0,0,0,0,0,0,0,1,1,1,1,0,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,0,1,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,Kidney Infection (Pyelonephritis)
+1,1,0,0,1,0,1,0,0,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,0,0,0,0,0,1,0,0,1,1,0,0,1,0,1,1,1,0,Kidney Stones
+1,0,0,0,0,0,0,0,0,0,0,1,0,0,1,1,1,1,0,1,Kidney Stones
+0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,0,0,0,0,0,0,0,0,0,0,1,1,0,1,1,1,1,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,0,1,1,1,1,0,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,1,Urinary Tract Infection (UTI)
+0,1,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,0,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,0,1,1,0,0,1,0,0,1,0,1,1,1,1,1,0,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,0,0,0,0,0,0,0,0,1,0,1,1,0,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,0,1,0,0,0,0,0,0,0,1,1,0,0,1,0,1,0,1,1,Kidney Stones
+0,0,0,0,1,1,1,1,0,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,0,0,0,0,0,1,0,1,1,0,0,1,0,0,1,1,0,Kidney Stones
+0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,0,0,0,1,0,0,0,0,0,0,1,1,1,1,1,0,0,0,Kidney Infection (Pyelonephritis)
+1,1,0,0,1,0,0,0,0,1,0,0,1,1,0,0,0,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,1,0,1,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,0,0,0,0,0,0,1,1,0,1,0,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,1,1,0,0,0,1,0,0,1,1,1,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,0,0,0,1,0,0,1,1,0,0,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,0,1,0,0,0,0,0,0,0,0,0,0,1,1,0,1,0,1,Urinary Tract Infection (UTI)
+1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,Urinary Tract Infection (UTI)
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,0,0,0,1,0,0,0,0,0,0,0,0,1,0,1,0,1,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,Urinary Tract Infection (UTI)
+1,1,0,0,1,0,0,0,0,0,0,0,0,1,1,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,0,1,1,1,0,1,1,1,0,0,0,0,1,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,0,1,1,0,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,0,1,0,0,0,0,0,0,0,1,0,1,1,1,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+0,1,0,0,0,0,0,0,0,0,1,1,0,0,1,1,0,0,1,1,Kidney Stones
+1,1,0,1,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,1,Urinary Tract Infection (UTI)
+1,0,0,0,1,0,0,0,0,0,1,1,1,0,1,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,0,1,0,1,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,1,0,0,0,0,1,0,1,0,1,0,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,1,0,0,0,0,0,0,0,0,1,1,0,1,0,1,Urinary Tract Infection (UTI)
+1,1,0,0,1,0,0,0,0,0,0,1,1,1,1,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,0,1,0,0,0,0,0,0,1,0,1,1,1,1,0,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,0,1,1,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,Urinary Tract Infection (UTI)
+1,1,0,0,1,0,1,0,0,0,0,0,0,1,0,0,1,1,0,0,Kidney Infection (Pyelonephritis)
+0,1,1,0,1,0,1,1,0,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,0,0,0,0,0,1,0,0,1,1,1,1,0,1,0,1,0,0,0,Kidney Stones
+1,1,0,1,1,0,0,0,0,0,0,1,1,1,0,1,1,1,0,0,Kidney Infection (Pyelonephritis)
+1,0,0,1,1,0,0,0,0,0,0,0,1,0,1,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,0,1,0,0,0,0,1,1,0,0,0,0,Urinary Tract Infection (UTI)
+1,0,1,0,1,0,0,0,0,0,1,0,1,0,0,0,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,1,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,0,1,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,0,0,1,0,0,0,0,0,0,1,1,0,1,0,1,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,0,0,0,0,0,0,0,1,1,0,0,1,0,0,1,1,1,Kidney Stones
+0,1,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,0,1,0,0,0,0,0,0,0,1,1,1,0,1,0,1,0,1,0,Kidney Stones
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,0,0,1,0,0,0,0,0,1,1,1,0,1,0,0,0,1,0,Kidney Stones
+1,1,1,0,0,0,0,1,0,1,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,Overactive Bladder
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,Urinary Tract Infection (UTI)
+0,1,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,1,0,0,0,0,0,1,0,1,0,0,0,1,0,0,0,0,Urinary Tract Infection (UTI)
+1,0,1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,0,0,0,1,0,0,0,1,1,1,0,1,1,1,0,1,0,Kidney Stones
+0,1,0,0,0,0,1,0,0,0,1,1,1,0,1,0,1,1,1,0,Kidney Stones
+0,1,1,1,1,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,1,0,1,Urinary Tract Infection (UTI)
+0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,0,0,0,0,0,1,0,1,0,0,0,1,1,1,1,0,1,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,0,0,0,1,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,0,1,0,0,0,0,0,0,1,1,1,1,0,1,0,0,0,1,1,Kidney Stones
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,0,1,0,0,0,0,0,0,1,1,1,1,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,0,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,1,1,0,0,0,1,0,0,1,0,0,1,0,1,Urinary Tract Infection (UTI)
+1,1,1,1,0,1,0,0,0,0,1,1,0,0,1,0,1,0,1,1,Kidney Stones
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,Overactive Bladder
+0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,1,0,1,0,Kidney Stones
+1,1,1,0,1,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,Urinary Tract Infection (UTI)
+0,1,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,0,0,1,0,0,0,0,0,1,1,1,0,1,0,1,1,0,1,Kidney Stones
+1,0,0,0,1,0,0,0,0,0,0,1,1,1,0,1,0,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,0,0,1,0,0,1,1,0,0,0,1,1,1,1,0,1,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,0,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,0,0,0,1,0,0,0,0,0,0,0,0,1,1,0,1,0,1,Urinary Tract Infection (UTI)
+1,1,0,0,0,0,0,0,0,0,0,0,1,1,0,1,1,1,1,1,Kidney Infection (Pyelonephritis)
+1,0,1,0,0,0,1,1,1,0,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,0,0,0,0,0,0,0,0,1,1,1,0,1,0,0,0,1,0,Kidney Stones
+0,0,1,0,1,1,1,1,1,0,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,1,0,0,1,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,0,0,0,0,0,1,0,0,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,0,0,1,1,0,0,0,0,1,0,1,0,1,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,1,0,0,0,0,0,0,0,0,0,1,1,0,1,0,1,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,Urinary Tract Infection (UTI)
+0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,0,0,1,0,0,0,0,0,0,1,1,1,1,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,1,0,0,0,1,0,0,0,0,0,1,0,1,0,1,0,1,Urinary Tract Infection (UTI)
+0,0,0,0,0,1,0,0,0,1,1,1,0,0,1,0,1,0,1,1,Kidney Stones
+1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,1,1,0,0,0,0,0,1,0,1,1,0,0,0,1,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,1,0,1,1,0,0,0,0,0,0,0,1,1,0,0,1,1,1,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,0,0,0,0,0,0,0,0,0,1,0,1,1,1,0,1,1,0,0,Kidney Infection (Pyelonephritis)
+1,1,1,1,1,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,Urinary Tract Infection (UTI)
+0,0,0,0,1,0,0,0,0,0,1,1,1,0,1,0,1,1,1,1,Kidney Stones
+1,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,Urinary Tract Infection (UTI)
+0,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,0,1,0,0,0,0,0,0,0,1,1,1,0,0,0,1,0,1,0,Kidney Stones
+0,1,1,0,1,1,1,1,0,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,1,0,1,0,0,0,1,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,1,0,0,0,1,0,0,0,0,0,1,1,0,0,0,0,Urinary Tract Infection (UTI)
+0,1,0,0,1,0,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,0,0,0,0,0,1,0,0,0,0,1,1,0,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,0,1,1,0,0,0,1,0,0,0,0,1,1,1,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,0,0,1,1,0,0,0,0,0,0,0,0,1,1,1,0,1,0,1,Urinary Tract Infection (UTI)
+1,1,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,0,0,1,1,1,0,0,0,0,0,1,1,1,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,0,0,1,0,0,1,0,1,1,1,1,1,1,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,0,0,0,0,1,0,0,0,0,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,0,0,0,0,0,0,0,1,1,1,1,1,1,0,1,0,1,0,Kidney Stones
+1,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,0,0,0,0,0,0,0,0,1,1,0,0,0,0,1,1,1,1,Kidney Stones
+0,0,0,1,1,1,1,0,1,1,0,1,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,0,1,0,1,0,0,0,0,1,1,0,1,0,1,Urinary Tract Infection (UTI)
+1,0,1,0,1,1,0,0,0,1,1,1,1,0,1,0,0,1,1,0,Kidney Stones
+0,1,1,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,1,0,1,0,0,0,0,0,1,0,1,0,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,0,1,0,0,0,0,0,0,1,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,0,0,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,1,0,0,0,0,0,0,0,0,1,1,0,1,1,1,0,0,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Urinary Tract Infection (UTI)
+0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,1,1,0,1,1,0,0,0,1,0,0,0,0,0,1,0,1,0,1,Urinary Tract Infection (UTI)
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,0,0,0,1,0,0,0,0,1,1,0,0,0,1,0,1,0,1,1,Kidney Stones
+1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,0,1,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,0,1,0,0,1,1,0,0,1,0,1,0,1,1,Kidney Stones
+0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,1,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,0,0,1,0,0,0,0,1,0,0,0,1,1,1,1,1,0,1,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,1,0,0,0,0,0,0,0,0,0,1,1,0,0,0,1,Urinary Tract Infection (UTI)
+0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,0,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,0,1,0,0,0,0,0,1,0,1,1,1,1,0,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,0,1,0,1,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,0,1,0,1,0,0,0,0,0,1,1,0,0,1,0,1,0,1,0,Kidney Stones
+1,0,0,0,1,0,0,0,1,0,1,1,1,0,1,0,1,0,1,0,Kidney Stones
+0,1,1,0,1,0,0,0,0,0,0,0,1,1,0,1,1,0,0,0,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,1,0,0,0,0,0,1,0,1,1,0,0,0,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,Urinary Tract Infection (UTI)
+1,1,0,0,0,0,0,0,0,0,1,0,0,0,0,1,1,0,1,1,Kidney Stones
+0,1,0,0,0,0,1,0,0,0,1,1,1,0,1,0,0,1,1,0,Kidney Stones
+1,1,1,1,1,0,0,1,0,0,0,0,0,0,0,1,0,1,0,1,Urinary Tract Infection (UTI)
+1,0,0,0,0,0,0,0,0,0,1,0,1,1,1,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,1,0,0,1,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,0,1,0,0,0,0,0,1,1,0,0,0,0,1,0,1,1,Kidney Stones
+1,1,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,0,1,1,0,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,0,1,0,0,0,0,0,0,0,1,1,1,0,1,0,1,0,1,1,Kidney Stones
+1,1,1,0,0,1,0,0,0,0,1,1,0,0,1,0,0,0,1,1,Kidney Stones
+1,1,0,0,1,0,1,0,0,0,1,1,1,0,1,0,1,1,0,0,Kidney Stones
+1,0,1,1,1,0,0,1,0,0,0,0,0,0,1,1,0,1,0,1,Urinary Tract Infection (UTI)
+0,1,0,0,1,1,1,1,0,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,0,0,0,0,0,1,0,0,1,1,0,0,1,0,1,0,1,0,Kidney Stones
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,1,Overactive Bladder
+0,1,1,1,1,0,1,0,0,1,0,0,0,0,0,0,0,0,0,1,Overactive Bladder
+1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Urinary Tract Infection (UTI)
+0,1,1,0,0,0,0,0,0,0,1,1,1,0,1,1,0,0,1,1,Kidney Stones
+0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,1,0,0,1,0,0,0,0,0,0,0,1,1,0,1,0,1,Urinary Tract Infection (UTI)
+0,1,1,1,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,0,1,0,0,0,0,1,0,0,1,1,1,0,0,0,1,1,1,0,Kidney Stones
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,1,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,0,1,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,1,1,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,0,1,0,0,0,0,0,0,0,0,0,1,1,1,0,0,1,1,0,Kidney Infection (Pyelonephritis)
+0,1,1,0,1,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,0,0,0,0,0,0,1,0,0,0,0,1,1,0,0,0,0,Urinary Tract Infection (UTI)
+1,0,1,1,0,1,0,1,0,0,0,0,0,0,1,1,0,0,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,Urinary Tract Infection (UTI)
+1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,Urinary Tract Infection (UTI)
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,1,1,0,1,0,1,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,1,1,0,1,1,0,0,0,1,0,0,0,0,1,0,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,1,0,0,0,1,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,0,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,1,1,0,0,0,0,0,0,0,0,0,1,1,0,1,1,0,0,0,Kidney Infection (Pyelonephritis)
+0,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,1,1,1,0,Kidney Stones
+1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,1,0,0,0,0,0,1,0,1,1,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,0,0,0,0,0,0,1,0,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,1,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,1,0,1,1,0,0,1,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,0,0,0,0,1,1,0,1,1,1,0,1,0,1,0,0,1,Kidney Stones
+0,1,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Urinary Tract Infection (UTI)
+0,1,1,1,1,0,0,1,1,0,0,0,0,0,0,0,0,0,0,1,Overactive Bladder
+1,1,1,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,1,0,0,0,0,0,0,0,0,1,1,0,0,1,0,1,1,1,0,Kidney Stones
+1,1,0,1,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,1,1,1,0,0,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,0,1,0,0,0,1,1,0,0,0,1,0,0,0,0,1,0,0,Urinary Tract Infection (UTI)
+0,0,0,1,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,0,0,0,0,0,0,1,1,0,0,1,1,1,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,Overactive Bladder
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,0,0,1,1,0,1,1,0,0,0,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,0,0,1,0,0,0,0,1,0,0,0,1,0,0,Urinary Tract Infection (UTI)
+0,0,1,1,1,0,1,0,0,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,0,1,0,0,0,0,0,0,0,1,1,0,0,1,0,1,0,0,1,Kidney Stones
+1,1,1,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,1,0,0,0,0,0,0,0,1,1,1,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,0,0,0,0,0,0,0,1,0,0,1,1,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,0,0,0,0,0,0,0,0,1,0,0,1,1,0,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,1,0,1,1,1,1,1,1,1,0,0,0,0,1,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,0,1,1,0,0,0,0,0,1,0,0,0,0,1,1,0,1,0,1,Urinary Tract Infection (UTI)
+0,0,0,0,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,1,0,0,0,0,1,0,0,0,1,1,1,0,1,0,0,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,1,0,0,0,0,0,0,0,0,1,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,0,Kidney Stones
+1,1,1,1,1,0,0,0,0,0,0,0,1,1,1,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,0,1,0,1,0,0,0,0,0,1,0,1,1,0,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,1,0,0,0,1,0,0,0,0,1,1,0,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,0,1,1,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,Urinary Tract Infection (UTI)
+1,0,1,0,1,1,0,0,0,0,0,0,0,0,1,1,0,1,0,1,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,1,0,0,0,0,0,0,0,1,0,0,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,1,0,0,1,1,0,1,0,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,1,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,0,1,0,1,1,Kidney Stones
+0,1,0,0,0,0,0,0,0,0,1,1,1,0,1,0,1,0,1,0,Kidney Stones
+0,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,0,0,0,0,0,0,0,1,1,0,0,1,0,1,1,1,0,Kidney Stones
+0,1,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,0,0,1,0,0,0,0,0,0,0,1,1,0,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,0,1,0,1,1,1,1,0,0,0,0,1,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,1,Urinary Tract Infection (UTI)
+1,1,0,0,1,0,0,0,0,0,1,1,0,1,1,0,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,0,1,1,1,0,Kidney Stones
+1,1,1,0,0,0,0,0,0,0,0,0,1,1,1,0,0,1,0,0,Kidney Infection (Pyelonephritis)
+0,0,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,Kidney Stones
+0,1,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,0,0,0,0,0,0,0,0,0,0,1,1,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,1,0,0,0,0,0,0,0,1,1,0,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,0,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+0,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,0,0,0,0,0,0,0,1,1,1,0,1,0,1,0,1,0,Kidney Stones
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,1,Urinary Tract Infection (UTI)
+1,0,1,0,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,1,0,1,0,0,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,0,0,0,1,0,0,0,0,0,1,1,0,1,1,0,1,0,1,1,Kidney Stones
+1,1,0,0,1,0,0,0,0,0,1,1,0,0,1,0,1,1,1,0,Kidney Stones
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,Overactive Bladder
+0,1,1,0,0,0,1,1,0,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,0,0,0,0,1,0,0,0,0,0,1,1,0,1,0,1,0,1,Kidney Infection (Pyelonephritis)
+1,0,1,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,0,0,0,0,1,0,0,1,0,1,1,1,0,1,0,0,0,1,Kidney Infection (Pyelonephritis)
+1,0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,1,0,1,0,1,1,1,1,0,0,0,0,0,1,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,0,0,0,0,1,0,0,0,1,0,1,0,1,0,1,1,1,0,Kidney Stones
+1,0,1,0,0,0,1,0,0,0,0,1,0,1,1,0,1,0,0,0,Kidney Infection (Pyelonephritis)
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1,Overactive Bladder
+0,1,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,1,0,0,1,0,0,0,0,0,1,1,0,0,1,0,1,1,1,1,Kidney Stones
+0,0,0,0,1,1,1,1,0,1,0,0,0,0,0,0,0,1,0,1,Benign Prostatic Hyperplasia (BPH)
+1,1,1,1,0,0,0,0,0,1,0,0,0,0,0,1,0,1,0,1,Urinary Tract Infection (UTI)
+0,1,1,1,0,0,1,0,1,0,1,1,1,0,1,0,1,0,1,1,Kidney Stones
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,1,1,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,0,0,1,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,0,0,0,0,0,1,0,1,1,1,0,1,0,1,0,1,0,Kidney Stones
+0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,0,0,0,1,1,0,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,1,0,0,0,0,1,1,1,0,1,1,1,1,1,1,Kidney Stones
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,0,1,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,Urinary Tract Infection (UTI)
+1,0,1,0,0,0,0,0,0,1,1,1,1,0,1,0,0,0,1,0,Kidney Stones
+1,1,1,0,0,0,0,0,0,1,0,1,0,1,0,1,1,0,1,1,Kidney Infection (Pyelonephritis)
+0,1,1,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,1,0,0,0,1,0,1,1,0,0,1,0,0,1,1,0,Kidney Stones
+0,1,1,1,1,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,1,0,0,0,0,1,0,0,1,1,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,0,0,1,0,0,1,0,0,0,0,1,1,1,1,1,0,1,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,1,0,0,0,0,1,0,0,0,1,1,0,0,0,Urinary Tract Infection (UTI)
+0,0,0,0,0,0,0,1,0,0,1,1,1,0,1,0,0,0,1,0,Kidney Stones
+1,1,0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,0,0,1,0,0,0,0,1,0,0,1,1,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,0,0,0,0,0,0,0,0,1,1,1,0,1,1,1,0,1,1,Kidney Stones
+1,0,1,0,0,0,1,1,0,0,1,1,0,0,0,1,1,0,1,1,Kidney Stones
+1,1,1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,1,0,0,0,0,0,1,0,1,1,0,1,0,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,0,0,1,0,1,0,0,0,1,0,1,1,0,1,0,0,1,1,Kidney Infection (Pyelonephritis)
+0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,0,1,1,1,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,1,1,0,0,0,0,0,0,0,0,0,1,1,1,0,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,0,0,0,1,0,0,1,1,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,1,0,Kidney Stones
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,0,0,0,0,0,1,0,0,1,1,0,0,1,0,1,0,1,0,Kidney Stones
+0,1,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,0,1,0,1,1,1,0,1,1,0,0,0,0,0,0,0,0,1,0,Benign Prostatic Hyperplasia (BPH)
+0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+0,0,1,0,0,0,0,0,0,0,1,1,0,0,1,0,1,1,1,0,Kidney Stones
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,Urinary Tract Infection (UTI)
+1,1,0,0,0,0,0,0,0,0,0,0,1,1,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,0,0,0,0,0,0,1,1,0,1,1,0,0,0,Kidney Infection (Pyelonephritis)
+1,1,0,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,1,0,Kidney Infection (Pyelonephritis)
+1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,1,1,0,0,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,0,0,0,0,1,0,0,1,1,0,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+1,0,0,0,0,0,0,0,0,1,0,1,1,0,1,1,0,0,1,1,Kidney Stones
+1,1,0,1,1,0,1,1,0,1,0,0,0,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+1,0,1,0,1,0,0,0,0,0,0,0,1,1,1,1,0,0,0,1,Kidney Infection (Pyelonephritis)
+0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,1,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,0,0,0,0,1,0,0,0,1,1,0,0,0,0,1,0,1,1,Kidney Stones
+0,1,1,0,0,1,1,0,0,0,1,1,1,0,1,0,1,0,1,1,Kidney Stones
+0,0,0,0,1,0,0,0,0,0,1,1,0,1,1,0,1,1,1,1,Kidney Stones
+1,1,1,1,1,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,0,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+1,1,1,1,1,0,1,0,0,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,0,0,0,1,0,0,0,0,1,1,1,0,0,0,1,0,1,0,Kidney Stones
+1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,Urinary Tract Infection (UTI)
+1,1,1,0,1,0,0,0,0,1,0,0,0,0,1,1,1,1,0,1,Urinary Tract Infection (UTI)
+1,1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,1,0,1,Urinary Tract Infection (UTI)
+0,1,1,0,0,0,0,1,0,0,1,0,1,0,1,0,1,0,1,0,Kidney Stones
+1,1,1,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,1,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,0,0,0,1,1,1,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,0,0,0,0,0,0,1,0,1,1,1,0,0,0,1,0,1,1,Kidney Stones
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,1,0,0,0,0,0,1,0,0,1,1,1,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,0,0,0,1,0,0,0,0,0,1,0,1,1,1,0,0,0,0,Urinary Tract Infection (UTI)
+0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,1,1,0,1,0,Kidney Stones
+1,1,1,1,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,Kidney Infection (Pyelonephritis)
+1,1,0,0,1,0,0,0,0,0,0,0,0,1,1,0,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,0,0,0,0,0,0,1,0,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,1,0,0,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,0,1,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,Overactive Bladder
+0,1,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,1,0,0,0,0,0,1,1,0,1,0,0,1,1,Kidney Infection (Pyelonephritis)
+0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Urinary Tract Infection (UTI)
+0,0,0,0,0,0,1,0,0,0,1,1,0,0,1,0,1,0,0,1,Kidney Stones
+1,1,1,0,1,0,0,0,0,1,0,0,0,0,0,1,0,0,0,1,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,1,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,0,1,0,0,1,1,0,1,1,1,0,0,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,1,0,0,0,0,0,0,0,1,1,0,0,0,0,1,1,0,1,Kidney Stones
+1,1,0,0,0,0,1,1,0,0,0,0,1,1,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,Urinary Tract Infection (UTI)
+0,0,0,1,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+1,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,0,1,0,1,0,Kidney Stones
+0,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,0,0,0,1,0,0,0,0,0,0,1,1,0,1,1,1,0,1,0,Kidney Stones
+1,1,1,0,1,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,0,1,1,0,0,1,0,1,1,1,1,1,1,1,0,0,0,0,Kidney Infection (Pyelonephritis)
+1,0,1,0,0,0,0,0,0,0,1,1,1,0,1,0,1,1,1,0,Kidney Stones
+0,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,Overactive Bladder
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,0,0,0,1,0,0,0,0,0,1,0,1,1,0,0,1,0,0,0,Kidney Infection (Pyelonephritis)
+1,1,0,0,0,1,0,0,0,0,1,1,1,0,1,0,0,0,0,1,Kidney Stones
+0,1,1,0,0,0,0,0,0,0,1,1,1,0,1,0,1,1,1,0,Kidney Stones
+0,1,1,0,1,1,1,1,1,0,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,0,0,1,0,0,0,0,1,1,0,0,1,0,1,1,1,1,Kidney Stones
+0,1,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,0,1,0,1,0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,0,1,1,1,0,0,0,0,0,0,0,1,0,0,1,0,1,0,1,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,1,0,0,0,0,0,1,1,1,1,1,0,0,0,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,0,0,0,0,0,0,0,1,0,1,1,1,0,0,0,0,1,Kidney Infection (Pyelonephritis)
+1,0,1,0,0,0,0,0,1,0,1,0,1,0,1,1,1,0,1,1,Kidney Stones
+0,0,1,0,1,1,1,1,1,0,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,1,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,0,0,0,0,0,0,0,1,0,0,1,1,1,0,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,1,0,0,0,0,0,0,1,1,1,1,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,0,0,0,0,0,0,0,0,1,1,0,0,1,0,1,0,0,0,Kidney Stones
+0,0,1,0,1,0,0,0,0,0,1,1,1,0,1,0,1,0,1,1,Kidney Stones
+0,1,1,0,1,1,1,1,1,1,0,0,1,0,0,0,0,1,0,1,Benign Prostatic Hyperplasia (BPH)
+0,0,0,0,1,1,1,0,1,1,0,1,0,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+0,0,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,0,0,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,0,0,1,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,1,0,0,0,0,0,0,0,1,1,1,1,0,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,0,0,0,0,1,0,1,1,0,1,0,1,1,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,0,0,1,1,1,0,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,0,0,1,0,0,0,0,0,1,1,1,1,0,1,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,1,0,0,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,1,0,1,Kidney Infection (Pyelonephritis)
+0,1,0,1,0,1,0,1,0,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,0,1,1,0,0,0,0,0,0,0,1,1,1,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,0,1,0,1,0,0,0,0,0,1,1,1,0,1,1,1,0,1,0,Kidney Stones
+1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,0,0,0,0,0,0,0,0,0,1,1,1,0,1,0,1,0,1,0,Kidney Stones
+1,1,1,0,1,0,0,0,0,0,0,0,1,1,0,0,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,0,0,1,0,0,0,0,1,1,1,0,0,1,0,1,0,1,1,Kidney Stones
+0,1,0,0,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+1,1,1,1,1,0,0,0,0,0,0,0,1,0,1,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,0,0,0,0,0,0,1,0,1,1,1,0,1,1,1,0,1,0,Kidney Stones
+1,0,0,0,1,0,0,0,0,1,1,0,1,1,0,1,0,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,0,0,1,0,0,0,0,1,1,1,1,1,0,0,0,1,0,0,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,0,0,1,0,1,1,0,0,1,0,1,0,1,1,Kidney Stones
+0,0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,Overactive Bladder
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,0,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,Overactive Bladder
+0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,0,0,1,1,0,Kidney Stones
+0,1,0,0,1,1,1,1,1,1,0,0,0,0,1,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,0,0,1,1,1,0,1,1,0,0,0,0,0,0,0,1,0,1,Benign Prostatic Hyperplasia (BPH)
+0,1,0,1,1,1,1,1,1,1,0,0,0,0,0,1,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,Urinary Tract Infection (UTI)
+0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,0,0,0,0,0,0,0,1,0,1,1,1,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,0,1,1,1,1,1,1,1,1,0,0,0,0,1,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,0,0,0,1,0,0,0,1,0,1,0,1,1,1,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,0,1,1,1,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,0,1,0,0,0,0,0,0,0,1,1,0,0,1,0,0,1,1,1,Kidney Stones
+0,1,1,1,1,1,1,1,1,0,0,0,0,0,1,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+0,0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,1,0,1,1,Kidney Stones
+0,0,0,0,1,1,1,1,0,1,0,0,0,0,0,1,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,1,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,1,1,0,0,0,0,0,0,1,0,0,0,0,1,1,1,1,0,0,Urinary Tract Infection (UTI)
+0,0,1,0,0,0,0,0,0,0,1,1,1,0,1,0,1,0,1,1,Kidney Stones
+1,1,1,1,0,0,0,1,1,0,0,0,0,0,0,1,1,1,0,1,Urinary Tract Infection (UTI)
+0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,Kidney Infection (Pyelonephritis)
+1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,Urinary Tract Infection (UTI)
+0,0,0,0,0,0,1,0,0,0,1,1,1,0,0,1,1,0,1,0,Kidney Stones
+0,0,1,0,0,0,0,0,0,0,1,0,1,0,0,1,1,1,1,1,Kidney Stones
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,0,0,0,1,1,Kidney Stones
+0,1,1,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,0,0,0,0,0,0,0,0,0,1,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,1,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,Urinary Tract Infection (UTI)
+0,0,0,0,1,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,Urinary Tract Infection (UTI)
+1,1,0,0,0,0,0,0,0,0,1,1,0,0,1,0,0,0,1,0,Kidney Stones
+0,0,0,0,0,0,0,0,1,1,1,1,1,0,1,0,1,0,1,1,Kidney Stones
+0,1,1,1,0,0,0,0,0,1,1,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,1,0,0,0,0,0,0,0,0,1,1,1,0,1,0,0,0,1,1,Kidney Stones
+1,1,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,0,1,1,1,1,Kidney Stones
+1,1,1,0,1,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,1,0,1,0,0,0,0,0,1,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,0,1,1,1,1,1,1,0,0,0,0,0,1,1,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,0,0,0,0,0,0,1,0,0,1,1,1,0,1,1,1,1,Kidney Infection (Pyelonephritis)
+1,0,1,0,1,0,0,0,0,0,0,0,1,1,1,1,0,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,0,0,0,0,0,0,0,1,0,0,1,1,0,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,0,1,0,0,0,1,0,0,0,1,1,1,0,1,0,1,0,1,0,Kidney Stones
+1,1,1,0,0,0,0,0,0,1,0,1,0,0,0,1,0,1,0,1,Urinary Tract Infection (UTI)
+0,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,0,0,0,0,0,0,0,1,1,1,0,0,0,1,1,0,1,1,Kidney Stones
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,Urinary Tract Infection (UTI)
+1,1,0,1,1,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,Kidney Infection (Pyelonephritis)
+1,1,0,0,0,0,0,0,0,0,1,1,1,0,1,0,0,0,1,0,Kidney Stones
+0,1,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,0,1,1,0,1,0,0,0,1,0,0,1,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,0,1,0,0,0,0,0,0,0,0,1,1,1,0,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,1,0,1,1,1,1,1,1,1,0,0,0,0,1,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,Urinary Tract Infection (UTI)
+0,1,0,1,1,1,1,1,1,1,0,0,0,0,0,1,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,0,0,0,0,0,0,0,0,1,0,1,1,0,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,1,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+0,0,1,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,0,0,0,1,1,0,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,0,0,0,0,1,1,0,1,1,0,0,0,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,0,0,0,1,1,1,1,0,1,1,1,0,1,1,Kidney Stones
+0,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,Overactive Bladder
+0,1,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,1,0,0,1,0,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+0,1,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,1,1,1,0,0,0,0,0,0,1,0,1,1,1,0,1,0,0,0,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,Overactive Bladder
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,0,0,0,0,0,0,0,0,1,1,0,0,1,0,1,0,1,1,Kidney Stones
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,Overactive Bladder
+1,1,0,1,0,0,0,1,0,0,0,0,1,1,0,1,1,1,1,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,1,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,1,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,1,1,0,1,0,0,0,0,1,1,0,1,1,1,0,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,0,0,1,0,0,0,0,0,1,1,1,1,1,0,0,1,1,1,Kidney Stones
+0,1,1,1,1,0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,0,1,0,0,0,1,1,0,0,1,1,1,0,1,0,1,1,1,1,Kidney Stones
+0,1,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,1,1,Kidney Stones
+0,1,1,0,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,Urinary Tract Infection (UTI)
+1,0,1,0,0,1,1,0,0,0,1,1,0,0,1,0,1,0,1,0,Kidney Stones
+0,0,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,0,0,0,0,0,0,0,1,0,1,1,1,0,1,0,0,1,1,1,Kidney Stones
+0,1,1,0,0,0,0,0,0,0,1,1,0,0,1,1,0,0,1,0,Kidney Stones
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,0,0,0,0,0,0,0,0,1,1,1,0,1,0,1,1,1,Kidney Infection (Pyelonephritis)
+1,1,0,0,1,0,0,0,0,0,1,0,1,0,1,1,0,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,0,1,Urinary Tract Infection (UTI)
+1,1,0,0,0,0,0,1,0,0,0,0,1,1,0,0,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,1,1,1,0,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,1,1,0,1,1,Kidney Stones
+1,1,1,0,0,0,0,0,0,1,0,0,0,0,1,1,0,1,0,1,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,1,0,0,0,0,0,1,1,1,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,0,0,0,0,1,1,0,0,1,0,1,0,1,1,Kidney Stones
+0,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,1,1,1,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,0,0,0,0,0,0,0,1,1,1,0,1,1,1,0,1,0,Kidney Stones
+0,1,1,0,0,0,1,0,0,0,1,1,1,0,1,0,1,0,1,1,Kidney Stones
+0,1,1,0,0,0,0,0,0,0,1,1,0,0,1,0,1,1,1,0,Kidney Stones
+1,0,1,0,1,0,0,0,0,0,1,1,1,0,1,0,0,1,1,0,Kidney Stones
+1,1,1,1,1,0,0,0,0,1,0,1,1,1,1,0,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,1,0,0,0,0,0,0,0,1,1,1,0,0,1,0,1,0,1,1,Kidney Stones
+0,1,1,0,0,0,0,0,1,0,1,1,1,0,1,1,1,1,1,0,Kidney Stones
+1,1,0,0,0,0,0,0,0,0,1,1,1,0,0,0,1,1,0,1,Kidney Stones
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,Urinary Tract Infection (UTI)
+1,1,1,0,0,1,0,0,1,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,0,1,0,1,0,0,0,0,0,1,1,1,0,1,0,1,0,1,1,Kidney Stones
+1,0,1,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,0,0,0,0,1,0,1,1,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,Urinary Tract Infection (UTI)
+1,1,0,1,1,0,1,0,0,0,1,1,1,0,1,0,0,1,1,0,Kidney Stones
+0,1,1,0,0,0,0,0,0,0,1,1,0,1,1,0,0,0,1,0,Kidney Stones
+0,1,0,0,0,0,0,0,0,0,1,1,0,0,0,1,0,1,1,1,Kidney Stones
+0,1,1,0,1,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,1,0,1,1,Kidney Stones
+1,1,1,1,0,0,1,0,0,1,1,0,1,1,1,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,0,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,0,1,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,1,0,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,1,1,1,0,1,1,0,0,1,0,0,1,0,0,0,0,1,0,1,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,1,0,0,1,1,1,0,0,0,0,0,1,0,Kidney Stones
+0,0,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,1,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,0,0,0,1,0,0,1,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,0,0,0,0,0,0,0,0,1,1,0,0,1,1,1,0,1,1,Kidney Stones
+0,1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,1,1,1,0,0,0,0,0,0,1,1,0,0,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,0,0,0,0,0,0,0,1,1,1,1,0,1,0,1,1,1,1,Kidney Stones
+0,0,0,0,1,1,1,1,0,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,Urinary Tract Infection (UTI)
+1,1,1,0,1,0,0,0,0,0,1,0,1,1,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,0,0,0,0,0,0,0,1,1,1,0,0,0,1,0,1,1,1,0,Kidney Stones
+0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,1,0,0,Kidney Stones
+0,1,1,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,0,0,1,0,0,0,1,0,0,0,0,1,1,0,0,0,1,Urinary Tract Infection (UTI)
+1,0,0,0,0,0,0,0,1,0,0,0,1,1,1,0,0,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,1,0,1,Urinary Tract Infection (UTI)
+0,1,0,0,0,1,0,0,0,0,1,1,1,0,1,0,1,0,1,0,Kidney Stones
+1,1,1,0,1,0,0,0,0,0,0,0,1,1,1,0,1,1,1,1,Kidney Infection (Pyelonephritis)
+0,1,1,0,1,0,1,0,0,0,0,1,1,1,0,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,0,0,0,0,0,0,1,0,0,1,1,1,0,1,0,1,0,1,0,Kidney Stones
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,0,0,0,0,0,0,0,0,0,1,1,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,0,0,0,1,0,1,0,0,0,1,1,0,0,1,0,1,0,1,0,Kidney Stones
+0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,Overactive Bladder
+0,1,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,0,0,0,0,0,1,0,1,0,1,1,0,1,1,Kidney Infection (Pyelonephritis)
+1,1,0,0,1,0,0,0,0,1,0,0,0,1,1,1,0,0,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Kidney Infection (Pyelonephritis)
+0,1,1,0,0,0,0,0,0,0,1,1,0,0,1,1,1,0,1,1,Kidney Stones
+0,1,1,0,0,0,0,0,0,0,1,1,0,0,1,0,1,0,1,0,Kidney Stones
+0,0,1,0,1,1,1,0,1,1,0,0,0,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+0,1,0,1,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,Overactive Bladder
+0,0,1,0,0,1,0,0,0,0,1,1,0,0,1,1,0,1,1,0,Kidney Stones
+1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,0,1,0,0,0,0,1,1,0,0,0,0,Urinary Tract Infection (UTI)
+0,0,0,0,0,1,0,0,0,0,1,1,0,0,1,0,0,0,1,0,Kidney Stones
+0,1,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,0,1,0,0,0,0,0,0,0,1,1,1,0,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,0,1,0,0,0,0,0,0,0,1,1,0,0,1,0,1,0,1,0,Kidney Stones
+0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,1,1,1,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,0,0,0,0,0,0,0,0,1,0,1,0,1,0,0,0,1,1,Kidney Stones
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,1,1,0,0,0,1,1,0,1,1,0,1,1,0,1,1,Kidney Infection (Pyelonephritis)
+1,1,0,0,0,1,0,0,0,0,0,1,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,1,0,0,0,0,0,0,1,1,1,0,0,1,0,1,0,1,1,Kidney Stones
+0,0,1,0,0,0,0,1,1,0,1,1,0,0,0,0,1,0,1,0,Kidney Stones
+0,1,1,1,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,0,0,1,1,1,0,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+0,0,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,0,0,0,0,1,0,1,0,0,1,1,1,0,1,0,1,0,1,0,Kidney Stones
+0,1,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,0,1,0,0,0,0,0,0,1,1,1,0,1,0,1,1,1,1,Kidney Stones
+1,1,1,0,1,1,0,0,0,0,1,1,1,0,1,0,1,0,1,1,Kidney Stones
+1,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,1,Benign Prostatic Hyperplasia (BPH)
+0,0,0,0,1,0,0,0,0,0,1,1,1,0,1,0,1,0,1,0,Kidney Stones
+0,0,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,0,1,0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,0,1,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,0,0,0,1,0,1,0,0,0,1,1,1,0,1,0,1,0,1,1,Kidney Stones
+0,0,1,0,1,0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,0,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,0,0,1,1,0,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,1,0,0,0,0,0,1,1,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,0,0,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+0,1,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,1,1,0,Overactive Bladder
+1,1,1,1,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,1,Urinary Tract Infection (UTI)
+0,1,0,0,1,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,Kidney Infection (Pyelonephritis)
+1,1,1,0,1,0,0,0,0,1,0,0,1,1,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,1,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,0,1,0,0,0,0,0,0,0,1,1,0,0,1,0,0,1,1,1,Kidney Stones
+0,1,0,0,1,1,0,0,0,1,1,1,1,0,0,0,1,0,1,0,Kidney Stones
+0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,0,0,0,1,0,0,1,1,0,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,0,1,0,0,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,1,0,0,0,0,0,0,1,0,0,0,0,1,0,1,0,1,Urinary Tract Infection (UTI)
+0,1,1,1,1,0,1,1,0,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,1,1,1,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,1,1,0,1,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,1,0,Kidney Stones
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,1,0,0,0,0,0,0,0,1,1,1,0,1,1,0,0,1,0,Kidney Stones
+0,1,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,0,1,1,1,1,1,0,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,1,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,Urinary Tract Infection (UTI)
+0,1,0,0,1,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,Urinary Tract Infection (UTI)
+1,1,1,1,1,1,0,0,0,1,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,1,1,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,0,0,0,0,0,0,0,1,1,1,0,1,0,1,0,1,0,Kidney Stones
+0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,1,1,0,0,1,1,0,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,1,1,0,1,0,0,0,0,0,0,1,0,0,0,1,1,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,1,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,1,Overactive Bladder
+0,1,1,0,1,1,0,1,1,0,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,0,0,0,1,0,0,1,0,0,0,0,1,1,1,1,0,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,Urinary Tract Infection (UTI)
+0,1,0,0,1,1,1,0,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,0,1,1,1,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,0,0,0,0,1,1,1,0,1,0,1,0,1,1,Kidney Stones
+0,0,1,1,1,1,1,0,1,1,0,0,0,0,0,0,0,1,0,1,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,0,0,1,0,0,1,0,0,1,1,0,1,0,1,0,0,Kidney Infection (Pyelonephritis)
+0,1,1,0,0,0,0,0,0,0,1,1,1,0,1,0,1,0,1,0,Kidney Stones
+0,1,1,0,1,1,1,1,1,0,0,0,0,0,1,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,0,1,0,0,0,0,0,0,0,1,1,1,0,0,0,1,0,1,1,Kidney Stones
+0,1,1,0,1,1,0,0,0,1,1,0,1,1,1,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,1,0,0,0,0,1,0,1,1,1,1,1,0,1,0,1,Kidney Infection (Pyelonephritis)
+0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,0,0,0,1,1,Kidney Stones
+0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,0,0,0,0,1,0,1,1,0,0,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,0,1,0,0,0,0,0,0,0,1,1,1,0,1,0,1,0,1,1,Kidney Stones
+0,1,0,0,0,1,0,0,1,0,1,1,1,0,1,0,1,0,1,1,Kidney Stones
+1,0,0,0,1,0,0,0,0,0,0,0,1,1,1,1,0,1,0,1,Kidney Infection (Pyelonephritis)
+0,0,1,1,1,1,1,0,0,1,0,0,0,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,0,0,0,0,0,0,0,1,0,1,1,1,0,0,0,0,0,1,0,Kidney Stones
+0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,1,0,1,0,0,Kidney Stones
+1,0,1,0,0,0,0,0,0,0,1,1,1,0,1,0,0,0,1,1,Kidney Stones
+0,0,0,0,0,1,0,0,1,1,0,0,0,0,1,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,0,0,0,0,0,0,0,1,1,1,0,0,1,0,0,0,1,0,Kidney Stones
+1,0,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,0,0,0,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,0,1,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,0,1,0,1,0,0,0,0,1,1,0,1,1,1,0,0,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,0,0,0,0,0,0,0,1,0,1,1,0,1,0,1,0,1,0,Kidney Stones
+0,1,1,0,1,1,1,1,1,0,0,0,0,0,0,0,0,1,0,1,Benign Prostatic Hyperplasia (BPH)
+0,1,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,1,0,0,0,0,0,0,0,1,1,1,1,0,1,0,0,Kidney Infection (Pyelonephritis)
+1,0,1,0,1,0,1,0,0,0,1,1,0,0,1,0,1,1,1,1,Kidney Stones
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,1,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,0,0,0,1,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1,0,1,Urinary Tract Infection (UTI)
+0,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,Overactive Bladder
+0,1,1,0,1,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,0,1,0,1,1,1,0,0,0,0,1,0,1,1,Kidney Stones
+0,1,1,0,1,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,1,0,0,0,0,1,1,1,1,1,0,1,1,1,0,Kidney Stones
+0,1,1,1,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,0,1,0,0,1,0,0,0,0,1,1,0,0,1,0,1,0,1,1,Kidney Stones
+1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,0,0,0,1,1,0,1,1,0,1,0,0,0,1,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,1,0,0,0,0,0,1,0,0,0,1,1,0,1,0,1,Urinary Tract Infection (UTI)
+0,0,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,0,0,0,0,0,0,0,1,1,1,1,0,1,0,1,1,1,1,Kidney Stones
+1,0,1,0,0,0,0,1,0,1,0,1,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,0,0,0,0,0,1,1,0,1,1,1,0,0,1,0,1,1,1,0,Kidney Stones
+0,1,1,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,Overactive Bladder
+1,0,1,0,1,0,0,0,1,0,1,1,1,0,1,0,0,1,0,1,Kidney Stones
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,1,1,0,0,0,0,0,0,1,0,0,0,0,1,1,1,0,0,0,Urinary Tract Infection (UTI)
+0,1,1,1,1,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,Overactive Bladder
+0,1,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,1,0,0,0,0,0,1,0,1,1,0,0,1,1,1,0,1,1,Kidney Stones
+1,1,1,0,1,0,0,0,0,0,0,0,1,1,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,1,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,0,0,0,0,0,0,0,1,1,0,0,1,0,1,0,1,1,Kidney Stones
+0,1,1,0,1,1,0,0,0,0,0,0,0,0,1,1,0,1,0,1,Urinary Tract Infection (UTI)
+1,1,0,1,1,0,0,0,0,0,0,0,1,1,0,1,0,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,0,0,1,0,0,0,0,0,0,0,1,1,0,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,1,0,1,0,1,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,0,1,Kidney Stones
+1,1,1,0,0,0,0,1,0,0,0,0,0,0,1,1,0,1,0,1,Urinary Tract Infection (UTI)
+1,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,0,1,0,0,1,0,0,0,0,1,1,1,1,1,0,1,0,1,Kidney Infection (Pyelonephritis)
+0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,1,1,1,0,Kidney Stones
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,0,1,0,1,0,0,0,1,0,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,0,0,0,0,1,1,1,1,0,1,0,0,1,1,Kidney Infection (Pyelonephritis)
+0,1,0,1,0,1,0,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,0,0,0,0,0,0,0,1,1,0,1,1,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,1,1,0,0,0,1,0,0,0,0,0,1,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,0,1,0,0,0,0,1,1,0,0,0,1,Urinary Tract Infection (UTI)
+0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,0,0,1,0,0,0,0,0,0,0,1,1,1,1,0,0,0,1,Kidney Infection (Pyelonephritis)
+0,0,0,0,0,0,1,1,0,0,1,1,0,0,1,0,1,1,1,0,Kidney Stones
+0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,0,0,1,1,0,0,1,0,1,0,1,1,Kidney Stones
+0,1,1,1,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,1,0,1,0,0,0,0,1,0,1,0,1,1,1,0,0,1,1,Kidney Infection (Pyelonephritis)
+1,0,1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,0,1,0,0,0,0,0,1,1,1,0,1,0,1,1,1,0,Kidney Stones
+1,1,0,0,0,0,0,0,0,1,1,0,1,1,0,1,1,0,0,0,Kidney Infection (Pyelonephritis)
+0,1,0,0,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,0,0,0,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,0,0,1,1,0,1,0,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,0,1,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,1,0,0,0,0,0,0,0,1,0,1,1,1,1,0,0,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,0,0,0,1,0,0,0,0,1,0,0,1,0,0,Urinary Tract Infection (UTI)
+0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,0,0,1,1,1,Kidney Stones
+0,1,0,1,1,1,0,0,0,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,0,1,1,0,1,0,0,0,0,0,1,0,1,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,0,0,0,1,1,1,0,0,1,1,1,1,1,0,Kidney Stones
+0,0,0,0,0,0,1,0,0,0,1,1,1,0,1,1,1,0,1,1,Kidney Stones
+1,1,0,1,0,0,0,0,0,0,1,0,1,1,1,0,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,0,1,0,0,0,0,0,0,0,1,0,0,0,1,0,1,0,1,1,Kidney Stones
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,0,1,0,0,0,0,0,0,1,1,0,1,1,1,1,1,0,1,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,1,0,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,0,0,0,0,0,0,0,1,0,1,1,0,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,Overactive Bladder
+1,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,1,0,0,1,0,0,0,0,0,0,0,1,1,1,0,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,1,0,1,1,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,Overactive Bladder
+0,0,0,0,1,1,1,1,0,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,0,0,0,0,0,0,0,0,1,1,0,0,1,0,0,0,1,0,Kidney Stones
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,1,Overactive Bladder
+1,1,1,0,0,0,0,0,0,0,1,1,1,0,1,0,1,0,1,0,Kidney Stones
+1,1,1,1,0,0,0,0,0,1,0,0,0,0,1,0,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,1,1,1,0,0,0,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,0,0,1,1,0,0,0,0,1,1,0,0,1,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,0,1,0,0,0,0,0,0,1,1,1,1,0,1,0,0,0,1,1,Kidney Stones
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,1,1,0,1,0,0,0,0,1,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,0,0,0,0,1,1,1,0,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,0,0,1,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,0,0,0,1,0,1,0,0,0,1,0,1,1,0,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,Kidney Infection (Pyelonephritis)
+1,1,0,0,0,0,1,0,0,0,1,1,1,0,0,1,1,0,1,1,Kidney Stones
+0,1,1,0,0,0,0,0,0,0,1,1,1,0,0,1,1,1,1,0,Kidney Stones
+0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,0,0,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,0,1,0,0,1,0,0,1,1,0,0,1,0,1,0,0,1,Kidney Stones
+1,1,1,1,0,0,0,1,0,0,0,0,0,0,1,1,0,0,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,1,0,0,0,0,1,0,1,0,0,0,0,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,1,0,1,0,0,1,0,1,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,0,0,0,0,0,0,0,0,0,1,0,1,1,1,0,0,1,0,1,Kidney Infection (Pyelonephritis)
+0,0,0,0,0,0,0,0,1,1,1,1,0,0,1,0,0,0,1,1,Kidney Stones
+0,1,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,0,0,0,0,0,0,0,0,0,1,1,0,0,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,0,1,0,1,0,0,0,0,0,1,1,0,0,1,0,1,0,1,1,Kidney Stones
+1,1,0,0,1,0,0,0,0,1,0,0,1,1,0,1,1,0,1,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,1,0,0,1,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,Urinary Tract Infection (UTI)
+0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,1,1,1,0,Kidney Stones
+0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,1,1,0,1,0,Kidney Stones
+1,0,0,0,0,0,0,0,0,0,1,1,1,0,1,0,0,1,1,1,Kidney Stones
+0,0,0,0,1,0,0,0,0,0,1,1,1,0,0,0,1,0,1,0,Kidney Stones
+0,1,1,0,1,0,1,0,0,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,1,1,0,1,1,0,1,0,0,0,1,1,1,1,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+0,1,1,0,0,1,0,0,0,0,1,0,0,0,1,0,1,0,1,1,Kidney Stones
+1,1,1,0,1,0,1,0,0,0,1,0,1,1,1,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,1,1,1,0,1,0,0,0,0,0,0,1,0,0,0,0,0,Urinary Tract Infection (UTI)
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,0,0,1,1,1,1,0,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,Overactive Bladder
+1,1,1,0,0,0,0,0,0,1,1,1,1,1,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,0,1,1,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,0,1,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,1,1,1,1,1,Kidney Stones
+1,1,0,0,1,0,0,0,0,1,0,0,1,1,0,1,0,1,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,0,0,0,0,0,1,0,0,0,0,1,0,0,1,0,1,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,1,Urinary Tract Infection (UTI)
+1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,1,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,1,1,0,0,1,0,0,0,0,1,1,1,0,0,0,1,1,1,1,Kidney Stones
+1,1,1,0,0,0,0,0,0,1,1,0,0,0,1,0,0,0,0,0,Urinary Tract Infection (UTI)
+0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+0,0,1,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,1,1,Kidney Stones
+1,1,0,0,1,0,1,0,0,0,0,0,1,1,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,1,0,1,0,1,0,1,1,0,0,1,1,1,0,1,0,Kidney Stones
+1,1,0,1,0,0,0,0,0,1,0,0,0,0,1,0,0,1,0,1,Urinary Tract Infection (UTI)
+1,1,1,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,1,0,1,0,0,1,0,0,0,1,1,1,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,0,1,0,0,0,0,0,0,1,1,1,0,1,1,0,0,1,Kidney Infection (Pyelonephritis)
+1,1,0,1,0,0,0,0,0,0,0,0,0,0,1,1,0,1,0,1,Urinary Tract Infection (UTI)
+1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,0,0,0,0,0,0,0,0,1,1,0,1,1,0,0,0,Kidney Infection (Pyelonephritis)
+1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Urinary Tract Infection (UTI)
+0,0,0,0,0,0,1,0,1,0,1,1,0,0,0,1,1,0,0,1,Kidney Stones
+0,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,1,1,0,0,0,0,0,1,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,1,1,1,1,1,1,0,1,0,0,1,0,0,0,0,0,0,1,Benign Prostatic Hyperplasia (BPH)
+0,1,0,1,1,1,0,1,0,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,1,0,0,0,0,0,0,0,0,1,1,1,0,1,0,0,1,1,1,Kidney Stones
+1,1,0,0,0,0,0,0,0,0,0,1,1,1,0,1,0,1,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,0,1,0,0,0,0,0,0,0,1,1,0,0,1,0,0,0,1,1,Kidney Stones
+1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,1,0,1,Urinary Tract Infection (UTI)
+0,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,Overactive Bladder
+1,1,1,0,0,0,0,0,0,0,0,0,1,1,0,0,1,0,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,1,1,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,1,0,1,0,1,0,0,0,1,1,0,0,0,0,0,0,1,0,Kidney Stones
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder
+1,1,1,0,0,0,0,1,0,0,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,1,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,1,0,1,1,0,0,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,1,0,0,Urinary Tract Infection (UTI)
+0,0,0,0,1,1,0,1,1,1,0,0,0,0,0,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,1,0,0,1,1,1,1,1,1,0,0,0,0,1,0,0,0,0,0,Benign Prostatic Hyperplasia (BPH)
+0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,0,0,1,1,1,Kidney Stones
+0,1,1,1,1,1,1,1,0,1,0,0,0,0,0,1,0,1,0,0,Benign Prostatic Hyperplasia (BPH)
+1,0,1,0,1,0,0,0,0,0,1,1,0,0,0,0,0,1,1,0,Kidney Stones
+0,1,1,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,1,0,Kidney Stones
+1,1,1,0,0,0,0,0,0,1,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,0,0,0,0,0,0,0,0,0,1,0,0,0,1,1,0,0,0,1,Kidney Stones
+0,0,0,0,0,0,0,0,1,0,1,1,1,0,1,0,1,1,1,0,Kidney Stones
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,Urinary Tract Infection (UTI)
+1,0,1,0,0,0,0,0,0,0,1,1,1,1,0,1,1,1,0,1,Kidney Infection (Pyelonephritis)
+0,1,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,1,1,Kidney Stones
+0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,Overactive Bladder

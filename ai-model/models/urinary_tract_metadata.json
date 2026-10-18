@@ -1,0 +1,149 @@
+{
+  "category": "urinary_tract",
+  "category_name": "Category E: Urinary Tract Diseases",
+  "selected_algorithm": "Logistic Regression",
+  "model_class": "LogisticRegression",
+  "dataset_rows": 1500,
+  "train_samples": 1200,
+  "test_samples": 300,
+  "num_features": 20,
+  "features": [
+    "dysuria_burning_urination",
+    "urinary_frequency",
+    "urinary_urgency",
+    "urgency_incontinence",
+    "nocturia_multiple_night_trips",
+    "weak_urinary_stream",
+    "hesitancy_delayed_start",
+    "intermittent_stream_stop_start",
+    "straining_to_void",
+    "feeling_incomplete_emptying",
+    "renal_colic_severe_flank_pain",
+    "pain_radiating_to_groin",
+    "costovertebral_angle_tenderness",
+    "high_fever_and_rigors",
+    "hematuria_visible_blood_in_urine",
+    "cloudy_foul_smelling_urine",
+    "nausea_and_vomiting",
+    "suprapubic_pelvic_pressure",
+    "pain_fluctuates_in_spasms_waves",
+    "fatigue_and_malaise"
+  ],
+  "classes": [
+    "Benign Prostatic Hyperplasia (BPH)",
+    "Kidney Infection (Pyelonephritis)",
+    "Kidney Stones",
+    "Overactive Bladder",
+    "Urinary Tract Infection (UTI)"
+  ],
+  "metrics": {
+    "test_accuracy": 0.9733333333333334,
+    "test_f1_macro": 0.9733594925573537,
+    "test_precision_macro": 0.9734935630267667,
+    "test_recall_macro": 0.9733333333333333,
+    "test_roc_auc": 0.997625,
+    "cv_5fold_f1_mean": 0.9758685508520859,
+    "cv_5fold_f1_std": 0.006053916409616518
+  },
+  "per_class_metrics": {
+    "Benign Prostatic Hyperplasia (BPH)": {
+      "precision": 1.0,
+      "recall": 0.9833333333333333,
+      "f1_score": 0.9915966386554622,
+      "support": 60.0
+    },
+    "Kidney Infection (Pyelonephritis)": {
+      "precision": 0.9661016949152542,
+      "recall": 0.95,
+      "f1_score": 0.957983193277311,
+      "support": 60.0
+    },
+    "Kidney Stones": {
+      "precision": 0.9836065573770492,
+      "recall": 1.0,
+      "f1_score": 0.9917355371900827,
+      "support": 60.0
+    },
+    "Overactive Bladder": {
+      "precision": 0.9833333333333333,
+      "recall": 0.9833333333333333,
+      "f1_score": 0.9833333333333333,
+      "support": 60.0
+    },
+    "Urinary Tract Infection (UTI)": {
+      "precision": 0.9344262295081968,
+      "recall": 0.95,
+      "f1_score": 0.9421487603305785,
+      "support": 60.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      59,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      0,
+      57,
+      1,
+      0,
+      2
+    ],
+    [
+      0,
+      0,
+      60,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      59,
+      1
+    ],
+    [
+      0,
+      2,
+      0,
+      1,
+      57
+    ]
+  ],
+  "candidate_comparison": [
+    {
+      "algorithm": "Logistic Regression",
+      "cv_f1_mean": 0.9758685508520859,
+      "test_accuracy": 0.9733333333333334,
+      "test_f1_macro": 0.9733594925573537,
+      "test_roc_auc": 0.997625
+    },
+    {
+      "algorithm": "Random Forest",
+      "cv_f1_mean": 0.9734151781738213,
+      "test_accuracy": 0.96,
+      "test_f1_macro": 0.9599928338030278,
+      "test_roc_auc": 0.9958472222222221
+    },
+    {
+      "algorithm": "Extra Trees",
+      "cv_f1_mean": 0.9759066775407954,
+      "test_accuracy": 0.9633333333333334,
+      "test_f1_macro": 0.9634118565458971,
+      "test_roc_auc": 0.9958472222222221
+    },
+    {
+      "algorithm": "Gradient Boosting",
+      "cv_f1_mean": 0.9641165144728354,
+      "test_accuracy": 0.9666666666666667,
+      "test_f1_macro": 0.9665824015556636,
+      "test_roc_auc": 0.9956805555555555
+    }
+  ],
+  "created_at": "2026-10-18 15:58:02",
+  "disclaimer": "Trained on clinically curated synthetic data for prototyping and educational use only. Independent clinical validation required before medical use."
+}

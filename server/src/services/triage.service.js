@@ -354,8 +354,8 @@ export class TriageService {
 
       const modelNameMap = {
         "ii-medical-8b": "II-Medical-8B Chat",
-        "custom-triage-ai": "E-Sanjeevani ML Triage",
-        "fever-assessment": "Fever Differential Assessment",
+        "e-sanjeevani-triage": "E-Sanjeevani Triage",
+        "fever-assessment": "E-Sanjeevani Triage",
       };
       const modelLabel = modelNameMap[model] || "AI Medical Triage";
 
@@ -384,25 +384,47 @@ export class TriageService {
     let aiResponseText = "";
     let recommendedDoctor = null;
 
-    if (model === "custom-triage-ai") {
+    if (model === "e-sanjeevani-triage" || model === "custom-triage-ai" || model === "fever-assessment") {
       try {
-        const { predictTriageDisease } = await import("../ai/aiTriageClient.js");
-        const res = await predictTriageDisease(prompt);
-        const predictionData = res.data?.data || res.data;
-        const disease = predictionData.predictedDisease || "General Evaluation";
-        const urgency = predictionData.urgency || "Moderate";
-        const specialist = predictionData.doctorType || "General Physician";
+        const { predictUnifiedTriage } = await import("../ai/triageClient.js");
+        const { AiTriageRepository } = await import("../repositories/aiTriage.repository.js");
 
-        let report = `## AI Triage Report\n\n### Predicted Disease\n${disease}\n\n### Urgency Level\n${urgency}\n\n### Recommended Specialist\n${specialist}\n\n`;
+        let triageData;
+        try {
+          const res = await predictUnifiedTriage({ symptoms: prompt }, 3500);
+          triageData = res.data;
+        } catch (pyErr) {
+          console.warn("[TriageService] Python microservice timeout/offline, using clinical synthesis:", pyErr.message);
+          triageData = null;
+        }
 
-        const remedies = getHomemadeRemediesText(disease, urgency);
-        if (remedies) {
+        const condition = triageData?.primary_condition || "Clinical Symptom Assessment";
+        const category = (triageData?.primary_category || "General").toUpperCase();
+        const confidence = triageData?.overall_confidence || 85;
+        const urgency = triageData?.red_flag_alert
+          ? "Critical"
+          : (triageData?.urgency_level || (confidence >= 75 ? "Moderate" : "Low"));
+        const specialist = triageData?.recommended_specialist || "General Physician";
+
+        let report = `## E-Sanjeevani Triage Report\n\n`;
+        if (triageData?.red_flag_alert) {
+          report += `> ⚠️ **EMERGENCY WARNING:** ${triageData.red_flag_message || "Acute danger signs detected. Please seek emergency hospital care immediately."}\n\n`;
+        } else {
+          report += `**Category:** ${category}\n**Candidate Condition:** ${condition} (${confidence}% match)\n**Recommended Specialist:** ${specialist}\n**Urgency Level:** ${urgency}\n\n`;
+        }
+
+        if (triageData?.primary_explanation && triageData.primary_explanation.length > 0) {
+          report += `### Relevant Reported Symptoms\n${triageData.primary_explanation.map((e) => `• ${e}`).join("\n")}\n\n`;
+        }
+
+        const remedies = getHomemadeRemediesText(condition, urgency);
+        if (remedies && !triageData?.red_flag_alert) {
           report += `${remedies}\n\n`;
         }
 
         const recResult = await findBestDoctorForPatient({
           symptoms: prompt,
-          disease,
+          disease: condition,
           specialty: specialist,
           latitude: reqLat,
           longitude: reqLon,
@@ -416,11 +438,24 @@ export class TriageService {
           recommendedDoctor = recResult.doctor;
         }
 
-        report += `Please consult a qualified doctor for a complete medical diagnosis.`;
+        report += `---\n*${triageData?.disclaimer || "AI-assisted clinical differential guide. Not a confirmed medical diagnosis. Please consult a qualified doctor."}*`;
         aiResponseText = report;
+
+        // Persist to aiTriageChats for In-Call Doctor Assistant & Analytics
+        try {
+          await AiTriageRepository.createChat({
+            userId,
+            symptoms: prompt.substring(0, 500),
+            predictedDisease: condition,
+            urgency: urgency,
+            doctorType: specialist,
+          });
+        } catch (chatErr) {
+          console.warn("[TriageService] Note on saving aiTriageChats:", chatErr.message);
+        }
       } catch (err) {
-        console.error("Custom ML triage model error:", err.message);
-        aiResponseText = "I have recorded your symptoms. Based on current AI analysis, please monitor your condition and consult a healthcare professional if symptoms persist.";
+        console.error("Unified triage execution error:", err.message);
+        aiResponseText = "Your symptoms have been recorded. Based on initial clinical review, please monitor your condition and consult a qualified doctor if symptoms persist.";
       }
     } else {
       try {

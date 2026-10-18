@@ -33,6 +33,30 @@ const REMEDY_MAP = {
     "**Herbal Teas**: Drink warm green or chamomile tea with lemon and honey to soothe mucous membranes.",
     "**Hydration & Steam**: Take regular steam inhalations and drink plenty of warm fluids.",
   ],
+  respiratory: [
+    "**Steam Inhalation**: Inhale warm steam with a drop of eucalyptus oil or carom seeds (ajwain) twice daily.",
+    "**Honey-Ginger Elixir**: Mix raw honey with warm ginger extract to coat and soothe bronchial passages.",
+    "**Elevated Head Position**: Sleep with 2 pillows to keep airways open and ease nocturnal coughing.",
+    "**Avoid Cold & Dry Air**: Keep neck and chest warm; avoid abrupt exposure to air-conditioned cold drafts.",
+  ],
+  digestive: [
+    "**Fennel (Saunf) & Cumin Water**: Boil 1 tsp fennel and jeera in water. Sip warm to relieve gas, cramps, and bloating.",
+    "**Ginger Infusion**: Fresh ginger boiled in water aids gastric motility and soothes nausea.",
+    "**Elevate Head of Bed (GERD)**: Keep head elevated 6-8 inches and refrain from lying down for 3 hours after meals.",
+    "**Bland BRAT Diet**: Soft bananas, rice, applesauce, and plain toast gently calm an inflamed GI tract.",
+  ],
+  skin: [
+    "**Cool Compresses & Aloe Vera**: Apply pure aloe vera gel or cool damp cloths to soothe heat, welts, and itch.",
+    "**Virgin Coconut Oil**: Apply a thin layer to dry or flaking patches to seal in moisture and restore barrier function.",
+    "**Avoid Harsh Soaps**: Cleanse with fragrance-free, hypoallergenic cleansers using lukewarm water (never hot).",
+    "**Wear Loose Cotton**: Minimize friction and sweating by wearing breathable, loose-fitting cotton clothing.",
+  ],
+  urinary: [
+    "**Abundant Hydration**: Drink 2.5 to 3 liters of filtered water daily to naturally flush the urinary tract.",
+    "**Barley Water (Jau)**: Drink freshly boiled barley water with lemon to cool the urinary system and ease burning.",
+    "**Warm Lower Abdomen Compress**: Place a warm water bag on the pelvic area to soothe bladder spasms and discomfort.",
+    "**Avoid Bladder Irritants**: Strictly minimize caffeine, citrus acids, artificial sweeteners, and spicy foods during flare-ups.",
+  ],
   general: [
     "**Rest & Sleep**: Give your body at least 8 to 9 hours of restorative sleep to empower your immune defense.",
     "**Warm Hydration**: Drink 2.5-3 liters of lukewarm water, herbal teas, or warm soups daily.",
@@ -62,8 +86,14 @@ export const getHomemadeRemediesText = (diseaseName, urgency) => {
     remedies = REMEDY_MAP.malaria;
   } else if (d.includes("typhoid")) {
     remedies = REMEDY_MAP.typhoid;
-  } else if (d.includes("cold") || d.includes("flu") || d.includes("cough")) {
-    remedies = REMEDY_MAP.cold_flu;
+  } else if (d.includes("cold") || d.includes("flu") || d.includes("asthma") || d.includes("bronchitis") || d.includes("pneumonia")) {
+    remedies = REMEDY_MAP.respiratory;
+  } else if (d.includes("gerd") || d.includes("reflux") || d.includes("gastritis") || d.includes("ulcer") || d.includes("gastroenteritis") || d.includes("ibs")) {
+    remedies = REMEDY_MAP.digestive;
+  } else if (d.includes("acne") || d.includes("eczema") || d.includes("psoriasis") || d.includes("fungal") || d.includes("urticaria") || d.includes("hives")) {
+    remedies = REMEDY_MAP.skin;
+  } else if (d.includes("uti") || d.includes("urinary") || d.includes("kidney") || d.includes("bladder") || d.includes("prostat")) {
+    remedies = REMEDY_MAP.urinary;
   } else if (d.includes("fever") || d.includes("viral")) {
     remedies = REMEDY_MAP.fever;
   }

@@ -76,166 +76,130 @@ const aiModelsData = [
     provider: "Hugging Face",
     icon: "https://huggingface.co/front/assets/huggingface_logo-noborder.svg",
     isPro: false,
-    description: "Medical chatbot model (/api/chat)",
+    description: "Medical conversational chatbot model (/api/chat)",
     endpoint: "/api/chat",
   },
   {
-    id: "custom-triage-ai",
-    name: "E-Sanjeevani AI Triage",
-    provider: "Custom Medical Model",
+    id: "e-sanjeevani-triage",
+    name: "E-Sanjeevani Triage",
+    provider: "Unified ML Clinical Triage",
     icon: null,
     isPro: false,
-    description: "Self-trained disease prediction model (/api/ai-triage/predict)",
-    endpoint: "/api/ai-triage/predict",
-  },
-  {
-    id: "fever-assessment",
-    name: "Fever Assessment",
-    provider: "E-Sanjeevani ML Model",
-    icon: null,
-    isPro: false,
-    description: "Explainable fever differential (Dengue, Malaria, Typhoid)",
+    description: "Unified multi-category disease triage (Fever, Respiratory, Digestive, Skin, Urinary Tract)",
     endpoint: "/api/fever/assess",
   },
 ];
 
-// ─── Fever Assessment — conversation steps ───────────────────────────────────
-const FEVER_STEPS = [
-  {
-    key: "red_flags",
-    question:
-      "**Safety check first.** Do you have any of these warning signs?\n\n" +
-      "• Bleeding from nose, gums, or in vomit/stool\n" +
-      "• Severe abdominal pain\n" +
-      "• Difficulty breathing\n" +
-      "• Confusion or loss of consciousness\n" +
-      "• Fainting\n\n" +
-      "Reply **Yes** or **No**.",
-    type: "yesno",
-    options: [
-      { label: "Yes", value: "Yes" },
-      { label: "No", value: "No" },
-    ],
-    redFlag: true,
-  },
-  {
-    key: "duration",
-    question:
-      "How long have you had the fever?\n\n" +
-      "• **1** = Less than 1 day\n" +
-      "• **2** = 1–3 days\n" +
-      "• **3** = 4–7 days\n" +
-      "• **4** = More than 7 days",
-    type: "choice",
-    options: [
-      { label: "< 1 day", value: "1" },
-      { label: "1–3 days", value: "2" },
-      { label: "4–7 days", value: "3" },
-      { label: "> 7 days", value: "4" },
-    ],
-  },
-  {
-    key: "high_fever",
-    question: "Is the fever **high** (feels very hot / ≥ 39 °C)? Reply **Yes** or **No**.",
-    type: "yesno",
-    options: [
-      { label: "Yes", value: "Yes" },
-      { label: "No", value: "No" },
-    ],
-  },
-  {
-    key: "sudden_onset",
-    question: "Did the fever start **suddenly / abruptly**? Reply **Yes** or **No**.",
-    type: "yesno",
-    options: [
-      { label: "Yes", value: "Yes" },
-      { label: "No", value: "No" },
-    ],
-  },
-  {
-    key: "chills",
-    question: "Do you have **chills or shivering episodes**? Reply **Yes** or **No**.",
-    type: "yesno",
-    options: [
-      { label: "Yes", value: "Yes" },
-      { label: "No", value: "No" },
-    ],
-  },
-  {
-    key: "headache",
-    question: "Do you have a **headache**? Reply **Yes** or **No**.",
-    type: "yesno",
-    options: [
-      { label: "Yes", value: "Yes" },
-      { label: "No", value: "No" },
-    ],
-  },
-  {
-    key: "pain_behind_eyes",
-    question: "Do you have **pain behind the eyes** (retro-orbital pain)? Reply **Yes** or **No**.",
-    type: "yesno",
-    options: [
-      { label: "Yes", value: "Yes" },
-      { label: "No", value: "No" },
-    ],
-  },
-  {
-    key: "joint_pain",
-    question: "Do you have **joint pain or severe body aches**? Reply **Yes** or **No**.",
-    type: "yesno",
-    options: [
-      { label: "Yes", value: "Yes" },
-      { label: "No", value: "No" },
-    ],
-  },
-  {
-    key: "rash",
-    question: "Do you have a **skin rash or red spots**? Reply **Yes** or **No**.",
-    type: "yesno",
-    options: [
-      { label: "Yes", value: "Yes" },
-      { label: "No", value: "No" },
-    ],
-  },
-  {
-    key: "nausea_vomiting",
-    question: "Do you have **nausea or vomiting**? Reply **Yes** or **No**.",
-    type: "yesno",
-    options: [
-      { label: "Yes", value: "Yes" },
-      { label: "No", value: "No" },
-    ],
-  },
-  {
-    key: "diarrhea_constipation",
-    question: "Do you have **diarrhea, abdominal discomfort, or constipation**? Reply **Yes** or **No**.",
-    type: "yesno",
-    options: [
-      { label: "Yes", value: "Yes" },
-      { label: "No", value: "No" },
-    ],
-  },
-  {
-    key: "cough_sore_throat",
-    question: "Do you have a **cough, runny nose, or sore throat**? Reply **Yes** or **No**.",
-    type: "yesno",
-    options: [
-      { label: "Yes", value: "Yes" },
-      { label: "No", value: "No" },
-    ],
-  },
-  {
-    key: "fatigue",
-    question: "Do you have significant **fatigue or weakness**? Reply **Yes** or **No**.",
-    type: "yesno",
-    options: [
-      { label: "Yes", value: "Yes" },
-      { label: "No", value: "No" },
-    ],
-  },
+// ─── E-Sanjeevani Unified Triage — conversational steps ─────────────────────
+// Step 0: category selection. Steps 1+ are per-category Yes/No symptoms.
+const TRIAGE_CATEGORIES = [
+  { key: "fever",         label: "A — Fever",          short: "Fever (Dengue, Malaria, Typhoid…)" },
+  { key: "respiratory",  label: "B — Respiratory",     short: "Respiratory (Cough, Asthma, Pneumonia…)" },
+  { key: "digestive",    label: "C — Digestive",       short: "Digestive (Acidity, IBS, Gastroenteritis…)" },
+  { key: "skin",         label: "D — Skin",             short: "Skin (Acne, Eczema, Psoriasis…)" },
+  { key: "urinary_tract",label: "E — Urinary Tract",  short: "Urinary Tract (UTI, Kidney Stones…)" },
 ];
 
+// Per-category question banks — maps each category to a list of Yes/No symptom steps
+const TRIAGE_STEPS_BY_CATEGORY = {
+  fever: [
+    { key: "red_flags", redFlag: true, type: "yesno",
+      question: "**Safety check first** — any of these?\n\n• Bleeding from nose/gums/stool or skin spots\n• Severe abdominal pain\n• Difficulty breathing / fainting\n• Confusion or loss of consciousness\n\nReply **Yes** or **No**.",
+      options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "high_fever",     type: "yesno", question: "Do you have **high fever** (≥39°C / 102°F)?" , options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "sudden_onset",   type: "yesno", question: "Did the fever start **suddenly / abruptly**?",     options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "chills",         type: "yesno", question: "Do you have **chills or shivering episodes**?",   options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "headache",       type: "yesno", question: "Do you have a **headache**?",                     options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "pain_behind_eyes",type:"yesno", question: "**Pain behind the eyes** (retro-orbital)?",       options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "joint_pain",     type: "yesno", question: "**Joint pain or severe body aches**?",            options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "rash",           type: "yesno", question: "**Skin rash, red spots, or petechiae**?",        options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "nausea",         type: "yesno", question: "**Nausea or vomiting**?",                         options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "diarrhea",       type: "yesno", question: "**Diarrhea or abdominal discomfort**?",           options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "fatigue",        type: "yesno", question: "Significant **fatigue or weakness**?",           options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+  ],
+  respiratory: [
+    { key: "red_flags", redFlag: true, type: "yesno",
+      question: "**Safety check** — any of these?\n\n• Severe difficulty breathing / gasping\n• Blue lips or nails\n• Coughing up blood\n• Crushing chest pain\n\nReply **Yes** or **No**.",
+      options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "cough",                   type: "yesno", question: "Do you have a **cough** (dry or with phlegm)?",                 options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "shortness_of_breath",     type: "yesno", question: "**Shortness of breath / difficulty breathing**?",              options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "wheezing",                type: "yesno", question: "**Wheezing** (whistling sound when breathing)?",               options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "chest_tightness",         type: "yesno", question: "**Chest tightness** or pressure?",                            options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "fever",                   type: "yesno", question: "Do you have **fever** with your chest symptoms?",              options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "sore_throat",             type: "yesno", question: "**Sore throat or nasal congestion**?",                        options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "symptom_triggers_allergens_exercise", type: "yesno", question: "Do symptoms **worsen with allergens or exercise**?", options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "fatigue",                 type: "yesno", question: "Significant **fatigue or tiredness**?",                       options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+  ],
+  digestive: [
+    { key: "red_flags", redFlag: true, type: "yesno",
+      question: "**Safety check** — any of these?\n\n• Blood in vomit or black/tarry stool\n• Rigid or board-like abdomen\n• Complete inability to swallow fluids\n\nReply **Yes** or **No**.",
+      options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "heartburn_retrosternal_burning", type: "yesno", question: "**Heartburn / burning sensation behind the breastbone**?", options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "nausea",                  type: "yesno", question: "**Nausea or vomiting**?",                                      options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "watery_diarrhea",         type: "yesno", question: "**Watery diarrhea or loose stools**?",                        options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "cramping_abdominal_pain", type: "yesno", question: "**Cramping abdominal pain**?",                                 options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "bloating_abdominal_distension", type: "yesno", question: "**Bloating or feeling of abdominal fullness**?",         options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "alternating_bowel_habits",type: "yesno", question: "**Alternating constipation and diarrhea**?",                  options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "belching_and_gas",        type: "yesno", question: "**Excessive belching or flatulence (gas)**?",                 options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "worse_lying_down_after_eating", type: "yesno", question: "Symptoms **worse when lying down after eating**?",       options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+  ],
+  skin: [
+    { key: "red_flags", redFlag: true, type: "yesno",
+      question: "**Safety check** — any of these?\n\n• Swelling of face, lips, or throat\n• Widespread skin blistering or peeling\n• Rapidly spreading purple spots with fever\n\nReply **Yes** or **No**.",
+      options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "intense_itching_pruritus",      type: "yesno", question: "**Intense itching** (pruritus) of the skin?",               options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "comedones_blackheads_whiteheads",type: "yesno", question: "**Blackheads, whiteheads or comedones** on skin?",          options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "inflammatory_papules_pustules", type: "yesno", question: "**Inflamed pimples or pustules** on skin?",                  options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "dry_cracked_flaking_skin",      type: "yesno", question: "**Dry, cracked or flaking skin**?",                         options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "silvery_white_micaceous_scales",type: "yesno", question: "**Silvery-white scaly patches** on skin?",                  options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "ring_shaped_annular_patches",   type: "yesno", question: "**Ring-shaped or circular patches** on skin?",              options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "raised_transient_wheals_welts", type: "yesno", question: "**Raised, transient hives or welts** that come and go?",   options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "burning_or_stinging_sensation", type: "yesno", question: "**Burning or stinging sensation** at the skin site?",       options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+  ],
+  urinary_tract: [
+    { key: "red_flags", redFlag: true, type: "yesno",
+      question: "**Safety check** — any of these?\n\n• Complete inability to urinate with painful bladder distension\n• Passing blood clots in urine\n• High fever with shaking chills and flank pain\n\nReply **Yes** or **No**.",
+      options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "dysuria_burning_urination", type: "yesno", question: "**Burning or painful urination** (dysuria)?",                    options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "urinary_frequency",         type: "yesno", question: "**Increased urinary frequency** (urinating very often)?",       options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "urinary_urgency",           type: "yesno", question: "**Sudden urinary urgency** (cannot delay urination)?",          options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "renal_colic_severe_flank_pain", type: "yesno", question: "**Severe flank or loin pain** (waves of sharp cramping)?", options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "hematuria_visible_blood_in_urine", type: "yesno", question: "**Blood in urine** (pink, red, or cola-coloured)?",    options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "cloudy_foul_smelling_urine",type: "yesno", question: "**Cloudy or foul-smelling urine**?",                            options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "weak_urinary_stream",       type: "yesno", question: "**Weak urinary stream or difficulty starting urination**?",     options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+    { key: "high_fever_and_rigors",     type: "yesno", question: "**High fever with shaking chills (rigors)**?",                 options: [{ label: "Yes", value: "Yes" }, { label: "No", value: "No" }] },
+  ],
+};
+
+// Category-selection step shown FIRST
+const TRIAGE_CATEGORY_STEP = {
+  key: "category",
+  type: "category_select",
+  question:
+    "Welcome to **E-Sanjeevani Triage** — an AI-powered clinical differential assessment.\n\n" +
+    "Which **body system** best describes your primary complaint?\n\n" +
+    "• **A** — Fever (Dengue, Malaria, Typhoid, Chikungunya, Viral Fever)\n" +
+    "• **B** — Respiratory (Asthma, Pneumonia, Bronchitis, Influenza, Cold)\n" +
+    "• **C** — Digestive (GERD, IBS, Gastroenteritis, Peptic Ulcer, Gastritis)\n" +
+    "• **D** — Skin (Acne, Eczema, Psoriasis, Fungal Infection, Urticaria)\n" +
+    "• **E** — Urinary Tract (UTI, Kidney Stones, Pyelonephritis, OAB, BPH)\n\n" +
+    "Type **A, B, C, D, or E** — or select below:",
+  options: [
+    { label: "A — Fever",         value: "fever" },
+    { label: "B — Respiratory",   value: "respiratory" },
+    { label: "C — Digestive",     value: "digestive" },
+    { label: "D — Skin",          value: "skin" },
+    { label: "E — Urinary Tract", value: "urinary_tract" },
+  ],
+};
+
 const isYes = (s) => /^y(es)?$/i.test(s.trim());
+
+// Map letter shorthand to category key
+const LETTER_TO_CATEGORY = {
+  a: "fever", b: "respiratory", c: "digestive", d: "skin", e: "urinary_tract",
+  fever: "fever", respiratory: "respiratory", digestive: "digestive", skin: "skin", urinary_tract: "urinary_tract",
+};
 
 const mockRecords = [
   "Blood_Test_April2026.pdf",
@@ -254,11 +218,11 @@ const commandSuggestions = [
   },
   {
     icon: <Thermometer size={14} />,
-    label: "Fever Differential",
-    description: "Multi-disease fever check",
+    label: "E-Sanjeevani Triage",
+    description: "5-category clinical ML triage",
     prefix: "/fever",
-    prompt: "Start fever assessment",
-    modelId: "fever-assessment",
+    prompt: "Start triage assessment",
+    modelId: "e-sanjeevani-triage",
   },
   {
     icon: <FileText size={14} />,
@@ -315,10 +279,11 @@ export default function PatientDashboard() {
   const [isHistoryMinimized, setIsHistoryMinimized] = useState(false);
   const [historyRefreshTrigger, setHistoryRefreshTrigger] = useState(0);
 
-  // Fever assessment state
+  // Unified Triage conversational state
   const [feverStep, setFeverStep] = useState(0);
   const [feverAnswers, setFeverAnswers] = useState({});
   const [feverActive, setFeverActive] = useState(false);
+  const [triageCategory, setTriageCategory] = useState(null); // selected category key
 
   // User Geolocation for local doctor recommendations
   const [userLocation, setUserLocation] = useState(null);
@@ -515,6 +480,7 @@ export default function PatientDashboard() {
     setFeverActive(false);
     setFeverStep(0);
     setFeverAnswers({});
+    setTriageCategory(null);
     setAttachments([]);
     setInputValue("");
     if (user) {
@@ -524,9 +490,13 @@ export default function PatientDashboard() {
     toast.success("Started a new chat session");
   };
 
-  // ── Ask Fever Step Question ───────────────────────────────────────────────
-  const askFeverQuestion = (stepIndex) => {
-    const step = FEVER_STEPS[stepIndex];
+  // ── Ask Triage Step Question ──────────────────────────────────────────────
+  const askFeverQuestion = (stepIndex, categoryKey) => {
+    const catKey = categoryKey || triageCategory;
+    // Step 0 is always the category selection step
+    const step = stepIndex === 0
+      ? TRIAGE_CATEGORY_STEP
+      : (TRIAGE_STEPS_BY_CATEGORY[catKey] || [])[stepIndex - 1];
     if (!step) return;
 
     setIsTyping(true);
@@ -545,31 +515,26 @@ export default function PatientDashboard() {
     }, 400);
   };
 
-  // ── Submit Fever Assessment ───────────────────────────────────────────────
-  const submitFeverAssessment = async (answers) => {
+  // ── Submit Unified Triage Assessment ────────────────────────────────────
+  const submitFeverAssessment = async (answers, categoryKey) => {
+    const category = categoryKey || triageCategory || "fever";
     setIsTyping(true);
     try {
-      const durationScore =
-        typeof answers.duration === "number" ? answers.duration : 1;
+      // Build symptom vector from the collected answers (all keys from the step bank)
+      const categorySteps = TRIAGE_STEPS_BY_CATEGORY[category] || TRIAGE_STEPS_BY_CATEGORY["fever"];
+      const symptomMap = {};
+      categorySteps.forEach((step) => {
+        if (step.key !== "red_flags") {
+          symptomMap[step.key] = answers[step.key] ? 1 : 0;
+        }
+      });
 
-      const symptomMap = {
-        high_fever: answers.high_fever ? 1 : 0,
-        sudden_onset: answers.sudden_onset ? 1 : 0,
-        chills: answers.chills ? 1 : 0,
-        headache: answers.headache ? 1 : 0,
-        pain_behind_eyes: answers.pain_behind_eyes ? 1 : 0,
-        joint_pain: answers.joint_pain ? 1 : 0,
-        rash: answers.rash ? 1 : 0,
-        nausea_vomiting: answers.nausea_vomiting ? 1 : 0,
-        diarrhea_constipation: answers.diarrhea_constipation ? 1 : 0,
-        cough_sore_throat: answers.cough_sore_throat ? 1 : 0,
-        fatigue: answers.fatigue ? 1 : 0,
-        duration_days: durationScore,
-      };
+      const redFlagsPayload = answers.red_flags ? { bleeding: true, severe_abdominal_pain: true } : {};
 
       const payload = {
         symptoms: symptomMap,
-        red_flags: answers.red_flags ? { bleeding: true } : {},
+        red_flags: redFlagsPayload,
+        category,
         userLocation,
         latitude: userLocation?.latitude,
         longitude: userLocation?.longitude,
@@ -755,20 +720,63 @@ export default function PatientDashboard() {
       setFeverActive(false);
       setFeverStep(0);
       setFeverAnswers({});
+      setTriageCategory(null);
     }
   };
 
-  // ── Handle Fever Flow Reply ───────────────────────────────────────────────
+  // ── Handle Unified Triage Reply ────────────────────────────────────────────
   const handleFeverReply = async (userText) => {
-    const step = FEVER_STEPS[feverStep];
+    const trimmed = userText.trim().toLowerCase();
+
+    // Step 0: category selection
+    if (feverStep === 0) {
+      const catKey = LETTER_TO_CATEGORY[trimmed] ||
+        TRIAGE_CATEGORIES.find((c) => c.short.toLowerCase().includes(trimmed))?.key;
+
+      if (!catKey) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            type: "ai",
+            text: "Please choose a category by typing **A, B, C, D, or E** — or select one of the buttons below.",
+            options: TRIAGE_CATEGORY_STEP.options,
+            timestamp: new Date(),
+          },
+        ]);
+        return;
+      }
+
+      setTriageCategory(catKey);
+      setFeverStep(1);
+      const catLabel = TRIAGE_CATEGORIES.find((c) => c.key === catKey)?.label || catKey;
+      setIsTyping(true);
+      setTimeout(() => {
+        setIsTyping(false);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            type: "ai",
+            text: `Starting **${catLabel}** assessment. I'll ask you a series of Yes/No questions about your symptoms. Answer honestly for the most accurate result.`,
+            timestamp: new Date(),
+          },
+        ]);
+        askFeverQuestion(1, catKey);
+      }, 350);
+      return;
+    }
+
+    // Steps 1+: per-category Yes/No questions
+    const categorySteps = TRIAGE_STEPS_BY_CATEGORY[triageCategory] || [];
+    const step = categorySteps[feverStep - 1];
     if (!step) return;
 
     let answer = false;
     if (step.type === "yesno") {
-      const trimmed = userText.trim().toLowerCase();
-      if (/^y(es)?$/i.test(trimmed)) {
+      if (/^y(es)?$/i.test(userText.trim())) {
         answer = true;
-      } else if (/^n(o)?$/i.test(trimmed)) {
+      } else if (/^n(o)?$/i.test(userText.trim())) {
         answer = false;
       } else {
         setMessages((prev) => [
@@ -776,34 +784,11 @@ export default function PatientDashboard() {
           {
             id: Date.now() + 1,
             type: "ai",
-            text: "Please select **Yes** or **No** below, or type **\"cancel\"** to stop the assessment.",
+            text: "Please reply **Yes** or **No**, or type **\"cancel\"** to stop.",
             options: [
               { label: "Yes", value: "Yes" },
               { label: "No", value: "No" },
               { label: "Cancel Assessment", value: "cancel", isSecondary: true },
-            ],
-            timestamp: new Date(),
-          },
-        ]);
-        return;
-      }
-    } else if (step.type === "choice") {
-      const val = parseInt(userText.trim(), 10);
-      if (val >= 1 && val <= 4) {
-        answer = val;
-      } else {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: Date.now() + 1,
-            type: "ai",
-            text: "Please select one of the duration options (1 to 4):",
-            options: [
-              { label: "< 1 day", value: "1" },
-              { label: "1–3 days", value: "2" },
-              { label: "4–7 days", value: "3" },
-              { label: "> 7 days", value: "4" },
-              { label: "Cancel", value: "cancel", isSecondary: true },
             ],
             timestamp: new Date(),
           },
@@ -815,6 +800,7 @@ export default function PatientDashboard() {
     const newAnswers = { ...feverAnswers, [step.key]: answer };
     setFeverAnswers(newAnswers);
 
+    // Red-flag early exit
     if (step.redFlag && answer === true) {
       setIsTyping(true);
       setTimeout(() => {
@@ -825,13 +811,11 @@ export default function PatientDashboard() {
             type: "ai",
             text:
               "## ⚠️ URGENT MEDICAL WARNING\n\n" +
-              "You reported one or more serious warning signs:\n\n" +
-              "• Bleeding from nose/gums/stool or severe abdominal pain\n" +
-              "• Difficulty breathing, fainting, or loss of consciousness\n\n" +
-              "**Please seek immediate emergency medical attention or call an ambulance.**\n\n" +
-              "Do not delay — these symptoms may indicate severe Dengue, complicated Malaria, or another critical medical condition.",
+              "You reported one or more **serious emergency warning signs**.\n\n" +
+              "**Please seek immediate medical attention or call emergency services immediately.**\n\n" +
+              "Do not delay — early intervention is critical for many of these conditions.",
             options: [
-              { label: "Consult a Doctor Now", value: "Help me find an emergency doctor" },
+              { label: "Find Emergency Doctor", value: "Help me find an emergency doctor" },
               { label: "Restart Assessment", value: "start", isSecondary: true },
             ],
             timestamp: new Date(),
@@ -840,17 +824,19 @@ export default function PatientDashboard() {
         setFeverActive(false);
         setFeverStep(0);
         setFeverAnswers({});
+        setTriageCategory(null);
         setIsTyping(false);
       }, 600);
       return;
     }
 
     const nextStep = feverStep + 1;
-    if (nextStep >= FEVER_STEPS.length) {
-      await submitFeverAssessment(newAnswers);
+    if (nextStep > categorySteps.length) {
+      // All category questions answered — submit
+      await submitFeverAssessment(newAnswers, triageCategory);
     } else {
       setFeverStep(nextStep);
-      askFeverQuestion(nextStep);
+      askFeverQuestion(nextStep, triageCategory);
     }
   };
 
@@ -905,8 +891,8 @@ export default function PatientDashboard() {
       textareaRef.current.style.height = "auto";
     }
 
-    // Fever Assessment Flow
-    if (selectedModel.id === "fever-assessment") {
+    // E-Sanjeevani Unified Triage Flow
+    if (selectedModel.id === "e-sanjeevani-triage") {
       const lower = currentInput.toLowerCase().trim();
 
       if (feverActive) {
@@ -933,8 +919,8 @@ export default function PatientDashboard() {
 
       // If NOT active: check greetings vs start vs general query
       const isGreeting = /^(hi|hello|hey|greetings|good\s*(morning|afternoon|evening)|yo|namaste|help|who\s*are\s*you|what\s*(can\s*you\s*do|is\s*this|model)|how\s*(does\s*this\s*work|to\s*use)|info)[\s!.]*$/i.test(lower);
-      const isStartCommand = /^(start|begin|assess|check|test|start\s*(fever|assessment)|yes|ready)[\s!.]*$/i.test(lower);
-      const hasSymptomClues = /fever|temperature|temp|chills|shiver|headache|body\s*ache|dengue|malaria|typhoid|vomit/i.test(lower);
+      const isStartCommand = /^(start|begin|assess|check|test|start\s*(triage|fever|assessment)|yes|ready|a|b|c|d|e)[\s!.]*$/i.test(lower);
+      const hasSymptomClues = /fever|temperature|temp|cough|breath|chest|tightness|wheez|rash|itch|burn|urine|urinat|bladder|stomach|acid|heartburn|headache|body\s*ache|dengue|malaria|typhoid|asthma|pneumonia|uti/i.test(lower);
 
       if (isGreeting) {
         setIsTyping(true);
@@ -946,16 +932,18 @@ export default function PatientDashboard() {
               id: Date.now() + 1,
               type: "ai",
               text:
-                "Hello! I'm your **Fever Assessment Assistant**.\n\n" +
-                "I evaluate fever symptoms and analyze differential patterns for conditions like **Dengue**, **Malaria**, **Typhoid**, and **Viral Illness**.\n\n" +
-                "**How would you like to proceed?**\n" +
-                "• Tap **Start Assessment** below to begin the guided questionnaire.\n" +
-                "• Or tell me about your symptoms (e.g. *\"I've had a fever with chills for 2 days\"*).\n" +
-                "• You can also ask me general questions about fever care anytime!",
+                "Hello! I'm **E-Sanjeevani**, your AI Clinical Differential Triage assistant.\n\n" +
+                "I assess symptoms across **5 clinical categories** using trained ML models:\n" +
+                "• 🌡️ **Fever** — Dengue, Malaria, Typhoid, Chikungunya, Viral Fever\n" +
+                "• 🫁 **Respiratory** — Asthma, Pneumonia, Bronchitis, Influenza, Cold\n" +
+                "• 🫃 **Digestive** — GERD, IBS, Gastroenteritis, Peptic Ulcer, Gastritis\n" +
+                "• 🧴 **Skin** — Acne, Eczema, Psoriasis, Fungal Infection, Urticaria\n" +
+                "• 💧 **Urinary Tract** — UTI, Kidney Stones, Pyelonephritis, OAB, BPH\n\n" +
+                "**Ready to assess your symptoms?**",
               options: [
-                { label: "⚡ Start Fever Assessment", value: "start" },
-                { label: "️ What are fever danger signs?", value: "What are the emergency danger signs of fever?" },
-                { label: "Consult a Doctor", value: "Help me find a doctor for fever" },
+                { label: "⚡ Start Triage Assessment", value: "start" },
+                { label: "What are emergency warning signs?", value: "What are the emergency danger signs I should watch for?" },
+                { label: "Find a Doctor", value: "Help me find a doctor" },
               ],
               timestamp: new Date(),
             },
@@ -968,21 +956,23 @@ export default function PatientDashboard() {
         setFeverActive(true);
         setFeverStep(0);
         setFeverAnswers({});
+        setTriageCategory(null);
         setIsTyping(true);
 
         const ackMsg = {
           id: Date.now() + 1,
           type: "ai",
           text:
-            "I'll help assess your fever symptoms through a structured questionnaire.\n\n" +
-            "This is an **explainable differential assessment** — not a definitive diagnosis. Please answer each question honestly. Let's begin:",
+            "Starting **E-Sanjeevani Clinical Triage** — a 5-category AI differential assessment.\n\n" +
+            "This uses trained ML models across Fever, Respiratory, Digestive, Skin, and Urinary Tract conditions.\n\n" +
+            "*Not a medical diagnosis — always verify with a licensed clinician.* Let's begin:",
           timestamp: new Date(),
         };
 
         setTimeout(() => {
           setIsTyping(false);
           setMessages((prev) => [...prev, ackMsg]);
-          askFeverQuestion(0);
+          askFeverQuestion(0, null); // Step 0 = category selection
         }, 500);
         return;
       }

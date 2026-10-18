@@ -1,0 +1,149 @@
+{
+  "category": "digestive",
+  "category_name": "Category C: Digestive Diseases",
+  "selected_algorithm": "Logistic Regression",
+  "model_class": "LogisticRegression",
+  "dataset_rows": 1500,
+  "train_samples": 1200,
+  "test_samples": 300,
+  "num_features": 20,
+  "features": [
+    "heartburn_retrosternal_burning",
+    "acid_regurgitation",
+    "epigastric_burning_pain",
+    "pain_relieved_by_food_or_antacids",
+    "pain_worse_on_empty_stomach_or_night",
+    "nausea",
+    "vomiting",
+    "watery_diarrhea",
+    "cramping_abdominal_pain",
+    "bloating_abdominal_distension",
+    "alternating_bowel_habits",
+    "pain_eased_after_bowel_movement",
+    "mucus_in_stool",
+    "early_satiety",
+    "loss_of_appetite",
+    "belching_and_gas",
+    "worse_lying_down_after_eating",
+    "fever",
+    "dehydration_thirst",
+    "food_triggers_spicy_fatty_stress"
+  ],
+  "classes": [
+    "Acid Reflux (GERD)",
+    "Gastritis",
+    "Gastroenteritis",
+    "Irritable Bowel Syndrome (IBS)",
+    "Peptic Ulcer Disease"
+  ],
+  "metrics": {
+    "test_accuracy": 0.9133333333333333,
+    "test_f1_macro": 0.9141820823760602,
+    "test_precision_macro": 0.9171130704021687,
+    "test_recall_macro": 0.9133333333333333,
+    "test_roc_auc": 0.9920694444444444,
+    "cv_5fold_f1_mean": 0.9247633934422226,
+    "cv_5fold_f1_std": 0.00991377729891415
+  },
+  "per_class_metrics": {
+    "Acid Reflux (GERD)": {
+      "precision": 0.9491525423728814,
+      "recall": 0.9333333333333333,
+      "f1_score": 0.9411764705882353,
+      "support": 60.0
+    },
+    "Gastritis": {
+      "precision": 0.7794117647058824,
+      "recall": 0.8833333333333333,
+      "f1_score": 0.828125,
+      "support": 60.0
+    },
+    "Gastroenteritis": {
+      "precision": 0.9833333333333333,
+      "recall": 0.9833333333333333,
+      "f1_score": 0.9833333333333333,
+      "support": 60.0
+    },
+    "Irritable Bowel Syndrome (IBS)": {
+      "precision": 0.9827586206896551,
+      "recall": 0.95,
+      "f1_score": 0.9661016949152542,
+      "support": 60.0
+    },
+    "Peptic Ulcer Disease": {
+      "precision": 0.8909090909090909,
+      "recall": 0.8166666666666667,
+      "f1_score": 0.8521739130434782,
+      "support": 60.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      56,
+      4,
+      0,
+      0,
+      0
+    ],
+    [
+      1,
+      53,
+      0,
+      0,
+      6
+    ],
+    [
+      0,
+      1,
+      59,
+      0,
+      0
+    ],
+    [
+      0,
+      2,
+      1,
+      57,
+      0
+    ],
+    [
+      2,
+      8,
+      0,
+      1,
+      49
+    ]
+  ],
+  "candidate_comparison": [
+    {
+      "algorithm": "Logistic Regression",
+      "cv_f1_mean": 0.9247633934422226,
+      "test_accuracy": 0.9133333333333333,
+      "test_f1_macro": 0.9141820823760602,
+      "test_roc_auc": 0.9920694444444444
+    },
+    {
+      "algorithm": "Random Forest",
+      "cv_f1_mean": 0.9159484384872216,
+      "test_accuracy": 0.8966666666666666,
+      "test_f1_macro": 0.8959829472814066,
+      "test_roc_auc": 0.9914444444444444
+    },
+    {
+      "algorithm": "Extra Trees",
+      "cv_f1_mean": 0.9134925759517628,
+      "test_accuracy": 0.9033333333333333,
+      "test_f1_macro": 0.9026962505949092,
+      "test_roc_auc": 0.99125
+    },
+    {
+      "algorithm": "Gradient Boosting",
+      "cv_f1_mean": 0.8915161833944868,
+      "test_accuracy": 0.9066666666666666,
+      "test_f1_macro": 0.9069905046771014,
+      "test_roc_auc": 0.986736111111111
+    }
+  ],
+  "created_at": "2026-10-18 15:57:01",
+  "disclaimer": "Trained on clinically curated synthetic data for prototyping and educational use only. Independent clinical validation required before medical use."
+}
