@@ -232,20 +232,21 @@ export class AnalyticsRepository {
 
   /**
    * TRIAGE / URGENCY ANALYTICS
-   * Urgency distribution for patients consulted with this doctor
+   * Urgency distribution scored for consultations conducted with this doctor
    */
   static async getTriageAnalytics(doctorId) {
-    // Get distinct patient IDs for this doctor
     const doctorConsultations = await db
-      .select({ patientId: consultations.patientId })
+      .select({
+        id: consultations.id,
+        patientId: consultations.patientId,
+        createdAt: consultations.createdAt,
+        consultationDate: consultations.consultationDate,
+        symptoms: consultations.symptoms,
+      })
       .from(consultations)
       .where(eq(consultations.doctorId, doctorId));
 
-    const patientIds = [
-      ...new Set(doctorConsultations.map((c) => c.patientId)),
-    ];
-
-    if (patientIds.length === 0) {
+    if (doctorConsultations.length === 0) {
       return {
         distribution: [
           { name: "Critical / Urgent", count: 0, level: "critical" },
@@ -256,51 +257,91 @@ export class AnalyticsRepository {
       };
     }
 
-    const triageRows = await db
+    const patientIds = [
+      ...new Set(doctorConsultations.map((c) => c.patientId)),
+    ];
+
+    const triageChats = await db
       .select({
+        id: aiTriageChats.id,
+        userId: aiTriageChats.userId,
         urgency: aiTriageChats.urgency,
-        count: sql`count(*)`.mapWith(Number),
+        predictedDisease: aiTriageChats.predictedDisease,
+        symptoms: aiTriageChats.symptoms,
+        createdAt: aiTriageChats.createdAt,
       })
       .from(aiTriageChats)
       .where(inArray(aiTriageChats.userId, patientIds))
-      .groupBy(aiTriageChats.urgency);
+      .orderBy(desc(aiTriageChats.createdAt));
 
     let criticalCount = 0;
     let moderateCount = 0;
     let lowCount = 0;
+    const urgentConsultations = [];
 
-    triageRows.forEach((row) => {
-      const u = String(row.urgency || "").toLowerCase();
-      if (u.includes("crit") || u.includes("urg") || u.includes("high")) {
-        criticalCount += row.count;
-      } else if (u.includes("low")) {
-        lowCount += row.count;
+    doctorConsultations.forEach((consult) => {
+      const patientChats = triageChats.filter(
+        (ch) => ch.userId === consult.patientId,
+      );
+      let matchedChat = null;
+
+      if (patientChats.length > 0) {
+        const consultTime = new Date(
+          consult.createdAt || consult.consultationDate,
+        ).getTime();
+        let minDiff = Infinity;
+        for (const ch of patientChats) {
+          const chTime = new Date(ch.createdAt).getTime();
+          const diff = Math.abs(consultTime - chTime);
+          if (diff < minDiff) {
+            minDiff = diff;
+            matchedChat = ch;
+          }
+        }
+      }
+
+      const urgencyStr = String(matchedChat?.urgency || "low").toLowerCase();
+      if (
+        urgencyStr.includes("crit") ||
+        urgencyStr.includes("urg") ||
+        urgencyStr.includes("high")
+      ) {
+        criticalCount++;
+        urgentConsultations.push({
+          consultationId: consult.id,
+          patientId: consult.patientId,
+          matchedChat,
+        });
+      } else if (urgencyStr.includes("mod")) {
+        moderateCount++;
       } else {
-        moderateCount += row.count;
+        lowCount++;
       }
     });
 
-    // Fetch recent urgent patients
-    const urgentPatientRows = await db
-      .select({
-        id: aiTriageChats.id,
-        patientId: users.id,
-        patientName: users.name,
-        symptoms: aiTriageChats.symptoms,
-        predictedDisease: aiTriageChats.predictedDisease,
-        urgency: aiTriageChats.urgency,
-        createdAt: aiTriageChats.createdAt,
-      })
-      .from(aiTriageChats)
-      .innerJoin(users, eq(users.id, aiTriageChats.userId))
-      .where(
-        and(
-          inArray(aiTriageChats.userId, patientIds),
-          sql`LOWER(${aiTriageChats.urgency}) LIKE '%crit%' OR LOWER(${aiTriageChats.urgency}) LIKE '%urg%' OR LOWER(${aiTriageChats.urgency}) LIKE '%high%'`,
-        ),
-      )
-      .orderBy(desc(aiTriageChats.createdAt))
-      .limit(10);
+    let urgentPatients = [];
+    if (urgentConsultations.length > 0) {
+      const urgentPatientIds = [
+        ...new Set(urgentConsultations.map((u) => u.patientId)),
+      ];
+      const patientRows = await db
+        .select({
+          id: users.id,
+          name: users.name,
+        })
+        .from(users)
+        .where(inArray(users.id, urgentPatientIds));
+
+      const patientNameMap = new Map(patientRows.map((p) => [p.id, p.name]));
+      urgentPatients = urgentConsultations.map((u) => ({
+        id: u.consultationId,
+        patientName: patientNameMap.get(u.patientId) || "Patient",
+        symptoms: u.matchedChat?.symptoms || "",
+        predictedDisease: u.matchedChat?.predictedDisease || "",
+        urgency: u.matchedChat?.urgency || "Critical",
+        date: u.matchedChat?.createdAt,
+      }));
+    }
 
     return {
       distribution: [
@@ -308,42 +349,54 @@ export class AnalyticsRepository {
         { name: "Moderate", count: moderateCount, level: "moderate" },
         { name: "Low", count: lowCount, level: "low" },
       ],
-      urgentPatients: urgentPatientRows.map((p) => ({
-        id: p.id,
-        patientName: p.patientName,
-        symptoms: p.symptoms,
-        predictedDisease: p.predictedDisease,
-        urgency: p.urgency,
-        date: p.createdAt,
-      })),
+      urgentPatients,
     };
   }
 
   /**
    * DISEASE / CONDITION DISTRIBUTION
    * Clearly separates Diagnosed Conditions (doctor verified) vs AI-Predicted Conditions
+   * Scoped to consultations conducted by this doctor
    */
   static async getDiseaseAnalytics(doctorId) {
-    // 1. Diagnosed Conditions (from prescriptions issued by doctor)
-    const diagnosedRows = await db
+    // 1. Diagnosed Conditions (from prescriptions issued by doctor, normalized for title case)
+    const rawDiagnoses = await db
       .select({
         diagnosis: prescriptions.diagnosis,
-        count: sql`count(*)`.mapWith(Number),
       })
       .from(prescriptions)
       .where(
         and(
           eq(prescriptions.doctorId, doctorId),
-          sql`${prescriptions.diagnosis} IS NOT NULL AND ${prescriptions.diagnosis} != ''`,
+          sql`${prescriptions.diagnosis} IS NOT NULL AND TRIM(${prescriptions.diagnosis}) != ''`,
         ),
-      )
-      .groupBy(prescriptions.diagnosis)
-      .orderBy(desc(sql`count(*)`))
-      .limit(8);
+      );
 
-    // 2. AI-Predicted Conditions (from patients who consulted with this doctor)
+    const diagMap = {};
+    rawDiagnoses.forEach((d) => {
+      const clean = d.diagnosis
+        .trim()
+        .replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.substr(1).toLowerCase());
+      diagMap[clean] = (diagMap[clean] || 0) + 1;
+    });
+
+    const diagnosedConditions = Object.entries(diagMap)
+      .map(([name, count]) => ({
+        name,
+        count,
+        category: "Confirmed Clinical Diagnosis",
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8);
+
+    // 2. AI-Predicted Conditions (scoped to consultations conducted with this doctor)
     const doctorConsultations = await db
-      .select({ patientId: consultations.patientId })
+      .select({
+        id: consultations.id,
+        patientId: consultations.patientId,
+        createdAt: consultations.createdAt,
+        consultationDate: consultations.consultationDate,
+      })
       .from(consultations)
       .where(eq(consultations.doctorId, doctorId));
 
@@ -351,36 +404,57 @@ export class AnalyticsRepository {
       ...new Set(doctorConsultations.map((c) => c.patientId)),
     ];
 
-    let predictedRows = [];
+    const conditionCounts = {};
     if (patientIds.length > 0) {
-      predictedRows = await db
+      const triageChats = await db
         .select({
+          userId: aiTriageChats.userId,
           predictedDisease: aiTriageChats.predictedDisease,
-          count: sql`count(*)`.mapWith(Number),
+          createdAt: aiTriageChats.createdAt,
         })
         .from(aiTriageChats)
-        .where(
-          and(
-            inArray(aiTriageChats.userId, patientIds),
-            sql`${aiTriageChats.predictedDisease} IS NOT NULL AND ${aiTriageChats.predictedDisease} != ''`,
-          ),
-        )
-        .groupBy(aiTriageChats.predictedDisease)
-        .orderBy(desc(sql`count(*)`))
-        .limit(8);
+        .where(inArray(aiTriageChats.userId, patientIds))
+        .orderBy(desc(aiTriageChats.createdAt));
+
+      doctorConsultations.forEach((consult) => {
+        const patientChats = triageChats.filter(
+          (ch) => ch.userId === consult.patientId,
+        );
+        let matchedChat = null;
+        if (patientChats.length > 0) {
+          const consultTime = new Date(
+            consult.createdAt || consult.consultationDate,
+          ).getTime();
+          let minDiff = Infinity;
+          for (const ch of patientChats) {
+            const diff = Math.abs(consultTime - new Date(ch.createdAt).getTime());
+            if (diff < minDiff) {
+              minDiff = diff;
+              matchedChat = ch;
+            }
+          }
+        }
+        if (matchedChat && matchedChat.predictedDisease) {
+          const raw = matchedChat.predictedDisease.trim();
+          const clean = raw
+            .replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.substr(1).toLowerCase());
+          conditionCounts[clean] = (conditionCounts[clean] || 0) + 1;
+        }
+      });
     }
 
-    return {
-      diagnosedConditions: diagnosedRows.map((d) => ({
-        name: d.diagnosis,
-        count: d.count,
-        category: "Confirmed Clinical Diagnosis",
-      })),
-      predictedConditions: predictedRows.map((p) => ({
-        name: p.predictedDisease,
-        count: p.count,
+    const predictedConditions = Object.entries(conditionCounts)
+      .map(([name, count]) => ({
+        name,
+        count,
         category: "AI Triage Prediction",
-      })),
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8);
+
+    return {
+      diagnosedConditions,
+      predictedConditions,
     };
   }
 

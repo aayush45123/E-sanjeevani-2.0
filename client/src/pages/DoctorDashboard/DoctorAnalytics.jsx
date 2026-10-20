@@ -359,9 +359,9 @@ export default function DoctorAnalytics({ isProfileIncomplete = false }) {
             <div className={styles.chartCard}>
               <div className={styles.cardHeader}>
                 <div>
-                  <div className={styles.cardTitle}>Patient Triage Distribution</div>
+                  <div className={styles.cardTitle}>Consultation Triage Distribution</div>
                   <div className={styles.cardSubtitle}>
-                    Clinical urgency severity scored across patient cohort
+                    Clinical urgency severity scored across doctor consultations
                   </div>
                 </div>
               </div>
@@ -394,7 +394,7 @@ export default function DoctorAnalytics({ isProfileIncomplete = false }) {
                         tick={{ fill: "#64748b", fontSize: 12 }}
                         allowDecimals={false}
                         label={{
-                          value: "Patients",
+                          value: "Consultations",
                           angle: -90,
                           position: "insideLeft",
                           offset: 0,
@@ -403,10 +403,10 @@ export default function DoctorAnalytics({ isProfileIncomplete = false }) {
                           fontWeight: 600,
                         }}
                       />
-                      <Tooltip content={<CustomTooltip unit="patients" />} />
+                      <Tooltip content={<CustomTooltip unit="consultations" />} />
                       <Bar
                         dataKey="count"
-                        name="Patients"
+                        name="Consultations"
                         radius={[6, 6, 0, 0]}
                         barSize={40}
                       >
@@ -426,7 +426,7 @@ export default function DoctorAnalytics({ isProfileIncomplete = false }) {
                 )}
                 <div className={styles.chartAxisNotes}>
                   <span>X-axis: Urgency Level</span>
-                  <span>Y-axis: Number of Patients</span>
+                  <span>Y-axis: Number of Consultations</span>
                 </div>
               </div>
             </div>
@@ -533,7 +533,7 @@ export default function DoctorAnalytics({ isProfileIncomplete = false }) {
                       <div key={idx} className={styles.diseaseItem}>
                         <span>{p.name}</span>
                         <span className={styles.diseaseCountBadge}>
-                          {p.count} {p.count === 1 ? "patient" : "patients"}
+                          {p.count} {p.count === 1 ? "consultation" : "consultations"}
                         </span>
                       </div>
                     ))}
