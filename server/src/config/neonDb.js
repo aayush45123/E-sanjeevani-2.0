@@ -18,7 +18,6 @@ neonConfig.webSocketConstructor = ws;
 
 /*
 Create one shared connection pool for the application.
-
 Do NOT create a new Pool inside controllers.
 */
 export const pool = new Pool({
@@ -27,12 +26,6 @@ export const pool = new Pool({
 
 /*
 Drizzle database instance.
-
-This driver supports interactive transactions:
-
-await db.transaction(async (tx) => {
-  ...
-});
 */
 export const db = drizzle(pool, {
   schema,
@@ -117,6 +110,75 @@ export const ensurePrescriptionTablesExist = async () => {
   }
 };
 
+/**
+ * Ensures PostgreSQL tables for AI-Powered Longitudinal Health Intelligence exist:
+ *  - patient_health_metrics: stores timestamped vital signs & lab biomarkers
+ *  - patient_health_summaries: stores AI-generated longitudinal health summaries
+ */
+export const ensureLongitudinalHealthTablesExist = async () => {
+  try {
+    // 1. Create patient_health_metrics table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS "patient_health_metrics" (
+          "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+          "patient_id" uuid NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+          "consultation_id" uuid REFERENCES "consultations"("id") ON DELETE SET NULL,
+          "recorded_by" uuid REFERENCES "users"("id") ON DELETE SET NULL,
+          "recorded_at" timestamp with time zone DEFAULT now() NOT NULL,
+          "systolic_bp" integer,
+          "diastolic_bp" integer,
+          "heart_rate" integer,
+          "temperature" real,
+          "temperature_unit" varchar(10) DEFAULT 'F' NOT NULL,
+          "spo2" integer,
+          "respiratory_rate" integer,
+          "blood_glucose" real,
+          "glucose_type" varchar(30) DEFAULT 'random',
+          "weight" real,
+          "height" real,
+          "bmi" real,
+          "platelet_count" integer,
+          "wbc_count" integer,
+          "hemoglobin" real,
+          "crp" real,
+          "mews_score" integer DEFAULT 0,
+          "notes" text DEFAULT '',
+          "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+          "updated_at" timestamp with time zone DEFAULT now() NOT NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS "health_metrics_patient_idx" ON "patient_health_metrics" ("patient_id");
+      CREATE INDEX IF NOT EXISTS "health_metrics_consultation_idx" ON "patient_health_metrics" ("consultation_id");
+      CREATE INDEX IF NOT EXISTS "health_metrics_recorded_at_idx" ON "patient_health_metrics" ("recorded_at");
+    `);
+
+    // 2. Create patient_health_summaries table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS "patient_health_summaries" (
+          "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+          "patient_id" uuid NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+          "clinical_synopsis" text NOT NULL,
+          "recurrent_symptoms" text DEFAULT '[]',
+          "worsening_trends" text DEFAULT '[]',
+          "comparative_metrics" text DEFAULT '[]',
+          "rag_retrieved_context" text DEFAULT '[]',
+          "actionable_recommendations" text DEFAULT '[]',
+          "raw_markdown" text DEFAULT '',
+          "generated_at" timestamp with time zone DEFAULT now() NOT NULL,
+          "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+          "updated_at" timestamp with time zone DEFAULT now() NOT NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS "health_summaries_patient_idx" ON "patient_health_summaries" ("patient_id");
+      CREATE INDEX IF NOT EXISTS "health_summaries_generated_at_idx" ON "patient_health_summaries" ("generated_at");
+    `);
+
+    console.log("✅ Longitudinal Patient Health Intelligence database tables verified successfully");
+  } catch (err) {
+    console.error("⚠️ Failed to ensure longitudinal health tables exist:", err.message);
+  }
+};
+
 export const checkPostgresConnection = async () => {
   try {
     const result = await pool.query("SELECT NOW() AS current_time");
@@ -125,6 +187,7 @@ export const checkPostgresConnection = async () => {
     console.log("Database time:", result.rows[0].current_time);
 
     await ensurePrescriptionTablesExist();
+    await ensureLongitudinalHealthTablesExist();
 
     return true;
   } catch (error) {

@@ -1,5 +1,6 @@
 import { MedicalRecordService } from "../services/medicalRecord.service.js";
 import { PatientHistoryService } from "../services/patientHistory.service.js";
+import { LongitudinalIntelligenceService } from "../services/longitudinalIntelligence.service.js";
 
 // ─── GET DOCTOR → PATIENT HISTORY ────────────────────────────────────────────
 
@@ -190,6 +191,142 @@ export const getClinicalRecordById = async (req, res) => {
     return res.status(error.status || 500).json({
       success: false,
       message: error.message || "Failed to fetch record",
+    });
+  }
+};
+
+// ─── AI-POWERED LONGITUDINAL PATIENT HEALTH INTELLIGENCE ─────────────────────
+
+/**
+ * GET /patients/:patientId/longitudinal-intelligence
+ * Returns multi-visit symptom recurrence analysis, time-series parameter trends,
+ * comparative delta matrix, and executive AI summary.
+ */
+export const getPatientLongitudinalIntelligence = async (req, res) => {
+  try {
+    let { patientId } = req.params;
+    const { currentComplaint } = req.query;
+    const { id: requesterId, role } = req.user;
+
+    if (!patientId || patientId === "null" || patientId === "undefined" || patientId === "me") {
+      patientId = requesterId;
+    }
+
+    if (role === "patient" && requesterId !== patientId) {
+      return res.status(403).json({
+        success: false,
+        message: "You may only access your own health intelligence",
+      });
+    }
+
+    const intelligence = await LongitudinalIntelligenceService.getLongitudinalIntelligence(
+      patientId,
+      currentComplaint || ""
+    );
+
+    return res.status(200).json({ success: true, intelligence });
+  } catch (error) {
+    console.error("getPatientLongitudinalIntelligence error:", error);
+    return res.status(error.status || 500).json({
+      success: false,
+      message: error.message || "Failed to analyze longitudinal health intelligence",
+    });
+  }
+};
+
+/**
+ * POST /patients/:patientId/health-metrics
+ * Logs timestamped physiological vitals or lab parameters.
+ */
+export const recordPatientHealthMetric = async (req, res) => {
+  try {
+    let { patientId } = req.params;
+    const { consultationId } = req.body;
+    const { id: requesterId } = req.user;
+
+    if (!patientId || patientId === "null" || patientId === "undefined" || patientId === "me") {
+      patientId = requesterId;
+    }
+
+    const metric = await LongitudinalIntelligenceService.recordHealthMetric(
+      patientId,
+      req.body,
+      consultationId || null,
+      requesterId
+    );
+
+    return res.status(201).json({
+      success: true,
+      message: "Health metric recorded successfully",
+      metric,
+    });
+  } catch (error) {
+    console.error("recordPatientHealthMetric error:", error);
+    return res.status(error.status || 500).json({
+      success: false,
+      message: error.message || "Failed to record health metric",
+    });
+  }
+};
+
+/**
+ * GET /patients/:patientId/health-metrics
+ * Retrieves historical physiological vitals in chronological order.
+ */
+export const getPatientHealthMetrics = async (req, res) => {
+  try {
+    let { patientId } = req.params;
+    const { id: requesterId, role } = req.user;
+
+    if (!patientId || patientId === "null" || patientId === "undefined" || patientId === "me") {
+      patientId = requesterId;
+    }
+
+    if (role === "patient" && requesterId !== patientId) {
+      return res.status(403).json({ success: false, message: "Unauthorized" });
+    }
+
+    const metrics = await LongitudinalIntelligenceService.getHealthMetrics(patientId);
+    return res.status(200).json({ success: true, metrics });
+  } catch (error) {
+    console.error("getPatientHealthMetrics error:", error);
+    return res.status(error.status || 500).json({
+      success: false,
+      message: error.message || "Failed to fetch health metrics",
+    });
+  }
+};
+
+/**
+ * POST /patients/:patientId/generate-summary
+ * Force regenerate the AI patient health summary.
+ */
+export const regeneratePatientHealthSummary = async (req, res) => {
+  try {
+    let { patientId } = req.params;
+    const { currentComplaint } = req.body;
+    const { id: requesterId } = req.user;
+
+    if (!patientId || patientId === "null" || patientId === "undefined" || patientId === "me") {
+      patientId = requesterId;
+    }
+
+    const intelligence = await LongitudinalIntelligenceService.getLongitudinalIntelligence(
+      patientId,
+      currentComplaint || ""
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Health intelligence summary regenerated successfully",
+      summary: intelligence.summary,
+      intelligence,
+    });
+  } catch (error) {
+    console.error("regeneratePatientHealthSummary error:", error);
+    return res.status(error.status || 500).json({
+      success: false,
+      message: error.message || "Failed to regenerate health summary",
     });
   }
 };

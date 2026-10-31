@@ -5,6 +5,8 @@ import {
 } from "lucide-react";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import { patientHistoryApi, prescriptionApi, getFullFileUrl } from "../../utils/api";
+import LongitudinalHealthIntelligence from "../../components/LongitudinalHealthIntelligence/LongitudinalHealthIntelligence";
+import { Sparkles } from "lucide-react";
 import styles from "./PatientHistory.module.css";
 
 export default function PatientHistory() {
@@ -107,6 +109,7 @@ export default function PatientHistory() {
         {/* ── Tabs ── */}
         <div className={styles.tabs}>
           {[
+            { id: "intelligence", label: "AI Health Intelligence & Trends", icon: <Sparkles size={14} /> },
             { id: "timeline", label: "Timeline", icon: <Clock size={14} /> },
             { id: "prescriptions", label: "Prescriptions", icon: <FileText size={14} /> },
             { id: "medications", label: "Medications", icon: <Pill size={14} /> },
@@ -121,6 +124,16 @@ export default function PatientHistory() {
             </button>
           ))}
         </div>
+
+        {/* ── TAB: AI HEALTH INTELLIGENCE ── */}
+        {activeTab === "intelligence" && (
+          <div style={{ padding: "8px 0" }}>
+            <LongitudinalHealthIntelligence
+              patientId={patientId}
+              patientName={patientOverview?.name}
+            />
+          </div>
+        )}
 
         {/* ── TAB: TIMELINE ── */}
         {activeTab === "timeline" && (

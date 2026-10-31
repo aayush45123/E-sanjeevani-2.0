@@ -4,6 +4,7 @@ import {
   TrendingUp, Download, CheckCircle, Clock, ChevronDown, ChevronUp, AlertTriangle, Info,
 } from "lucide-react";
 import { patientHistoryApi, getFullFileUrl } from "../../utils/api";
+import LongitudinalHealthIntelligence from "../../components/LongitudinalHealthIntelligence/LongitudinalHealthIntelligence";
 import styles from "./DoctorPatientHistory.module.css";
 
 /**
@@ -16,7 +17,7 @@ export default function DoctorPatientHistory({ patientId, doctorId, onClose }) {
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState("intelligence");
 
   useEffect(() => {
     async function loadData() {
@@ -132,6 +133,7 @@ export default function DoctorPatientHistory({ patientId, doctorId, onClose }) {
             {/* Tab navigation */}
             <div className={styles.tabs}>
               {[
+                { id: "intelligence", label: "🧠 AI Health Intelligence" },
                 { id: "overview", label: "Overview & Analytics" },
                 { id: "timeline", label: "Timeline" },
                 { id: "prescriptions", label: "Prescriptions" },
@@ -146,6 +148,17 @@ export default function DoctorPatientHistory({ patientId, doctorId, onClose }) {
                 </button>
               ))}
             </div>
+
+            {/* TAB: AI HEALTH INTELLIGENCE */}
+            {activeTab === "intelligence" && (
+              <div className={styles.tabContent}>
+                <LongitudinalHealthIntelligence
+                  patientId={patientId}
+                  doctorId={doctorId}
+                  patientName={history?.patientOverview?.name}
+                />
+              </div>
+            )}
 
             {/* TAB: OVERVIEW & ANALYTICS */}
             {activeTab === "overview" && (

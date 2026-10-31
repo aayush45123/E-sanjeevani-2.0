@@ -167,8 +167,6 @@ export const authApi = {
 };
 
 // Consultations API
-// src/utils/api.js — only the consultationApi object needs to change
-
 export const consultationApi = {
   getMyConsultations: (params) =>
     apiClient.get("/consultations/my-consultations", { params }),
@@ -194,7 +192,6 @@ export const consultationApi = {
 
   getDoctorProfile: (id) => apiClient.get(`/consultations/doctors/${id}`),
 
-  // ✅ FIX: was POST /consultations, must be POST /consultations/book
   createConsultation: (data) => apiClient.post("/consultations/book", data),
 
   updateConsultation: (id, data) => apiClient.put(`/consultations/${id}`, data),
@@ -207,65 +204,23 @@ export const consultationApi = {
 
   getStats: () => apiClient.get("/consultations/stats"),
 };
+
 export const doctorProfileApi = {
-  /*
-  CREATE / UPDATE PROFILE
-  POST /api/doctor-profile
-  */
   createProfile: (data) => apiClient.post("/doctor-profile", data),
-
-  /*
-  UPDATE PROFILE
-  POST /api/doctor-profile
-  */
   updateProfile: (data) => apiClient.post("/doctor-profile", data),
-
-  /*
-  GET LOGGED IN DOCTOR PROFILE
-  GET /api/doctor-profile/me
-  */
   getProfile: () => apiClient.get("/doctor-profile/me"),
-
-  /*
-  CHECK PROFILE STATUS
-  GET /api/doctor-profile/status
-  */
   checkProfileStatus: () => apiClient.get("/doctor-profile/status"),
 };
 
 // Doctor Availability API
 export const doctorAvailabilityApi = {
-  /*
-  CREATE DOCTOR AVAILABILITY
-  POST /api/doctor-availability
-  */
   createAvailability: (data) => apiClient.post("/doctor-availability", data),
-
-  /*
-  GET DOCTOR OWN AVAILABILITY
-  GET /api/doctor-availability/my-slots
-  */
   getMySlots: () => apiClient.get("/doctor-availability/my-slots"),
-
-  /*
-  GET DOCTOR'S AVAILABLE SLOTS FOR A SPECIFIC DATE (for patient booking)
-  GET /api/doctor-availability/slots/:doctorId?date=2026-05-01
-  */
   getDoctorSlots: (doctorId, date) =>
     apiClient.get(`/doctor-availability/slots/${doctorId}`, {
       params: { date },
     }),
-
-  /*
-  DELETE DOCTOR AVAILABILITY
-  DELETE /api/doctor-availability/:id
-  */
   deleteAvailability: (id) => apiClient.delete(`/doctor-availability/${id}`),
-
-  /*
-  DELETE SINGLE UNBOOKED SLOT
-  DELETE /api/doctor-availability/slots/:slotId
-  */
   deleteSlot: (slotId) => apiClient.delete(`/doctor-availability/slots/${slotId}`),
 };
 
@@ -275,21 +230,16 @@ export const doctorAssistantApi = {
   chat: (data) => apiClient.post("/doctor-assistant/chat", data),
 };
 
-
 // Medical Records & Digital Prescription API
 export const medicalRecordApi = {
   uploadPatientRecord: (formData) =>
     apiClient.post("/medical-records/patient-upload", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     }),
-
   getMyRecords: () => apiClient.get("/medical-records/my-records"),
-
   getRecordById: (id) => apiClient.get(`/medical-records/${id}`),
-
   getRecordByConsultation: (consultationId) =>
     apiClient.get(`/medical-records/consultation/${consultationId}`),
-
   issuePrescription: (data) =>
     apiClient.post("/medical-records/issue-prescription", data),
 };
@@ -306,7 +256,7 @@ export const prescriptionApi = {
     apiClient.patch(`/prescriptions/${prescriptionId}/items/${itemId}/discontinue`),
 };
 
-// Patient History & Analytics API
+// Patient History & Longitudinal Clinical Intelligence API
 export const patientHistoryApi = {
   getDoctorPatientHistory: (doctorId, patientId) =>
     apiClient.get(`/patient-history/doctors/${doctorId}/patients/${patientId}/history`),
@@ -324,6 +274,20 @@ export const patientHistoryApi = {
 
   getClinicalRecordById: (id) =>
     apiClient.get(`/patient-history/clinical-records/${id}`),
+
+  getLongitudinalIntelligence: (patientId, currentComplaint = "") =>
+    apiClient.get(`/patient-history/patients/${patientId}/longitudinal-intelligence`, {
+      params: currentComplaint ? { currentComplaint } : {},
+    }),
+
+  recordHealthMetric: (patientId, data) =>
+    apiClient.post(`/patient-history/patients/${patientId}/health-metrics`, data),
+
+  getHealthMetrics: (patientId) =>
+    apiClient.get(`/patient-history/patients/${patientId}/health-metrics`),
+
+  regenerateAiSummary: (patientId, data = {}) =>
+    apiClient.post(`/patient-history/patients/${patientId}/generate-summary`, data),
 };
 
 // Analytics API
@@ -337,15 +301,9 @@ export const analyticsApi = {
 
 // Feedback & Dynamic Doctor Ratings API
 export const feedbackApi = {
-  // Patient submits post-call feedback
   submitFeedback: (data) => apiClient.post("/feedback/submit", data),
-
-  // Check if patient already submitted feedback for a consultation
   checkFeedback: (consultationId) => apiClient.get(`/feedback/check/${consultationId}`),
-
-  // Get dynamic rating for a specific doctor
   getDoctorRating: (doctorId) => apiClient.get(`/feedback/doctor/${doctorId}`),
 };
 
 export default apiClient;
-

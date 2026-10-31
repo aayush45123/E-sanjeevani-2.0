@@ -3,6 +3,7 @@ import { UserRepository } from "../repositories/user.repository.js";
 import { PatientProfileRepository } from "../repositories/patientProfile.repository.js";
 import { AiTriageRepository } from "../repositories/aiTriage.repository.js";
 import { PatientHistoryService } from "./patientHistory.service.js";
+import { LongitudinalIntelligenceService } from "./longitudinalIntelligence.service.js";
 import { OpenAI } from "openai";
 
 export class DoctorAssistantService {
@@ -62,6 +63,17 @@ export class DoctorAssistantService {
       console.warn("Could not load full patient history for assistant:", histErr);
     }
 
+    // AI-Powered Longitudinal Health Intelligence (Recurrence alerts, Trends & Parameters)
+    let longitudinalIntelligence = null;
+    try {
+      longitudinalIntelligence = await LongitudinalIntelligenceService.getLongitudinalIntelligence(
+        consultation.patientId,
+        consultation.symptoms || consultation.problemDescription || ""
+      );
+    } catch (intErr) {
+      console.warn("Could not load longitudinal intelligence for assistant:", intErr);
+    }
+
     return {
       patientBasicInfo,
       consultationDetails: {
@@ -72,6 +84,7 @@ export class DoctorAssistantService {
       patientProfile,
       latestAITriage,
       patientHistory,
+      longitudinalIntelligence,
     };
   }
 
@@ -93,6 +106,9 @@ export class DoctorAssistantService {
     const consultation = data.consultationDetails || {};
     const triage = data.latestAITriage || {};
     const history = data.patientHistory || {};
+    const longitudinal = data.longitudinalIntelligence || {};
+    const trajAlert = longitudinal.symptom_intelligence?.trajectory_alert;
+    const worseningVitals = longitudinal.parameters_intelligence?.worsening_trends || [];
 
     // 1. Visit History with this Doctor specifically
     const docStats = history.patientOverview?.doctorStats;
@@ -163,6 +179,10 @@ Consultation Type: ${consultation.consultationType || "video"}
 Presenting Complaints / Symptoms: ${consultation.symptoms || consultation.problemDescription || "Routine consultation"}
 Patient Problem Description: ${consultation.problemDescription || "None recorded"}
 AI Triage Evaluation: Predicted Condition "${triage.predictedDisease || "N/A"}", Urgency: "${triage.urgency || "Normal"}", Recommended Specialty: "${triage.doctorType || "General Physician"}"
+
+AI LONGITUDINAL HEALTH INTELLIGENCE & RECURRING SYMPTOM ALERT:
+${trajAlert ? `[CRITICAL RECURRENCE ALERT]: ${trajAlert.title}\n${trajAlert.summary}\nProgression Pathway: ${trajAlert.progression_chain?.join(" -> ")}\nRecommended Action: ${trajAlert.doctor_action}` : "No urgent recurring symptom escalation pattern flagged."}
+${worseningVitals.length > 0 ? `Worsening Physiological Trends: ${worseningVitals.join("; ")}` : "Vitals trend: Stable."}
 =========================================
 `;
 

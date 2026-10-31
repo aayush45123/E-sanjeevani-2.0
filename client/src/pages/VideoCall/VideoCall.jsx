@@ -38,6 +38,7 @@ import {
   Activity,
   HeartPulse,
 } from "lucide-react";
+import LongitudinalHealthIntelligence from "../../components/LongitudinalHealthIntelligence/LongitudinalHealthIntelligence";
 import styles from "./VideoCall.module.css";
 
 const SOCKET_URL =
@@ -1686,8 +1687,42 @@ export default function VideoCall() {
                 </span>
               </div>
 
+              {/* Trajectory Recurrence Alert Banner in Call */}
+              {doctorAssistantData?.longitudinalIntelligence?.symptom_intelligence?.trajectory_alert && (
+                <div
+                  style={{
+                    background: '#fef2f2',
+                    border: '1px solid #fecaca',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    margin: '0 16px 10px 16px',
+                    fontSize: '12px',
+                    color: '#991b1b',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    cursor: 'pointer',
+                    boxShadow: '0 1px 3px rgba(239, 68, 68, 0.1)',
+                  }}
+                  onClick={() => setClinicalTab("intelligence")}
+                  title="Click to view complete AI Longitudinal Intelligence"
+                >
+                  <span>⚠️ <strong>Recurring Symptom Alert:</strong> {doctorAssistantData.longitudinalIntelligence.symptom_intelligence.trajectory_alert.badge}</span>
+                  <span style={{ textDecoration: 'underline', fontWeight: 700 }}>Inspect &rarr;</span>
+                </div>
+              )}
+
               {/* Tab Bar */}
               <div className={styles.clinicalTabs}>
+                <button
+                  className={`${styles.clinicalTab} ${clinicalTab === "intelligence" ? styles.clinicalTabActive : ""}`}
+                  onClick={() => setClinicalTab("intelligence")}
+                >
+                  <Activity size={13} style={{ marginRight: 4 }} /> Intelligence
+                  {doctorAssistantData?.longitudinalIntelligence?.symptom_intelligence?.trajectory_alert && (
+                    <span style={{ marginLeft: 4, width: 7, height: 7, borderRadius: '50%', background: '#ef4444', display: 'inline-block' }} />
+                  )}
+                </button>
                 <button
                   className={`${styles.clinicalTab} ${clinicalTab === "info" ? styles.clinicalTabActive : ""}`}
                   onClick={() => setClinicalTab("info")}
@@ -1710,6 +1745,19 @@ export default function VideoCall() {
 
               {/* Tab Content */}
               <div className={styles.clinicalTabContent}>
+                {/* ── AI LONGITUDINAL HEALTH INTELLIGENCE TAB ── */}
+                {clinicalTab === "intelligence" && (
+                  <div style={{ padding: '4px 8px 16px 8px' }}>
+                    <LongitudinalHealthIntelligence
+                      patientId={doctorAssistantData?.patientBasicInfo?.id}
+                      doctorId={doctorAssistantData?.consultationDetails?.doctorId}
+                      patientName={doctorAssistantData?.patientBasicInfo?.name}
+                      currentComplaint={doctorAssistantData?.consultationDetails?.symptoms}
+                      initialData={doctorAssistantData?.longitudinalIntelligence}
+                    />
+                  </div>
+                )}
+
                 {/* ── PATIENT INFO TAB ── */}
                 {clinicalTab === "info" && (
                   <div className={styles.infoTab}>

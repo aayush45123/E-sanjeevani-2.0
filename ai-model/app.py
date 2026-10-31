@@ -19,6 +19,7 @@ import pandas as pd
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import joblib
+from longitudinal_intelligence import run_longitudinal_health_pipeline
 
 # Force UTF-8 stdout/stderr encoding on Windows
 if hasattr(sys.stdout, "reconfigure"):
@@ -568,6 +569,151 @@ def predict_fever():
     data = request.get_json() or {}
     data["category"] = "fever"
     return predict_triage()
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# AI-POWERED LONGITUDINAL PATIENT HEALTH INTELLIGENCE
+# ─────────────────────────────────────────────────────────────────────────────
+
+@app.route("/analyze-longitudinal-intelligence", methods=["POST"])
+def analyze_longitudinal_intelligence():
+    """
+    Analyzes multi-visit patient records:
+    1. Recurrent symptom detection & escalation trajectory warning.
+    2. Physiological parameter time-series analysis (slopes, deltas, MEWS).
+    3. Comparative matrix (Current vs Previous vs Baseline).
+    4. RAG clinical history context retrieval.
+    5. Executive AI clinical health summary for attending doctor.
+    """
+    try:
+        data = request.get_json() or {}
+        analysis = run_longitudinal_health_pipeline(data)
+        return jsonify(analysis)
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({
+            "success": False,
+            "message": "Longitudinal health intelligence analysis failed",
+            "error": str(e)
+        }), 500
+
+
+@app.route("/longitudinal-intelligence/demo", methods=["GET"])
+def longitudinal_intelligence_demo():
+    """
+    Returns standard 3-visit recurring febrile-arthralgic escalation scenario
+    for instant validation and doctor dashboard presentation.
+    """
+    demo_payload = {
+        "patient": {
+            "name": "Ramesh Kumar",
+            "age": 38,
+            "gender": "male",
+            "bloodGroup": "B+",
+            "allergies": "Penicillin, Sulfa drugs",
+            "chronicConditions": "Mild Essential Hypertension"
+        },
+        "consultations": [
+            {
+                "id": "demo-c1",
+                "date": "2026-09-01",
+                "doctorName": "Sunita Verma",
+                "symptoms": "Fever",
+                "currentProblem": "Acute high fever for 3 days with evening spikes",
+                "diagnosis": "Suspected Acute Viral Febrile Illness",
+                "doctorNotes": "Advised antipyretics and oral hydration. Follow up if persistent."
+            },
+            {
+                "id": "demo-c2",
+                "date": "2026-09-22",
+                "doctorName": "Sunita Verma",
+                "symptoms": "Fever, Fatigue",
+                "currentProblem": "Recurrent fever and persistent severe exhaustion/lethargy",
+                "diagnosis": "Persistent Febrile Syndrome with Post-Viral Asthenia",
+                "doctorNotes": "Fever relapsing. Prescribed Azithromycin 500mg. Advised complete bed rest."
+            },
+            {
+                "id": "demo-c3",
+                "date": "2026-10-15",
+                "doctorName": "Sunita Verma",
+                "symptoms": "Fever, Fatigue, Joint Pain",
+                "currentProblem": "Fever for 3rd time in 6 weeks with debilitating bilateral knee and wrist joint pain",
+                "diagnosis": "Evolving Febrile-Arthralgic Syndrome (Under Investigation)",
+                "doctorNotes": "Patient unable to walk comfortably. High clinical suspicion for Arboviral (Chikungunya/Dengue) or Reactive Arthropathy."
+            }
+        ],
+        "prescriptions": [
+            {
+                "id": "demo-rx1",
+                "createdAt": "2026-09-01T10:30:00Z",
+                "diagnosis": "Acute Viral Fever",
+                "advice": "Tepid sponging, high fluid intake",
+                "items": [
+                    {"medicineName": "Paracetamol", "dosage": "650mg", "frequency": "TDS (Thrice daily)", "duration": "5 days"}
+                ]
+            },
+            {
+                "id": "demo-rx2",
+                "createdAt": "2026-09-22T11:15:00Z",
+                "diagnosis": "Persistent Febrile Syndrome",
+                "advice": "Hydration, multivitamin supplementation",
+                "items": [
+                    {"medicineName": "Paracetamol", "dosage": "650mg", "frequency": "SOS / TDS", "duration": "5 days"},
+                    {"medicineName": "Azithromycin", "dosage": "500mg", "frequency": "OD (Once daily)", "duration": "3 days"}
+                ]
+            }
+        ],
+        "documents": [
+            {
+                "id": "demo-doc1",
+                "recordDate": "2026-09-23",
+                "recordType": "blood_test",
+                "recordTitle": "Complete Blood Count (CBC)",
+                "description": "Baseline CBC report from initial febrile episode"
+            }
+        ],
+        "healthMetrics": [
+            {
+                "recordedAt": "2026-09-01",
+                "temperature": 99.8,
+                "systolicBp": 122,
+                "diastolicBp": 80,
+                "heartRate": 78,
+                "spo2": 98,
+                "respiratoryRate": 16,
+                "bloodGlucose": 104,
+                "plateletCount": 245000,
+                "wbcCount": 7800
+            },
+            {
+                "recordedAt": "2026-09-22",
+                "temperature": 100.6,
+                "systolicBp": 128,
+                "diastolicBp": 84,
+                "heartRate": 88,
+                "spo2": 97,
+                "respiratoryRate": 18,
+                "bloodGlucose": 112,
+                "plateletCount": 185000,
+                "wbcCount": 9400
+            },
+            {
+                "recordedAt": "2026-10-15",
+                "temperature": 102.4,
+                "systolicBp": 136,
+                "diastolicBp": 88,
+                "heartRate": 98,
+                "spo2": 95,
+                "respiratoryRate": 20,
+                "bloodGlucose": 118,
+                "plateletCount": 112000,
+                "wbcCount": 11200
+            }
+        ],
+        "currentComplaint": "Fever, fatigue and joint pain"
+    }
+    return jsonify(run_longitudinal_health_pipeline(demo_payload))
+
 
 
 # ─────────────────────────────────────────────────────────────────────────────

@@ -10,6 +10,10 @@ import {
   getPatientClinicalRecords,
   addClinicalRecord,
   getClinicalRecordById,
+  getPatientLongitudinalIntelligence,
+  recordPatientHealthMetric,
+  getPatientHealthMetrics,
+  regeneratePatientHealthSummary,
 } from "../controllers/patientHistoryController.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -48,5 +52,11 @@ router.get("/doctors/:doctorId/patients/:patientId/analytics", getDoctorPatientA
 router.get("/patients/:patientId/clinical-records", getPatientClinicalRecords);
 router.post("/patients/:patientId/clinical-records", upload.array("files", 5), addClinicalRecord);
 router.get("/clinical-records/:id", getClinicalRecordById);
+
+// AI-Powered Longitudinal Patient Health Intelligence routes
+router.get("/patients/:patientId/longitudinal-intelligence", getPatientLongitudinalIntelligence);
+router.post("/patients/:patientId/health-metrics", recordPatientHealthMetric);
+router.get("/patients/:patientId/health-metrics", getPatientHealthMetrics);
+router.post("/patients/:patientId/generate-summary", regeneratePatientHealthSummary);
 
 export default router;
