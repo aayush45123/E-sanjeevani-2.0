@@ -18,15 +18,18 @@ import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
 import styles from "./MyPatients.module.css";
 import { performLogout } from "../../utils/auth";
 import { consultationApi } from "../../utils/api";
+import DoctorPatientHistory from "../DoctorPatientHistory/DoctorPatientHistory";
 
 export default function MyPatients() {
   const navigate = useNavigate();
+  const doctorId = localStorage.getItem("userId");
   const [patients, setPatients] = useState([]);
   const [filteredPatients, setFilteredPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("consultations");
   const [expandedPatient, setExpandedPatient] = useState(null);
+  const [historyPatientId, setHistoryPatientId] = useState(null);
 
   /*
   ==================================================
@@ -248,6 +251,16 @@ export default function MyPatients() {
                     </div>
 
                     <button
+                      className={styles.aiIntelligenceBtn}
+                      title="AI Health Intelligence"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setHistoryPatientId(patient.id);
+                      }}
+                    >
+                      🧠 AI Intelligence
+                    </button>
+                    <button
                       className={styles.expandBtn}
                       onClick={() =>
                         setExpandedPatient(
@@ -386,6 +399,15 @@ export default function MyPatients() {
           )}
         </div>
       </main>
+
+      {/* AI Health Intelligence Modal */}
+      {historyPatientId && (
+        <DoctorPatientHistory
+          patientId={historyPatientId}
+          doctorId={doctorId}
+          onClose={() => setHistoryPatientId(null)}
+        />
+      )}
     </div>
   );
 }

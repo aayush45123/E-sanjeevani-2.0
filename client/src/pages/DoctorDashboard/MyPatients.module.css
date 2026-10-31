@@ -308,6 +308,35 @@
   color: var(--text-muted);
 }
 
+.aiIntelligenceBtn {
+  background: linear-gradient(135deg, #6f42c1 0%, #8b5cf6 100%);
+  border: none;
+  cursor: pointer;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(111, 66, 193, 0.35);
+}
+
+.aiIntelligenceBtn:hover {
+  background: linear-gradient(135deg, #5a32a3 0%, #7c3aed 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(111, 66, 193, 0.5);
+}
+
+.aiIntelligenceBtn:active {
+  transform: translateY(0);
+}
+
+
 .expandBtn {
   background: var(--bg-card);
   border: 1px solid var(--border);
