@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   X,
   Download,
@@ -11,11 +11,26 @@ import {
   ClipboardList,
   AlertCircle,
 } from "lucide-react";
-import { getFullFileUrl } from "../../utils/api";
+import { prescriptionApi, triggerBlobDownload } from "../../utils/api";
 import styles from "./PrescriptionDetailsModal.module.css";
 
 export default function PrescriptionDetailsModal({ isOpen, onClose, record }) {
+  const [downloading, setDownloading] = useState(false);
   if (!isOpen || !record) return null;
+
+  const handleDownloadPdf = async () => {
+    const rxId = record.prescriptionId || record.id;
+    try {
+      setDownloading(true);
+      const res = await prescriptionApi.downloadPrescriptionPdf(rxId);
+      triggerBlobDownload(res.data, `prescription-${rxId}.pdf`);
+    } catch (err) {
+      console.error("Failed to download signed PDF:", err);
+      alert("Failed to download prescription PDF. Please ensure you have valid authorization.");
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   const dateStr = record.recordDate || record.createdAt
     ? new Date(record.recordDate || record.createdAt).toLocaleDateString("en-IN", {
@@ -176,15 +191,15 @@ export default function PrescriptionDetailsModal({ isOpen, onClose, record }) {
         {/* Footer */}
         <div className={styles.modalFooter}>
           {record.prescriptionPdfUrl ? (
-            <a
-              href={getFullFileUrl(record.prescriptionPdfUrl)}
-              target="_blank"
-              rel="noopener noreferrer"
-              download
+            <button
+              type="button"
+              onClick={handleDownloadPdf}
+              disabled={downloading}
               className={styles.downloadPdfBtn}
+              style={{ cursor: "pointer", border: "none" }}
             >
-              <Download size={16} /> Download Signed PDF
-            </a>
+              <Download size={16} /> {downloading ? "Downloading..." : "Download Signed PDF"}
+            </button>
           ) : (
             <div style={{ fontSize: "0.82rem", color: "#64748b", fontStyle: "italic" }}>
               Digital record archived in verified electronic health record

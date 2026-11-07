@@ -84,7 +84,9 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+// PRODUCTION HARDENING: Public static serving of /uploads removed to prevent unauthenticated medical data exfiltration.
+// Medical records and prescription PDFs must be accessed via authenticated streaming endpoints.
+// app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 /*
 ==================================================

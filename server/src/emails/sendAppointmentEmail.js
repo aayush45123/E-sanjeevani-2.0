@@ -567,7 +567,7 @@ export const sendConsultationReminderEmail = async ({
     `;
 
     // 1. Send Patient Reminder
-    await transporter.sendMail({
+    const patRes = await transporter.sendMail({
       from: `"E-Sanjeevani" <${process.env.EMAIL_USER}>`,
       to: patientEmail,
       subject: "Consultation Starting Soon — Please Join",
@@ -579,7 +579,7 @@ export const sendConsultationReminderEmail = async ({
     });
 
     // 2. Send Doctor Reminder
-    await transporter.sendMail({
+    const docRes = await transporter.sendMail({
       from: `"E-Sanjeevani" <${process.env.EMAIL_USER}>`,
       to: doctorEmail,
       subject: "Consultation Starting Soon — Please Join",
@@ -590,10 +590,36 @@ export const sendConsultationReminderEmail = async ({
       }
     });
 
-    console.log("✅ Reminder mails sent");
+    const isSimulated =
+      patRes?.messageId === "email-disabled-mock-id" ||
+      docRes?.messageId === "email-disabled-mock-id" ||
+      patRes?.messageId === "email-failed-mock-id" ||
+      docRes?.messageId === "email-failed-mock-id";
+
+    const hasError = Boolean(patRes?.error || docRes?.error);
+
+    if (isSimulated) {
+      console.log("ℹ️ Reminder mails simulated (email disabled or mocked)");
+      return {
+        success: true,
+        simulated: true,
+      };
+    }
+
+    if (hasError) {
+      console.warn("⚠️ Reminder mails had delivery errors:", patRes?.error || docRes?.error);
+      return {
+        success: false,
+        simulated: false,
+        error: patRes?.error || docRes?.error,
+      };
+    }
+
+    console.log("✅ Reminder mails sent successfully via real transporter");
 
     return {
       success: true,
+      simulated: false,
     };
   } catch (error) {
     console.log("❌ Reminder mail error:", error);

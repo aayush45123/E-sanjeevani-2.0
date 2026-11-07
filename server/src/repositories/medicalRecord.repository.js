@@ -86,6 +86,25 @@ export class MedicalRecordRepository {
     return attachment;
   }
 
+  /** Find attachment by id with parent medical record for authorized streaming */
+  static async getAttachmentWithRecord(attachmentId) {
+    const [attachment] = await db
+      .select()
+      .from(medicalRecordAttachments)
+      .where(eq(medicalRecordAttachments.id, attachmentId))
+      .limit(1);
+
+    if (!attachment) return null;
+
+    const [record] = await db
+      .select()
+      .from(medicalRecords)
+      .where(eq(medicalRecords.id, attachment.medicalRecordId))
+      .limit(1);
+
+    return { attachment, record };
+  }
+
   // ─── QUERIES ─────────────────────────────────────────────────────────────────
 
   static async findByPatientId(patientId) {

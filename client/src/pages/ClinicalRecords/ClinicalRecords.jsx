@@ -22,7 +22,15 @@ import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar";
 import AddPreviousRecordModal from "../../components/MedicalRecords/AddPreviousRecordModal";
 import AmendPrescriptionModal from "./AmendPrescriptionModal";
 import PrescriptionDetailsModal from "./PrescriptionDetailsModal";
-import { medicalRecordApi, authApi, getFullFileUrl } from "../../utils/api";
+import {
+  medicalRecordApi,
+  prescriptionApi,
+  patientHistoryApi,
+  authApi,
+  triggerBlobDownload,
+  viewBlobInNewTab,
+  getFullFileUrl,
+} from "../../utils/api";
 import { performLogout } from "../../utils/auth";
 import styles from "./ClinicalRecords.module.css";
 
@@ -34,10 +42,34 @@ export default function ClinicalRecords() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [amendTarget, setAmendTarget] = useState(null); // prescription object to amend
   const [selectedRecord, setSelectedRecord] = useState(null); // view details modal
+  const [downloadingId, setDownloadingId] = useState(null);
   const [user, setUser] = useState(null);
   const userRole = localStorage.getItem("userRole");
 
   const handleLogout = () => performLogout();
+
+  const handleDownloadPrescription = async (prescriptionId) => {
+    try {
+      setDownloadingId(prescriptionId);
+      const res = await prescriptionApi.downloadPrescriptionPdf(prescriptionId);
+      triggerBlobDownload(res.data, `prescription-${prescriptionId}.pdf`);
+    } catch (err) {
+      console.error("Failed to download prescription PDF:", err);
+      alert("Failed to download prescription PDF. Please ensure you are logged in and authorized.");
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
+  const handleViewAttachment = async (attachment) => {
+    try {
+      const res = await patientHistoryApi.downloadAttachment(attachment.id);
+      viewBlobInNewTab(res.data);
+    } catch (err) {
+      console.error("Failed to view attachment:", err);
+      alert("Failed to open document. Please ensure you are authorized.");
+    }
+  };
 
   useEffect(() => {
     async function init() {
@@ -346,15 +378,16 @@ export default function ClinicalRecords() {
                           </span>
                           <div className={styles.attachPills}>
                             {rec.attachments.map((att) => (
-                              <a
+                              <button
                                 key={att.id}
-                                href={getFullFileUrl(att.fileUrl)}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                                type="button"
+                                onClick={() => handleViewAttachment(att)}
                                 className={styles.attachPill}
+                                style={{ background: "none", border: "1px solid #cbd5e1", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "4px" }}
+                                title="View clinical document securely"
                               >
                                 {att.fileName || "View Document"} <ExternalLink size={12} />
-                              </a>
+                              </button>
                             ))}
                           </div>
                         </div>
@@ -391,15 +424,15 @@ export default function ClinicalRecords() {
                         </button>
 
                         {rec.prescriptionPdfUrl && (
-                          <a
-                            href={getFullFileUrl(rec.prescriptionPdfUrl)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            download
+                          <button
+                            type="button"
+                            onClick={() => handleDownloadPrescription(rec.prescriptionId || rec.id)}
+                            disabled={downloadingId === (rec.prescriptionId || rec.id)}
                             className={styles.pdfDownloadBtn}
+                            style={{ cursor: "pointer", border: "none" }}
                           >
-                            <Download size={15} /> Download PDF
-                          </a>
+                            <Download size={15} /> {downloadingId === (rec.prescriptionId || rec.id) ? "Downloading..." : "Download PDF"}
+                          </button>
                         )}
 
                         {/* Amend button — Doctor only, for finalized prescriptions that haven't been superseded */}

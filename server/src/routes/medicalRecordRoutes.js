@@ -11,6 +11,7 @@ import {
   getRecordByConsultation,
   issuePrescription,
 } from "../controllers/medicalRecordController.js";
+import { streamClinicalRecordAttachment } from "../controllers/patientHistoryController.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -31,9 +32,24 @@ const storage = multer.diskStorage({
   },
 });
 
+const fileFilter = (req, file, cb) => {
+  const allowedMimeTypes = ["image/jpeg", "image/png", "application/pdf"];
+  const allowedExtensions = [".jpg", ".jpeg", ".png", ".pdf"];
+  const ext = path.extname(file.originalname).toLowerCase();
+
+  if (allowedMimeTypes.includes(file.mimetype) && allowedExtensions.includes(ext)) {
+    cb(null, true);
+  } else {
+    const error = new Error("Only PDF, JPG, and PNG files are allowed");
+    error.status = 400;
+    cb(error, false);
+  }
+};
+
 const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB per file
+  fileFilter,
 });
 
 const router = express.Router();
@@ -44,6 +60,7 @@ router.use(authMiddleware);
 router.post("/patient-upload", upload.array("files", 5), addPatientRecord);
 router.get("/my-records", getMyMedicalRecords);
 router.get("/consultation/:consultationId", getRecordByConsultation);
+router.get("/attachments/:attachmentId", streamClinicalRecordAttachment);
 router.get("/:id", getMedicalRecordById);
 
 // Doctor routes

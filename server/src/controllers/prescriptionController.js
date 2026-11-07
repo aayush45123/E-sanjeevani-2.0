@@ -1,5 +1,11 @@
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 import { PrescriptionLifecycleService } from "../services/prescriptionLifecycle.service.js";
 import { PrescriptionRepository } from "../repositories/prescription.repository.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // ─── CREATE & ISSUE PRESCRIPTION ──────────────────────────────────────────────
 
@@ -96,6 +102,19 @@ export const getPatientPrescriptions = async (req, res) => {
 
     if (role === "patient" && requesterId !== patientId) {
       return res.status(403).json({ success: false, message: "Access denied" });
+    }
+
+    if (role === "doctor") {
+      const hasRelationship = await PrescriptionRepository.verifyDoctorPatientRelationship(
+        requesterId,
+        patientId
+      );
+      if (!hasRelationship) {
+        return res.status(403).json({
+          success: false,
+          message: "Access denied — no clinical relationship found with this patient",
+        });
+      }
     }
 
     const rxList = await PrescriptionRepository.findByPatientId(patientId);
@@ -213,6 +232,88 @@ export const discontinueMedication = async (req, res) => {
     return res.status(error.status || 500).json({
       success: false,
       message: error.message || "Failed to discontinue medication",
+    });
+  }
+};
+
+// ─── AUTHENTICATED PRESCRIPTION PDF STREAMING ─────────────────────────────────
+
+export const streamPrescriptionPdf = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { id: requesterId, role } = req.user;
+
+    const rx = await PrescriptionRepository.findById(id);
+    if (!rx) {
+      return res.status(404).json({ success: false, message: "Prescription not found" });
+    }
+
+    // Role-based access control
+    let isAuthorized = false;
+    if (role === "admin") {
+      isAuthorized = true;
+    } else if (role === "patient" && rx.patientId === requesterId) {
+      isAuthorized = true;
+    } else if (role === "doctor") {
+      if (rx.doctorId === requesterId) {
+        isAuthorized = true;
+      } else {
+        const hasRelationship = await PrescriptionRepository.verifyDoctorPatientRelationship(
+          requesterId,
+          rx.patientId
+        );
+        if (hasRelationship) {
+          isAuthorized = true;
+        }
+      }
+    }
+
+    if (!isAuthorized) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied — you are not authorized to view this prescription PDF",
+      });
+    }
+
+    // Resolve file path safely
+    const uploadsDir = path.resolve(__dirname, "../../uploads/prescriptions");
+    let targetFileName = `prescription-${id}.pdf`;
+    if (rx.pdfUrl) {
+      const parsed = path.basename(rx.pdfUrl);
+      if (parsed) targetFileName = parsed;
+    }
+
+    const safeFilePath = path.resolve(uploadsDir, targetFileName);
+
+    // Prevent directory traversal attacks
+    if (!safeFilePath.startsWith(uploadsDir)) {
+      return res.status(403).json({ success: false, message: "Invalid file path request" });
+    }
+
+    if (!fs.existsSync(safeFilePath)) {
+      return res.status(404).json({
+        success: false,
+        message: "Prescription PDF file not found on server",
+      });
+    }
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `inline; filename="prescription-${id}.pdf"`);
+    res.setHeader("X-Content-Type-Options", "nosniff");
+
+    const readStream = fs.createReadStream(safeFilePath);
+    readStream.on("error", (err) => {
+      console.error("Error streaming prescription PDF:", err);
+      if (!res.headersSent) {
+        res.status(500).json({ success: false, message: "Error reading prescription file" });
+      }
+    });
+    readStream.pipe(res);
+  } catch (error) {
+    console.error("streamPrescriptionPdf error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to stream prescription PDF",
     });
   }
 };

@@ -1,7 +1,18 @@
 import { Server } from "socket.io";
+import jwt from "jsonwebtoken";
+import { ConsultationRepository } from "../repositories/consultation.repository.js";
 
 const roomUsers = {};
 const socketRoomMap = {};
+
+const parseCookieString = (cookieStr) => {
+  if (!cookieStr) return {};
+  return cookieStr.split(";").reduce((acc, curr) => {
+    const [key, ...val] = curr.trim().split("=");
+    if (key) acc[key] = decodeURIComponent(val.join("="));
+    return acc;
+  }, {});
+};
 
 const initializeSocket = (server) => {
   const allowedOrigins = [
@@ -45,6 +56,49 @@ const initializeSocket = (server) => {
     transports: ["websocket", "polling"],
   });
 
+  // ── Handshake Authentication Middleware ─────────────────────────────────────
+  io.use(async (socket, next) => {
+    try {
+      let token = socket.handshake.auth?.token;
+
+      if (!token && socket.handshake.headers?.authorization) {
+        const parts = socket.handshake.headers.authorization.split(" ");
+        if (parts.length === 2 && parts[0] === "Bearer") {
+          token = parts[1];
+        }
+      }
+
+      if (!token && socket.handshake.headers?.cookie) {
+        const cookies = parseCookieString(socket.handshake.headers.cookie);
+        const accessCookieName = process.env.ACCESS_COOKIE_NAME || "access_token";
+        token = cookies[accessCookieName];
+      }
+
+      if (!token) {
+        console.warn(`[Socket Auth Error] Missing token for handshake ${socket.id}`);
+        return next(new Error("Authentication error: Unauthorized connection"));
+      }
+
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const userId = decoded.userId || decoded.id || decoded._id;
+
+      if (!userId) {
+        return next(new Error("Authentication error: Invalid token payload"));
+      }
+
+      socket.user = {
+        id: userId,
+        email: decoded.email,
+        role: decoded.role ? String(decoded.role).trim().toLowerCase() : "patient",
+      };
+
+      return next();
+    } catch (err) {
+      console.warn(`[Socket Auth Failed] Handshake rejected: ${err.message}`);
+      return next(new Error("Authentication error: Invalid or expired token"));
+    }
+  });
+
   io.on("connection", (socket) => {
     console.log(`[Socket] Connected: ${socket.id}`);
 
@@ -62,12 +116,43 @@ const initializeSocket = (server) => {
     ==================================================
     */
 
-    socket.on("join-room", (data) => {
+    socket.on("join-room", async (data) => {
       const consultationId = data.consultationId || data;
-      const userRole = data.userRole || "unknown";
+      const userRole = data.userRole || socket.user?.role || "unknown";
       const userName = data.userName || "User";
 
-      if (!consultationId) return;
+      if (!consultationId) {
+        socket.emit("room-error", { message: "Consultation ID is required" });
+        return;
+      }
+
+      // Enforce consultation room participant validation (REQ-SEC-WS-02)
+      try {
+        const consultation = await ConsultationRepository.findById(consultationId);
+        if (!consultation) {
+          socket.emit("room-error", { message: "Consultation not found" });
+          return;
+        }
+
+        const isParticipant =
+          socket.user?.id === consultation.patientId ||
+          socket.user?.id === consultation.doctorId ||
+          socket.user?.role === "admin";
+
+        if (!isParticipant) {
+          console.warn(
+            `[Socket Unauthorized Room Access] User ${socket.user?.id} (${socket.user?.role}) tried to join room ${consultationId}`
+          );
+          socket.emit("room-error", {
+            message: "Access denied: You are not an authorized participant in this consultation",
+          });
+          return;
+        }
+      } catch (err) {
+        console.error(`[Socket join-room lookup error]`, err);
+        socket.emit("room-error", { message: "Failed to verify consultation authorization" });
+        return;
+      }
 
       /*
       Prevent duplicate joins

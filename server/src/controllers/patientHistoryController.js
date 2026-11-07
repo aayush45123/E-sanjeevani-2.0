@@ -1,6 +1,13 @@
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 import { MedicalRecordService } from "../services/medicalRecord.service.js";
+import { MedicalRecordRepository } from "../repositories/medicalRecord.repository.js";
 import { PatientHistoryService } from "../services/patientHistory.service.js";
 import { LongitudinalIntelligenceService } from "../services/longitudinalIntelligence.service.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // ─── GET DOCTOR → PATIENT HISTORY ────────────────────────────────────────────
 
@@ -219,6 +226,19 @@ export const getPatientLongitudinalIntelligence = async (req, res) => {
       });
     }
 
+    if (role === "doctor") {
+      const hasRelationship = await PatientHistoryService.verifyDoctorPatientRelationship(
+        requesterId,
+        patientId
+      );
+      if (!hasRelationship) {
+        return res.status(403).json({
+          success: false,
+          message: "No consultation relationship found with this patient",
+        });
+      }
+    }
+
     const intelligence = await LongitudinalIntelligenceService.getLongitudinalIntelligence(
       patientId,
       currentComplaint || ""
@@ -327,6 +347,85 @@ export const regeneratePatientHealthSummary = async (req, res) => {
     return res.status(error.status || 500).json({
       success: false,
       message: error.message || "Failed to regenerate health summary",
+    });
+  }
+};
+
+// ─── AUTHENTICATED CLINICAL RECORD ATTACHMENT STREAMING ──────────────────────
+
+export const streamClinicalRecordAttachment = async (req, res) => {
+  try {
+    const { attachmentId } = req.params;
+    const { id: requesterId, role } = req.user;
+
+    const data = await MedicalRecordRepository.getAttachmentWithRecord(attachmentId);
+    if (!data || !data.attachment || !data.record) {
+      return res.status(404).json({ success: false, message: "Clinical attachment not found" });
+    }
+
+    const { attachment, record } = data;
+
+    // Access control:
+    // Admin is allowed
+    // Patient who owns the medical record is allowed
+    // Doctor who has an established consultation relationship with the patient is allowed
+    let isAuthorized = false;
+    if (role === "admin") {
+      isAuthorized = true;
+    } else if (role === "patient" && record.patientId === requesterId) {
+      isAuthorized = true;
+    } else if (role === "doctor") {
+      const hasRelationship = await PatientHistoryService.verifyDoctorPatientRelationship(
+        requesterId,
+        record.patientId
+      );
+      if (hasRelationship) {
+        isAuthorized = true;
+      }
+    }
+
+    if (!isAuthorized) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied to this clinical attachment",
+      });
+    }
+
+    const uploadsDir = path.resolve(__dirname, "../../uploads/attachments");
+    const rawFileName = path.basename(attachment.fileUrl || attachment.fileName);
+    const safeFilePath = path.resolve(uploadsDir, rawFileName);
+
+    if (!safeFilePath.startsWith(uploadsDir)) {
+      return res.status(403).json({ success: false, message: "Invalid attachment path request" });
+    }
+
+    if (!fs.existsSync(safeFilePath)) {
+      return res.status(404).json({ success: false, message: "Attachment file not found on disk" });
+    }
+
+    const ext = path.extname(safeFilePath).toLowerCase();
+    let contentType = "application/octet-stream";
+    if (ext === ".pdf") contentType = "application/pdf";
+    else if (ext === ".jpg" || ext === ".jpeg") contentType = "image/jpeg";
+    else if (ext === ".png") contentType = "image/png";
+
+    res.setHeader("Content-Type", contentType);
+    res.setHeader("Content-Disposition", `inline; filename="${attachment.fileName || rawFileName}"`);
+    res.setHeader("X-Content-Type-Options", "nosniff");
+
+    const readStream = fs.createReadStream(safeFilePath);
+    readStream.on("error", (err) => {
+      console.error("Error streaming attachment file:", err);
+      if (!res.headersSent) {
+        res.status(500).json({ success: false, message: "Error reading attachment file" });
+      }
+    });
+    readStream.pipe(res);
+  } catch (error) {
+    console.error("streamClinicalRecordAttachment error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to stream clinical attachment",
     });
   }
 };

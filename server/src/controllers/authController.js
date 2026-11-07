@@ -116,20 +116,3 @@ export const completePatientProfile = async (req, res) => {
       "Patient profile completion is temporarily unavailable during PostgreSQL migration",
   });
 };
-
-export const fixDoctorPassword = async (req, res) => {
-  try {
-    const result = await AuthService.fixDoctorPassword(req.body);
-    return res.status(200).json({
-      success: true,
-      ...result,
-    });
-  } catch (error) {
-    console.error("FixDoctorPassword controller error:", error);
-    return res.status(error.status || 500).json({
-      success: false,
-      message: error.message || "Failed to fix password",
-      error: error.error || error.message,
-    });
-  }
-};

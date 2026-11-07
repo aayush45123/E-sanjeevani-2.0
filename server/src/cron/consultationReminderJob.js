@@ -11,10 +11,19 @@ export const initializeConsultationReminders = () => {
     try {
       const now = new Date();
 
-      const currentHour = String(now.getHours()).padStart(2, "0");
-      const currentMinute = String(now.getMinutes()).padStart(2, "0");
+      // 5-minute sliding query window (REQ-SEC-CRON-01)
+      const windowStartMs = now.getTime() - 1 * 60 * 1000; // 1-minute buffer for event-loop latency
+      const windowEndMs = now.getTime() + 5 * 60 * 1000;   // 5 minutes upcoming window
 
-      const currentTime = `${currentHour}:${currentMinute}`;
+      const formatTimeStr = (d) => {
+        const h = String(d.getHours()).padStart(2, "0");
+        const m = String(d.getMinutes()).padStart(2, "0");
+        return `${h}:${m}`;
+      };
+
+      const windowStart = formatTimeStr(new Date(windowStartMs));
+      const windowEnd = formatTimeStr(new Date(windowEndMs));
+      const currentTime = formatTimeStr(now);
 
       const todayStart = new Date(now);
       todayStart.setHours(0, 0, 0, 0);
@@ -48,7 +57,8 @@ export const initializeConsultationReminders = () => {
             eq(consultations.reminderSent, false),
             eq(consultations.patientJoined, false),
             eq(consultations.doctorJoined, false),
-            eq(consultations.startTime, currentTime),
+            gte(consultations.startTime, windowStart),
+            lte(consultations.startTime, windowEnd),
           ),
         );
 
@@ -57,7 +67,7 @@ export const initializeConsultationReminders = () => {
       }
 
       console.log(
-        `\n⏰ CONSULTATION REMINDER JOB: Found ${dueConsultations.length} consultation(s) at ${currentTime}`,
+        `\n⏰ CONSULTATION REMINDER JOB: Found ${dueConsultations.length} consultation(s) in window [${windowStart} - ${windowEnd}] at ${currentTime}`,
       );
 
       for (const consultation of dueConsultations) {
@@ -84,7 +94,7 @@ export const initializeConsultationReminders = () => {
             consultationType: consultation.consultationType,
           });
 
-          if (result.success) {
+          if (result.success === true && result.simulated !== true) {
             await db
               .update(consultations)
               .set({
@@ -96,6 +106,10 @@ export const initializeConsultationReminders = () => {
 
             console.log(
               `✅ Reminder successfully sent for consultation ${consultation.id}`,
+            );
+          } else if (result.simulated === true) {
+            console.log(
+              `ℹ️ Reminder simulated (email disabled) for consultation ${consultation.id} — reminderSent NOT marked true`,
             );
           } else {
             console.error(

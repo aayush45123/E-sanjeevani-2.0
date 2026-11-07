@@ -9,14 +9,12 @@ import {
   getPatientProfile,
   updatePatientProfile,
   completePatientProfile,
-  fixDoctorPassword,
 } from "../controllers/authController.js";
 
 import { validate } from "../validators/validation.middleware.js";
 import {
   registerSchema,
   loginSchema,
-  fixPasswordSchema,
 } from "../validators/auth.validator.js";
 
 const router = express.Router();
@@ -34,12 +32,5 @@ router.get("/me", authMiddleware, me);
 router.get("/patient/me", authMiddleware, getPatientProfile);
 router.put("/patient/update", authMiddleware, updatePatientProfile);
 router.put("/patient/complete-profile", authMiddleware, completePatientProfile);
-
-// Admin tools
-router.post(
-  "/admin/fix-password",
-  validate(fixPasswordSchema),
-  fixDoctorPassword,
-);
 
 export default router;

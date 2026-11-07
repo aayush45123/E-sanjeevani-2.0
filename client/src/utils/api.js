@@ -20,33 +20,31 @@ export const getFullFileUrl = (url) => {
   return `${baseUrl}${url.startsWith("/") ? "" : "/"}${url}`;
 };
 
-// ─── Token helpers (localStorage is port-isolated on localhost) ───────────────
-const TOKEN_KEY = "access_token_local";
-const REFRESH_TOKEN_KEY = "refresh_token_local";
+// ─── In-Memory Access Token (REQ-SEC-AUTH-01, REQ-SEC-AUTH-02) ───────────────
+let accessTokenInMemory = null;
 
-export const getLocalToken = () => localStorage.getItem(TOKEN_KEY);
-export const setLocalToken = (token) => {
-  if (token) localStorage.setItem(TOKEN_KEY, token);
+export const getAccessToken = () => accessTokenInMemory;
+export const setAccessToken = (token) => {
+  accessTokenInMemory = token || null;
 };
-export const clearLocalToken = () => localStorage.removeItem(TOKEN_KEY);
-
-export const getRefreshToken = () => localStorage.getItem(REFRESH_TOKEN_KEY);
-export const setRefreshToken = (token) => {
-  if (token) localStorage.setItem(REFRESH_TOKEN_KEY, token);
+export const clearAccessToken = () => {
+  accessTokenInMemory = null;
 };
-export const clearRefreshToken = () => localStorage.removeItem(REFRESH_TOKEN_KEY);
 
-// ─── Request interceptor – attach tokens as Bearer / X-Refresh-Token headers ──
+// Backward compatibility wrappers
+export const getLocalToken = () => accessTokenInMemory;
+export const setLocalToken = (token) => setAccessToken(token);
+export const clearLocalToken = () => clearAccessToken();
+export const getRefreshToken = () => null; // Refresh token lives purely in httpOnly cookie
+export const setRefreshToken = () => {};
+export const clearRefreshToken = () => {};
+
+// ─── Request interceptor – attach memory token as Bearer header ──────────────
 apiClient.interceptors.request.use((config) => {
-  const token = getLocalToken();
+  const token = getAccessToken();
   if (token) {
     config.headers = config.headers || {};
     config.headers["Authorization"] = `Bearer ${token}`;
-  }
-  const refreshToken = getRefreshToken();
-  if (refreshToken) {
-    config.headers = config.headers || {};
-    config.headers["x-refresh-token"] = refreshToken;
   }
   return config;
 });
@@ -65,23 +63,36 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
-// Response interceptor for error handling
+// Response interceptor for error handling & silent cookie refresh
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // Check if the error is 401 Unauthorized and we haven't retried yet
-    // Do NOT retry if the request itself failed to refresh the token, or was login/register
-    const isRefreshRequest = originalRequest.url === "/auth/refresh";
-    const isLoginRequest = originalRequest.url === "/auth/login" || originalRequest.url === "/auth/register";
+    if (!originalRequest) {
+      return Promise.reject(error);
+    }
 
-    if (error.response?.status === 401 && !originalRequest._retry && !isRefreshRequest && !isLoginRequest) {
+    const isRefreshRequest = originalRequest.url?.includes("/auth/refresh");
+    const isLoginRequest =
+      originalRequest.url?.includes("/auth/login") ||
+      originalRequest.url?.includes("/auth/register");
+
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !isRefreshRequest &&
+      !isLoginRequest
+    ) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
-          .then(() => {
+          .then((token) => {
+            if (token) {
+              originalRequest.headers = originalRequest.headers || {};
+              originalRequest.headers["Authorization"] = `Bearer ${token}`;
+            }
             return apiClient(originalRequest);
           })
           .catch((err) => {
@@ -94,30 +105,31 @@ apiClient.interceptors.response.use(
 
       try {
         const refreshRes = await apiClient.post("/auth/refresh");
-        // Save new tokens from refresh response
-        if (refreshRes.data?.accessToken) {
-          setLocalToken(refreshRes.data.accessToken);
-        }
-        if (refreshRes.data?.refreshToken) {
-          setRefreshToken(refreshRes.data.refreshToken);
+        const newAccessToken = refreshRes.data?.accessToken;
+        if (newAccessToken) {
+          setAccessToken(newAccessToken);
         }
         isRefreshing = false;
-        processQueue(null);
+        processQueue(null, newAccessToken);
+        if (newAccessToken) {
+          originalRequest.headers = originalRequest.headers || {};
+          originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
+        }
         return apiClient(originalRequest);
       } catch (refreshError) {
         isRefreshing = false;
-        processQueue(refreshError);
-        
+        processQueue(refreshError, null);
+
         // Full logout state clearing
-        clearLocalToken();
-        clearRefreshToken();
+        clearAccessToken();
         localStorage.removeItem("userRole");
         localStorage.removeItem("user");
         localStorage.removeItem("userId");
         localStorage.removeItem("doctorProfileCompleted");
-        
+        localStorage.removeItem("access_token_local");
+        localStorage.removeItem("refresh_token_local");
+
         window.dispatchEvent(new Event("authChange"));
-        window.location.href = "/auth";
         return Promise.reject(refreshError);
       }
     }
@@ -130,34 +142,29 @@ apiClient.interceptors.response.use(
 export const authApi = {
   register: async (data) => {
     const res = await apiClient.post("/auth/register", data);
-    if (res.data?.accessToken) setLocalToken(res.data.accessToken);
-    if (res.data?.refreshToken) setRefreshToken(res.data.refreshToken);
+    if (res.data?.accessToken) setAccessToken(res.data.accessToken);
     return res;
   },
   signup: async (data) => {
     const res = await apiClient.post("/auth/register", data);
-    if (res.data?.accessToken) setLocalToken(res.data.accessToken);
-    if (res.data?.refreshToken) setRefreshToken(res.data.refreshToken);
+    if (res.data?.accessToken) setAccessToken(res.data.accessToken);
     return res;
   },
   login: async (data) => {
     const res = await apiClient.post("/auth/login", data);
-    if (res.data?.accessToken) setLocalToken(res.data.accessToken);
-    if (res.data?.refreshToken) setRefreshToken(res.data.refreshToken);
+    if (res.data?.accessToken) setAccessToken(res.data.accessToken);
     return res;
   },
   logout: async () => {
     try {
       return await apiClient.post("/auth/logout");
     } finally {
-      clearLocalToken();
-      clearRefreshToken();
+      clearAccessToken();
     }
   },
   refresh: async () => {
     const res = await apiClient.post("/auth/refresh");
-    if (res.data?.accessToken) setLocalToken(res.data.accessToken);
-    if (res.data?.refreshToken) setRefreshToken(res.data.refreshToken);
+    if (res.data?.accessToken) setAccessToken(res.data.accessToken);
     return res;
   },
   me: () => apiClient.get("/auth/me"),
@@ -240,6 +247,8 @@ export const medicalRecordApi = {
   getRecordById: (id) => apiClient.get(`/medical-records/${id}`),
   getRecordByConsultation: (consultationId) =>
     apiClient.get(`/medical-records/consultation/${consultationId}`),
+  downloadAttachment: (attachmentId) =>
+    apiClient.get(`/medical-records/attachments/${attachmentId}`, { responseType: "blob" }),
   issuePrescription: (data) =>
     apiClient.post("/medical-records/issue-prescription", data),
 };
@@ -248,6 +257,8 @@ export const medicalRecordApi = {
 export const prescriptionApi = {
   createPrescription: (data) => apiClient.post("/prescriptions", data),
   getPrescriptionById: (id) => apiClient.get(`/prescriptions/${id}`),
+  downloadPrescriptionPdf: (id) =>
+    apiClient.get(`/prescriptions/${id}/pdf`, { responseType: "blob" }),
   getPatientPrescriptions: (patientId) => apiClient.get(`/prescriptions/patient/${patientId}`),
   getDoctorPatientPrescriptions: (patientId) => apiClient.get(`/prescriptions/doctor-patient/${patientId}`),
   finalizePrescription: (id) => apiClient.patch(`/prescriptions/${id}/finalize`),
@@ -275,6 +286,9 @@ export const patientHistoryApi = {
   getClinicalRecordById: (id) =>
     apiClient.get(`/patient-history/clinical-records/${id}`),
 
+  downloadAttachment: (attachmentId) =>
+    apiClient.get(`/patient-history/attachments/${attachmentId}`, { responseType: "blob" }),
+
   getLongitudinalIntelligence: (patientId, currentComplaint = "") =>
     apiClient.get(`/patient-history/patients/${patientId}/longitudinal-intelligence`, {
       params: currentComplaint ? { currentComplaint } : {},
@@ -288,6 +302,25 @@ export const patientHistoryApi = {
 
   regenerateAiSummary: (patientId, data = {}) =>
     apiClient.post(`/patient-history/patients/${patientId}/generate-summary`, data),
+};
+
+export const triggerBlobDownload = (blobData, filename = "document.pdf") => {
+  const blob = new Blob([blobData], { type: blobData.type || "application/octet-stream" });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+};
+
+export const viewBlobInNewTab = (blobData) => {
+  const blob = new Blob([blobData], { type: blobData.type || "application/pdf" });
+  const url = window.URL.createObjectURL(blob);
+  window.open(url, "_blank");
+  setTimeout(() => window.URL.revokeObjectURL(url), 60000);
 };
 
 // Analytics API

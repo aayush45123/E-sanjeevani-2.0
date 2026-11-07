@@ -68,18 +68,7 @@ export const ensurePrescriptionTablesExist = async () => {
       );
     `);
 
-    // 3. Check if prescription_items table has updated prescription_id column
-    const colCheck = await pool.query(`
-      SELECT column_name FROM information_schema.columns 
-      WHERE table_name = 'prescription_items' AND column_name = 'prescription_id'
-    `);
-
-    if (colCheck.rows.length === 0) {
-      // Table exists with old legacy schema — drop old table
-      await pool.query(`DROP TABLE IF EXISTS "prescription_items" CASCADE;`);
-    }
-
-    // 4. Create prescription_items table
+    // 3. Create prescription_items table if not exists (Destructive DROP TABLE removed for production safety)
     await pool.query(`
       CREATE TABLE IF NOT EXISTS "prescription_items" (
           "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,

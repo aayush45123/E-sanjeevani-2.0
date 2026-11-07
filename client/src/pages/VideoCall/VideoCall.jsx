@@ -7,6 +7,7 @@ import {
   apiClient,
   feedbackApi,
   doctorAssistantApi,
+  getAccessToken,
 } from "../../utils/api";
 import { formatDoctorName } from "../../utils/doctorUtils";
 import NotificationService from "../../utils/notificationService";
@@ -504,8 +505,26 @@ export default function VideoCall() {
         }
 
 
-        const socket = io(SOCKET_URL, { transports: ["websocket"] });
+        const socket = io(SOCKET_URL, {
+          transports: ["websocket", "polling"],
+          withCredentials: true,
+          auth: {
+            token: getAccessToken(),
+          },
+        });
         socketRef.current = socket;
+
+        socket.on("connect_error", (err) => {
+          console.error("[Socket Connect Error]", err.message);
+          setConnectionError(`Connection failed: ${err.message}`);
+          NotificationService.showToast(`Call connection error: ${err.message}`, "error");
+        });
+
+        socket.on("room-error", ({ message }) => {
+          console.error("[Socket Room Error]", message);
+          setConnectionError(message || "Unauthorized to enter this consultation room.");
+          NotificationService.showToast(message || "Access denied to consultation room", "error");
+        });
 
         socket.on("connect", () => {
           console.log("Socket connected, joining room...");
@@ -730,8 +749,26 @@ export default function VideoCall() {
             NotificationService.showToast("Camera unavailable: switched to audio-only", "warning");
             setCallStatus("connected");
 
-            const socket = io(SOCKET_URL, { transports: ["websocket"] });
+            const socket = io(SOCKET_URL, {
+              transports: ["websocket", "polling"],
+              withCredentials: true,
+              auth: {
+                token: getAccessToken(),
+              },
+            });
             socketRef.current = socket;
+
+            socket.on("connect_error", (err) => {
+              console.error("[Socket Connect Error]", err.message);
+              setConnectionError(`Connection failed: ${err.message}`);
+              NotificationService.showToast(`Call connection error: ${err.message}`, "error");
+            });
+
+            socket.on("room-error", ({ message }) => {
+              console.error("[Socket Room Error]", message);
+              setConnectionError(message || "Unauthorized to enter this consultation room.");
+              NotificationService.showToast(message || "Access denied to consultation room", "error");
+            });
 
             socket.on("connect", () => {
               socket.emit("join-room", {

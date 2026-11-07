@@ -106,7 +106,6 @@ export class AuthService {
 
     return {
       accessToken,
-      refreshToken: refreshTokenRaw,
       user: {
         id: user.id,
         name: user.name,
@@ -203,7 +202,6 @@ export class AuthService {
 
     return {
       accessToken,
-      refreshToken: refreshTokenRaw,
       user: {
         id: user.id,
         name: user.name,
@@ -283,7 +281,7 @@ export class AuthService {
       ),
     });
 
-    return { userId: user.id, accessToken: newAccessToken, refreshToken: newRefreshRaw };
+    return { userId: user.id, accessToken: newAccessToken };
   }
 
   static async logout(req, res) {
@@ -341,32 +339,5 @@ export class AuthService {
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
-  }
-
-  static async fixDoctorPassword({ email, plainPassword, adminSecret }) {
-    if (!adminSecret || adminSecret !== process.env.ADMIN_SECRET) {
-      throw { status: 403, message: "Unauthorized" };
-    }
-
-    if (!email || !plainPassword) {
-      throw { status: 400, message: "email and plainPassword are required" };
-    }
-
-    const normalizedEmail = normalizeEmail(email);
-    const user = await UserRepository.findByEmail(normalizedEmail);
-
-    if (!user) {
-      throw { status: 404, message: "User not found" };
-    }
-
-    const isAlreadyHashed = user.passwordHash?.startsWith("$2");
-    if (isAlreadyHashed) {
-      return { message: "Password is already hashed — no change made" };
-    }
-
-    const passwordHash = await bcrypt.hash(plainPassword, 10);
-    await UserRepository.update(user.id, { passwordHash });
-
-    return { message: `Password hashed successfully for ${normalizedEmail}` };
   }
 }

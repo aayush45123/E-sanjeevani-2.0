@@ -33,11 +33,11 @@ router.get("/health", async (req, res) => {
       engine: "python-ml",
     });
   } catch (error) {
-    return res.status(200).json({
-      success: true,
-      all_models_ready: true,
+    return res.status(503).json({
+      success: false,
+      all_models_ready: false,
       engine: "clinical-differential-rules-fallback",
-      message: "Unified E-Sanjeevani Triage clinical rule engine active",
+      message: "Python ML models offline; provisional rule fallback available",
     });
   }
 });
@@ -256,24 +256,27 @@ function evaluateClinicalFallback(symptoms = {}, red_flags = {}, category = null
     insufficient_information: false,
     primary_category: targetCategory,
     primary_condition: topDisease,
-    overall_confidence: 88.0,
+    overall_confidence: null,
+    isProvisionalRuleAssessment: true,
+    engineStatus: "fallback_rules_engine",
     urgency_level: "moderate",
     recommended_specialist: specialist,
     recommended_action: `Consult a ${specialist} for complete diagnostic validation and appropriate clinical testing.`,
     disclaimer:
-      "Clinical differential assessment for informational guidance only. Not a formal medical diagnosis. Please consult a qualified doctor.",
+      "Provisional rule-based clinical assessment (AI machine learning offline). Not a statistical prediction or formal diagnosis. Please consult a qualified medical professional.",
     top_ranking: [
-      { rank: 1, disease: topDisease, label: topDisease, score: 0.88, confidence_pct: 88.0 },
+      { rank: 1, disease: topDisease, label: topDisease, score: null, confidence_pct: null, isProvisional: true },
     ],
     primary_explanation: explanation,
     assessments: [
       {
         category: targetCategory,
         top_condition: topDisease,
-        confidence_pct: 88.0,
+        confidence_pct: null,
+        isProvisional: true,
         recommended_specialist: specialist,
         candidate_ranking: [
-          { rank: 1, disease: topDisease, label: topDisease, score: 0.88, confidence_pct: 88.0 },
+          { rank: 1, disease: topDisease, label: topDisease, score: null, confidence_pct: null, isProvisional: true },
         ],
         primary_explanation: explanation,
       },

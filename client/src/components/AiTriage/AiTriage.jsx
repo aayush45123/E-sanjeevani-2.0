@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import styles from "./AiTriage.module.css";
 import { apiClient } from "../../utils/api";
 import { AiTriageSkeleton } from "../Skeletons";
@@ -823,6 +823,28 @@ const AiTriage = () => {
 
               {!triageResult.red_flag_alert && !triageResult.insufficient_information && (
                 <div className={styles.predictionCard}>
+                  {triageResult?.isProvisionalRuleAssessment && (
+                    <div
+                      style={{
+                        background: "#fffbeb",
+                        border: "1px solid #fde68a",
+                        borderRadius: "8px",
+                        padding: "10px 14px",
+                        marginBottom: "16px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                        color: "#92400e",
+                        fontSize: "0.88rem",
+                      }}
+                    >
+                      <AlertTriangle size={20} color="#d97706" style={{ flexShrink: 0 }} />
+                      <div>
+                        <strong>Notice:</strong> Machine learning predictive service is currently offline. This provisional differential is generated via heuristic rule-based logic without statistical confidence scoring.
+                      </div>
+                    </div>
+                  )}
+
                   <div className={styles.predictionTopRow}>
                     <div>
                       <span className={styles.predictionTag}>
@@ -834,12 +856,17 @@ const AiTriage = () => {
                         Recommended Care: <strong>{displaySpecialist}</strong>
                       </p>
                     </div>
-                    {displayConfidence > 0 && (
+                    {triageResult?.isProvisionalRuleAssessment ? (
+                      <div className={styles.confidenceBadgeBox} style={{ background: "#fffbeb", borderColor: "#fde68a" }}>
+                        <span className={styles.confidenceVal} style={{ fontSize: "0.85rem", color: "#b45309" }}>PROVISIONAL</span>
+                        <span className={styles.confidenceLabel} style={{ color: "#92400e" }}>Clinical Rule Engine</span>
+                      </div>
+                    ) : displayConfidence > 0 ? (
                       <div className={styles.confidenceBadgeBox}>
                         <span className={styles.confidenceVal}>{Math.round(displayConfidence)}%</span>
                         <span className={styles.confidenceLabel}>Model Confidence</span>
                       </div>
-                    )}
+                    ) : null}
                   </div>
 
                   <div className={styles.actionRecommendationBox}>

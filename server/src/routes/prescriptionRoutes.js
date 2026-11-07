@@ -8,6 +8,7 @@ import {
   finalizePrescription,
   amendPrescription,
   discontinueMedication,
+  streamPrescriptionPdf,
 } from "../controllers/prescriptionController.js";
 
 const router = express.Router();
@@ -19,6 +20,9 @@ router.post("/", createPrescription);
 
 /** GET /api/prescriptions/:id */
 router.get("/:id", getPrescriptionById);
+
+/** GET /api/prescriptions/:id/pdf — Authenticated PDF stream */
+router.get("/:id/pdf", streamPrescriptionPdf);
 
 /** GET /api/prescriptions/patient/:patientId */
 router.get("/patient/:patientId", getPatientPrescriptions);

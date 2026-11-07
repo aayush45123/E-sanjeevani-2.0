@@ -1,0 +1,16 @@
+{
+  "project_name": "E-Sanjeevani 2.0",
+  "version": "2.0.0",
+  "model_profile": "balanced",
+  "workflow": {
+    "auto_verify": true,
+    "require_plan_review": false,
+    "nyquist_validation": true
+  },
+  "modules": {
+    "client": "client",
+    "server": "server",
+    "ai_microservice": "ai-model"
+  }
+}
+
